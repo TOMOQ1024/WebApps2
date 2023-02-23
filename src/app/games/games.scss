@@ -1,0 +1,17 @@
+.appcard {
+  display: inline-block;
+  vertical-align: top;
+  margin: 10px;
+  img {
+    width: 200px;
+    height: auto;
+    border-radius: 20%;
+    box-shadow: 0 0 10px #444;
+  }
+  a {
+    font-size: 0;
+    & + div {
+      text-align: center;
+    }
+  }
+}
