@@ -7,7 +7,8 @@ import Link from 'next/link'
 export default function Home() {
   return (
     <main>
-      <a href="/games">games</a>
+      <a href="/games">Games</a>
+      <a href="/playground">Playground</a>
       {/*<main className={styles.main}>
         <div className={styles.description}>
           <p>

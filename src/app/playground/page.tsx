@@ -1,10 +1,10 @@
 import AppCard from "../appcard";
 
-export default function Games(){
+export default function Playground(){
   return (
     <main>
       <AppCard
-        name='Tic Tac Toe'
+        name='Sierpinski gasket'
       />
     </main>
   )
