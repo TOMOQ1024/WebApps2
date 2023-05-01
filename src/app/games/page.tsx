@@ -1,4 +1,4 @@
-import AppCard from "../appcard";
+import AppCard from "../components/appcard";
 
 export default function Games(){
   return (
