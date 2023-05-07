@@ -6,6 +6,9 @@ export default function Playground(){
       <AppCard
         name='Sierpinski gasket'
       />
+      <AppCard
+        name='Recursive Tree'
+      />
     </main>
   )
 }
