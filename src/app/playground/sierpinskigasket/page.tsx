@@ -1,9 +1,17 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 export default function Main(){
+  const refFirstRef = useRef(true);
 
-  useEffect(()=>{
+  useEffect(() => {
+    if (process.env.NODE_ENV === "development") {
+      if (refFirstRef.current) {
+        refFirstRef.current = false;
+        return;
+      }
+    }
+
     HandleLoad();
   }, []);
 
