@@ -47,21 +47,21 @@ export default function Update(game: Game) {
         break;
       };
       if(game.keys[' '] === 2)game.pmoveback(false);
-      if(game.keys.d === 2)game.pmove(0, false);
-      if(game.keys.s === 2)game.pmove(1, false);
-      if(game.keys.a === 2)game.pmove(2, false);
-      if(game.keys.w === 2)game.pmove(3, false);
+      if(game.keys.d === 2 || game.keys.arrowright === 2)game.pmove(0, false);
+      if(game.keys.s === 2 || game.keys.arrowdown === 2)game.pmove(1, false);
+      if(game.keys.a === 2 || game.keys.arrowleft === 2)game.pmove(2, false);
+      if(game.keys.w === 2 || game.keys.arrowup === 2)game.pmove(3, false);
       if(game.keys[' '] === 1)game.pmoveback(true);
-      if(game.keys.d === 1)game.pmove(0, true);
-      if(game.keys.s === 1)game.pmove(1, true);
-      if(game.keys.a === 1)game.pmove(2, true);
-      if(game.keys.w === 1)game.pmove(3, true);
+      if(game.keys.d === 1 || game.keys.arrowright === 1)game.pmove(0, true);
+      if(game.keys.s === 1 || game.keys.arrowdown === 1)game.pmove(1, true);
+      if(game.keys.a === 1 || game.keys.arrowleft === 1)game.pmove(2, true);
+      if(game.keys.w === 1 || game.keys.arrowup === 1)game.pmove(3, true);
       if(game.keys['shift']){
         if(game.keys[' '] === 1)game.pmoveback(true);
-        if(game.keys.d)game.pmove(0, true);
-        if(game.keys.s)game.pmove(1, true);
-        if(game.keys.a)game.pmove(2, true);
-        if(game.keys.w)game.pmove(3, true);
+        if(game.keys.d || game.keys.arrowright === 1)game.pmove(0, true);
+        if(game.keys.s || game.keys.arrowdown === 1)game.pmove(1, true);
+        if(game.keys.a || game.keys.arrowleft === 1)game.pmove(2, true);
+        if(game.keys.w || game.keys.arrowup === 1)game.pmove(3, true);
       }
       break;
     // case 'game->':
