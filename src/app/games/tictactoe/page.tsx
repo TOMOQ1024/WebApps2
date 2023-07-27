@@ -1,4 +1,5 @@
 "use client"
+import MainCanvas from "@/app/components/maincanvas"
 import { useEffect, useState } from "react"
 import Game from "./Game"
 import { _HandleClick } from "./HandleClick"
@@ -45,17 +46,7 @@ export default function Main(){
         textAlign: 'center'
       }}
     >
-      <canvas
-        id='cvs'
-        width='1000'
-        height='1000'
-        style={{
-          width: '700px',
-          maxWidth: 'min(90vw,85vh)',
-          maxHeight: 'min(90vw,85vh)',
-          margin: '10px'
-        }}
-      />
+      <MainCanvas/>
     </main>
   )
 }
