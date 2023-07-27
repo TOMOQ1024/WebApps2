@@ -9,8 +9,8 @@ export default function MainCanvas(
       width={width}
       height={height}
       style={{
-        width: width>height ? `${width}px` : 'none',
-        height: width<height ? `${height}px` : 'none',
+        width: width>height ? `${width}px` : 'unset',
+        height: width<height ? `${height}px` : 'unset',
         maxWidth: `min(90vw,${90/height*width}vh)`,
         maxHeight: `min(${90/width*height}vw,90vh)`,
         margin: '10px',
