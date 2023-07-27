@@ -9,6 +9,9 @@ export default function Playground(){
       <AppCard
         name='Recursive Tree'
       />
+      <AppCard
+        name='WebGL Test'
+      />
     </main>
   )
 }
