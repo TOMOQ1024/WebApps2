@@ -12,6 +12,9 @@ export default function Playground(){
       <AppCard
         name='WebGL Test'
       />
+      <AppCard
+        name='Mandelbrot Set'
+      />
     </main>
   )
 }
