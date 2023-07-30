@@ -68,9 +68,7 @@ export default class MandelCore {
     let resolutionUniformLocation = this.gl.getUniformLocation(this.program, "u_resolution");
     this.gl.uniform2f(resolutionUniformLocation, this.gl.canvas.width, this.gl.canvas.height);
 
-    this.gl.uniform1f(this.gl.getUniformLocation(this.program, "u_graph.x0"), this.graph.x0);
-    this.gl.uniform1f(this.gl.getUniformLocation(this.program, "u_graph.y0"), this.graph.y0);
-    this.gl.uniform1f(this.gl.getUniformLocation(this.program, "u_graph.r"), this.graph.r);
+    this.updateGraphUniform();
 
     this.render();
   }
