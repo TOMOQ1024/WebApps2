@@ -9,6 +9,9 @@ export default function Games(){
       <AppCard
         name='Nessy'
       />
+      <AppCard
+        name='Flappy Pigeon'
+      />
     </main>
   )
 }
