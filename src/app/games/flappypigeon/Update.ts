@@ -12,7 +12,7 @@ export default function Update(game: Game) {
       }
       break;
     case 'title':
-      if(Object.values(game.keys).filter(v=>v).length){
+      if(Object.entries(game.keys).filter(([k,t])=>t===2&&k!=='_m_mouse').length){
         game.timer = 0;
         game.scene = 'title->';
       }
@@ -41,9 +41,15 @@ export default function Update(game: Game) {
       break;
     // case 'game->':
     //   break;
+    case '->result':
+      game.timer = 0;
+      game.scene = 'result';
+      break;
     case 'result':
       game.timer = Math.min(game.timer+0.03, 1);
-      if(game.keys.r){
+      UpdatePlayer(game);
+      UpdateNessy(game);
+      if(Object.entries(game.keys).filter(([k,t])=>t===2&&k!=='_m_mouse').length){
         game.scene = 'result->';
       }
       break;
@@ -84,7 +90,7 @@ function UpdateNessy(game: Game){
       game.nessy.splice(i--, 1);
     }
   }
-  if(game.timer === 0){
+  if(game.timer === 0 && game.interact && !game.collided){
     game.nessy.push({
       x: game.width+1,
       y: ((Math.random()-.5)*0.55+.5)*game.width
@@ -103,12 +109,15 @@ function UpdatePlayer(game: Game){
   // flap
   if(Object.values(game.keys).filter(k=>k===2).length && !game.collided){
     // game.player.vel.y -= .7;
+    game.interact = true;
     game.player.vel.y = -0.3;
   };
 
   // プレイヤーの自由落下
-  game.player.pos.y += game.player.vel.y;
-  game.player.vel.y += game.G;
+  if(game.interact){
+    game.player.pos.y += game.player.vel.y;
+    game.player.vel.y += game.G;
+  }
 
   // 速度上昇
   // game.player.vel.x *= 1.001;
@@ -117,22 +126,27 @@ function UpdatePlayer(game: Game){
   if(!game.collided)game.player.dir = game.player.vel.y/2;
   else game.player.dir += game.player.ddr;
 
-  // 当たり判定(ネシ)
-  let p = game.player.pos;
-  for(let i=0; i<game.nessy.length; i++){
-    let n = game.nessy[i];
-    if(
-      Math.abs(n.x-p.x) < 1/2 &&
-      Math.abs(n.y-p.y) > 1.2
-    ){
-      game.collided = true;
+  // 当たり判定
+  if(!game.scene.match('result')){
+    // 当たり判定(ネシ)
+    let p = game.player.pos;
+    for(let i=0; i<game.nessy.length; i++){
+      let n = game.nessy[i];
+      if(
+        Math.abs(n.x-p.x) < 1/2 &&
+        Math.abs(n.y-p.y) > 1.2
+      ){
+        game.collided = true;
+        game.scene = '->result';
+      }
     }
-  }
-
-  // 当たり判定(地面)
-  if(game.width - 1 < p.y){
-    game.collided = true;
-    game.player.ddr = game.player.vel.x/9;
+  
+    // 当たり判定(地面)
+    if(game.width - 1 < p.y){
+      game.collided = true;
+      game.scene = '->result';
+      game.player.ddr = game.player.vel.x/9;
+    }
   }
 
   // 地面修正

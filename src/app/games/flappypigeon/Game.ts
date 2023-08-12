@@ -14,6 +14,7 @@ export class Game {
   nessyInterval = 60;// ネッシー召喚の間隔[フレーム]
   score = 0;
   fortune: number = 1;
+  interact = false;
   collided = false;
 
   player = {
@@ -58,6 +59,9 @@ export class Game {
       dir: 0,
       ddr: 0
     };
+    this.G = .025;
+    this.collided = false;
+    this.interact = false;
     this.nessy = [];
   }
 }
