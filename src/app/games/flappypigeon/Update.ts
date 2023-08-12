@@ -49,7 +49,7 @@ export default function Update(game: Game) {
       game.timer = Math.min(game.timer+0.03, 1);
       UpdatePlayer(game);
       UpdateNessy(game);
-      if(Object.entries(game.keys).filter(([k,t])=>t===2&&k!=='_m_mouse').length){
+      if(game.keys.r === 2){
         game.scene = 'result->';
       }
       break;
