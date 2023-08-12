@@ -1,5 +1,4 @@
 import { Game } from "./Game";
-import a2dp from "./Utils";
 
 export default function Render(game: Game){
   game.ctx.globalAlpha = 1.0;
@@ -30,8 +29,8 @@ export default function Render(game: Game){
     case '->game':
       break;
     case 'game':
-      drawPlayer(game);
       drawNessy(game);
+      drawPlayer(game);
       drawMenu(game);
       break;
     // case 'game->':
@@ -45,11 +44,11 @@ export default function Render(game: Game){
 
 function drawPlayer(game: Game){
   const pos = game.player.pos;
-  let dir = game.player.vel.y/2;
+  let dir = game.player.dir;
   // let dir = Math.atan2(game.player.vel.y, game.player.vel.x);
   drawImgAt(
     game,
-    dir<.03 ? 'f0' : 'f1',
+    game.collided ? 'dd' : (dir<.03 ? 'f0' : 'f1'),
     pos.x, pos.y, dir
   );
 }
@@ -57,6 +56,8 @@ function drawPlayer(game: Game){
 function drawNessy(game: Game){
   const l = game.cvs.width / game.width;
   let n: typeof game.nessy[number];
+
+  // ネシ
   for(let i=0; i<game.nessy.length; i++){
     n = game.nessy[i];
     for(let j=-game.width; j<=game.width; j++){
@@ -64,9 +65,18 @@ function drawNessy(game: Game){
       drawImgAt(
         game,
         j*j===4 ? 'nh' : 'nn',
-        n.x, n.y+j, Math.sign(-j)
+        n.x, n.y+j, Math.sign(-j), 1.05
       );
     }
+  }
+
+  // 地面
+  for(let i=0; i<game.width; i++){
+    drawImgAt(
+      game,
+      'nn',
+      i, game.width-.5, 0, 1.05
+    );
   }
 }
 
@@ -86,15 +96,13 @@ function drawImgAt(game: Game, imgName: string, x: number, y: number, angle=0, s
 
 function drawMenu(game: Game){
   const l = game.cvs.width / game.width;
-  const dc = performance.now() - game.score.lastUpdate;
 
   // スコア表示
   game.ctx.save();
-  game.ctx.fillStyle = '#44444444';
+  game.ctx.fillStyle = 'black';
   game.ctx.textAlign = 'left';
   game.ctx.textBaseline = 'middle';
-  game.ctx.fillText('(score here)', l/2, l/2);
-
+  game.ctx.fillText(`${game.score}`, l/2, l/2);
 
   game.ctx.restore();
 }

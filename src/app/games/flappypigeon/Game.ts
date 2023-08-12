@@ -1,4 +1,4 @@
-import a2dp, { ImageNames, IsIn_p, Scene } from "./Utils";
+import { ImageNames, Scene } from "./Utils";
 
 export class Game {
   scene: Scene = 'title';
@@ -12,16 +12,9 @@ export class Game {
   now: number = 0;
   dt: number = 0;
   nessyInterval = 60;// ネッシー召喚の間隔[フレーム]
-  score = {
-    current: 0,
-    delta: 0,
-    lastUpdate: 0,
-    streaks: 0,
-    get mdc(){
-      return 2800 / (this.streaks+1) + 200;
-    }
-  };
+  score = 0;
   fortune: number = 1;
+  collided = false;
 
   player = {
     pos: {
@@ -31,7 +24,9 @@ export class Game {
     vel: {
       x: 0,
       y: 0,
-    }
+    },
+    dir: 0,
+    ddr: 0
   };
 
   nessy: {
@@ -50,7 +45,7 @@ export class Game {
 
   init(){
     this.timer = 0;
-    this.score.current = 0;
+    this.score = 0;
     this.player = {
       pos: {
         x: this.width/4,
@@ -59,7 +54,9 @@ export class Game {
       vel: {
         x: 1,
         y: 0,
-      }
+      },
+      dir: 0,
+      ddr: 0
     };
     this.nessy = [];
   }

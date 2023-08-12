@@ -66,8 +66,20 @@ export default function Update(game: Game) {
 
 
 function UpdateNessy(game: Game){
+  // if(game.collided)return;
+
   for(let i=0; i<game.nessy.length; i++){
+
+    // プレイヤーの速度に合わせて移動させる
+    let prevX = game.nessy[i].x;
     game.nessy[i].x -= game.player.vel.x/20;
+    let pX = game.player.pos.x;
+    // プレイヤーを(が)ネッシーが(を)跨いだとき，スコアを加算する
+    if(pX < prevX && game.nessy[i].x < pX){
+      game.score += 1;
+    }
+
+    // 画面外に行ったときに削除する
     if(game.nessy[i].x < -1){
       game.nessy.splice(i--, 1);
     }
@@ -75,14 +87,21 @@ function UpdateNessy(game: Game){
   if(game.timer === 0){
     game.nessy.push({
       x: game.width+1,
-      y: (0.2+Math.random()*0.6)*game.width
+      y: ((Math.random()-.5)*0.55+.5)*game.width
     });
   }
 }
 
 function UpdatePlayer(game: Game){
+  if(game.collided){
+    game.G *= 0.5;
+    game.player.vel.x *= 0.8;
+    game.player.vel.y *= 0.8;
+    game.player.ddr *= 0.9;
+  }
+
   // flap
-  if(Object.values(game.keys).filter(k=>k===2).length){
+  if(Object.values(game.keys).filter(k=>k===2).length && !game.collided){
     // game.player.vel.y -= .7;
     game.player.vel.y = -0.3;
   };
@@ -93,4 +112,29 @@ function UpdatePlayer(game: Game){
 
   // 速度上昇
   // game.player.vel.x *= 1.001;
+
+  // 向きの更新
+  if(!game.collided)game.player.dir = game.player.vel.y/2;
+  else game.player.dir += game.player.ddr;
+
+  // 当たり判定(ネシ)
+  let p = game.player.pos;
+  for(let i=0; i<game.nessy.length; i++){
+    let n = game.nessy[i];
+    if(
+      Math.abs(n.x-p.x) < 1/2 &&
+      Math.abs(n.y-p.y) > 1.2
+    ){
+      game.collided = true;
+    }
+  }
+
+  // 当たり判定(地面)
+  if(game.width - 1 < p.y){
+    game.collided = true;
+    game.player.ddr = game.player.vel.x/9;
+  }
+
+  // 地面修正
+  game.player.pos.y = Math.min(game.player.pos.y, game.width-1);
 }

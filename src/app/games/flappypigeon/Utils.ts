@@ -40,10 +40,3 @@ export function IsIn_p(pos:{x:number,y:number},l:number,t:number,w:number,h:numb
   
   return true;
 }
-
-export default function a2dp(d: number){
-  return {
-    x: Math.round(Math.cos(Math.PI/2*d)),
-    y: Math.round(Math.sin(Math.PI/2*d)),
-  }
-}
