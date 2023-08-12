@@ -56,7 +56,7 @@ export default function Render(game: Game){
       game.ctx.fillText(`${game.score}`, game.cvs.width*0.5, game.cvs.height*0.5);
       game.ctx.font = `${game.cvs.height/17}px serif`;
       game.ctx.textAlign = 'center';
-      game.ctx.fillText(`PRESS ANY KEY TO TITLE`, game.cvs.width/2, game.cvs.height*0.7);
+      game.ctx.fillText(`PRESS R KEY TO TITLE`, game.cvs.width/2, game.cvs.height*0.7);
       break;
   }
 }
