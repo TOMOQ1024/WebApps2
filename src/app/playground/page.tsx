@@ -15,6 +15,9 @@ export default function Playground(){
       <AppCard
         name='Mandelbrot Set'
       />
+      <AppCard
+        name='Life Game'
+      />
     </main>
   )
 }
