@@ -31,6 +31,14 @@ export default class Vec3 {
     );
   }
 
+  static scale(lhs: Vec3, rhs: number){
+    return new Vec3(
+      lhs.x * rhs,
+      lhs.y * rhs,
+      lhs.z * rhs,
+    )
+  }
+
   reverse(){
     this.x *= -1;
     this.y *= -1;
@@ -67,5 +75,19 @@ export default class Vec3 {
       this.z * rhs.x - this.x * rhs.z,
       this.x * rhs.y - this.y * rhs.x,
     );
+  }
+
+  addBy(rhs: Vec3){
+    this.x += rhs.x;
+    this.y += rhs.y;
+    this.z += rhs.z;
+  }
+
+  sum(lhs: Vec3, rhs: Vec3){
+    return new Vec3(
+      lhs.x + rhs.x,
+      lhs.y + rhs.y,
+      lhs.z + rhs.z,
+    )
   }
 }

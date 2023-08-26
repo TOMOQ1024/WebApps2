@@ -7,7 +7,7 @@ struct Graph {
 };
 
 uniform vec2 u_resolution;
-
+// varying vec4 vColor;
 
 void main ()
 {

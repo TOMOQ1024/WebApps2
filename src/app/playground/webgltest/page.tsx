@@ -2,23 +2,64 @@
 import MainCanvas from "@/app/components/maincanvas";
 import { useEffect, useState } from "react"
 import GLMgr from "./Core";
+import Vec3 from "./Vector";
 
 export default function Main(){
   useEffect(() => {(async()=>{
     const glmgr = new GLMgr();
     glmgr.init();
+
+    setInterval(()=>{
+      glmgr.render();
+    }, 1000/60);
+
     const onKeyDown = (e:KeyboardEvent) => {
       console.log(e.key);
 
+      const key = e.key.toLocaleLowerCase();
+
       // 全画面切り替え
-      if(e.key.toLocaleLowerCase() === 'f'){
-        let cvs = document.getElementById('cvs') as HTMLCanvasElement;
-        if (!document.fullscreenElement) {
-          cvs.requestFullscreen();
-        }
-        else {
-          document.exitFullscreen();
-        }
+      switch(key){
+        case 'f':
+          if (!document.fullscreenElement) {
+            glmgr.cvs.requestFullscreen();
+          }
+          else {
+            document.exitFullscreen();
+          }
+          break;
+        case 'a':
+          glmgr.camera.position.addBy(Vec3.scale(glmgr.camera.left, 0.2));
+          glmgr.matUpdated = true;
+          break;
+        case 'd':
+          glmgr.camera.position.addBy(Vec3.scale(glmgr.camera.right, 0.2));
+          glmgr.matUpdated = true;
+          break;
+        case 'w':
+          glmgr.camera.position.addBy(Vec3.scale(glmgr.camera.direction, 0.2));
+          glmgr.matUpdated = true;
+          break;
+        case 's':
+          glmgr.camera.position.addBy(Vec3.scale(glmgr.camera.direction, -0.2));
+          glmgr.matUpdated = true;
+          break;
+        case 'arrowleft':
+          glmgr.camera.angleH -= .1;
+          glmgr.matUpdated = true;
+          break;
+        case 'arrowright':
+          glmgr.camera.angleH += .1;
+          glmgr.matUpdated = true;
+          break;
+        case 'arrowup':
+          glmgr.camera.angleV = Math.min(Math.max(glmgr.camera.angleV + .1, -Math.PI/2), Math.PI/2);
+          glmgr.matUpdated = true;
+          break;
+        case 'arrowdown':
+          glmgr.camera.angleV = Math.min(Math.max(glmgr.camera.angleV - .1, -Math.PI/2), Math.PI/2);
+          glmgr.matUpdated = true;
+          break;
       }
     }
 

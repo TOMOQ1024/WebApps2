@@ -23,14 +23,10 @@ export default class Mat4 {
 
   // ビュー変換行列
   static vMatrix(
-    ex: number, ey:number, ez:number,// 視点位置
-    tx: number, ty:number, tz:number,// 視線
-    ux: number, uy:number, uz:number,// 視線に対する上の向き
+    e: Vec3,// 視点位置
+    t: Vec3,// 視線
+    u: Vec3,// 視線に対する上の向き
   ){
-    let e = new Vec3(ex, ey, ez);
-    let t = new Vec3(tx, ty, tz);
-    let u = new Vec3(ux, uy, uz);
-
     let Z = t.reversed().normalized();
     let X = Vec3.cross(u,Z).normalized();
     let Y = Vec3.cross(Z,X).normalized();
