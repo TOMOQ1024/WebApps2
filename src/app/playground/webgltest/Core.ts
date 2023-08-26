@@ -1,14 +1,15 @@
 import CreateShaders from "./CreateShaders";
+import Mat4 from "./Matrix";
 
 export default class GLMgr {
   cvs: HTMLCanvasElement;
   gl: WebGLRenderingContext;
   program: WebGLProgram;
   position = [
-    -1.0, +1.0, +0.0,
-    +1.0, +1.0, +0.0,
-    -1.0, -1.0, +0.0,
-    +1.0, -1.0, +0.0
+    -0.9, +0.8, +0.0,
+    +0.8, +0.9, +0.0,
+    -0.8, -0.9, +0.0,
+    +0.9, -0.8, +0.0
   ];
   index = new Uint8Array([
     0, 2, 1,
@@ -46,6 +47,33 @@ export default class GLMgr {
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, this.index, this.gl.STATIC_DRAW);
 
+    // 行列
+    console.log(Mat4.prod(
+      new Mat4(
+        1, 1, 1, 1,
+        1, 1, 1, 1,
+        1, 1, 1, 1,
+        1, 1, 1, 1,
+      ),
+      new Mat4(
+        1, 1, 1, 1,
+        0, 1, 1, 1,
+        0, 0, 1, 1,
+        0, 0, 0, 1,
+      ),
+    ));
+    const mMatrix = Mat4.Identity;// モデル変換行列
+    const vMatrix = Mat4.vMatrix(
+      0, 1, 3,
+      0, 0, 0,
+      0, 1, 0,
+    );
+    const pMatrix = Mat4.pMatrix(90 * Math.PI / 180, this.gl.canvas.width / this.gl.canvas.height, 0.1, 100);
+    let mvpMatrix = Mat4.prodn(pMatrix, vMatrix, mMatrix);
+    let matrixUniformLocation = this.gl.getUniformLocation(this.program, "mvpMatrix");
+    this.gl.uniformMatrix4fv(matrixUniformLocation, false, mvpMatrix.elem);
+
+    // 解像度
     let resolutionUniformLocation = this.gl.getUniformLocation(this.program, "u_resolution");
     this.gl.uniform2f(resolutionUniformLocation, this.gl.canvas.width, this.gl.canvas.height);
 
@@ -54,7 +82,8 @@ export default class GLMgr {
 
   render () {
     this.gl.clearColor (0.8, 0.8, 0.8, 1.0);
-    this.gl.clear (this.gl.COLOR_BUFFER_BIT);
+    this.gl.clearDepth (1.0);
+    this.gl.clear (this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
     this.gl.viewport(0, 0, this.cvs.width, this.cvs.height);
 
@@ -68,5 +97,8 @@ export default class GLMgr {
     //描画
     this.gl.drawElements(this.gl.TRIANGLES, this.index.length, this.gl.UNSIGNED_BYTE, 0);
     // this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 3);
+
+    // コンテキストの再描画
+    this.gl.flush();
   }
 }

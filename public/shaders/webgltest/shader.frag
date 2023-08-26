@@ -7,7 +7,6 @@ struct Graph {
 };
 
 uniform vec2 u_resolution;
-uniform Graph u_graph;
 
 
 void main ()
