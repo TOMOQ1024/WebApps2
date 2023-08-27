@@ -90,4 +90,12 @@ export default class Vec3 {
       lhs.z + rhs.z,
     )
   }
+
+  get x_z(){
+    return new Vec3(
+      this.x,
+      0,
+      this.z
+    );
+  }
 }
