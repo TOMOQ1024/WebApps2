@@ -41,21 +41,22 @@ export default class GLMgr {
     2, 6, 5,
     4, 5, 6,
   ]);
-  positionBuffer: WebGLBuffer;
-  colorBuffer: WebGLBuffer;
   camera = new Camera(this);
   matUpdated = true;
+  cvsResized = true;
   update = Update;
   render = Render;
   keys: {[Key:string]: number} = {};
   ctrlAllowed = true;
+  mMatLoc: WebGLUniformLocation | null = null;
+  vMatLoc: WebGLUniformLocation | null = null;
+  pMatLoc: WebGLUniformLocation | null = null;
+  resLoc: WebGLUniformLocation | null = null;
 
   constructor () {
     this.cvs = document.getElementById('cvs') as HTMLCanvasElement;
     this.gl = this.cvs.getContext('webgl')!;
     this.program = this.gl.createProgram()!;
-    this.positionBuffer = this.gl.createBuffer()!;
-    this.colorBuffer = this.gl.createBuffer()!;
   }
 
   async init () {
@@ -76,21 +77,36 @@ export default class GLMgr {
     this.gl.enable(this.gl.CULL_FACE);
     this.gl.enable(this.gl.DEPTH_TEST);
 
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
+    // 頂点座標
+    let pBuf = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, pBuf);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array (this.position), this.gl.STATIC_DRAW);
+    let positionAddress = this.gl.getAttribLocation(this.program, "position");
+    this.gl.enableVertexAttribArray(positionAddress);
+    this.gl.vertexAttribPointer(positionAddress, 3, this.gl.FLOAT, false, 0, 0);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
 
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.colorBuffer);
+    // 頂点色
+    let cBuf = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, cBuf);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array (this.color), this.gl.STATIC_DRAW);
+    let colorAddress = this.gl.getAttribLocation(this.program, "a_color");
+    this.gl.enableVertexAttribArray(colorAddress);
+    this.gl.vertexAttribPointer(colorAddress, 4, this.gl.FLOAT, false, 0, 0);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
 
-    
+    // IBO
     let indexBuffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, this.index, this.gl.STATIC_DRAW);
+    // this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, null);
 
-    // 解像度
-    let resolutionUniformLocation = this.gl.getUniformLocation(this.program, "u_resolution");
-    this.gl.uniform2f(resolutionUniformLocation, this.gl.canvas.width, this.gl.canvas.height);
+    // 行列uniform
+    this.mMatLoc = this.gl.getUniformLocation(this.program, "mMatrix")!;
+    this.vMatLoc = this.gl.getUniformLocation(this.program, "vMatrix")!;
+    this.pMatLoc = this.gl.getUniformLocation(this.program, "pMatrix")!;
+
+    // 解像度uniform
+    this.resLoc = this.gl.getUniformLocation(this.program, "u_resolution");
   }
 }
