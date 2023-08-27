@@ -32,17 +32,17 @@ export default class Camera {
 
   get left(){
     return new Vec3(
-      Math.cos(this.angleV) * Math.sin(this.angleH),
+      Math.sin(this.angleH),
       0,
-      -Math.cos(this.angleV) * Math.cos(this.angleH),
+      -Math.cos(this.angleH),
     );
   }
 
   get right(){
     return new Vec3(
-      -Math.cos(this.angleV) * Math.sin(this.angleH),
+      -Math.sin(this.angleH),
       0,
-      Math.cos(this.angleV) * Math.cos(this.angleH),
+      Math.cos(this.angleH),
     );
   }
 
@@ -64,8 +64,8 @@ export default class Camera {
 
   move(direction: 'left'|'right'|'forward'|'backward'|'up'|'down'|'hforward'|'hbackward'|'vup'|'vdown', speed: number){
     switch(direction){
-      case 'hforward': this.position.addBy(Vec3.scale(this.forward.x_z, this.movSpeed*speed)); break;
-      case 'hbackward': this.position.addBy(Vec3.scale(this.backward.x_z, this.movSpeed*speed)); break;
+      case 'hforward': this.position.addBy(Vec3.scale(this.forward.x_z.normalized(), this.movSpeed*speed)); break;
+      case 'hbackward': this.position.addBy(Vec3.scale(this.backward.x_z.normalized(), this.movSpeed*speed)); break;
       case 'vup': this.position.addBy(Vec3.scale(new Vec3(0, 1, 0), this.movSpeed*speed)); break;
       case 'vdown': this.position.addBy(Vec3.scale(new Vec3(0, -1, 0), this.movSpeed*speed)); break;
       default: this.position.addBy(Vec3.scale(this[direction], this.movSpeed*speed));
