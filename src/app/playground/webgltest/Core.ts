@@ -2,45 +2,19 @@ import Camera from "./Camera";
 import CreateShaders from "./CreateShaders";
 import Update from "./Update";
 import Render from "./Render";
+import { Cube, Obj, Torus } from "./Object";
 
 export default class GLMgr {
   cvs: HTMLCanvasElement;
   gl: WebGLRenderingContext;
   program: WebGLProgram;
-  position = [
-    -1, -1, -1,
-    -1, -1, +1,
-    -1, +1, +1,
-    -1, +1, -1,
-    +1, +1, -1,
-    +1, +1, +1,
-    +1, -1, +1,
-    +1, -1, -1,
-  ];
-  color = [
-    1., 1., 1., 1,
-    .8, .8, .8, 1,
-    .6, .6, .6, 1,
-    .4, .4, .4, 1,
-    .2, .2, .2, 1,
-    .4, .4, .4, 1,
-    .6, .6, .6, 1,
-    .8, .8, .8, 1,
-  ];
-  index = new Uint8Array([
-    0, 1, 2,
-    6, 2, 1,
-    1, 0, 6,
-    7, 6, 0,
-    6, 7, 4,
-    0, 4, 7,
-    4, 0, 3,
-    2, 3, 0,
-    3, 2, 4,
-    5, 4, 2,
-    2, 6, 5,
-    4, 5, 6,
-  ]);
+  // objects: Obj[] = [new Cube()];
+  // object: Obj = new Sphere(10, 3, 1);
+  object: Obj = new Torus(20, 10, 1, .4);
+  // object: Obj = new Cube();
+  get position(){return this.object.position;}
+  get index(){return this.object.index;}
+  get color(){return this.object.color;}
   camera = new Camera(this);
   matUpdated = true;
   cvsResized = true;
@@ -52,6 +26,8 @@ export default class GLMgr {
   vMatLoc: WebGLUniformLocation | null = null;
   pMatLoc: WebGLUniformLocation | null = null;
   resLoc: WebGLUniformLocation | null = null;
+  vao_ext: OES_vertex_array_object | null = null;
+  vao: WebGLVertexArrayObjectOES | null = null;
 
   constructor () {
     this.cvs = document.getElementById('cvs') as HTMLCanvasElement;
@@ -73,14 +49,27 @@ export default class GLMgr {
       return;
     }
 
+    // 拡張機能の導入
+    this.gl.getExtension('OES_element_index_uint');
+    this.vao_ext = this.gl.getExtension('OES_vertex_array_object');
+    if(this.vao_ext == null){
+      alert('vertex array object not supported');
+      return;
+    }
+
     // カリングと深度テストの有効化
     this.gl.enable(this.gl.CULL_FACE);
     this.gl.enable(this.gl.DEPTH_TEST);
+
+    // VAO
+    this.vao = this.vao_ext.createVertexArrayOES()!;
+    this.vao_ext.bindVertexArrayOES(this.vao);
 
     // 頂点座標
     let pBuf = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, pBuf);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array (this.position), this.gl.STATIC_DRAW);
+    // this.gl.bufferData(this.gl.ARRAY_BUFFER, this.position.length * 4, this.gl.STATIC_DRAW);
     let positionAddress = this.gl.getAttribLocation(this.program, "position");
     this.gl.enableVertexAttribArray(positionAddress);
     this.gl.vertexAttribPointer(positionAddress, 3, this.gl.FLOAT, false, 0, 0);
@@ -90,6 +79,7 @@ export default class GLMgr {
     let cBuf = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, cBuf);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array (this.color), this.gl.STATIC_DRAW);
+    // this.gl.bufferData(this.gl.ARRAY_BUFFER, this.color.length * 4, this.gl.STATIC_DRAW);
     let colorAddress = this.gl.getAttribLocation(this.program, "a_color");
     this.gl.enableVertexAttribArray(colorAddress);
     this.gl.vertexAttribPointer(colorAddress, 4, this.gl.FLOAT, false, 0, 0);
@@ -98,7 +88,8 @@ export default class GLMgr {
     // IBO
     let indexBuffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, this.index, this.gl.STATIC_DRAW);
+    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(this.index), this.gl.STATIC_DRAW);
+    // this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, this.index.length * Uint16Array.BYTES_PER_ELEMENT, this.gl.STATIC_DRAW);
     // this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, null);
 
     // 行列uniform

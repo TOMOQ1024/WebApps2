@@ -1,6 +1,5 @@
 import GLMgr from "./Core";
 import Mat4 from "./Matrix";
-import Vec3 from "./Vector";
 
 export default function Update(this: GLMgr) {
   // キーの処理

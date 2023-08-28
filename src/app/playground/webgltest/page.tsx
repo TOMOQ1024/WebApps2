@@ -2,8 +2,6 @@
 import MainCanvas from "@/app/components/maincanvas";
 import { useEffect, useState } from "react"
 import GLMgr from "./Core";
-import Vec3 from "./Vector";
-import render from "./Render";
 
 export default function Main(){
   useEffect(() => {(async()=>{
