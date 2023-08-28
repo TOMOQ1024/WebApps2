@@ -1,5 +1,6 @@
 import GLMgr from "./Core";
 import Mat4 from "./Matrix";
+import Vec3 from "./Vector";
 
 export default function Update(this: GLMgr) {
   // キーの処理
@@ -37,6 +38,9 @@ export default function Update(this: GLMgr) {
     this.gl.uniformMatrix4fv(this.vMatLoc, false, vMatrix.elem);
     this.matUpdated = false;
   }
+
+  // モデル変換行列の更新
+  this.object.mdlMat.rotate(new Vec3(1, 1, 1), .01);
 }
 
 // let vpMatrix = Mat4.prod(pMatrix, vMatrix);

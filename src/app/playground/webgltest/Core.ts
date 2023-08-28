@@ -3,6 +3,8 @@ import CreateShaders from "./CreateShaders";
 import Update from "./Update";
 import Render from "./Render";
 import { Cube, Obj, Torus } from "./Object";
+import Vec3 from "./Vector";
+import Mat4 from "./Matrix";
 
 export default class GLMgr {
   cvs: HTMLCanvasElement;
@@ -10,11 +12,12 @@ export default class GLMgr {
   program: WebGLProgram;
   // objects: Obj[] = [new Cube()];
   // object: Obj = new Sphere(10, 3, 1);
-  object: Obj = new Torus(20, 10, 1, .4);
+  object: Obj = new Torus(30, 20, 3, 1);
   // object: Obj = new Cube();
   get position(){return this.object.position;}
   get index(){return this.object.index;}
   get color(){return this.object.color;}
+  get normal(){return this.object.normal;}
   camera = new Camera(this);
   matUpdated = true;
   cvsResized = true;
@@ -22,12 +25,15 @@ export default class GLMgr {
   render = Render;
   keys: {[Key:string]: number} = {};
   ctrlAllowed = true;
+  miMatLoc: WebGLUniformLocation | null = null;
   mMatLoc: WebGLUniformLocation | null = null;
   vMatLoc: WebGLUniformLocation | null = null;
   pMatLoc: WebGLUniformLocation | null = null;
+  lDirLoc: WebGLUniformLocation | null = null;
   resLoc: WebGLUniformLocation | null = null;
   vao_ext: OES_vertex_array_object | null = null;
   vao: WebGLVertexArrayObjectOES | null = null;
+  lightDirection = new Vec3(-0.5, 0.5, 0.5);
 
   constructor () {
     this.cvs = document.getElementById('cvs') as HTMLCanvasElement;
@@ -69,18 +75,25 @@ export default class GLMgr {
     let pBuf = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, pBuf);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array (this.position), this.gl.STATIC_DRAW);
-    // this.gl.bufferData(this.gl.ARRAY_BUFFER, this.position.length * 4, this.gl.STATIC_DRAW);
-    let positionAddress = this.gl.getAttribLocation(this.program, "position");
+    let positionAddress = this.gl.getAttribLocation(this.program, "aPosition");
     this.gl.enableVertexAttribArray(positionAddress);
     this.gl.vertexAttribPointer(positionAddress, 3, this.gl.FLOAT, false, 0, 0);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+
+    // 法線
+    let nBuf = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, nBuf);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array (this.normal), this.gl.STATIC_DRAW);
+    let normalAddress = this.gl.getAttribLocation(this.program, "aNormal");
+    this.gl.enableVertexAttribArray(normalAddress);
+    this.gl.vertexAttribPointer(normalAddress, 3, this.gl.FLOAT, false, 0, 0);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
 
     // 頂点色
     let cBuf = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, cBuf);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array (this.color), this.gl.STATIC_DRAW);
-    // this.gl.bufferData(this.gl.ARRAY_BUFFER, this.color.length * 4, this.gl.STATIC_DRAW);
-    let colorAddress = this.gl.getAttribLocation(this.program, "a_color");
+    let colorAddress = this.gl.getAttribLocation(this.program, "aColor");
     this.gl.enableVertexAttribArray(colorAddress);
     this.gl.vertexAttribPointer(colorAddress, 4, this.gl.FLOAT, false, 0, 0);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
@@ -93,11 +106,20 @@ export default class GLMgr {
     // this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, null);
 
     // 行列uniform
-    this.mMatLoc = this.gl.getUniformLocation(this.program, "mMatrix")!;
-    this.vMatLoc = this.gl.getUniformLocation(this.program, "vMatrix")!;
-    this.pMatLoc = this.gl.getUniformLocation(this.program, "pMatrix")!;
+    this.miMatLoc = this.gl.getUniformLocation(this.program, "miMat")!;
+    this.mMatLoc = this.gl.getUniformLocation(this.program, "mMat")!;
+    this.vMatLoc = this.gl.getUniformLocation(this.program, "vMat")!;
+    this.pMatLoc = this.gl.getUniformLocation(this.program, "pMat")!;
+    
+    // 光源
+    this.lDirLoc = this.gl.getUniformLocation(this.program, "lightDirection")!;
+    this.gl.uniform3fv(this.lDirLoc, this.lightDirection.elem);
 
     // 解像度uniform
-    this.resLoc = this.gl.getUniformLocation(this.program, "u_resolution");
+    this.resLoc = this.gl.getUniformLocation(this.program, "uResolution");
+
+    // console.log(this.object.mdlMat.elem);
+    // console.log(this.object.mdlMat.inverse().elem);
+    // console.log(Mat4.prod(this.object.mdlMat, this.object.mdlMat.inverse()).elem);
   }
 }

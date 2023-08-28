@@ -2,7 +2,7 @@ import GLMgr from "./Core";
 import Vec3 from "./Vector";
 
 export default class Camera {
-  position = new Vec3(0, 1, 3);
+  position = new Vec3(0, 3, 9);
   // direction = new Vec3(0, -1, -3);
   angleH = Math.PI/2*3;
   angleV = Math.atan2(-1, 3);
@@ -70,18 +70,18 @@ export default class Camera {
       case 'vdown': this.position.addBy(Vec3.scale(new Vec3(0, -1, 0), this.movSpeed*speed)); break;
       default: this.position.addBy(Vec3.scale(this[direction], this.movSpeed*speed));
     }
-    console.log({
-      left: 'L',
-      right: 'R',
-      forward: 'F',
-      backward: 'B',
-      up: 'U',
-      down: 'D',
-      hforward: 'F',
-      hbackward: 'B',
-      vup: 'U',
-      vdown: 'D',
-    }[direction]);
+    // console.log({
+    //   left: 'L',
+    //   right: 'R',
+    //   forward: 'F',
+    //   backward: 'B',
+    //   up: 'U',
+    //   down: 'D',
+    //   hforward: 'F',
+    //   hbackward: 'B',
+    //   vup: 'U',
+    //   vdown: 'D',
+    // }[direction]);
     
     this.parent.matUpdated = true;
   }

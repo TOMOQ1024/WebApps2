@@ -5,6 +5,7 @@ export class Obj {
   position: number[] = [];
   index: number[] = [];
   color: number[] = [];
+  normal: number[] = [];
   mdlMat: Mat4 = Mat4.Identity;
 }
 
@@ -21,6 +22,16 @@ export class Cube extends Obj {
       +1, -1, +1,
       +1, -1, -1,
     ];
+    this.normal = [
+      -1, -1, -1,
+      -1, -1, +1,
+      -1, +1, +1,
+      -1, +1, -1,
+      +1, +1, -1,
+      +1, +1, +1,
+      +1, -1, +1,
+      +1, -1, -1,
+    ].map(n=>n/Math.sqrt(3));
     this.index = [
       0, 1, 2,
       6, 2, 1,
@@ -36,14 +47,14 @@ export class Cube extends Obj {
       4, 5, 6,
     ];
     this.color = [
-      1., 1., 1., 1,
-      .8, .8, .8, 1,
-      .6, .6, .6, 1,
-      .4, .4, .4, 1,
-      .2, .2, .2, 1,
-      .4, .4, .4, 1,
-      .6, .6, .6, 1,
-      .8, .8, .8, 1,
+      1, 1, 1, 1,
+      1, 1, 1, 1,
+      1, 1, 1, 1,
+      1, 1, 1, 1,
+      1, 1, 1, 1,
+      1, 1, 1, 1,
+      1, 1, 1, 1,
+      1, 1, 1, 1,
     ];
   }
 }
@@ -118,8 +129,13 @@ export class Torus extends Obj {
           r * Math.sin(q),
           (r * Math.cos(q) + R) * Math.sin(p)
         );
-        // this.color.push(1, 1, 1, 1);
-        this.color.push(...hsva(360/row*i, 1, 1, 1)!);
+        this.normal.push(
+          Math.cos(q) * Math.cos(p),
+          Math.sin(q),
+          Math.cos(q) * Math.sin(p)
+        );
+        this.color.push(1, 1, 1, 1);
+        // this.color.push(...hsva(360/row*i, 1, 1, 1)!);
       }
     }
     for(let i=0; i<row; i++){
@@ -130,30 +146,5 @@ export class Torus extends Obj {
       }
     }
     console.log(this.position.length, this.color.length, this.index.length);
-    // var pos = new Array(), col = new Array(), idx = new Array();
-    // for(var i = 0; i <= row; i++){
-    //     var r = Math.PI * 2 / row * i;
-    //     var rr = Math.cos(r);
-    //     var ry = Math.sin(r);
-    //     for(var ii = 0; ii <= column; ii++){
-    //         var tr = Math.PI * 2 / column * ii;
-    //         var tx = (rr * irad + orad) * Math.cos(tr);
-    //         var ty = ry * irad;
-    //         var tz = (rr * irad + orad) * Math.sin(tr);
-    //         pos.push(tx, ty, tz);
-    //         var tc = hsva(360 / column * ii, 1, 1, 1) as number[];
-    //         col.push(tc[0], tc[1], tc[2], tc[3]);
-    //     }
-    // }
-    // for(i = 0; i < row; i++){
-    //     for(ii = 0; ii < column; ii++){
-    //         r = (column + 1) * i + ii;
-    //         idx.push(r, r + column + 1, r + 1);
-    //         idx.push(r + column + 1, r + column + 2, r + 1);
-    //     }
-    // }
-    // this.position = pos;
-    // this.index = idx.map(i=>i%(row*column));
-    // this.color = col;
   }
 }

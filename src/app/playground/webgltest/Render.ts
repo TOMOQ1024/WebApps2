@@ -7,6 +7,7 @@ export default function Render (this: GLMgr) {
   this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
 
   // モデル変換と描画
+  this.gl.uniformMatrix4fv(this.miMatLoc, false, this.object.mdlMat.inverse().elem);
   this.gl.uniformMatrix4fv(this.mMatLoc, false, this.object.mdlMat.elem);
   this.gl.drawElements(this.gl.TRIANGLES, this.index.length, this.gl.UNSIGNED_INT, 0);
 

@@ -15,6 +15,10 @@ export default class Vec3 {
     this.z = z;
   }
 
+  get elem(){
+    return [this.x, this.y, this.z];
+  }
+
   static dot(lhs: Vec3, rhs: Vec3){
     return (
       lhs.x * rhs.x +
