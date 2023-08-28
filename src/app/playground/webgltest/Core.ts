@@ -30,10 +30,13 @@ export default class GLMgr {
   vMatLoc: WebGLUniformLocation | null = null;
   pMatLoc: WebGLUniformLocation | null = null;
   lDirLoc: WebGLUniformLocation | null = null;
+  eDirLoc: WebGLUniformLocation | null = null;
+  ambLoc: WebGLUniformLocation | null = null;
   resLoc: WebGLUniformLocation | null = null;
   vao_ext: OES_vertex_array_object | null = null;
   vao: WebGLVertexArrayObjectOES | null = null;
   lightDirection = new Vec3(-0.5, 0.5, 0.5);
+  ambientColor = [0.1, 0.1, 0.1, 1.0];
 
   constructor () {
     this.cvs = document.getElementById('cvs') as HTMLCanvasElement;
@@ -110,10 +113,18 @@ export default class GLMgr {
     this.mMatLoc = this.gl.getUniformLocation(this.program, "mMat")!;
     this.vMatLoc = this.gl.getUniformLocation(this.program, "vMat")!;
     this.pMatLoc = this.gl.getUniformLocation(this.program, "pMat")!;
+
+    // 視線
+    this.eDirLoc = this.gl.getUniformLocation(this.program, "eyeDirection")!;
+    this.gl.uniform3fv(this.eDirLoc, this.camera.backward.elem);
     
     // 光源
     this.lDirLoc = this.gl.getUniformLocation(this.program, "lightDirection")!;
     this.gl.uniform3fv(this.lDirLoc, this.lightDirection.elem);
+    
+    // 環境光
+    this.ambLoc = this.gl.getUniformLocation(this.program, "ambientColor")!;
+    this.gl.uniform4fv(this.ambLoc, this.ambientColor);
 
     // 解像度uniform
     this.resLoc = this.gl.getUniformLocation(this.program, "uResolution");

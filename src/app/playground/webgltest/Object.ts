@@ -134,8 +134,8 @@ export class Torus extends Obj {
           Math.sin(q),
           Math.cos(q) * Math.sin(p)
         );
-        this.color.push(1, 1, 1, 1);
-        // this.color.push(...hsva(360/row*i, 1, 1, 1)!);
+        // this.color.push(1, 1, 1, 1);
+        this.color.push(...hsva(360/row*i, 1, 1, 1)!);
       }
     }
     for(let i=0; i<row; i++){
