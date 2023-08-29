@@ -28,19 +28,20 @@ export default function Update(this: GLMgr) {
   // キャンバスのリサイズ!!!
   if(this.cvsResized){
     const pMatrix = Mat4.pMatrix(90 * Math.PI / 180, this.gl.canvas.width / this.gl.canvas.height, 0.1, 100);
-    this.gl.uniformMatrix4fv(this.pMatLoc, false, pMatrix.elem);
-    this.gl.uniform2f(this.resLoc, this.gl.canvas.width, this.gl.canvas.height);
+    this.gl.uniformMatrix4fv(this.uniLoc.pMat, false, pMatrix.elem);
+    this.gl.uniform2f(this.uniLoc.res, this.gl.canvas.width, this.gl.canvas.height);
   }
   
   // 行列の更新
   if(this.matUpdated){
     const vMatrix = Mat4.vMatrix(this.camera.position, this.camera.forward, this.camera.up);
-    this.gl.uniformMatrix4fv(this.vMatLoc, false, vMatrix.elem);
+    this.gl.uniformMatrix4fv(this.uniLoc.vMat, false, vMatrix.elem);
     this.matUpdated = false;
   }
 
   // モデル変換行列の更新
-  this.object.mdlMat.rotate(new Vec3(1, 1, 1), .01);
+  // this.objects[0].mdlMat.rotate(new Vec3(1, 1, 1), .01);
+  this.objects[1].mdlMat.rotate(new Vec3(1, 1, 1), -.01);
 }
 
 // let vpMatrix = Mat4.prod(pMatrix, vMatrix);
