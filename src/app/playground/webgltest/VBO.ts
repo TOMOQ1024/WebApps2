@@ -36,7 +36,7 @@ export class VBO {
   enable(){
     this.bind();
     this.attLoc = this.gl.getAttribLocation(this.glmgr.program, this.name);
-    if(this.attLoc === -1)throw new Error(`failed to find attribute location of '${name}'`);
+    if(this.attLoc === -1)throw new Error(`failed to find attribute location of '${this.name}'`);
     this.gl.enableVertexAttribArray(this.attLoc);
     this.gl.vertexAttribPointer(this.attLoc, this.stride, this.gl.FLOAT, false, 0, 0);
     this.unbind();

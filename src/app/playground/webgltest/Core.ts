@@ -6,6 +6,7 @@ import { Cube, Obj, Torus } from "./Object";
 import Vec3 from "./Vector";
 import Mat4 from "./Matrix";
 import { VBO } from "./VBO";
+import loadImage from "./Image";
 
 export default class GLMgr {
   cvs: HTMLCanvasElement;
@@ -17,8 +18,9 @@ export default class GLMgr {
   // object: Obj = new Cube();
   get position(){return this.object.position;}
   get index(){return this.object.index;}
-  get color(){return this.object.color;}
   get normal(){return this.object.normal;}
+  get color(){return this.object.color;}
+  get texCoord(){return this.object.texCoord;}
   camera = new Camera(this);
   matUpdated = true;
   cvsResized = true;
@@ -61,9 +63,16 @@ export default class GLMgr {
       return;
     }
 
-    // カリングと深度テストの有効化
-    // this.gl.enable(this.gl.CULL_FACE);
+    // カリング，深度テスト，ブレンディングの有効化
+    this.gl.enable(this.gl.CULL_FACE);
     this.gl.enable(this.gl.DEPTH_TEST);
+    this.gl.enable(this.gl.BLEND);
+
+    // 深度テストの設定
+    this.gl.depthFunc(this.gl.LEQUAL);
+    // ブレンディングの設定
+    // this.gl.blendEquation(this.gl.FUNC_ADD);
+    this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 
     // VAOの初期化
     for(let i=0; i<this.objects.length; i++){
@@ -79,6 +88,9 @@ export default class GLMgr {
   
       let cVBO = new VBO(this, 'aColor', 4, this.color);
       cVBO.enable();
+  
+      let tVBO = new VBO(this, 'aTexCoord', 2, this.texCoord);
+      tVBO.enable();
   
       // IBO
       let indexBuffer = this.gl.createBuffer();
@@ -112,8 +124,32 @@ export default class GLMgr {
     // 解像度uniform
     this.uniLoc.res = this.gl.getUniformLocation(this.program, "uResolution");
 
-    // console.log(this.object.mdlMat.elem);
-    // console.log(this.object.mdlMat.inverse().elem);
-    // console.log(Mat4.prod(this.object.mdlMat, this.object.mdlMat.inverse()).elem);
+    // テクスチャ
+    let img0 = await loadImage('/images/webgltest/mandel-colorful.png');
+    let tex0 = this.gl.createTexture();
+    this.gl.bindTexture(this.gl.TEXTURE_2D, tex0);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, img0);
+    this.gl.generateMipmap(this.gl.TEXTURE_2D);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+    this.uniLoc.tex0 = this.gl.getUniformLocation(this.program, "uImage0");
+
+    // let img1 = await loadImage('/images/webgltest/mandelbrotset.png');
+    // let tex1 = this.gl.createTexture();
+    // this.gl.bindTexture(this.gl.TEXTURE_2D, tex1);
+    // this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, img1);
+    // this.gl.generateMipmap(this.gl.TEXTURE_2D);
+    // this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+    // this.uniLoc.tex1 = this.gl.getUniformLocation(this.program, "uImage1");
+
+
+    this.gl.activeTexture(this.gl.TEXTURE0);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, tex0);
+    this.gl.uniform1i(this.uniLoc.tex0, 0);
+
+    // this.gl.activeTexture(this.gl.TEXTURE1);
+    // this.gl.bindTexture(this.gl.TEXTURE_2D, tex1);
+    // this.gl.uniform1i(this.uniLoc.tex1, 1);
   }
 }
