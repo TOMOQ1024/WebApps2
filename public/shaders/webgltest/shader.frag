@@ -31,6 +31,7 @@ void main ()
   vec4 smpCol0 = texture2D(uImage0, vTexCoord);
 	vec4  light    = vColor * smpCol0 * vec4(vec3(diffuse), 1.0) + vec4(vec3(specular), 1.0);
 	// vec4  light    = vec4(vec3(diffuse), 1.0);
-	gl_FragColor = light + ambientColor;
+	gl_FragColor = vColor * vec4(vec3(diffuse), 1.0) + vec4(vec3(specular), 0.0);
+	// gl_FragColor = light + ambientColor;
   // gl_FragColor = texture2D(u_image, v_tex_coord);
 }

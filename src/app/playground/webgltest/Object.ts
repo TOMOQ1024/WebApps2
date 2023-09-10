@@ -57,6 +57,7 @@ export class Cube extends Obj {
       1, 1, 1, 1,
       1, 1, 1, 1,
     ];
+    this.color = this.color.map(v=>v*0.8);
     this.texCoord = [
       0, 0,
       0, 1,
@@ -145,9 +146,9 @@ export class Torus extends Obj {
           Math.sin(q),
           Math.cos(q) * Math.sin(p)
         );
-        this.color.push(1, 1, 1, 1);
-        // this.color.push(.7, .7, .7, .7);
-        // this.color.push(...hsva(360/row*i, 1, 1, 1)!);
+        // this.color.push(1, 1, 1, 1);
+        // this.color.push(.2, .2, .2, .2);
+        this.color.push(...hsva(360/row*i, 1, 1, 1)!);
         this.texCoord.push(
           (Math.cos(p)+1)/2, (Math.sin(q)+1)/2
         );

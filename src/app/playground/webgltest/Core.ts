@@ -12,7 +12,10 @@ export default class GLMgr {
   cvs: HTMLCanvasElement;
   gl: WebGLRenderingContext;
   program: WebGLProgram;
-  objects: Obj[] = [new Torus(50, 30, 5, 1), new Cube()];
+  objects: Obj[] = [
+    new Torus(50, 30, 5, 1),
+    new Cube(),
+  ];
   // object: Obj = new Sphere(10, 3, 1);
   object: Obj = this.objects[0];
   // object: Obj = new Cube();
@@ -71,7 +74,9 @@ export default class GLMgr {
     // 深度テストの設定
     this.gl.depthFunc(this.gl.LEQUAL);
     // ブレンディングの設定
-    // this.gl.blendEquation(this.gl.FUNC_ADD);
+    this.gl.blendEquation(this.gl.FUNC_ADD);
+    // this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
+    // this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.DST_ALPHA);
     this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 
     // VAOの初期化
