@@ -77,7 +77,8 @@ export default class GLMgr {
     this.gl.blendEquation(this.gl.FUNC_ADD);
     // this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
     // this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.DST_ALPHA);
-    this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+    // this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+    this.gl.blendFuncSeparate(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA, this.gl.ONE, this.gl.ONE)
 
     // VAOの初期化
     for(let i=0; i<this.objects.length; i++){
