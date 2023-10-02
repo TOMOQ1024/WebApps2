@@ -15,8 +15,8 @@ export default function Render(game: Game){
   game.ctx.textAlign = 'center';
 
   switch(game.scene){
-    case '->title':
-    case 'title->':
+    case 'title':
+    case 'title_out':
       game.ctx.globalAlpha = 1 - game.timer;
     case 'title':
       game.ctx.fillStyle = 'black';
@@ -26,7 +26,7 @@ export default function Render(game: Game){
       game.ctx.fillText('PRESS ANY KEY TO START', game.cvs.width/2, game.cvs.height/4*3);
       drawImgAt(game, 'nc', game.width-2, game.width-1);
       break;
-    case '->game':
+    case 'game_in':
       break;
     case 'game':
       drawNessy(game);
@@ -35,9 +35,9 @@ export default function Render(game: Game){
       break;
     // case 'game->':
     //   break;
-    case 'result->':
+    case 'result_out':
       game.ctx.globalAlpha = game.timer;
-    case '->result':
+    case 'result_in':
     case 'result':
       drawNessy(game);
       drawPlayer(game);

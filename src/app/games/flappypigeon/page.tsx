@@ -20,7 +20,6 @@ export default function Main(){
     GameLoop();
 
     const KeyDown = (keyName: string) => game.keyDown(keyName);
-
     const KeyUp = (keyName: string) => game.keyUp(keyName);
 
     const HandleKeyDown = (e: KeyboardEvent) => KeyDown(e.key.toLowerCase());

@@ -1,13 +1,13 @@
 export const Scenes = [
-  '->title',
+  'title_in',
   'title',
-  'title->',
-  '->game',
+  'title_out',
+  'game_in',
   'game',
-  'game->',
-  '->result',
+  'game_out',
+  'result_in',
   'result',
-  'result->'
+  'result_out'
 ] as const;
 
 export type Scene = typeof Scenes[number];

@@ -5,7 +5,7 @@ export default function Update(game: Game) {
   game.dt = now - game.now;
   game.now = now;
   switch(game.scene){
-    case '->title':
+    case 'title_in':
       game.timer -= 0.03;
       if(game.timer < 0){
         game.scene = 'title';
@@ -14,18 +14,18 @@ export default function Update(game: Game) {
     case 'title':
       if(Object.entries(game.keys).filter(([k,t])=>t===2&&k!=='_m_mouse').length){
         game.timer = 0;
-        game.scene = 'title->';
+        game.scene = 'title_out';
       }
       break;
-    case 'title->':
+    case 'title_out':
       game.timer += 0.03;
       if(1.0 < game.timer){
         game.ctx.globalAlpha = 1.0;
-        game.scene = '->game';
+        game.scene = 'game_in';
         break;
       }
       break;
-    case '->game':
+    case 'game_in':
       game.init();
       game.timer = game.nessyInterval;
       game.scene = 'game';
@@ -41,7 +41,7 @@ export default function Update(game: Game) {
       break;
     // case 'game->':
     //   break;
-    case '->result':
+    case 'result_in':
       game.timer = 0;
       game.scene = 'result';
       break;
@@ -50,14 +50,14 @@ export default function Update(game: Game) {
       UpdatePlayer(game);
       UpdateNessy(game);
       if(game.keys.r === 2){
-        game.scene = 'result->';
+        game.scene = 'result_out';
       }
       break;
-    case 'result->':
+    case 'result_out':
       game.timer -= 0.03;
       if(game.timer < 0){
         game.timer = 1;
-        game.scene = '->title';
+        game.scene = 'title_in';
       }
       break;
   }
@@ -137,14 +137,14 @@ function UpdatePlayer(game: Game){
         Math.abs(n.y-p.y) > 1.2
       ){
         game.collided = true;
-        game.scene = '->result';
+        game.scene = 'result_in';
       }
     }
   
     // 当たり判定(地面)
     if(game.width - 1 < p.y){
       game.collided = true;
-      game.scene = '->result';
+      game.scene = 'result_in';
       game.player.ddr = game.player.vel.x/9;
     }
   }
