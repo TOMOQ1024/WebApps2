@@ -64,4 +64,21 @@ export class Game {
     this.interact = false;
     this.nessy = [];
   }
+
+  keyDown(keyName: string) {
+    if(!this.keys[keyName]){
+      this.keys[keyName] = 2;
+    }
+  }
+
+  keyUp(keyName: string) {
+    if(this.keys[keyName] === 2){
+      setTimeout(() => {
+        this.keys[keyName] = 0;
+      }, 20);
+    }
+    else {
+      this.keys[keyName] = 0;
+    }
+  }
 }

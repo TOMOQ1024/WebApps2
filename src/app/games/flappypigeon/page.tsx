@@ -19,22 +19,9 @@ export default function Main(){
     }
     GameLoop();
 
-    const KeyDown = (keyName: string) => {
-      if(!game.keys[keyName]){
-        game.keys[keyName] = 2;
-      }
-    }
+    const KeyDown = (keyName: string) => game.keyDown(keyName);
 
-    const KeyUp = (keyName: string) => {
-      if(game.keys[keyName] === 2){
-        setTimeout(() => {
-          game.keys[keyName] = 0;
-        }, 20);
-      }
-      else {
-        game.keys[keyName] = 0;
-      }
-    }
+    const KeyUp = (keyName: string) => game.keyUp(keyName);
 
     const HandleKeyDown = (e: KeyboardEvent) => KeyDown(e.key.toLowerCase());
     const HandleKeyUp = (e: KeyboardEvent) => KeyUp(e.key.toLowerCase());
