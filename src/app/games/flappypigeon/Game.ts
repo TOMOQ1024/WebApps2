@@ -40,7 +40,7 @@ export class Game {
     this.ctx = cvs.getContext('2d')!;
     for(let iname in ImageNames){
       this.imgs[iname] = new Image();
-      this.imgs[iname].src = `/images/flappypigeon/${ImageNames[iname]}`
+      this.imgs[iname].src = `/resources/flappypigeon/${ImageNames[iname]}`
     }
   }
 
