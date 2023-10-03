@@ -1,13 +1,14 @@
-import { ImageNames, Scene } from "./Utils";
+import { GRIDSIZE } from "./Constants";
+import { SceneMgr } from "./Scene";
+import Timer from "./Timer";
+import { ImageNames } from "./Utils";
 
 export class Game {
-  scene: Scene = 'title';
-  width = 10;
-  G = .025;
+  sceneMgr = new SceneMgr(this);
   cvs: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   keys: {[Key:string]: number} = {};
-  timer: number = 0;
+  timer = new Timer(this);
   imgs: {[Key:string]: HTMLImageElement} = {};
   now: number = 0;
   dt: number = 0;
@@ -45,21 +46,19 @@ export class Game {
   }
 
   init(){
-    this.timer = 0;
     this.score = 0;
     this.player = {
       pos: {
-        x: this.width/4,
-        y: this.width/2,
+        x: GRIDSIZE/4,
+        y: GRIDSIZE/2,
       },
       vel: {
-        x: 1,
+        x: 1e-3,
         y: 0,
       },
       dir: 0,
       ddr: 0
     };
-    this.G = .025;
     this.collided = false;
     this.interact = false;
     this.nessy = [];

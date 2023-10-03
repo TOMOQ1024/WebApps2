@@ -1,6 +1,7 @@
 "use client";
 import MainCanvas from "@/app/components/maincanvas";
 import { useEffect, useState } from "react"
+import { CANVASHEIGHT, CANVASWIDTH } from "./Constants";
 import { Game } from "./Game";
 import Render from "./Render";
 import Update from "./Update";
@@ -51,7 +52,10 @@ export default function Main(){
         textAlign: 'center'
       }}
     >
-      <MainCanvas/>
+      <MainCanvas
+        width = {CANVASWIDTH}
+        height = {CANVASHEIGHT}
+      />
       <div
         style={{
           color: '#888',

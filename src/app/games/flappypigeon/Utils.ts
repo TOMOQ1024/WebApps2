@@ -1,17 +1,3 @@
-export const Scenes = [
-  'title_in',
-  'title',
-  'title_out',
-  'game_in',
-  'game',
-  'game_out',
-  'result_in',
-  'result',
-  'result_out'
-] as const;
-
-export type Scene = typeof Scenes[number];
-
 export const ImageNames: {[Key:string]:string} = {
   dd: 'dead.png',
   f0: 'flap0.png',
@@ -22,6 +8,9 @@ export const ImageNames: {[Key:string]:string} = {
 }
 
 
+export function Clamp(min: number, val: number, max: number){
+  return Math.max(min, Math.min(val, max));
+}
 
 export function IsIn(x:number,y:number,l:number,t:number,w:number,h:number){
   if(x < l)return false;

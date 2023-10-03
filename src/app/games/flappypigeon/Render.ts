@@ -1,64 +1,62 @@
+import { CANVASHEIGHT, CANVASWIDTH, GRIDSIZE } from "./Constants";
 import { Game } from "./Game";
 
 export default function Render(game: Game){
-  game.ctx.globalAlpha = 1.0;
-  game.ctx.fillStyle = '#eee';
+  let {ctx, timer, sceneMgr} = game;
+
+  ctx.globalAlpha = 1.0;
+  ctx.fillStyle = '#eee';
 
   // background
-  const l = game.cvs.width/game.width;
-  game.ctx.save();
-  game.ctx.globalAlpha = 1;
-  game.ctx.fillStyle = '#acf';
-  game.ctx.fillRect(0, 0, game.cvs.width, game.cvs.height);
-  game.ctx.restore();
+  const l = CANVASWIDTH/GRIDSIZE;
+  ctx.save();
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = '#acf';
+  ctx.fillRect(0, 0, CANVASWIDTH, CANVASHEIGHT);
+  ctx.restore();
 
-  game.ctx.textAlign = 'center';
+  ctx.textAlign = 'center';
 
-  switch(game.scene){
-    case 'title':
+  switch(sceneMgr.current){
+    case 'title_in':
+      ctx.globalAlpha = timer.getProgress();
+      drawTitle(game);
+      break;
     case 'title_out':
-      game.ctx.globalAlpha = 1 - game.timer;
+      ctx.globalAlpha = timer.getRemainingProgress();
+      drawTitle(game);
+      break;
     case 'title':
-      game.ctx.fillStyle = 'black';
-      game.ctx.font = `${game.cvs.height/5}px serif`;
-      game.ctx.fillText('FlappyPigeon', game.cvs.width/2, game.cvs.height/2.5, game.cvs.width*0.8);
-      game.ctx.font = `${game.cvs.height/30}px serif`;
-      game.ctx.fillText('PRESS ANY KEY TO START', game.cvs.width/2, game.cvs.height/4*3);
-      drawImgAt(game, 'nc', game.width-2, game.width-1);
+      drawTitle(game);
       break;
     case 'game_in':
-      break;
+      ctx.globalAlpha = timer.getProgress();
     case 'game':
       drawNessy(game);
       drawPlayer(game);
       drawMenu(game);
       break;
-    // case 'game->':
-    //   break;
+    case 'game_out': break;
     case 'result_out':
-      game.ctx.globalAlpha = game.timer;
+      ctx.globalAlpha = timer.getRemainingProgress();
     case 'result_in':
     case 'result':
       drawNessy(game);
       drawPlayer(game);
       drawMenu(game);
-      game.ctx.textBaseline = 'middle';
-      game.ctx.fillStyle = '#ffffff'+Math.floor(game.timer*188).toString(16).padStart(2,'0');
-      game.ctx.fillRect(0, 0, game.cvs.width, game.cvs.height);
-      game.ctx.fillStyle = '#000000'+Math.floor(game.timer*160).toString(16).padStart(2,'0');
-      game.ctx.fillRect(0, game.cvs.height*0.2, game.cvs.width, game.cvs.height*0.6);
-      game.ctx.fillStyle = '#fff';
-      game.ctx.textAlign = 'center';
-      game.ctx.font = `${game.cvs.height/9}px serif`;
-      game.ctx.fillText(`Result`, game.cvs.width/2, game.cvs.height*0.3);
-      game.ctx.textAlign = 'center';
-      game.ctx.font = `${game.cvs.height/6}px serif`;
-      game.ctx.fillText(`${game.score}`, game.cvs.width*0.5, game.cvs.height*0.5);
-      game.ctx.font = `${game.cvs.height/17}px serif`;
-      game.ctx.textAlign = 'center';
-      game.ctx.fillText(`PRESS R KEY TO TITLE`, game.cvs.width/2, game.cvs.height*0.7);
+      drawResult(game);
       break;
   }
+}
+
+function drawTitle(game: Game){
+  const {ctx} = game;
+  ctx.fillStyle = 'black';
+  ctx.font = `${CANVASHEIGHT/5}px serif`;
+  ctx.fillText('FlappyPigeon', CANVASWIDTH/2, CANVASHEIGHT/2.5, CANVASWIDTH*0.8);
+  ctx.font = `${CANVASHEIGHT/30}px serif`;
+  ctx.fillText('PRESS ANY KEY TO START', CANVASWIDTH/2, CANVASHEIGHT/4*3);
+  drawImgAt(game, 'nc', GRIDSIZE-2, GRIDSIZE-1);
 }
 
 function drawPlayer(game: Game){
@@ -69,20 +67,20 @@ function drawPlayer(game: Game){
     game,
     game.interact ?
       game.collided ? 'dd' : (dir<.03 ? 'f0' : 'f1') :
-      (Math.floor(game.timer/3)%2 ? 'f0' : 'f1'),
+      (Math.floor(game.now/60)%2 ? 'f0' : 'f1'),
     pos.x, pos.y, dir
   );
 }
 
 let groundPos = 0;
 function drawNessy(game: Game){
-  const l = game.cvs.width / game.width;
+  const l = CANVASWIDTH / GRIDSIZE;
   let n: typeof game.nessy[number];
 
   // ネシ
   for(let i=0; i<game.nessy.length; i++){
     n = game.nessy[i];
-    for(let j=-game.width; j<=game.width; j++){
+    for(let j=-GRIDSIZE; j<=GRIDSIZE; j++){
       if(j*j<2) continue;
       drawImgAt(
         game,
@@ -94,39 +92,67 @@ function drawNessy(game: Game){
 
   // 地面
   groundPos -= game.player.vel.x/20;
-  for(let i=-1; i<=game.width+1; i++){
+  for(let i=-1; i<=GRIDSIZE+1; i++){
     drawImgAt(
       game,
       'nn',
-      i+((groundPos)%1+1)%1-1, game.width-.5, 0, 1.05
+      i+((groundPos)%1+1)%1-1, GRIDSIZE-.5, 0, 1.05
     );
   }
 }
 
 function drawImgAt(game: Game, imgName: string, x: number, y: number, angle=0, scale=1){
+  let {ctx} = game;
   if(!game.imgs[imgName])return;
-  const l = game.cvs.width/game.width;
-  game.ctx.save();
-  // game.ctx.globalAlpha = 0.1;
-  game.ctx.translate(x*l, y*l);
-  game.ctx.translate(l/2, l/2);
-  game.ctx.rotate(angle*Math.PI/2);
-  game.ctx.scale(scale, scale);
-  game.ctx.translate(-l/2, -l/2);
-  game.ctx.drawImage(game.imgs[imgName], 0, 0, l, l);
-  game.ctx.restore();
+  const l = CANVASWIDTH/GRIDSIZE;
+  ctx.save();
+  // ctx.globalAlpha = 0.1;
+  ctx.translate(x*l, y*l);
+  ctx.translate(l/2, l/2);
+  ctx.rotate(angle*Math.PI/2);
+  ctx.scale(scale, scale);
+  ctx.translate(-l/2, -l/2);
+  ctx.drawImage(game.imgs[imgName], 0, 0, l, l);
+  ctx.restore();
 }
 
 function drawMenu(game: Game){
-  const l = game.cvs.width / game.width;
+  let {cvs, ctx} = game;
+  const l = cvs.width / GRIDSIZE;
 
   // スコア表示
-  game.ctx.save();
-  game.ctx.fillStyle = 'black';
-  game.ctx.textAlign = 'left';
-  game.ctx.textBaseline = 'top';
-  game.ctx.font = `${l}px serif`;
-  game.ctx.fillText(`${game.score}`, l/2, l/2);
+  ctx.save();
+  ctx.fillStyle = 'black';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.font = `${l}px serif`;
+  ctx.fillText(`${game.score}`, l/2, l/2);
 
-  game.ctx.restore();
+  ctx.restore();
+}
+
+function drawResult(game: Game){
+  const { ctx, sceneMgr, timer } = game;
+  const bgAlphaParam = sceneMgr.current === 'result_out' ? 1 : timer.getProgress();
+
+  ctx.save();
+
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#ffffff'+Math.floor(bgAlphaParam*188).toString(16).padStart(2,'0');
+  ctx.fillRect(0, 0, CANVASWIDTH, CANVASHEIGHT);
+  ctx.fillStyle = '#000000'+Math.floor(bgAlphaParam*160).toString(16).padStart(2,'0');
+  ctx.fillRect(0, CANVASHEIGHT*0.2, CANVASWIDTH, CANVASHEIGHT*0.6);
+
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.font = `${CANVASHEIGHT/9}px serif`;
+  ctx.fillText(`Result`, CANVASWIDTH/2, CANVASHEIGHT*0.3);
+  ctx.textAlign = 'center';
+  ctx.font = `${CANVASHEIGHT/6}px serif`;
+  ctx.fillText(`${game.score}`, CANVASWIDTH*0.5, CANVASHEIGHT*0.5);
+  ctx.font = `${CANVASHEIGHT/17}px serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText(`PRESS R KEY TO TITLE`, CANVASWIDTH/2, CANVASHEIGHT*0.7);
+
+  ctx.restore();
 }
