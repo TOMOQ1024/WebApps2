@@ -19,7 +19,7 @@ export default function drawMenu(game: Game){
     
     // 要素背景
     ctx.fillStyle = '#334';
-    ctx.fillRect(l, l/2, l*4, l/2);
+    ctx.fillRect(l, l/2, l*42/10, l/2);
     ctx.beginPath();
     ctx.arc(l*.75, l*.75, l*.5, 0, Math.PI*2);
     ctx.fill();
@@ -31,22 +31,23 @@ export default function drawMenu(game: Game){
     ctx.translate(l*13/10, l*3/4);
     ctx.scale(l/10, l/10);
     // ゴール
-    ctx.fillRect(35, -2.5, 1, 1);
-    ctx.fillRect(36, -1.5, 1, 1);
-    ctx.fillRect(35, -0.5, 1, 1);
-    ctx.fillRect(36, +0.5, 1, 1);
-    ctx.fillRect(35, +1.5, 1, 1);
+    ctx.fillRect(37, -2.5, 1, 1);
+    ctx.fillRect(38, -1.5, 1, 1);
+    ctx.fillRect(37, -0.5, 1, 1);
+    ctx.fillRect(38, +0.5, 1, 1);
+    ctx.fillRect(37, +1.5, 1, 1);
     // ネッシー位置
     for(let i=1; i<Params.BORDER; i++){
       ctx.beginPath();
-      ctx.arc(37/Params.BORDER*i+1, 0, .1, 0, Math.PI*2);
+      ctx.arc(35/Params.BORDER*i+2, 0, .1, 0, Math.PI*2);
       ctx.fill();
     }
     // 死亡位置
     ctx.strokeStyle = '#f00';
     ctx.lineWidth = 1/2;
+    let x;
     player.gravePos.forEach(g=>{
-      let x = Math.min(g.x/NB*37, 37);
+      x = Math.min(g.x/NB*35, 37);
       ctx.beginPath();
       ctx.moveTo(x-1, -1);
       ctx.lineTo(x+1, +1);
@@ -57,9 +58,10 @@ export default function drawMenu(game: Game){
     // プレイヤー位置
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 1/5;
+    x = Math.min(37, player.timer.getConsumedTime()/NB*35);
     ctx.beginPath();
-    ctx.moveTo(player.timer.getConsumedTime()/NB*35, -2);
-    ctx.lineTo(player.timer.getConsumedTime()/NB*35, +2);
+    ctx.moveTo(x, -2);
+    ctx.lineTo(x, +2);
     ctx.stroke();
     ctx.restore();
 

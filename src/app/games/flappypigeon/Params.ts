@@ -10,7 +10,7 @@ export class Params {
   static readonly CANVASWIDTH = 1024;
   static readonly CANVASHEIGHT = 1024;
   static readonly FRAMERATE = 60;
-  static readonly BORDER = 3;
+  static readonly BORDER = 4;
   static readonly FIXEDNESSYPOS = [
     0.50,
     0.50,
