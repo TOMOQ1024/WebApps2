@@ -1,67 +1,60 @@
-import { ImageNames, Scene } from "./Utils";
+import { NessyMgr } from "./Nessy";
+import { Player } from "./Player";
+import { SceneMgr } from "./Scene";
+import Timer from "./Timer";
+import { ImageNames } from "./Utils";
 
 export class Game {
-  scene: Scene = 'title';
-  width = 10;
-  G = .025;
+  sceneMgr = new SceneMgr(this);
   cvs: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   keys: {[Key:string]: number} = {};
-  timer: number = 0;
+  timer = new Timer(this);
+  mainTimer = new Timer(this);
   imgs: {[Key:string]: HTMLImageElement} = {};
   now: number = 0;
   dt: number = 0;
-  nessyInterval = 60;// ネッシー召喚の間隔[フレーム]
   score = 0;
-  fortune: number = 1;
+  highScore = 0;
   interact = false;
-  collided = false;
+  timeover = false;
 
-  player = {
-    pos: {
-      x: 0,
-      y: 0,
-    },
-    vel: {
-      x: 0,
-      y: 0,
-    },
-    dir: 0,
-    ddr: 0
-  };
-
-  nessy: {
-    x: number,
-    y: number,
-  }[] = [];
+  player = new Player(this);
+  nessyMgr = new NessyMgr(this);
 
   constructor(cvs: HTMLCanvasElement){
     this.cvs = cvs;
     this.ctx = cvs.getContext('2d')!;
     for(let iname in ImageNames){
       this.imgs[iname] = new Image();
-      this.imgs[iname].src = `/images/flappypigeon/${ImageNames[iname]}`
+      this.imgs[iname].src = `/resources/flappypigeon/${ImageNames[iname]}`
     }
   }
 
   init(){
-    this.timer = 0;
     this.score = 0;
-    this.player = {
-      pos: {
-        x: this.width/4,
-        y: this.width/2,
-      },
-      vel: {
-        x: 1,
-        y: 0,
-      },
-      dir: 0,
-      ddr: 0
-    };
-    this.G = .025;
-    this.collided = false;
+    this.highScore = 0;
     this.interact = false;
-    this.nessy = [];
+    this.timeover = false;
+    this.player.init();
+    this.player.clearGrave();
+    this.nessyMgr.init();
+  }
+
+  keyDown(keyName: string) {
+    if(!this.keys[keyName]){
+      this.keys[keyName] = 2;
+    }
+  }
+
+  keyUp(keyName: string) {
+    if(this.keys[keyName] === 2){
+      setTimeout(() => {
+        this.keys[keyName] = 0;
+      }, 20);
+    }
+    else {
+      this.keys[keyName] = 0;
+    }
   }
 }
