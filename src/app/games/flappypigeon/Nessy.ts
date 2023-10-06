@@ -39,7 +39,7 @@ export class NessyMgr {
   update(){
     this.nessies.forEach(n=>n?.update());
     if(this.timer.isEnded() && this._parent.interact && !this._parent.player.collided){
-      if(Params.KITFES){
+      if(Params.KITFES && 0){
         this.append(
           Params.GRIDSIZE+1,
           (((this.fixedpos.shift() || Math.random())-.5)*0.55+.5)*Params.GRIDSIZE
