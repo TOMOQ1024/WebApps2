@@ -50,6 +50,15 @@ export default class Timer {
     }
   }
 
+  getConsumedTime() {
+    if(this.isPausing()){
+      return this._duration - this._stashed;
+    }
+    else{
+      return this._duration - (this._endTime - this._parent.now);
+    }
+  }
+
   pause() {
     this._stashed = this.getRemainingTime();
     this._paused = true;
