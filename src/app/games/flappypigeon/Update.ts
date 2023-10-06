@@ -22,7 +22,10 @@ export default function Update(game: Game) {
       if(timer.isEnded()){
         timer.setDuration(Params.SCENETRANSITION);
         game.init();
-        if(Params.KITFES)mainTimer.setDuration(Params.TIMELIMIT);
+        if(Params.KITFES){
+          mainTimer.setDuration(Params.TIMELIMIT);
+          mainTimer.pause();
+        }
         sceneMgr.set('game_in');
         break;
       }
@@ -37,6 +40,7 @@ export default function Update(game: Game) {
         nessyMgr.clear();
         player.init();
         game.interact = false;
+        timer.setDuration(Params.SCENETRANSITION);
         sceneMgr.set('game_resume_out');
       }
       player.update();
@@ -51,7 +55,9 @@ export default function Update(game: Game) {
       break;
     case 'game':
       if(Params.KITFES && game.mainTimer.isEnded()){
-        game.timeover = true;
+        player.collided = true;
+        timer.setDuration(Params.SCENETRANSITION);
+        sceneMgr.set('game_out');
       }
       player.update();
       nessyMgr.update();

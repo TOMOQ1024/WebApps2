@@ -34,6 +34,7 @@ export class Player {
     if(Object.values(keys).filter(k=>k===2).length && !this.collided){
       // this.vel.y -= .7;
       this._parent.interact = true;
+      if(Params.KITFES && mainTimer.isPausing())mainTimer.unpause();
       this.vel.y = Params.FLAPVELOCITY;
     };
 

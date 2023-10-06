@@ -25,6 +25,9 @@ export default class Timer {
     this._duration = endTime - this._parent.now;
   }
 
+  private _paused = false;
+  private _stashed = 0;
+
   /** @param duration ms */
   constructor(private _parent: Game) { }
 
@@ -39,14 +42,35 @@ export default class Timer {
   }
 
   getRemainingTime() {
-    return this._endTime - this._parent.now;
+    if(this.isPausing()){
+      return this._stashed;
+    }
+    else{
+      return this._endTime - this._parent.now;
+    }
+  }
+
+  pause() {
+    this._stashed = this.getRemainingTime();
+    this._paused = true;
+  }
+
+  unpause() {
+    const prevDur = this._duration;
+    this.setDuration(this._stashed);
+    this._duration = prevDur;
+    this._paused = false;
+  }
+
+  isPausing() {
+    return this._paused;
   }
 
   isEnded() {
-    return this._endTime < this._parent.now;
+    return !this.isPausing() && this._endTime < this._parent.now;
   }
 
   isRunning() {
-    return this._endTime >= this._parent.now;
+    return !this.isPausing() && this._endTime >= this._parent.now;
   }
 }
