@@ -89,7 +89,13 @@ export default function Update(game: Game) {
       // timer = Math.min(timer+0.03, 1);
       player.update();
       nessyMgr.update();
-      if(keys.r === 2){
+      if(keys.r === 2 && timer.isEnded()){
+        timer.setDuration(Params.KEYHOLDTIME * 2);
+      }
+      if(timer.isRunning() && keys.r === 0){
+        timer.end();
+      }
+      if(timer.isRunning() && Params.KEYHOLDTIME < timer.getConsumedTime()){
         timer.setDuration(Params.SCENETRANSITION);
         sceneMgr.set('result_out');
       }

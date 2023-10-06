@@ -78,6 +78,10 @@ export default class Timer {
     this._paused = true;
   }
 
+  end() {
+    this._endTime = this._parent.now;
+  }
+
   unpause() {
     if(!this.isPausing())return;
     this._endTime = this._parent.now + this._duration - this._stashed;
