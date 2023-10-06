@@ -1,5 +1,6 @@
 import { Game } from "../Game";
 import { Params } from "../Params";
+import DrawHowto from "./DrawHowto";
 import DrawMenu from "./DrawMenu";
 import DrawResult from "./DrawResult";
 import DrawTitle from "./DrawTitle";
@@ -31,6 +32,17 @@ export default function Render(game: Game){
       break;
     case 'title':
       DrawTitle(game);
+      break;
+    case 'howto_in':
+      ctx.globalAlpha = timer.getProgress();
+      DrawHowto(game);
+      break;
+    case 'howto':
+      DrawHowto(game);
+      break;
+    case 'howto_out':
+      ctx.globalAlpha = timer.getRemainingProgress();
+      DrawHowto(game);
       break;
     case 'game_resume_in':
       ctx.globalAlpha = timer.getRemainingProgress();
