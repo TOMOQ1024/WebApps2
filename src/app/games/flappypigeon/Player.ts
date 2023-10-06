@@ -24,7 +24,7 @@ export class Player {
 
   update(){
     //
-    const {keys, sceneMgr, nessyMgr, timer} = this._parent;
+    const {keys, sceneMgr, nessyMgr, timer, mainTimer} = this._parent;
     const { nessies } = nessyMgr;
     if(this.collided){
       this.stiffness *= 1.2;
@@ -50,6 +50,11 @@ export class Player {
     if(!this.collided)this.dir = this.vel.y * 10;
     else this.dir += this.ddr * this._parent.dt;
 
+    // 地面修正
+    this.pos.y = Math.min(this.pos.y, Params.GRIDSIZE-.99);
+    
+    if(this._parent.sceneMgr.match('resume'))return;
+
     // 当たり判定
     if(!sceneMgr.match('result')){
       // 当たり判定(ネシ)
@@ -63,7 +68,12 @@ export class Player {
         ){
           this.collided = true;
           timer.setDuration(Params.SCENETRANSITION);
-          sceneMgr.next();
+          if(this._parent.mainTimer.isRunning()){
+            sceneMgr.set('game_resume_in');
+          }
+          else{
+            sceneMgr.set('game_out');
+          }
         }
       }
     
@@ -71,13 +81,15 @@ export class Player {
       if(Params.GRIDSIZE - 1 < p.y){
         this.collided = true;
         timer.setDuration(Params.SCENETRANSITION);
-        sceneMgr.next();
+        if(this._parent.mainTimer.isRunning() && !this._parent.sceneMgr.match('resume')){
+          sceneMgr.set('game_resume_in');
+        }
+        else{
+          sceneMgr.set('game_out');
+        }
         this.ddr = this.vel.x/9;
       }
     }
-
-    // 地面修正
-    this.pos.y = Math.min(this.pos.y, Params.GRIDSIZE-1);
   }
 
   render(){

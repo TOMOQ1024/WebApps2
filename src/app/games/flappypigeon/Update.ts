@@ -3,41 +3,63 @@ import { Game } from "./Game";
 import { Params } from "./Params";
 
 export default function Update(game: Game) {
-  let {timer, sceneMgr, nessyMgr, player, keys} = game;
+  let {timer, mainTimer, sceneMgr, nessyMgr, player, keys} = game;
   const now = performance.now();
   game.dt = now - game.now;
   game.now = now;
+  console.log(sceneMgr.current);
   switch(sceneMgr.current){
     case 'title_in':
-      if(timer.isEnded()) sceneMgr.next();
+      if(timer.isEnded()) sceneMgr.set('title');
       break;
     case 'title':
       if(Object.entries(keys).filter(([k,t])=>t===2&&k!=='_m_mouse').length){
         timer.setDuration(Params.SCENETRANSITION);
-        sceneMgr.next();
+        sceneMgr.set('title_out');
       }
       break;
     case 'title_out':
       if(timer.isEnded()){
         timer.setDuration(Params.SCENETRANSITION);
         game.init();
-        sceneMgr.next();
+        if(Params.KITFES)mainTimer.setDuration(Params.TIMELIMIT);
+        sceneMgr.set('game_in');
         break;
       }
       break;
     case 'game_in':
       if(timer.isEnded()){
-        sceneMgr.next();
+        sceneMgr.set('game');
         break;
       }
+    case 'game_resume_in':
+      if(timer.isEnded()){
+        nessyMgr.clear();
+        player.init();
+        game.interact = false;
+        sceneMgr.set('game_resume_out');
+      }
+      player.update();
+      nessyMgr.update();
+      break;
+    case 'game_resume_out':
+      if(timer.isEnded()){
+        sceneMgr.set('game');
+      }
+      player.update();
+      nessyMgr.update();
+      break;
     case 'game':
+      if(Params.KITFES && game.mainTimer.isEnded()){
+        game.timeover = true;
+      }
       player.update();
       nessyMgr.update();
       break;
     case 'game_out':
-      sceneMgr.next();
+      sceneMgr.set('result_in');
     case 'result_in':
-      sceneMgr.next();
+      sceneMgr.set('result');
       break;
     case 'result':
       // timer = Math.min(timer+0.03, 1);
@@ -45,13 +67,13 @@ export default function Update(game: Game) {
       nessyMgr.update();
       if(keys.r === 2){
         timer.setDuration(Params.SCENETRANSITION);
-        sceneMgr.next();
+        sceneMgr.set('result_out');
       }
       break;
     case 'result_out':
       if(timer.isEnded()){
         timer.setDuration(Params.SCENETRANSITION);
-        sceneMgr.next();
+        sceneMgr.set('title_in');
       }
       break;
   }

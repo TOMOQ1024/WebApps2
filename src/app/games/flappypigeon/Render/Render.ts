@@ -32,8 +32,19 @@ export default function Render(game: Game){
     case 'title':
       DrawTitle(game);
       break;
+    case 'game_resume_in':
+      ctx.globalAlpha = timer.getRemainingProgress();
+      nessyMgr.render();
+      player.render();
+      DrawMenu(game);
+      break;
+    case 'game_resume_out':
     case 'game_in':
       ctx.globalAlpha = timer.getProgress();
+      nessyMgr.render();
+      player.render();
+      DrawMenu(game);
+      break;
     case 'game':
       nessyMgr.render();
       player.render();

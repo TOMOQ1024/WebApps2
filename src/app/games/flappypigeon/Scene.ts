@@ -6,6 +6,8 @@ export const Scenes = [
   'title_out',
   'game_in',
   'game',
+  'game_resume_in',
+  'game_resume_out',
   'game_out',
   'result_in',
   'result',
@@ -34,7 +36,7 @@ export class SceneMgr {
     return Boolean(this._current.match(regexp));
   }
 
-  next() {
-    this._current = Scenes[(Scenes.indexOf(this._current)+1)%Scenes.length];
-  }
+  // next() {
+  //   this._current = Scenes[(Scenes.indexOf(this._current)+1)%Scenes.length];
+  // }
 }

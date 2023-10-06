@@ -16,6 +16,7 @@ export class Game {
   dt: number = 0;
   score = 0;
   interact = false;
+  timeover = false;
 
   player = new Player(this);
   nessyMgr = new NessyMgr(this);
@@ -31,8 +32,9 @@ export class Game {
 
   init(){
     this.score = 0;
-    this.player.init();
     this.interact = false;
+    this.timeover = false;
+    this.player.init();
     this.nessyMgr.clear();
   }
 

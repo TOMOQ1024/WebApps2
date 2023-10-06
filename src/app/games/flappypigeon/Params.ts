@@ -11,15 +11,14 @@ export class Params {
   static readonly CANVASHEIGHT = 1024;
   static readonly FRAMERATE = 60;
 
-  private static _KITFES = false;
-  get KITFES(){return Params._KITFES;};
-  private static _TIMELIMIT = 30000;
-  get TIMELIMIT(){return Params._KITFES;};
+  static KITFES = false;
+  static TIMELIMIT = 30000;
+  get TIMELIMIT(){return Params.KITFES;};
   
   static get(getFunc: (name: string) => string | null){
     const f = getFunc('kitfes');
-    Params._KITFES = f !== null;
+    Params.KITFES = f !== null;
     const l = getFunc('timelimit');
-    Params._TIMELIMIT = l!==null ? Number(l) : 30000;
+    Params.TIMELIMIT = l!==null ? Number(l) : 30000;
   }
 }

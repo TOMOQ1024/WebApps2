@@ -22,7 +22,12 @@ export default function DrawResult(game: Game){
   ctx.fillText(`${game.score}`, Params.CANVASWIDTH*0.5, Params.CANVASHEIGHT*0.5);
   ctx.font = `${Params.CANVASHEIGHT/17}px serif`;
   ctx.textAlign = 'center';
-  ctx.fillText(`PRESS R KEY TO TITLE`, Params.CANVASWIDTH/2, Params.CANVASHEIGHT*0.7);
+  if(Params.KITFES) {
+    ctx.fillText(`HOLD R KEY TO RESTART`, Params.CANVASWIDTH/2, Params.CANVASHEIGHT*0.7);
+  }
+  else {
+    ctx.fillText(`PRESS R KEY TO TITLE`, Params.CANVASWIDTH/2, Params.CANVASHEIGHT*0.7);
+  }
 
   ctx.restore();
 }

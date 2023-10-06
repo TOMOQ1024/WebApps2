@@ -45,4 +45,8 @@ export default class Timer {
   isEnded() {
     return this._endTime < this._parent.now;
   }
+
+  isRunning() {
+    return this._endTime >= this._parent.now;
+  }
 }
