@@ -2,7 +2,7 @@
 import MainCanvas from "@/app/components/maincanvas";
 import { useEffect, useState } from "react"
 import { Game } from "./Game";
-import Render from "./Render";
+import Render from "./Render/Render";
 import Update from "./Update";
 import { useSearchParams } from "next/navigation";
 import { Params } from "./Params";

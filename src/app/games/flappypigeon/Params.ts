@@ -9,6 +9,7 @@ export class Params {
   static readonly SCENETRANSITION = 300;
   static readonly CANVASWIDTH = 1024;
   static readonly CANVASHEIGHT = 1024;
+  static readonly FRAMERATE = 60;
 
   private static _KITFES = false;
   get KITFES(){return Params._KITFES;};

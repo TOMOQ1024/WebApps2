@@ -1,5 +1,6 @@
 import { Game } from "./Game";
 import { Params } from "./Params";
+import DrawImgAt from "./Render/DrawImgAt";
 import { Vec2 } from "./Vec2";
 
 export class Player {
@@ -77,5 +78,16 @@ export class Player {
 
     // 地面修正
     this.pos.y = Math.min(this.pos.y, Params.GRIDSIZE-1);
+  }
+
+  render(){
+    // let dir = Math.atan2(game.player.vel.y, game.player.vel.x);
+    DrawImgAt(
+      this._parent,
+      this._parent.interact ?
+        this.collided ? 'dd' : (this.dir<.03 ? 'f0' : 'f1') :
+        (Math.floor(this._parent.now/60)%2 ? 'f0' : 'f1'),
+      this.pos.x, this.pos.y, this.dir
+    );
   }
 }

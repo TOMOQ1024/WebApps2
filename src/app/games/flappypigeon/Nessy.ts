@@ -1,11 +1,13 @@
 import { Game } from "./Game";
 import { Params } from "./Params";
+import DrawImgAt from "./Render/DrawImgAt";
 import Timer from "./Timer";
 import { Vec2 } from "./Vec2";
 
 export class NessyMgr {
   nessies: (Nessy|null)[] = [];
   timer: Timer;
+  groundPos = 0;
 
   constructor(private _parent: Game) {
     this.timer = new Timer(_parent);
@@ -37,6 +39,37 @@ export class NessyMgr {
         ((Math.random()-.5)*0.55+.5)*Params.GRIDSIZE
       );
       this.timer.setDuration(Params.NESSYINTERVAL);
+    }
+  }
+
+  render(){
+    const { nessyMgr, player } = this._parent;
+    const { nessies } = nessyMgr;
+    const l = Params.CANVASWIDTH / Params.GRIDSIZE;
+    let n: typeof nessies[number];
+  
+    // ネシ
+    for(let i=0; i<nessies.length; i++){
+      n = nessies[i];
+      if(!n) continue;
+      for(let j=-Params.GRIDSIZE; j<=Params.GRIDSIZE; j++){
+        if(j*j<2) continue;
+        DrawImgAt(
+          this._parent,
+          j*j===4 ? 'nh' : 'nn',
+          n.pos.x, n.pos.y+j, Math.sign(-j), 1.05
+        );
+      }
+    }
+  
+    // 地面
+    this.groundPos -= player.vel.x/20;
+    for(let i=-1; i<=Params.GRIDSIZE+1; i++){
+      DrawImgAt(
+        this._parent,
+        'nn',
+        i+((this.groundPos)%1+1)%1-1, Params.GRIDSIZE-.5, 0, 1.05
+      );
     }
   }
 }
