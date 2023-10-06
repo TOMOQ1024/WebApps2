@@ -1,5 +1,6 @@
-import { GRAVITY, GRIDSIZE, SCENETRANSITION } from "./Constants";
+
 import { Game } from "./Game";
+import { Params } from "./Params";
 
 export default function Update(game: Game) {
   let {timer, sceneMgr, nessyMgr, player, keys} = game;
@@ -12,13 +13,13 @@ export default function Update(game: Game) {
       break;
     case 'title':
       if(Object.entries(keys).filter(([k,t])=>t===2&&k!=='_m_mouse').length){
-        timer.setDuration(SCENETRANSITION);
+        timer.setDuration(Params.SCENETRANSITION);
         sceneMgr.next();
       }
       break;
     case 'title_out':
       if(timer.isEnded()){
-        timer.setDuration(SCENETRANSITION);
+        timer.setDuration(Params.SCENETRANSITION);
         game.init();
         sceneMgr.next();
         break;
@@ -30,17 +31,12 @@ export default function Update(game: Game) {
         break;
       }
     case 'game':
-      // if(timer.isEnded()){
-      //   // timer += game.nessyMgrInterval;
-      // }
-      
       player.update();
       nessyMgr.update();
       break;
     case 'game_out':
       sceneMgr.next();
     case 'result_in':
-      // timer = 0;
       sceneMgr.next();
       break;
     case 'result':
@@ -48,13 +44,13 @@ export default function Update(game: Game) {
       player.update();
       nessyMgr.update();
       if(keys.r === 2){
-        timer.setDuration(SCENETRANSITION);
+        timer.setDuration(Params.SCENETRANSITION);
         sceneMgr.next();
       }
       break;
     case 'result_out':
       if(timer.isEnded()){
-        timer.setDuration(SCENETRANSITION);
+        timer.setDuration(Params.SCENETRANSITION);
         sceneMgr.next();
       }
       break;

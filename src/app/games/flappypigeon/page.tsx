@@ -1,13 +1,17 @@
 "use client";
 import MainCanvas from "@/app/components/maincanvas";
 import { useEffect, useState } from "react"
-import { CANVASHEIGHT, CANVASWIDTH } from "./Constants";
 import { Game } from "./Game";
 import Render from "./Render";
 import Update from "./Update";
+import { useSearchParams } from "next/navigation";
+import { Params } from "./Params";
 
 
 export default function Main(){
+  const searchParams = useSearchParams();
+  Params.get(searchParams.get);
+
   useEffect(()=>{
     document.title = 'Flappy Pigeon';
     let game = new Game(document.getElementById('cvs') as HTMLCanvasElement);
@@ -53,8 +57,8 @@ export default function Main(){
       }}
     >
       <MainCanvas
-        width = {CANVASWIDTH}
-        height = {CANVASHEIGHT}
+        width = {Params.CANVASWIDTH}
+        height = {Params.CANVASHEIGHT}
       />
       <div
         style={{

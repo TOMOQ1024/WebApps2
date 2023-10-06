@@ -1,5 +1,5 @@
-import { GRIDSIZE, NESSYINTERVAL } from "./Constants";
 import { Game } from "./Game";
+import { Params } from "./Params";
 import Timer from "./Timer";
 import { Vec2 } from "./Vec2";
 
@@ -33,10 +33,10 @@ export class NessyMgr {
     this.nessies.forEach(n=>n?.update());
     if(this.timer.isEnded() && this._parent.interact && !this._parent.player.collided){
       this.append(
-        GRIDSIZE+1,
-        ((Math.random()-.5)*0.55+.5)*GRIDSIZE
+        Params.GRIDSIZE+1,
+        ((Math.random()-.5)*0.55+.5)*Params.GRIDSIZE
       );
-      this.timer.setDuration(NESSYINTERVAL);
+      this.timer.setDuration(Params.NESSYINTERVAL);
     }
   }
 }

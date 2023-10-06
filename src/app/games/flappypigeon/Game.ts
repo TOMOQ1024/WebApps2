@@ -1,10 +1,8 @@
-import { GRIDSIZE } from "./Constants";
 import { NessyMgr } from "./Nessy";
 import { Player } from "./Player";
 import { SceneMgr } from "./Scene";
 import Timer from "./Timer";
 import { ImageNames } from "./Utils";
-import { Vec2 } from "./Vec2";
 
 export class Game {
   sceneMgr = new SceneMgr(this);
@@ -12,6 +10,7 @@ export class Game {
   ctx: CanvasRenderingContext2D;
   keys: {[Key:string]: number} = {};
   timer = new Timer(this);
+  mainTimer = new Timer(this);
   imgs: {[Key:string]: HTMLImageElement} = {};
   now: number = 0;
   dt: number = 0;

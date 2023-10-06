@@ -1,5 +1,5 @@
-import { CANVASHEIGHT, CANVASWIDTH, GRIDSIZE } from "./Constants";
 import { Game } from "./Game";
+import { Params } from "./Params";
 
 export default function Render(game: Game){
   let {ctx, timer, sceneMgr} = game;
@@ -8,11 +8,11 @@ export default function Render(game: Game){
   ctx.fillStyle = '#eee';
 
   // background
-  const l = CANVASWIDTH/GRIDSIZE;
+  const l = Params.CANVASWIDTH/Params.GRIDSIZE;
   ctx.save();
   ctx.globalAlpha = 1;
   ctx.fillStyle = '#acf';
-  ctx.fillRect(0, 0, CANVASWIDTH, CANVASHEIGHT);
+  ctx.fillRect(0, 0, Params.CANVASWIDTH, Params.CANVASHEIGHT);
   ctx.restore();
 
   ctx.textAlign = 'center';
@@ -52,11 +52,11 @@ export default function Render(game: Game){
 function drawTitle(game: Game){
   const {ctx} = game;
   ctx.fillStyle = 'black';
-  ctx.font = `${CANVASHEIGHT/5}px serif`;
-  ctx.fillText('FlappyPigeon', CANVASWIDTH/2, CANVASHEIGHT/2.5, CANVASWIDTH*0.8);
-  ctx.font = `${CANVASHEIGHT/30}px serif`;
-  ctx.fillText('PRESS ANY KEY TO START', CANVASWIDTH/2, CANVASHEIGHT/4*3);
-  drawImgAt(game, 'nc', GRIDSIZE-2, GRIDSIZE-1);
+  ctx.font = `${Params.CANVASHEIGHT/5}px serif`;
+  ctx.fillText('FlappyPigeon', Params.CANVASWIDTH/2, Params.CANVASHEIGHT/2.5, Params.CANVASWIDTH*0.8);
+  ctx.font = `${Params.CANVASHEIGHT/30}px serif`;
+  ctx.fillText('PRESS ANY KEY TO START', Params.CANVASWIDTH/2, Params.CANVASHEIGHT/4*3);
+  drawImgAt(game, 'nc', Params.GRIDSIZE-2, Params.GRIDSIZE-1);
 }
 
 function drawPlayer(game: Game){
@@ -77,14 +77,14 @@ let groundPos = 0;
 function drawNessy(game: Game){
   const { nessyMgr, player } = game;
   const { nessies } = nessyMgr;
-  const l = CANVASWIDTH / GRIDSIZE;
+  const l = Params.CANVASWIDTH / Params.GRIDSIZE;
   let n: typeof nessies[number];
 
   // ネシ
   for(let i=0; i<nessies.length; i++){
     n = nessies[i];
     if(!n) continue;
-    for(let j=-GRIDSIZE; j<=GRIDSIZE; j++){
+    for(let j=-Params.GRIDSIZE; j<=Params.GRIDSIZE; j++){
       if(j*j<2) continue;
       drawImgAt(
         game,
@@ -96,11 +96,11 @@ function drawNessy(game: Game){
 
   // 地面
   groundPos -= player.vel.x/20;
-  for(let i=-1; i<=GRIDSIZE+1; i++){
+  for(let i=-1; i<=Params.GRIDSIZE+1; i++){
     drawImgAt(
       game,
       'nn',
-      i+((groundPos)%1+1)%1-1, GRIDSIZE-.5, 0, 1.05
+      i+((groundPos)%1+1)%1-1, Params.GRIDSIZE-.5, 0, 1.05
     );
   }
 }
@@ -108,7 +108,7 @@ function drawNessy(game: Game){
 function drawImgAt(game: Game, imgName: string, x: number, y: number, angle=0, scale=1){
   let {ctx} = game;
   if(!game.imgs[imgName])return;
-  const l = CANVASWIDTH/GRIDSIZE;
+  const l = Params.CANVASWIDTH/Params.GRIDSIZE;
   ctx.save();
   // ctx.globalAlpha = 0.1;
   ctx.translate(x*l, y*l);
@@ -122,7 +122,7 @@ function drawImgAt(game: Game, imgName: string, x: number, y: number, angle=0, s
 
 function drawMenu(game: Game){
   let {cvs, ctx} = game;
-  const l = cvs.width / GRIDSIZE;
+  const l = cvs.width / Params.GRIDSIZE;
 
   // スコア表示
   ctx.save();
@@ -143,20 +143,20 @@ function drawResult(game: Game){
 
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#ffffff'+Math.floor(bgAlphaParam*188).toString(16).padStart(2,'0');
-  ctx.fillRect(0, 0, CANVASWIDTH, CANVASHEIGHT);
+  ctx.fillRect(0, 0, Params.CANVASWIDTH, Params.CANVASHEIGHT);
   ctx.fillStyle = '#000000'+Math.floor(bgAlphaParam*160).toString(16).padStart(2,'0');
-  ctx.fillRect(0, CANVASHEIGHT*0.2, CANVASWIDTH, CANVASHEIGHT*0.6);
+  ctx.fillRect(0, Params.CANVASHEIGHT*0.2, Params.CANVASWIDTH, Params.CANVASHEIGHT*0.6);
 
   ctx.fillStyle = '#fff';
   ctx.textAlign = 'center';
-  ctx.font = `${CANVASHEIGHT/9}px serif`;
-  ctx.fillText(`Result`, CANVASWIDTH/2, CANVASHEIGHT*0.3);
+  ctx.font = `${Params.CANVASHEIGHT/9}px serif`;
+  ctx.fillText(`Result`, Params.CANVASWIDTH/2, Params.CANVASHEIGHT*0.3);
   ctx.textAlign = 'center';
-  ctx.font = `${CANVASHEIGHT/6}px serif`;
-  ctx.fillText(`${game.score}`, CANVASWIDTH*0.5, CANVASHEIGHT*0.5);
-  ctx.font = `${CANVASHEIGHT/17}px serif`;
+  ctx.font = `${Params.CANVASHEIGHT/6}px serif`;
+  ctx.fillText(`${game.score}`, Params.CANVASWIDTH*0.5, Params.CANVASHEIGHT*0.5);
+  ctx.font = `${Params.CANVASHEIGHT/17}px serif`;
   ctx.textAlign = 'center';
-  ctx.fillText(`PRESS R KEY TO TITLE`, CANVASWIDTH/2, CANVASHEIGHT*0.7);
+  ctx.fillText(`PRESS R KEY TO TITLE`, Params.CANVASWIDTH/2, Params.CANVASHEIGHT*0.7);
 
   ctx.restore();
 }
