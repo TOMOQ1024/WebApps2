@@ -43,14 +43,12 @@ export class NessyMgr {
   }
 
   render(){
-    const { nessyMgr, player } = this._parent;
-    const { nessies } = nessyMgr;
     const l = Params.CANVASWIDTH / Params.GRIDSIZE;
-    let n: typeof nessies[number];
+    let n: typeof this.nessies[number];
   
     // ネシ
-    for(let i=0; i<nessies.length; i++){
-      n = nessies[i];
+    for(let i=0; i<this.nessies.length; i++){
+      n = this.nessies[i];
       if(!n) continue;
       for(let j=-Params.GRIDSIZE; j<=Params.GRIDSIZE; j++){
         if(j*j<2) continue;
@@ -63,7 +61,7 @@ export class NessyMgr {
     }
   
     // 地面
-    this.groundPos -= player.vel.x/20;
+    this.groundPos -= this._parent.player.vel.x/20;
     for(let i=-1; i<=Params.GRIDSIZE+1; i++){
       DrawImgAt(
         this._parent,
