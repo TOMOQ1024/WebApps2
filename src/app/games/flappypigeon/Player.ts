@@ -122,7 +122,6 @@ export class Player {
       this.timer.getConsumedTime(),
       this.pos.y
     ));
-    console.log(this.gravePos);
     this._parent.timer.setDuration(Params.SCENETRANSITION);
     if(this._parent.mainTimer.isRunning() && !this._parent.sceneMgr.match('resume')){
       this._parent.sceneMgr.set('game_resume_in');

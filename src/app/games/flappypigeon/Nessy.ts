@@ -9,19 +9,21 @@ export class NessyMgr {
   timer: Timer;
   groundPos = 0;
   fixedpos = Params.FIXEDNESSYPOS.slice(0);
+  summonCount = 0;
 
   constructor(private _parent: Game) {
     this.timer = new Timer(_parent);
   }
 
   append(x: number, y: number){
+    this.summonCount++;
     for(let i=0; i<this.nessies.length; i++){
       if(!this.nessies[i]){
-        this.nessies.splice(i, 1, new Nessy(this._parent, i, x, y));
+        this.nessies.splice(i, 1, new Nessy(this._parent, i, x, y, this.summonCount===Params.BORDER));
         return;
       }
     }
-    this.nessies.push(new Nessy(this._parent, this.nessies.length, x, y));
+    this.nessies.push(new Nessy(this._parent, this.nessies.length, x, y, this.summonCount===Params.BORDER));
   }
 
   remove(index: number){
@@ -30,7 +32,8 @@ export class NessyMgr {
 
   init(){
     this.nessies = [];
-    this.fixedpos = Params.FIXEDNESSYPOS.slice(0)
+    this.fixedpos = Params.FIXEDNESSYPOS.slice(0);
+    this.summonCount = 0;
   }
 
   update(){
@@ -53,6 +56,7 @@ export class NessyMgr {
   }
 
   render(){
+    const { ctx } = this._parent;
     const l = Params.CANVASWIDTH / Params.GRIDSIZE;
     let n: typeof this.nessies[number];
   
@@ -62,11 +66,19 @@ export class NessyMgr {
       if(!n) continue;
       for(let j=-Params.GRIDSIZE; j<=Params.GRIDSIZE; j++){
         if(j*j<2) continue;
+        ctx.save();
+        if(n.isGoal){
+          ctx.shadowBlur = l/3;
+          ctx.shadowColor = 'yellow';
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
+        }
         DrawImgAt(
           this._parent,
           j*j===4 ? 'nh' : 'nn',
           n.pos.x, n.pos.y+j, Math.sign(-j), 1.05
         );
+        ctx.restore();
       }
     }
   
@@ -86,7 +98,7 @@ export class Nessy {
   pos = new Vec2();
   private _manager: NessyMgr;
 
-  constructor(private _parent: Game, private _index: number, x: number, y: number){
+  constructor(private _parent: Game, private _index: number, x: number, y: number, public isGoal=false){
     this._manager = _parent.nessyMgr;
     this.pos.x = x;
     this.pos.y = y;

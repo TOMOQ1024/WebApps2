@@ -7,7 +7,6 @@ export default function Update(game: Game) {
   const now = performance.now();
   game.dt = now - game.now;
   game.now = now;
-  console.log(sceneMgr.current);
   switch(sceneMgr.current){
     case 'title_in':
       if(timer.isEnded()) sceneMgr.set('title');
@@ -40,6 +39,7 @@ export default function Update(game: Game) {
         nessyMgr.init();
         player.init();
         game.interact = false;
+        game.score = 0;
         timer.setDuration(Params.SCENETRANSITION);
         sceneMgr.set('game_resume_out');
       }
