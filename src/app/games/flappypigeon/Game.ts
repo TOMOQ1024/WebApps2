@@ -15,6 +15,7 @@ export class Game {
   now: number = 0;
   dt: number = 0;
   score = 0;
+  highScore = 0;
   interact = false;
   timeover = false;
 
@@ -32,10 +33,12 @@ export class Game {
 
   init(){
     this.score = 0;
+    this.highScore = 0;
     this.interact = false;
     this.timeover = false;
     this.player.init();
-    this.nessyMgr.clear();
+    this.player.clearGrave();
+    this.nessyMgr.init();
   }
 
   keyDown(keyName: string) {

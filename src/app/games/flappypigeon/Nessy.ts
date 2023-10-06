@@ -8,6 +8,7 @@ export class NessyMgr {
   nessies: (Nessy|null)[] = [];
   timer: Timer;
   groundPos = 0;
+  fixedpos = Params.FIXEDNESSYPOS.slice(0);
 
   constructor(private _parent: Game) {
     this.timer = new Timer(_parent);
@@ -27,17 +28,26 @@ export class NessyMgr {
     this.nessies[index] = null;
   }
 
-  clear(){
+  init(){
     this.nessies = [];
+    this.fixedpos = Params.FIXEDNESSYPOS.slice(0)
   }
 
   update(){
     this.nessies.forEach(n=>n?.update());
     if(this.timer.isEnded() && this._parent.interact && !this._parent.player.collided){
-      this.append(
-        Params.GRIDSIZE+1,
-        ((Math.random()-.5)*0.55+.5)*Params.GRIDSIZE
-      );
+      if(Params.KITFES){
+        this.append(
+          Params.GRIDSIZE+1,
+          (((this.fixedpos.shift() || Math.random())-.5)*0.55+.5)*Params.GRIDSIZE
+        );
+      }
+      else {
+        this.append(
+          Params.GRIDSIZE+1,
+          ((Math.random()-.5)*0.55+.5)*Params.GRIDSIZE
+        );
+      }
       this.timer.setDuration(Params.NESSYINTERVAL);
     }
   }
@@ -91,6 +101,7 @@ export class Nessy {
     // プレイヤーを(が)ネッシーが(を)跨いだとき，スコアを加算する
     if(pX < prevX && this.pos.x < pX){
       this._parent.score += 1;
+      this._parent.highScore = Math.max(this._parent.highScore, this._parent.score);
     }
 
     // 画面外に行ったときに削除する

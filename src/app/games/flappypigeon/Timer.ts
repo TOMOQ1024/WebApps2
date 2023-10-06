@@ -11,7 +11,19 @@ export default class Timer {
 
   setDuration(duration: number){
     this._duration = duration;
+    this._startTime = this._parent.now;
     this._endTime = this._parent.now + duration;
+  }
+
+  private _startTime: number = 0;
+
+  getStartTime(){
+    return this._startTime;
+  }
+
+  setStartTime(startTime: number){
+    this._startTime = startTime;
+    this._endTime = startTime + this._duration;
   }
 
   private _endTime: number = 0;
@@ -22,6 +34,7 @@ export default class Timer {
 
   setEndTime(endTime: number){
     this._endTime = endTime;
+    this._startTime = this._parent.now;
     this._duration = endTime - this._parent.now;
   }
 
@@ -52,23 +65,24 @@ export default class Timer {
 
   getConsumedTime() {
     if(this.isPausing()){
-      return this._duration - this._stashed;
+      return this._stashed;
     }
     else{
-      return this._duration - (this._endTime - this._parent.now);
+      return this._parent.now - this._startTime;
     }
   }
 
   pause() {
-    this._stashed = this.getRemainingTime();
+    if(this.isPausing())return;
+    this._stashed = this.getConsumedTime();
     this._paused = true;
   }
 
   unpause() {
-    const prevDur = this._duration;
-    this.setDuration(this._stashed);
-    this._duration = prevDur;
+    if(!this.isPausing())return;
+    this._endTime = this._parent.now + this._duration - this._stashed;
     this._paused = false;
+    this._startTime = this._parent.now - this._stashed;
   }
 
   isPausing() {

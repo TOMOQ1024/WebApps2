@@ -37,7 +37,7 @@ export default function Update(game: Game) {
       }
     case 'game_resume_in':
       if(timer.isEnded()){
-        nessyMgr.clear();
+        nessyMgr.init();
         player.init();
         game.interact = false;
         timer.setDuration(Params.SCENETRANSITION);

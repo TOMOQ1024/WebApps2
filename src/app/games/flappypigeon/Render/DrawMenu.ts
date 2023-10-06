@@ -2,14 +2,12 @@ import { Game } from "../Game";
 import { Params } from "../Params";
 
 export default function drawMenu(game: Game){
-  let { ctx } = game;
+  let { ctx, player } = game;
   const l = Params.CANVASWIDTH / Params.GRIDSIZE;
 
   ctx.save();
   if(Params.KITFES){
-    // 残り時間表示
-
-
+    // クリップ
     ctx.save();
     ctx.beginPath();
     ctx.arc(l*.75, l*.75, l*8, Math.PI*2, 0, true);
@@ -19,13 +17,53 @@ export default function drawMenu(game: Game){
     ctx.arc(l*.75, l*.75, l*.38, 0, Math.PI*2, true);
     ctx.clip();
     
+    // 要素背景
     ctx.fillStyle = '#334';
-    ctx.fillRect(l, l/2, l*3, l/2);
-    
+    ctx.fillRect(l, l/2, l*4, l/2);
     ctx.beginPath();
     ctx.arc(l*.75, l*.75, l*.5, 0, Math.PI*2);
     ctx.fill();
 
+    // ミニマップ
+    const NB = Params.NESSYINTERVAL * Params.BORDER;
+    ctx.fillStyle = '#fff';
+    ctx.save();
+    ctx.translate(l*13/10, l*3/4);
+    ctx.scale(l/10, l/10);
+    // ゴール
+    ctx.fillRect(35, -2.5, 1, 1);
+    ctx.fillRect(36, -1.5, 1, 1);
+    ctx.fillRect(35, -0.5, 1, 1);
+    ctx.fillRect(36, +0.5, 1, 1);
+    ctx.fillRect(35, +1.5, 1, 1);
+    // ネッシー位置
+    for(let i=1; i<Params.BORDER; i++){
+      ctx.beginPath();
+      ctx.arc(37/Params.BORDER*i+1, 0, .1, 0, Math.PI*2);
+      ctx.fill();
+    }
+    // 死亡位置
+    ctx.strokeStyle = '#f00';
+    ctx.lineWidth = 1/2;
+    player.gravePos.forEach(g=>{
+      let x = Math.min(g.x/NB*37, 37);
+      ctx.beginPath();
+      ctx.moveTo(x-1, -1);
+      ctx.lineTo(x+1, +1);
+      ctx.moveTo(x-1, +1);
+      ctx.lineTo(x+1, -1);
+      ctx.stroke();
+    });
+    // プレイヤー位置
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1/5;
+    ctx.beginPath();
+    ctx.moveTo(player.timer.getConsumedTime()/NB*35, -2);
+    ctx.lineTo(player.timer.getConsumedTime()/NB*35, +2);
+    ctx.stroke();
+    ctx.restore();
+
+    // 残り時間ゲージ
     ctx.fillStyle = '#fff';
     ctx.beginPath();
     ctx.arc(l*.75, l*.75, l*.48, Math.min(Params.TIMELIMIT, game.mainTimer.getConsumedTime())/1000%1*Math.PI*2-Math.PI/2, -Math.PI/2);
@@ -33,7 +71,7 @@ export default function drawMenu(game: Game){
     ctx.fill();
     ctx.restore();
 
-
+    // 残り時間
     ctx.fillStyle = 'white';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';

@@ -19,7 +19,7 @@ export default function DrawResult(game: Game){
   ctx.fillText(`Result`, Params.CANVASWIDTH/2, Params.CANVASHEIGHT*0.3);
   ctx.textAlign = 'center';
   ctx.font = `${Params.CANVASHEIGHT/6}px serif`;
-  ctx.fillText(`${game.score}`, Params.CANVASWIDTH*0.5, Params.CANVASHEIGHT*0.5);
+  ctx.fillText(`${game.highScore}`, Params.CANVASWIDTH*0.5, Params.CANVASHEIGHT*0.5);
   ctx.font = `${Params.CANVASHEIGHT/17}px serif`;
   ctx.textAlign = 'center';
   if(Params.KITFES) {
