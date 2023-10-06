@@ -1,7 +1,10 @@
 import { GRIDSIZE } from "./Constants";
+import { NessyMgr } from "./Nessy";
+import { Player } from "./Player";
 import { SceneMgr } from "./Scene";
 import Timer from "./Timer";
 import { ImageNames } from "./Utils";
+import { Vec2 } from "./Vec2";
 
 export class Game {
   sceneMgr = new SceneMgr(this);
@@ -12,29 +15,11 @@ export class Game {
   imgs: {[Key:string]: HTMLImageElement} = {};
   now: number = 0;
   dt: number = 0;
-  nessyInterval = 60;// ネッシー召喚の間隔[フレーム]
   score = 0;
-  fortune: number = 1;
   interact = false;
-  collided = false;
 
-  player = {
-    pos: {
-      x: 0,
-      y: 0,
-    },
-    vel: {
-      x: 0,
-      y: 0,
-    },
-    dir: 0,
-    ddr: 0
-  };
-
-  nessy: {
-    x: number,
-    y: number,
-  }[] = [];
+  player = new Player(this);
+  nessyMgr = new NessyMgr(this);
 
   constructor(cvs: HTMLCanvasElement){
     this.cvs = cvs;
@@ -47,21 +32,9 @@ export class Game {
 
   init(){
     this.score = 0;
-    this.player = {
-      pos: {
-        x: GRIDSIZE/4,
-        y: GRIDSIZE/2,
-      },
-      vel: {
-        x: 1e-3,
-        y: 0,
-      },
-      dir: 0,
-      ddr: 0
-    };
-    this.collided = false;
+    this.player.init();
     this.interact = false;
-    this.nessy = [];
+    this.nessyMgr.clear();
   }
 
   keyDown(keyName: string) {

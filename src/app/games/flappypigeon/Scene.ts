@@ -14,8 +14,6 @@ export const Scenes = [
 
 export type Scene = typeof Scenes[number];
 
-enum sss {}
-
 export class SceneMgr {
   private _current: Scene = 'title_in';
   constructor(private _parent: Game){}

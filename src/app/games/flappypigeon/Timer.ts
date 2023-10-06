@@ -1,4 +1,5 @@
 import { Game } from "./Game";
+import { NessyMgr } from "./Nessy";
 import { Clamp } from "./Utils";
 
 export default class Timer {

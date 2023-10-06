@@ -60,13 +60,14 @@ function drawTitle(game: Game){
 }
 
 function drawPlayer(game: Game){
-  const pos = game.player.pos;
-  let dir = game.player.dir;
+  const { player } = game;
+  const pos = player.pos;
+  let dir = player.dir;
   // let dir = Math.atan2(game.player.vel.y, game.player.vel.x);
   drawImgAt(
     game,
     game.interact ?
-      game.collided ? 'dd' : (dir<.03 ? 'f0' : 'f1') :
+      player.collided ? 'dd' : (dir<.03 ? 'f0' : 'f1') :
       (Math.floor(game.now/60)%2 ? 'f0' : 'f1'),
     pos.x, pos.y, dir
   );
@@ -74,24 +75,27 @@ function drawPlayer(game: Game){
 
 let groundPos = 0;
 function drawNessy(game: Game){
+  const { nessyMgr, player } = game;
+  const { nessies } = nessyMgr;
   const l = CANVASWIDTH / GRIDSIZE;
-  let n: typeof game.nessy[number];
+  let n: typeof nessies[number];
 
   // ネシ
-  for(let i=0; i<game.nessy.length; i++){
-    n = game.nessy[i];
+  for(let i=0; i<nessies.length; i++){
+    n = nessies[i];
+    if(!n) continue;
     for(let j=-GRIDSIZE; j<=GRIDSIZE; j++){
       if(j*j<2) continue;
       drawImgAt(
         game,
         j*j===4 ? 'nh' : 'nn',
-        n.x, n.y+j, Math.sign(-j), 1.05
+        n.pos.x, n.pos.y+j, Math.sign(-j), 1.05
       );
     }
   }
 
   // 地面
-  groundPos -= game.player.vel.x/20;
+  groundPos -= player.vel.x/20;
   for(let i=-1; i<=GRIDSIZE+1; i++){
     drawImgAt(
       game,
