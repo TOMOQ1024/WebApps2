@@ -5,6 +5,7 @@ export const ImageNames: {[Key:string]:string} = {
   nc: 'nicha.png',
   nh: 'nessy-head.png',
   nn: 'nessy-neck.png',
+  tn: 'thumbnail.png',
 }
 
 
