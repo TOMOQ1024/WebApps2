@@ -20,7 +20,7 @@ export default function Main(){
       Update(game);
       Render(game);
       // requestAnimationFrame(GameLoop);
-      setTimeout(GameLoop, 1000/60);
+      setTimeout(GameLoop, 1000/Params.FRAMERATE);
     }
     GameLoop();
 

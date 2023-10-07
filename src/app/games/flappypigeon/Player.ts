@@ -116,6 +116,7 @@ export class Player {
   }
 
   die(){
+    console.log('pause!');
     this.collided = true;
     this.timer.pause();
     this.gravePos.push(new Vec2(
@@ -124,6 +125,7 @@ export class Player {
     ));
     this._parent.timer.setDuration(Params.SCENETRANSITION);
     if(this._parent.mainTimer.isRunning() && !this._parent.sceneMgr.match('resume')){
+      this._parent.mainTimer.pause();
       this._parent.sceneMgr.set('game_resume_in');
     }
     else{
