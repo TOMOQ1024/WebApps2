@@ -1,6 +1,7 @@
 import { Game } from "../Game";
 import { Params } from "../Params";
 import DrawHowto from "./DrawHowto";
+import DrawImgAt from "./DrawImgAt";
 import DrawMenu from "./DrawMenu";
 import DrawResult from "./DrawResult";
 import DrawTitle from "./DrawTitle";
@@ -11,13 +12,20 @@ export default function Render(game: Game){
   ctx.globalAlpha = 1.0;
   ctx.fillStyle = '#eee';
 
-  // background
   const l = Params.CANVASWIDTH/Params.GRIDSIZE;
   ctx.save();
   ctx.globalAlpha = 1;
   ctx.fillStyle = '#acf';
   ctx.fillRect(0, 0, Params.CANVASWIDTH, Params.CANVASHEIGHT);
   ctx.restore();
+  // background
+  if(sceneMgr.match('howto')){
+    ctx.save();
+    ctx.globalAlpha = .2;
+    ctx.fillStyle = '#acf';
+    DrawImgAt(game, 'tn', (Params.GRIDSIZE-1)/2, (Params.GRIDSIZE-1)/2, 0, Params.CANVASWIDTH/1024*Params.GRIDSIZE);
+    ctx.restore();
+  }
 
   ctx.textAlign = 'center';
 
