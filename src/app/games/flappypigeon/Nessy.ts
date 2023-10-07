@@ -8,7 +8,7 @@ export class NessyMgr {
   nessies: (Nessy|null)[] = [];
   timer: Timer;
   groundPos = 0;
-  fixedpos = Params.FIXEDNESSYPOS.slice(0);
+  fixedpos = [...Params.FIXEDNESSYPOS];
   summonCount = 0;
 
   constructor(private _parent: Game) {
@@ -31,15 +31,16 @@ export class NessyMgr {
   }
 
   init(){
+    console.log('init!');
     this.nessies = [];
-    this.fixedpos = Params.FIXEDNESSYPOS.slice(0);
+    this.fixedpos = [...Params.FIXEDNESSYPOS];
     this.summonCount = 0;
   }
 
   update(){
     this.nessies.forEach(n=>n?.update());
     if(this.timer.isEnded() && this._parent.interact && !this._parent.player.collided){
-      if(Params.KITFES && 0){
+      if(Params.KITFES){
         this.append(
           Params.GRIDSIZE+1,
           (((this.fixedpos.shift() || Math.random())-.5)*0.55+.5)*Params.GRIDSIZE
