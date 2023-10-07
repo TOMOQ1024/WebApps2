@@ -72,7 +72,7 @@ export default function Update(game: Game) {
       nessyMgr.update();
       break;
     case 'game':
-      if(Params.KITFES && game.mainTimer.isEnded()){
+      if(Params.KITFES && !game.mainTimer.isPausing() && game.mainTimer.isEnded()){
         player.collided = true;
         timer.setDuration(Params.SCENETRANSITION);
         sceneMgr.set('game_out');

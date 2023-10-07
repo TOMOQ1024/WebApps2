@@ -68,8 +68,8 @@ export default function drawMenu(game: Game){
     // 残り時間ゲージ
     ctx.fillStyle = '#fff';
     ctx.beginPath();
-    ctx.arc(l*.75, l*.75, l*.48, Math.min(Params.TIMELIMIT, game.mainTimer.getConsumedTime())/1000%1*Math.PI*2-Math.PI/2, -Math.PI/2);
-    ctx.arc(l*.75, l*.75, l*.42, -Math.PI/2, Math.min(Params.TIMELIMIT, game.mainTimer.getConsumedTime())/1000%1*Math.PI*2-Math.PI/2, true);
+    ctx.arc(l*.75, l*.75, l*.48, -Math.min(Params.TIMELIMIT, game.mainTimer.getRemainingTime())/1000%1*Math.PI*2-Math.PI/2, -Math.PI/2);
+    ctx.arc(l*.75, l*.75, l*.42, -Math.PI/2, -Math.min(Params.TIMELIMIT, game.mainTimer.getRemainingTime())/1000%1*Math.PI*2-Math.PI/2, true);
     ctx.fill();
     ctx.restore();
 
