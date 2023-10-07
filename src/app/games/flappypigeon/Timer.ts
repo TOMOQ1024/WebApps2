@@ -56,7 +56,7 @@ export default class Timer {
 
   getRemainingTime() {
     if(this.isPausing()){
-      return this._stashed;
+      return this._duration - this._stashed;
     }
     else{
       return this._endTime - this._parent.now;
