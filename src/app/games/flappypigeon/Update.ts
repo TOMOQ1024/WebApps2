@@ -7,7 +7,6 @@ export default function Update(game: Game) {
   const now = performance.now();
   game.dt = now - game.now;
   game.now = now;
-  // console.log(sceneMgr.current);
   switch(sceneMgr.current){
     case 'title_in':
       if(timer.isEnded()) sceneMgr.set('title');
@@ -39,16 +38,17 @@ export default function Update(game: Game) {
     case 'howto_out':
       if(timer.isEnded()){
         timer.setDuration(Params.SCENETRANSITION);
-        game.init();
-        if(Params.KITFES){
-          mainTimer.setDuration(Params.TIMELIMIT);
-          mainTimer.pause();
-        }
         sceneMgr.set('game_in');
       }
       break;
     case 'game_in':
       if(timer.isEnded()){
+        console.log('init');
+        game.init();
+        if(Params.KITFES){
+          mainTimer.setDuration(Params.TIMELIMIT);
+          mainTimer.pause();
+        }
         sceneMgr.set('game');
         break;
       }
