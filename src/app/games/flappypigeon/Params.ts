@@ -34,7 +34,7 @@ export class Params {
 
   static KITFES = false;
   static TIMELIMIT = 30000;
-  static KEYHOLDTIME = 2000;
+  static KEYHOLDTIME = 1000;
   static BORDER = 10;
   static GRAVITY = 4e-5;
   static FLAPVELOCITY = -9e-3;
