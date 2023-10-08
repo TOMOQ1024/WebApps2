@@ -7,6 +7,8 @@ export default function Update(game: Game) {
   const now = performance.now();
   game.dt = now - game.now;
   game.now = now;
+  // console.log(sceneMgr.current);
+  console.log(game.highScore);
   switch(sceneMgr.current){
     case 'title_in':
       if(timer.isEnded()) sceneMgr.set('title');
@@ -20,6 +22,7 @@ export default function Update(game: Game) {
     case 'title_out':
       if(timer.isEnded()){
         timer.setDuration(Params.SCENETRANSITION);
+        game.init();
         sceneMgr.set(Params.KITFES ? 'howto_in' : 'game_in');
       }
       break;
@@ -41,23 +44,9 @@ export default function Update(game: Game) {
         sceneMgr.set('game_in');
       }
       break;
-    case 'game_in':
-      if(timer.isEnded()){
-        console.log('init');
-        game.init();
-        if(Params.KITFES){
-          mainTimer.setDuration(Params.TIMELIMIT);
-          mainTimer.pause();
-        }
-        sceneMgr.set('game');
-        break;
-      }
     case 'game_resume_in':
       if(timer.isEnded()){
-        nessyMgr.init();
-        player.init();
-        game.interact = false;
-        game.score = 0;
+        game.reinit();
         timer.setDuration(Params.SCENETRANSITION);
         sceneMgr.set('game_resume_out');
       }
@@ -66,6 +55,17 @@ export default function Update(game: Game) {
       break;
     case 'game_resume_out':
       if(timer.isEnded()){
+        sceneMgr.set('game_in');
+      }
+      player.update();
+      nessyMgr.update();
+      break;
+    case 'game_in':
+      if(timer.isEnded()){
+        if(Params.KITFES){
+          mainTimer.setDuration(Params.TIMELIMIT);
+          mainTimer.pause();
+        }
         sceneMgr.set('game');
       }
       player.update();

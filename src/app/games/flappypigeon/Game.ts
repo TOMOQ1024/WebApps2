@@ -41,6 +41,13 @@ export class Game {
     this.nessyMgr.init();
   }
 
+  reinit(){
+    this.score = 0;
+    this.interact = false;
+    this.player.init();
+    this.nessyMgr.init();
+  }
+
   keyDown(keyName: string) {
     if(!this.keys[keyName]){
       this.keys[keyName] = 2;
