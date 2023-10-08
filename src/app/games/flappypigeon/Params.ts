@@ -34,13 +34,13 @@ export class Params {
 
   static KITFES = false;
   static TIMELIMIT = 30000;
-  static KEYHOLDTIME = 2000;
+  static KEYHOLDTIME = 1000;
   static BORDER = 10;
   static GRAVITY = 4e-5;
   static FLAPVELOCITY = -9e-3;
   static HVELOCITY = 4e-3;
   static NESSYINTERVAL = 1450;
-  static SCENETRANSITION = 300;
+  static SCENETRANSITION = 200;
   static FRAMERATE = 60;
   static NESSYSTIFFNESS = 5;
   

@@ -35,7 +35,6 @@ export class NessyMgr {
   }
 
   init(){
-    console.log('init!');
     this.nessies = [];
     this.fixedpos = [...Params.FIXEDNESSYPOS];
     this.summonCount = 0;
