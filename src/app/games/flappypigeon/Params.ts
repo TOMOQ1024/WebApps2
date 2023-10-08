@@ -1,30 +1,35 @@
 import { useSearchParams } from "next/navigation";
 
+export interface NessyPos {
+  y0: number;
+  freq: number;
+}
+
 export class Params {
   static readonly GRIDSIZE = 10;
   static readonly CANVASWIDTH = 1024;
   static readonly CANVASHEIGHT = 1024;
-  static readonly FIXEDNESSYPOS = [
-    0.50,
-    0.50,
-    0.30,
-    0.50,
-    0.80,// #05
-    0.90,
-    1.00,
-    1.00,
-    0.00,
-    1.00,// #10
-    0.00,
-    -.20,
-    1.00,
-    0.00,
-    1.00,// #15
-    0.00,
-    -.50,
-    1.20,
-    1.20,
-    0.50,// #20
+  static readonly FIXEDNESSYPOS: NessyPos[] = [
+    { y0: 0.50, freq: 0 },
+    { y0: 0.50, freq: 0 },
+    { y0: 0.30, freq: 0 },
+    { y0: 0.50, freq: 0 },
+    { y0: 0.80, freq: 0 },// #05
+    { y0: 0.90, freq: 0 },
+    { y0: 1.00, freq: 0 },
+    { y0: 1.00, freq: 0 },
+    { y0: 0.00, freq: 0 },
+    { y0: 1.00, freq: 0 },// #10
+    { y0: 0.00, freq: 1 },
+    { y0: 0.00, freq: 2 },
+    { y0: 1.00, freq: 3 },
+    { y0: 0.00, freq: 4 },
+    { y0: 1.00, freq: 5 },// #15
+    { y0: 0.00, freq: 6 },
+    { y0: 0.00, freq: 7 },
+    { y0: 1.00, freq: 8 },
+    { y0: 1.00, freq: 9 },
+    { y0: 0.50, freq:10 },// #20
   ];
 
   static KITFES = false;
@@ -37,6 +42,7 @@ export class Params {
   static NESSYINTERVAL = 1450;
   static SCENETRANSITION = 300;
   static FRAMERATE = 60;
+  static NESSYSTIFFNESS = 5;
   
   static get(getFunc: (name: string) => string | null){
     let v = getFunc('kitfes');
@@ -59,5 +65,7 @@ export class Params {
     if(v!==null)Params.SCENETRANSITION = Number(v);
     v = getFunc('framerate');
     if(v!==null)Params.FRAMERATE = Number(v);
+    v = getFunc('nessystiffness');
+    if(v!==null)Params.NESSYSTIFFNESS = Number(v);
   }
 }

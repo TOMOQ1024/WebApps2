@@ -24,18 +24,13 @@ export default function DrawResult(game: Game){
   ctx.font = `${Params.CANVASHEIGHT/6}px serif`;
   ctx.fillText(`${game.highScore}`, Params.CANVASWIDTH*0.5, Params.CANVASHEIGHT*0.5);
   ctx.font = `${Params.CANVASHEIGHT/17}px serif`;
-  if(Params.KITFES) {
-    ctx.fillText(`HOLD R KEY TO RESTART`, Params.CANVASWIDTH/2, Params.CANVASHEIGHT*0.7);
-    if(sceneMgr.current==='result' && timer.isRunning()){
-      ctx.strokeStyle = 'white';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(Params.CANVASWIDTH*.33, Params.CANVASHEIGHT*.7, Params.CANVASHEIGHT/30, Math.PI/2*3, Math.PI*2*((timer.getConsumedTime()||1)/Params.KEYHOLDTIME-.25));
-      ctx.stroke();
-    }
-  }
-  else {
-    ctx.fillText(`PRESS R KEY TO TITLE`, Params.CANVASWIDTH/2, Params.CANVASHEIGHT*0.7);
+  ctx.fillText(`HOLD R KEY TO TITLE`, Params.CANVASWIDTH/2, Params.CANVASHEIGHT*0.7);
+  if(sceneMgr.current==='result' && timer.isRunning()){
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(Params.CANVASWIDTH*.378, Params.CANVASHEIGHT*.7, Params.CANVASHEIGHT/30, Math.PI/2*3, Math.PI*2*((timer.getConsumedTime()||1)/Params.KEYHOLDTIME-.25));
+    ctx.stroke();
   }
 
   ctx.restore();

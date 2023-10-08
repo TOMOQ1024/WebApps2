@@ -1,5 +1,5 @@
 import { Game } from "./Game";
-import { Params } from "./Params";
+import { NessyPos, Params } from "./Params";
 import DrawImgAt from "./Render/DrawImgAt";
 import Timer from "./Timer";
 import { Vec2 } from "./Vec2";
@@ -11,19 +11,23 @@ export class NessyMgr {
   fixedpos = [...Params.FIXEDNESSYPOS];
   summonCount = 0;
 
+  get mainTimer(){
+    return this._parent.mainTimer;
+  }
+
   constructor(private _parent: Game) {
     this.timer = new Timer(_parent);
   }
 
-  append(x: number, y: number){
+  append(x: number, y: number, fp:NessyPos|null=null){
     this.summonCount++;
     for(let i=0; i<this.nessies.length; i++){
       if(!this.nessies[i]){
-        this.nessies.splice(i, 1, new Nessy(this._parent, i, x, y, this.summonCount===Params.BORDER));
+        this.nessies.splice(i, 1, new Nessy(this._parent, i, x, y, this.summonCount===Params.BORDER, fp));
         return;
       }
     }
-    this.nessies.push(new Nessy(this._parent, this.nessies.length, x, y, this.summonCount===Params.BORDER));
+    this.nessies.push(new Nessy(this._parent, this.nessies.length, x, y, this.summonCount===Params.BORDER, fp));
   }
 
   remove(index: number){
@@ -41,10 +45,14 @@ export class NessyMgr {
     this.nessies.forEach(n=>n?.update());
     if(this.timer.isEnded() && this._parent.interact && !this._parent.player.collided){
       if(Params.KITFES){
-        this.append(
-          Params.GRIDSIZE+1,
-          (((this.fixedpos.shift() || Math.random())-.5)*0.55+.5)*Params.GRIDSIZE
-        );
+        const fp: NessyPos = this.fixedpos.shift() || { y0: Math.random(), freq: Math.random() };
+        if(fp) {
+          this.append(
+            Params.GRIDSIZE+1,
+            ((fp.y0-.5)*0.55+.5)*Params.GRIDSIZE,
+            fp
+          );
+        }
       }
       else {
         this.append(
@@ -99,7 +107,7 @@ export class Nessy {
   pos = new Vec2();
   private _manager: NessyMgr;
 
-  constructor(private _parent: Game, private _index: number, x: number, y: number, public isGoal=false){
+  constructor(private _parent: Game, private _index: number, x: number, y: number, public isGoal: boolean, public fp: NessyPos|null=null){
     this._manager = _parent.nessyMgr;
     this.pos.x = x;
     this.pos.y = y;
@@ -111,6 +119,11 @@ export class Nessy {
     let prevX = this.pos.x;
     this.pos.x -= player.vel.x * this._parent.dt / player.stiffness;
     let pX = player.pos.x;
+
+    // freqに応じて上下移動させる
+    if(this.fp){
+      this.pos.y = (((Math.sin(2*Math.PI/Params.NESSYINTERVAL*this.fp.freq/Params.NESSYSTIFFNESS*this._manager.mainTimer.getConsumedTime()-Math.asin(this.fp.y0*2-1)))/2+.5-.5)*0.55+.5)*Params.GRIDSIZE;
+    }
     // プレイヤーを(が)ネッシーが(を)跨いだとき，スコアを加算する
     if(pX < prevX && this.pos.x < pX){
       this._parent.score += 1;

@@ -124,7 +124,7 @@ export class Player {
       this.pos.y
     ));
     this._parent.timer.setDuration(Params.SCENETRANSITION);
-    if(this._parent.mainTimer.isRunning() && !this._parent.sceneMgr.match('resume')){
+    if(Params.KITFES && this._parent.mainTimer.isRunning() && !this._parent.sceneMgr.match('resume')){
       this._parent.mainTimer.pause();
       this._parent.sceneMgr.set('game_resume_in');
     }
