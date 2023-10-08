@@ -40,7 +40,7 @@ export class Params {
   static FLAPVELOCITY = -9e-3;
   static HVELOCITY = 4e-3;
   static NESSYINTERVAL = 1450;
-  static SCENETRANSITION = 300;
+  static SCENETRANSITION = 200;
   static FRAMERATE = 60;
   static NESSYSTIFFNESS = 5;
   
