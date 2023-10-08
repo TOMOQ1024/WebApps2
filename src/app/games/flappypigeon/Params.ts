@@ -48,24 +48,24 @@ export class Params {
     let v = getFunc('kitfes');
     if(v!==null)Params.KITFES = true;
     v = getFunc('timelimit');
-    if(v!==null)Params.TIMELIMIT = Number(v);
+    if(v!==null && !Number.isNaN(Number(v)))Params.TIMELIMIT = Number(v);
     v = getFunc('keyholdtime');
-    if(v!==null)Params.KEYHOLDTIME = Number(v);
+    if(v!==null && !Number.isNaN(Number(v)))Params.KEYHOLDTIME = Number(v);
     v = getFunc('border');
-    if(v!==null)Params.BORDER = Number(v);
+    if(v!==null && !Number.isNaN(Number(v)))Params.BORDER = Number(v);
     v = getFunc('gravity');
-    if(v!==null)Params.GRAVITY = Number(v);
+    if(v!==null && !Number.isNaN(Number(v)))Params.GRAVITY = Number(v);
     v = getFunc('flapvelocity');
-    if(v!==null)Params.FLAPVELOCITY = Number(v);
+    if(v!==null && !Number.isNaN(Number(v)))Params.FLAPVELOCITY = Number(v);
     v = getFunc('hvelocity');
-    if(v!==null)Params.HVELOCITY = Number(v);
+    if(v!==null && !Number.isNaN(Number(v)))Params.HVELOCITY = Number(v);
     v = getFunc('nessyinterval');
-    if(v!==null)Params.NESSYINTERVAL = Number(v);
+    if(v!==null && !Number.isNaN(Number(v)))Params.NESSYINTERVAL = Number(v);
     v = getFunc('scenetransition');
-    if(v!==null)Params.SCENETRANSITION = Number(v);
+    if(v!==null && !Number.isNaN(Number(v)))Params.SCENETRANSITION = Number(v);
     v = getFunc('framerate');
-    if(v!==null)Params.FRAMERATE = Number(v);
+    if(v!==null && !Number.isNaN(Number(v)))Params.FRAMERATE = Number(v);
     v = getFunc('nessystiffness');
-    if(v!==null)Params.NESSYSTIFFNESS = Number(v);
+    if(v!==null && !Number.isNaN(Number(v)))Params.NESSYSTIFFNESS = Number(v);
   }
 }
