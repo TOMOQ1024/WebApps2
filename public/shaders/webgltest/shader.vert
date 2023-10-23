@@ -17,4 +17,5 @@ void main ()
 	vColor = aColor;
 	vTexCoord = aTexCoord;
 	gl_Position = pMat * vMat * mMat * vec4(aPosition, 1.0);
+	gl_PointSize = 5.;
 }
