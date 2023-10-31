@@ -28,8 +28,8 @@ void main ()
 	vec3  halfLE   = normalize(invLight + invEye);
 	float diffuse  = clamp(dot(vNormal, invLight), 0.0, 1.0) + .2;
 	float specular = pow(clamp(dot(vNormal, halfLE), 0.0, 1.0), 50.0);
-  vec4 smpCol0 = texture2D(uImage0, vTexCoord);
-	vec4  light    = vColor * smpCol0 * vec4(vec3(diffuse), 1.0) + vec4(vec3(specular), 1.0);
+  // vec4 smpCol0 = texture2D(uImage0, vTexCoord);
+	// vec4  light    = vColor * smpCol0 * vec4(vec3(diffuse), 1.0) + vec4(vec3(specular), 1.0);
 	// vec4  light    = vec4(vec3(diffuse), 1.0);
 	gl_FragColor = vColor * vec4(vec3(diffuse), 1.0) + vec4(vec3(specular), 0.0);
 	// gl_FragColor = light + ambientColor;
