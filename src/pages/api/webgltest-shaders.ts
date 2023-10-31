@@ -12,8 +12,8 @@ export default (
   res: NextApiResponse<Data>
 ) => {
   // Let's say your json is in /public/assets/my-json.json
-  const vertPath = path.resolve('./public', 'shaders', 'webgltest', 'shader.vert');
-  const fragPath = path.resolve('./public', 'shaders', 'webgltest', 'shader.frag');
+  const vertPath = path.resolve('./public', 'resources', 'webgltest', 'shaders', 'shader.vert');
+  const fragPath = path.resolve('./public', 'resources', 'webgltest', 'shaders', 'shader.frag');
   const vertBuf = fs.readFileSync(vertPath);
   const fragBuf = fs.readFileSync(fragPath);
 
