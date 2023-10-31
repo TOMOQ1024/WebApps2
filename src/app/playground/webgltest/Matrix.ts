@@ -14,12 +14,14 @@ export default class Mat4 {
     }
   }
 
-  static Identity = new Mat4(
-    1,0,0,0,
-    0,1,0,0,
-    0,0,1,0,
-    0,0,0,1,
-  );
+  static get Identity(){
+    return new Mat4(
+      1,0,0,0,
+      0,1,0,0,
+      0,0,1,0,
+      0,0,0,1,
+    )
+  };
 
   // ビュー変換行列
   static vMatrix(
@@ -181,6 +183,26 @@ export default class Mat4 {
 
   rotate(axis: Vec3, angle: number){
     this.elem = this.rotated(axis, angle).elem;
+  }
+
+  translated(v: Vec3){
+    const v0 = new Vec3(this.elem[0], this.elem[4], this.elem[8]);
+    const v1 = new Vec3(this.elem[1], this.elem[5], this.elem[9]);
+    const v2 = new Vec3(this.elem[2], this.elem[6], this.elem[10]);
+    const v3 = new Vec3(this.elem[3], this.elem[7], this.elem[11]);
+    return new Mat4(
+      v0.x, v1.x, v2.x, v3.x,
+      v0.y, v1.y, v2.y, v3.y,
+      v0.z, v1.z, v2.z, v3.z,
+      this.elem[12]+Vec3.dot(v0, v),
+      this.elem[13]+Vec3.dot(v1, v),
+      this.elem[14]+Vec3.dot(v2, v),
+      this.elem[15]+Vec3.dot(v3, v),
+    );
+  }
+
+  translate(v: Vec3){
+    this.elem = this.translated(v).elem;
   }
 
   // translate(mat, vec)
