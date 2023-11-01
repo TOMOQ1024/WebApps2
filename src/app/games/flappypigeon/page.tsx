@@ -2,11 +2,16 @@
 import MainCanvas from "@/app/components/maincanvas";
 import { useEffect, useState } from "react"
 import { Game } from "./Game";
-import Render from "./Render";
+import Render from "./Render/Render";
 import Update from "./Update";
+import { useSearchParams } from "next/navigation";
+import { Params } from "./Params";
 
 
 export default function Main(){
+  const searchParams = useSearchParams();
+  if(searchParams)Params.get(searchParams.get);
+
   useEffect(()=>{
     document.title = 'Flappy Pigeon';
     let game = new Game(document.getElementById('cvs') as HTMLCanvasElement);
@@ -15,26 +20,12 @@ export default function Main(){
       Update(game);
       Render(game);
       // requestAnimationFrame(GameLoop);
-      setTimeout(GameLoop, 1000/60);
+      setTimeout(GameLoop, 1000/Params.FRAMERATE);
     }
     GameLoop();
 
-    const KeyDown = (keyName: string) => {
-      if(!game.keys[keyName]){
-        game.keys[keyName] = 2;
-      }
-    }
-
-    const KeyUp = (keyName: string) => {
-      if(game.keys[keyName] === 2){
-        setTimeout(() => {
-          game.keys[keyName] = 0;
-        }, 20);
-      }
-      else {
-        game.keys[keyName] = 0;
-      }
-    }
+    const KeyDown = (keyName: string) => game.keyDown(keyName);
+    const KeyUp = (keyName: string) => game.keyUp(keyName);
 
     const HandleKeyDown = (e: KeyboardEvent) => KeyDown(e.key.toLowerCase());
     const HandleKeyUp = (e: KeyboardEvent) => KeyUp(e.key.toLowerCase());
@@ -65,7 +56,10 @@ export default function Main(){
         textAlign: 'center'
       }}
     >
-      <MainCanvas/>
+      <MainCanvas
+        width = {Params.CANVASWIDTH}
+        height = {Params.CANVASHEIGHT}
+      />
       <div
         style={{
           color: '#888',
