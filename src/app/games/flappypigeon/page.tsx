@@ -10,7 +10,7 @@ import { Params } from "./Params";
 
 export default function Main(){
   const searchParams = useSearchParams();
-  Params.get(searchParams.get);
+  if(searchParams)Params.get(searchParams.get);
 
   useEffect(()=>{
     document.title = 'Flappy Pigeon';
