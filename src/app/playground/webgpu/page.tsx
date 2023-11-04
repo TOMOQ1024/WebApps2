@@ -8,6 +8,8 @@ export default function Main(){
     const wgmgr = new WGMgr();
     await wgmgr.init();
 
+    wgmgr.render();
+
     const HandleKeyDown = (e: KeyboardEvent) => {
       // フルスクリーン切り替え
       if(e.key === 'f' && !e.shiftKey && !e.metaKey){
