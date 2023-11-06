@@ -1,8 +1,10 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <main>
-      <a href="/games">Games</a>
-      <a href="/playground">Playground</a>
+      <Link href="/games">Games</Link>
+      <Link href="/playground">Playground</Link>
     </main>
   )
 }
