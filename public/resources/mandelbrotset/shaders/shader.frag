@@ -20,7 +20,7 @@ Mandel mandel(vec2 c){
   vec2 z0 = vec2(0.);
   bool f = true;
   int r = 0;
-  for(int i=0; i<1000; i++){
+  for(int i=0; i<300; i++){
     if(100. < length(z) && f){
       f = false;
       z0 = vec2(z.x, z.y);
