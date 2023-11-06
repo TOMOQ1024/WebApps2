@@ -47,7 +47,10 @@ export default function Main(){
         textAlign: 'center'
       }}
     >
-      <MainCanvas/>
+      <MainCanvas
+      width={2**10}
+      height={2**10}
+      />
     </main>
   )
 }

@@ -37,6 +37,7 @@ export default class MandelCore {
 
   constructor () {
     this.cvs = document.getElementById('cvs') as HTMLCanvasElement;
+    this.cvs.style.background = 'inherit';
     this.gl = this.cvs.getContext('webgl')!;
     this.program = this.gl.createProgram()!;
     this.positionBuffer = this.gl.createBuffer()!;
@@ -69,6 +70,8 @@ export default class MandelCore {
     this.gl.uniform2f(resolutionUniformLocation, this.gl.canvas.width, this.gl.canvas.height);
 
     this.updateGraphUniform();
+
+    this.gl.enable(this.gl.CULL_FACE);
 
     this.render();
   }
