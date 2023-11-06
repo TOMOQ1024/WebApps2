@@ -7,13 +7,13 @@ type Data = {
   frag: string;
 }
 
-export default (
+export default function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
-) => {
+) {
   // Let's say your json is in /public/assets/my-json.json
-  const vertPath = path.resolve('./public', 'shaders', 'mandelbrotset', 'shader.vert');
-  const fragPath = path.resolve('./public', 'shaders', 'mandelbrotset', 'shader.frag');
+  const vertPath = path.resolve('./public', 'resources', 'mandelbrotset', 'shaders', 'shader.vert');
+  const fragPath = path.resolve('./public', 'resources', 'mandelbrotset', 'shaders', 'shader.frag');
   const vertBuf = fs.readFileSync(vertPath);
   const fragBuf = fs.readFileSync(fragPath);
 

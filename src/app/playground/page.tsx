@@ -18,6 +18,9 @@ export default function Playground(){
       <AppCard
         name='Life Game'
       />
+      <AppCard
+        name='WebGPU'
+      />
     </main>
   )
 }
