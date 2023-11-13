@@ -1,5 +1,5 @@
 "use client"
-import MainCanvas from "@/app/components/maincanvas";
+import MainCanvas from "@/components/maincanvas";
 import { useEffect, useRef, useState } from "react"
 
 export default function Main(){
