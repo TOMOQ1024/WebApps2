@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import '../app.scss'
+import '../app/app.scss'
 
 export default function AppCard({
   name,
@@ -14,7 +14,7 @@ export default function AppCard({
   const id = name.replace(/\s/g,'').toLowerCase();
 
   useEffect(()=>{
-    setHref(window.location.pathname + '/' + id);
+    setHref(window.location.href + id);
   }, [id]);
 
   return (

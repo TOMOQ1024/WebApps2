@@ -1,5 +1,5 @@
 "use client";
-import MainCanvas from "@/app/components/maincanvas";
+import MainCanvas from "@/components/maincanvas";
 import { useEffect, useState } from "react"
 import { Game } from "./Game";
 import Render from "./Render/Render";

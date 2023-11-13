@@ -1,27 +1,20 @@
 "use client"
-import MainCanvas from "@/app/components/maincanvas";
-import { useEffect, useState } from "react"
-import GLMgr from "./Core";
+import MainCanvas from "@/components/maincanvas";
+import { useEffect, useState } from "react";
+import WGMgr from "./Core";
 
 export default function Main(){
   useEffect(() => {(async()=>{
-    const glmgr = new GLMgr();
-    await glmgr.init();
+    const wgmgr = new WGMgr();
+    await wgmgr.init();
 
-    setInterval(()=>{
-      glmgr.update();
-      glmgr.render();
-    }, 1000/60);
+    wgmgr.render();
 
     const HandleKeyDown = (e: KeyboardEvent) => {
-      if(!glmgr.keys[e.key.toLowerCase()]){
-        glmgr.keys[e.key.toLowerCase()] = 2;
-      }
-
       // フルスクリーン切り替え
       if(e.key === 'f' && !e.shiftKey && !e.metaKey){
         if (!document.fullscreenElement) {
-          glmgr.cvs.requestFullscreen();
+          wgmgr.cvs.requestFullscreen();
         }
         else {
           document.exitFullscreen();
@@ -30,11 +23,6 @@ export default function Main(){
     }
 
     const HandleKeyUp = (e: KeyboardEvent) => {
-      if(glmgr.keys[e.key.toLowerCase()] === 2)
-        setTimeout(()=>{
-          glmgr.keys[e.key.toLowerCase()]=0;
-        }, 20);
-      else glmgr.keys[e.key.toLowerCase()] = 0;
     }
 
     const HandleWheel = (e:WheelEvent) => {

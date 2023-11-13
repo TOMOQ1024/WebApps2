@@ -1,4 +1,4 @@
-import Mouse from "../Mouse"
+import Mouse from "../../../src/Mouse"
 
 export default class Game {
   player: 0|1 = 0
