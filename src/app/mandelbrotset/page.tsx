@@ -1,17 +1,23 @@
 "use client"
 import MainCanvas from "@/components/maincanvas";
 import { useEffect, useState } from "react"
-import MandelCore from "./MandelCore";
+import WGMgr from "./WGMgr";
 
 export default function Main(){
   useEffect(() => {(async()=>{
-    const mCore = new MandelCore();
-    mCore.init();
+    const wgmgr = new WGMgr();
+    await wgmgr.init();
+    wgmgr.render();
+
     const onKeyDown = (e:KeyboardEvent) => {
-      console.log(e);
-      if(e.key.toLocaleLowerCase() === 'f'){
-        let cvs = document.getElementById('cvs') as HTMLCanvasElement;
-        cvs.requestFullscreen();
+      // フルスクリーン切り替え
+      if(e.key === 'f' && !e.shiftKey && !e.metaKey){
+        if (!document.fullscreenElement) {
+          wgmgr.cvs.requestFullscreen();
+        }
+        else {
+          document.exitFullscreen();
+        }
       }
     }
 
@@ -25,11 +31,11 @@ export default function Main(){
       const x = (2 * (e.clientX - rect.left) / rect.width - 1) * rect.width / m;
       const y = (2 * (e.clientY - rect.top) / rect.height - 1) * rect.height / m;
       const dy = e.deltaY;
-      mCore.graph.zoom(x, y, dy);
+      // wgmgr.graph.zoom(x, y, dy); !!!
 
-      mCore.updateGraphUniform();
+      // wgmgr.updateGraphUniform(); !!!
 
-      mCore.render();
+      wgmgr.render();
     }
 
     document.addEventListener('keydown', onKeyDown);
