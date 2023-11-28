@@ -29,5 +29,5 @@ fn mandel(c: vec2f) -> i32 {
   let i = mandel(c);
 
   // return vec4f(fragPos.x, fragPos.y, 0.0, 1.0);
-  return vec4f(0f, select(fragPos+.75f, vec2f(0f, 0f), i<90), 1f);
+  return vec4f(0f, select(fragPos*.25f+.75f, vec2f(0f, 0f), i<90), 1f);
 }

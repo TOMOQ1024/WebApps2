@@ -15,8 +15,12 @@ export default class Graph {
   zoom(c: Vec2, s: number){
     // (x,y)を固定して scale**s 倍縮小する
     const ds = Math.exp(s/500);
-    const dor = c.mul(this.radius * (1-1/ds));
-    this.origin.add(dor.x, -dor.y);
+    const dor = c.mul(this.radius * (1-1/ds)).negY();
+    this.origin.add(dor);
     this.radius *= ds;
+  }
+
+  translate(v: Vec2) {
+    this.origin.add(v.muled(this.radius));
   }
 }

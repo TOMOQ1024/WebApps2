@@ -20,9 +20,62 @@ export default class Vec2 {
     }
   }
 
+  added(rhs1: number|Vec2, rhs2: number|undefined = undefined) {
+    if(typeof rhs1 === "number"){
+      return new Vec2(
+        this.x + rhs1,
+        this.y + (rhs2 === undefined ? rhs1 : rhs2)
+      );
+    }
+    else {
+      return new Vec2(
+        this.x + rhs1.x,
+        this.y + rhs1.y
+      );
+    }
+  }
+
+  sub(rhs1: number|Vec2, rhs2: number|undefined = undefined) {
+    if(typeof rhs1 === "number"){
+      this.x -= rhs1;
+      this.y -= rhs2 === undefined ? rhs1 : rhs2;
+    }
+    else {
+      this.x -= rhs1.x;
+      this.y -= rhs1.y;
+    }
+  }
+
+  subed(rhs1: number|Vec2, rhs2: number|undefined = undefined) {
+    if(typeof rhs1 === "number"){
+      return new Vec2(
+        this.x - rhs1,
+        this.y - (rhs2 === undefined ? rhs1 : rhs2)
+      );
+    }
+    else {
+      return new Vec2(
+        this.x - rhs1.x,
+        this.y - rhs1.y
+      );
+    }
+  }
+
   mul(rhs: number) {
     this.x *= rhs;
     this.y *= rhs;
+    return this;
+  }
+
+  muled(rhs: number) {
+    return new Vec2(
+      this.x * rhs,
+      this.y * rhs,
+    );
+  }
+
+  negY() {
+    this.y = - this.y;
     return this;
   }
 
