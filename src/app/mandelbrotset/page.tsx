@@ -1,5 +1,6 @@
 "use client"
 import MainCanvas from "@/components/maincanvas";
+import Vec2 from "@/src/Vec2";
 import { useEffect, useState } from "react"
 import WGMgr from "./WGMgr";
 
@@ -28,12 +29,14 @@ export default function Main(){
       const rect = cvs.getBoundingClientRect();
       // [0,1]正規化した座標
       const m = Math.min(rect.width, rect.height);
-      const x = (2 * (e.clientX - rect.left) / rect.width - 1) * rect.width / m;
-      const y = (2 * (e.clientY - rect.top) / rect.height - 1) * rect.height / m;
+      const c = new Vec2(
+        (2 * (e.clientX - rect.left) / rect.width - 1) * rect.width / m,
+        (2 * (e.clientY - rect.top) / rect.height - 1) * rect.height / m
+      );
       const dy = e.deltaY;
-      // wgmgr.graph.zoom(x, y, dy); !!!
+      wgmgr.graph.zoom(c, dy);
 
-      // wgmgr.updateGraphUniform(); !!!
+      wgmgr.updateGraphUniform();
 
       wgmgr.render();
     }

@@ -1,9 +1,11 @@
 import CreateModule from "./CreateModule";
+import Graph from "./Graph";
 import Render from "./Render";
 
 export default class WGMgr {
   cvs: HTMLCanvasElement;
   ctx: GPUCanvasContext;
+  graph = new Graph();
   adapter: GPUAdapter | null = null;
   device: GPUDevice | null = null;
   texFormat: GPUTextureFormat | null = null;
@@ -85,7 +87,7 @@ export default class WGMgr {
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
     this.uniformValues = new Float32Array(uniformBufferSize / 4);
-    this.uniformValues.set([0, 0, 2], 0);
+    this.updateGraphUniform();
     this.bindGroup = this.device.createBindGroup({
       label: 'mandel bindgroup',
       layout: this.pipeline.getBindGroupLayout(0),
@@ -110,5 +112,13 @@ export default class WGMgr {
         },
       ],
     }; 
+  }
+
+  updateGraphUniform() {
+    this.uniformValues!.set([
+      this.graph.origin.x,
+      this.graph.origin.y,
+      this.graph.radius
+    ], 0);
   }
 }
