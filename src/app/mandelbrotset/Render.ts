@@ -4,11 +4,13 @@ export default function Render(this: WGMgr) {
   (this.renderPassDescriptor!.colorAttachments as GPURenderPassColorAttachment[])[0].view =
     this.ctx.getCurrentTexture().createView();
 
-	const encoder = this.device!.createCommandEncoder({ label: 'our encoder' });
+	const encoder = this.device!.createCommandEncoder({ label: 'mandel encoder' });
  
   // 描画
+  this.device!.queue.writeBuffer(this.uniformBuffer!, 0, this.uniformValues!);
   const renderPassEncoder = encoder.beginRenderPass(this.renderPassDescriptor!);
   renderPassEncoder.setPipeline(this.pipeline!);
+  renderPassEncoder.setBindGroup(0, this.bindGroup);
   renderPassEncoder.draw(6);
   renderPassEncoder.end();
 

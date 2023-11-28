@@ -11,6 +11,9 @@ export default class WGMgr {
   module: GPUShaderModule | null = null;
   pipeline: GPURenderPipeline | null = null;
   renderPassDescriptor: GPURenderPassDescriptor | null = null;
+  uniformBuffer: GPUBuffer | null = null;
+  uniformValues: Float32Array | null = null;
+  bindGroup: GPUBindGroup | null = null;
 
   constructor(){
     this.cvs = document.querySelector('#cvs')!;
@@ -35,9 +38,34 @@ export default class WGMgr {
     this.module = await CreateModule(this.device);
     if(!this.module) return;
 
+    const bindGroupLayout = this.device.createBindGroupLayout({
+      label: 'mandel bindgrouplayout',
+      entries: [
+        {
+          binding: 0,
+          visibility: GPUShaderStage.FRAGMENT,
+          buffer: {},
+        },
+        // {
+        //   binding: 1,
+        //   visibility: GPUShaderStage.FRAGMENT,
+        //   texture: {},
+        // },
+        // {
+        //   binding: 2,
+        //   visibility: GPUShaderStage.FRAGMENT,
+        //   sampler: {},
+        // },
+      ],
+    });
+
+    const pipelineLayout = this.device.createPipelineLayout({
+      bindGroupLayouts: [bindGroupLayout],
+    });
+
     this.pipeline = this.device.createRenderPipeline({
       label: 'mandel pipeline',
-      layout: 'auto',
+      layout: pipelineLayout,
       vertex: {
         module: this.module,
         entryPoint: 'vs',
@@ -47,6 +75,28 @@ export default class WGMgr {
         entryPoint: 'fs',
         targets: [{ format: this.texFormat }],
       },
+    });
+
+    // Uniform変数の設定
+    const uniformBufferSize = 4 * 4;
+    this.uniformBuffer = this.device.createBuffer({
+      label: 'mandel uniformbuffer',
+      size: uniformBufferSize,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+    this.uniformValues = new Float32Array(uniformBufferSize / 4);
+    this.uniformValues.set([0, 0, 2], 0);
+    this.bindGroup = this.device.createBindGroup({
+      label: 'mandel bindgroup',
+      layout: this.pipeline.getBindGroupLayout(0),
+      entries: [
+        {
+          binding: 0,
+          resource: {
+            buffer: this.uniformBuffer
+          }
+        },
+      ],
     });
 
     this.renderPassDescriptor = {
