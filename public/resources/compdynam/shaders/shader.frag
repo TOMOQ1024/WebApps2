@@ -1,8 +1,102 @@
 precision mediump float;
+const float PI = 3.14159265359;
 varying vec2 vPosition;
-// uniform vec2 uResolution;
+uniform vec2 uResolution;
+struct Graph {
+  vec2 origin;
+  float radius;
+  // resolution
+};
+uniform Graph uGraph;
+
+vec2 d2p(vec2 z) {
+  return vec2(length(z), atan(z.y, z.x));
+}
+
+vec2 p2d(vec2 z) {
+  return max(z.x, 1e-38) * vec2(cos(z.y), sin(z.y));
+}
+
+vec2 p2d(float x, float y) {
+  return max(x, 1e-38) * vec2(cos(y), sin(y));
+}
+
+vec2 cexp(vec2 z) {
+  return p2d(exp(z.x), z.y);
+}
+
+vec2 csq(vec2 z) {
+  return vec2(
+    z.x * z.x - z.y * z.y,
+    2. * z.x * z.y
+  );
+}
+
+vec2 cprod(vec2 z, vec2 w) {
+  return vec2(
+    z.x * w.x - z.y * w.y,
+    z.x * w.y + z.y * w.x
+  );
+}
+
+vec2 cdiv(vec2 z, vec2 w) {
+  return vec2(
+    z.x * w.x + z.y * w.y,
+    z.y * w.x - z.x * w.y
+  ) / (w.x * w.x + w.y * w.y);
+}
+
+float cosh(float x) {
+  return (exp(x) + exp(-x)) / 2.;
+}
+
+float sinh(float x) {
+  return (exp(x) - exp(-x)) / 2.;
+}
+
+vec2 cpow(vec2 z, vec2 w) {
+  vec2 Z = d2p(z);
+  return cprod(z, p2d(cosh(Z.y*w.y) - sinh(Z.y*w.y), w.y*log(z.x)));
+}
+
+vec2 cconj(vec2 z) {
+  return vec2(z.x, -z.y);
+}
+
+vec2 ccos(vec2 z) {
+  return vec2(
+    cosh(z.x) * cos(z.y),
+    - sinh(z.x) * sin(z.y)
+  );
+}
+
+vec2 csin(vec2 z) {
+  return vec2(
+    sinh(z.x) * cos(z.y),
+    cosh(z.x) * sin(z.y)
+  );
+}
+
+vec3 hsv2rgb(float h, float s, float v) {
+  return ((clamp(abs(fract(h+vec3(0,2,1)/3.)*6.-3.)-1.,0.,1.)-1.)*s+1.)*v;
+  // return ((clamp(abs(fract(h+vec4(0.,2.,1.,1.)/3.)*6.-3.)-1.,0.,1.)-1.)*s+1.)*v;
+}
+
+vec2 compdynam(vec2 z0) {
+  // int i;
+  vec2 z = vec2(z0.x, z0.y);
+
+  for(int i=0; i<1; i++) {
+    z = z;
+  }
+  return z;
+}
 
 void main ()
 {
-	gl_FragColor = vec4(vPosition/2.+.5, .6, 1.);
+  // vec2 z0 = vPosition * uGraph.radius - uGraph.origin;
+  vec2 z0 = vPosition * 2. - uGraph.origin;
+  // vec2 z0 = vPosition;
+  vec2 a = compdynam(z0);
+	gl_FragColor = vec4(hsv2rgb(atan(a.y, a.x)/2./PI+1., 1., pow(1./(1.+length(a)), .1)), 1.);
 }

@@ -81,9 +81,20 @@ export default class GLMgr {
     // 解像度uniform
     this.uniLoc.res = this.gl.getUniformLocation(this.program, 'uResolution');
     this.gl.uniform2f(this.uniLoc.res, this.gl.canvas.width, this.gl.canvas.height);
+
+    this.uniLoc.gho = this.gl.getUniformLocation(this.program, 'uGraph.origin');
+    this.uniLoc.ghr = this.gl.getUniformLocation(this.program, 'uGraph.radius');
   }
 
   updateGraphUniform() {
-    //
+    this.gl.uniform2f(
+      this.uniLoc.gho,
+      this.graph.origin.x,
+      this.graph.origin.y,
+    );
+    this.gl.uniform1f(
+      this.uniLoc.ghr,
+      this.graph.radius,
+    );
   }
 }

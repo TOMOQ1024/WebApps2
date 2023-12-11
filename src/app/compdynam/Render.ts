@@ -8,7 +8,7 @@ export default function Render (this: GLMgr) {
 
   this.vao_ext!.bindVertexArrayOES(this.vao);
   
-  // モデル変換と描画
+  // 描画
   this.gl.drawElements(this.gl.TRIANGLES, this.indices.length, this.gl.UNSIGNED_INT, 0);
   
   // コンテキストの再描画

@@ -10,6 +10,7 @@ export default function Main(){
     const mouse = new Mouse();
     const glmgr = new GLMgr();
     await glmgr.init();
+    glmgr.updateGraphUniform();
     glmgr.render();
 
     const onKeyDown = (e:KeyboardEvent) => {
