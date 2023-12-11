@@ -9,6 +9,7 @@ export default function MainCanvas(){
     const mouse = new Mouse();
     const glmgr = new GLMgr();
     await glmgr.init();
+    glmgr.updateResolutionUniform();
     glmgr.updateGraphUniform();
     glmgr.render();
 
@@ -74,17 +75,28 @@ export default function MainCanvas(){
       mouse.isDown = false;
     }
 
+    const onResize = (e: UIEvent) => {
+      const wrapper = glmgr.cvs.parentElement!;
+      const rect = wrapper.getBoundingClientRect();
+      glmgr.cvs.width = rect.width;
+      glmgr.cvs.height = rect.height;
+      glmgr.updateResolutionUniform();
+      glmgr.render();
+    }
+
     document.addEventListener('keydown', onKeyDown);
     glmgr.cvs.addEventListener('wheel', onWheel, {passive: false});
     document.addEventListener('mousedown', onMouseDown, {passive: false});
     document.addEventListener('mousemove', onMouseMove, {passive: false});
     document.addEventListener('mouseup', onMouseUp, {passive: false});
+    window.addEventListener('resize', onResize);
     return () => {
       document.removeEventListener('keydown', onKeyDown);
       glmgr.cvs.removeEventListener('wheel', onWheel);
       document.removeEventListener('mousedown', onMouseDown);
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('resize', onResize);
     }
   })();}, []);
 
@@ -93,13 +105,6 @@ export default function MainCanvas(){
       id='cvs'
       width={1024}
       height={1024}
-      style={{
-        width: 'unset',
-        height: 'unset',
-        maxWidth: `min(90vw,90vh)`,
-        maxHeight: `min(90vw,90vh)`,
-        margin: '10px',
-      }}
     />
   )
 }

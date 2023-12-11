@@ -1,4 +1,6 @@
-import MainCanvas from "./components/MainCanvas"
+import './app.scss';
+import Controls from './components/Controls';
+import GraphWrapper from "./components/GraphWrapper";
 
 export const metadata = {
   title: 'CompDynam',
@@ -6,12 +8,9 @@ export const metadata = {
 
 export default function Main(){
   return (
-    <main
-      style={{
-        textAlign: 'center'
-      }}
-    >
-      <MainCanvas/>
+    <main id='compdynam-main'>
+      <GraphWrapper/>
+      <Controls/>
     </main>
   )
 }

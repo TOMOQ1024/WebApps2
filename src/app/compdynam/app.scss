@@ -1,0 +1,81 @@
+#compdynam-main {
+  text-align: center;
+  height: calc(100vh - var(--header-height));
+  position: relative;
+  #graph-wrapper {
+    height: 100%;
+    overflow: hidden;
+    #cvs {
+      width: 100%;
+    }
+  }
+  #controls {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    border-radius: 5px;
+    background-color: #11001188;
+    transition: .3s ease all;
+    overflow: hidden;
+    & svg {
+      transition: .3s ease all;
+    }
+    &.min {
+      width: 38px;
+      height: 38px;
+    }
+    &.max {
+      width: 300px;
+      height: 140px;
+      & #icon-gear svg {
+        rotate: 210deg;
+      }
+    }
+    button {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      border-radius: 20%;
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+      transition: .3s ease all;
+      rotate: 0deg;
+      left: 4px;
+      &#icon-gear {
+        bottom: 4px;
+        color: linear-gradient();
+      }
+      &#icon-pencil {
+        bottom: 38px;
+      }
+      &#icon-lightbulb {
+        bottom: 72px;
+        svg {
+          rotate: 20deg;
+        }
+      }
+      &#icon-sliders {
+        bottom: 106px;
+      }
+      &:hover {
+        background-color: #bbbbbb77;
+      }
+      &.selected {
+        left: 12px;
+      }
+    }
+    #controls-content {
+      display: inline-flex;
+      width: calc(100% - 46px);
+      height: 300%;
+      position: absolute;
+      left: 46px;
+      flex-direction: column;
+      div {
+        width: 100%;
+        height: calc(100%/3);
+      }
+    }
+  }
+}

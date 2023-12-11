@@ -5,7 +5,6 @@ uniform vec2 uResolution;
 struct Graph {
   vec2 origin;
   float radius;
-  // resolution
 };
 uniform Graph uGraph;
 
@@ -111,7 +110,7 @@ vec2 compdynam(vec2 z0) {
 
 void main ()
 {
-  vec2 z0 = vPosition * uGraph.radius - uGraph.origin;
+  vec2 z0 = vPosition * uResolution / min(uResolution.x, uResolution.y) * uGraph.radius - uGraph.origin;
   // vec2 z0 = vPosition * 2. - uGraph.origin;
   // vec2 z0 = vPosition;
   vec2 a = compdynam(z0);
