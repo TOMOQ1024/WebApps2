@@ -10,6 +10,8 @@
 
   --background-header: linear-gradient(180deg, #bbb, #fff, #eee, #ddd, #aaa);
 
+  --header-height: 30px;
+
   // --primary-glow: conic-gradient(
   //   from 180deg at 50% 50%,
   //   #16abff33 0deg,
@@ -93,10 +95,13 @@ body {
   min-height: 100vh;
   header {
     width: 100%;
+    height: var(--header-height);
     background: var(--background-header);
+    display: flex;
+    justify-content: flex-start;
     .title {
       display: inline-block;
-      margin: 5px 10px;
+      margin: auto auto 0 10px;
       font-family: 'Courier New', Courier, monospace;
       font-weight: bold;
       font-size: x-large;
