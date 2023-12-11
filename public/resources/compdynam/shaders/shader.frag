@@ -65,12 +65,26 @@ vec2 cconj(vec2 z) {
 
 vec2 ccos(vec2 z) {
   return vec2(
-    cosh(z.x) * cos(z.y),
-    - sinh(z.x) * sin(z.y)
+    cos(z.x) * cosh(z.y),
+    - sin(z.x) * sinh(z.y)
   );
 }
 
 vec2 csin(vec2 z) {
+  return vec2(
+    sin(z.x) * cosh(z.y),
+    - cos(z.x) * sinh(z.y)
+  );
+}
+
+vec2 ccosh(vec2 z) {
+  return vec2(
+    cosh(z.x) * cos(z.y),
+    sinh(z.x) * sin(z.y)
+  );
+}
+
+vec2 csinh(vec2 z) {
   return vec2(
     sinh(z.x) * cos(z.y),
     cosh(z.x) * sin(z.y)
@@ -86,16 +100,19 @@ vec2 compdynam(vec2 z0) {
   // int i;
   vec2 z = vec2(z0.x, z0.y);
 
-  for(int i=0; i<1; i++) {
-    z = z;
+  for(int i=0; i<100; i++) {
+    // z = csq(z) + vec2(.395, .2);
+    z = cexp(csin(z)+vec2(.01, .2));
+    // z = ccos(z) + csin(z);
+    // z = cprod(cprod(z, z), z) + vec2(.54, .2);
   }
   return z;
 }
 
 void main ()
 {
-  // vec2 z0 = vPosition * uGraph.radius - uGraph.origin;
-  vec2 z0 = vPosition * 2. - uGraph.origin;
+  vec2 z0 = vPosition * uGraph.radius - uGraph.origin;
+  // vec2 z0 = vPosition * 2. - uGraph.origin;
   // vec2 z0 = vPosition;
   vec2 a = compdynam(z0);
 	gl_FragColor = vec4(hsv2rgb(atan(a.y, a.x)/2./PI+1., 1., pow(1./(1.+length(a)), .1)), 1.);
