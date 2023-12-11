@@ -7,11 +7,11 @@ export default class GLMgr {
   cvs: HTMLCanvasElement;
   gl: WebGLRenderingContext;
   program: WebGLProgram;
-  cvsResized = true;
   render = Render;
   graph = new Graph();
   uniLoc: {[Key:string]:WebGLUniformLocation | null} = {};
-  vbo: VBO | null = null;
+  vao_ext: OES_vertex_array_object | null = null;
+  vao: WebGLVertexArrayObjectOES | null = null;
   vertices = [
     -1, -1,
     -1, +1,
@@ -43,11 +43,36 @@ export default class GLMgr {
       return;
     }
 
-    // 深度テストの有効化
-    // this.gl.enable(this.gl.DEPTH_TEST);
+    // 拡張機能の導入
+    this.gl.getExtension('OES_element_index_uint');
+    this.vao_ext = this.gl.getExtension('OES_vertex_array_object');
+    if(this.vao_ext == null){
+      alert('vertex array object not supported');
+      return;
+    }
 
-    this.vbo = new VBO(this, 'aPosition', 2, this.vertices);
-    this.vbo.enable();
+    // カリング，深度テスト，ブレンディングの有効化
+    this.gl.enable(this.gl.CULL_FACE);
+    this.gl.enable(this.gl.DEPTH_TEST);
+    this.gl.enable(this.gl.BLEND);
+
+    // 深度テストの設定
+    this.gl.depthFunc(this.gl.LEQUAL);
+    // ブレンディングの設定
+    this.gl.blendEquation(this.gl.FUNC_ADD);
+    this.gl.blendFuncSeparate(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA, this.gl.ONE, this.gl.ONE)
+
+    // VAOの初期化
+    this.vao = this.vao_ext.createVertexArrayOES();
+    if(this.vao == null){
+      alert('failed to create vertex array object');
+      return;
+    }
+    this.vao_ext.bindVertexArrayOES(this.vao);
+
+    let pVBO = new VBO(this, 'aPosition', 2, this.vertices);
+    pVBO.enable();
+
     // IBO
     let indexBuffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
