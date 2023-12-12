@@ -14,7 +14,7 @@ export default function MainWrapper() {
       // フルスクリーン切り替え
       if(e.key === 'f' && !e.shiftKey && !e.metaKey){
         if (!document.fullscreenElement) {
-          core.glmgr.cvs!!.requestFullscreen();
+          core.glmgr.cvs!.requestFullscreen();
         }
         else {
           document.exitFullscreen();
@@ -25,7 +25,7 @@ export default function MainWrapper() {
     const onWheel = (e:WheelEvent) => {
       e.preventDefault();
       // console.log(e);
-      const rect = core.glmgr.cvs!!.getBoundingClientRect();
+      const rect = core.glmgr.cvs!.getBoundingClientRect();
       // [0,1]正規化した座標
       const m = Math.min(rect.width, rect.height);
       const c = new Vec2(
@@ -42,7 +42,7 @@ export default function MainWrapper() {
 
     const onMouseDown = (e: MouseEvent) => {
       e.preventDefault();
-      const rect = core.glmgr.cvs!!.getBoundingClientRect();
+      const rect = core.glmgr.cvs!.getBoundingClientRect();
       const m = Math.min(rect.width, rect.height);
       core.mouse.pos = new Vec2(
         (2 * (e.clientX - rect.left) / rect.width - 1) * rect.width / m,
@@ -53,7 +53,7 @@ export default function MainWrapper() {
 
     const onMouseMove = (e: MouseEvent) => {
       e.preventDefault();
-      const rect = core.glmgr.cvs!!.getBoundingClientRect();
+      const rect = core.glmgr.cvs!.getBoundingClientRect();
       const m = Math.min(rect.width, rect.height);
       const newPos = new Vec2(
         (2 * (e.clientX - rect.left) / rect.width - 1) * rect.width / m,
