@@ -72,9 +72,19 @@
       position: absolute;
       left: 46px;
       flex-direction: column;
+      transition: .3s ease all;
       div {
         width: 100%;
         height: calc(100%/3);
+      }
+      &.cc-s0 {
+        top: -200%;
+      }
+      &.cc-s1 {
+        top: -100%;
+      }
+      &.cc-s2 {
+        top: 0%;
       }
     }
   }
