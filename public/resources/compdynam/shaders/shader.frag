@@ -99,11 +99,12 @@ vec2 compdynam(vec2 z0) {
   // int i;
   vec2 z = vec2(z0.x, z0.y);
 
-  for(int i=0; i<100; i++) {
-    z = csq(z) - vec2(.6, .42);
+  for(int i=0; i<1/* input iter here */; i++) {
+    // z = csq(z) - vec2(.6, .42);
     // z = cexp(csin(z)+vec2(.01, .2));
     // z = ccos(z) + csin(z);
     // z = cprod(cprod(z, z), z) + vec2(.54, .2);
+    /* input func here */
   }
   return z;
 }
