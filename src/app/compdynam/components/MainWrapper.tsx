@@ -100,7 +100,7 @@ export default function MainWrapper() {
   return (
     <main id='main-wrapper'>
       <GraphWrapper/>
-      <Controls/>
+      <Controls core={core}/>
     </main>
   );
 }

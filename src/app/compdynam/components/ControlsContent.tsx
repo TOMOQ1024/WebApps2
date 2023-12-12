@@ -1,7 +1,9 @@
+import CDCore from "../CompDynamCore";
 import { ConfigTab } from "../Definitions"
 
 export default function ControlsContent({selected}: {
   selected: ConfigTab;
+  core: CDCore;
 }) {
   return (
     <div id='controls-content' className={`cc-s${selected}`}>
