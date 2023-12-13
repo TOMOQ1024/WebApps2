@@ -1,6 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGear, faPencil, faLightbulb, faSliders } from "@fortawesome/free-solid-svg-icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ControlsContent from "./ControlsContent";
 import { ConfigTab } from "../Definitions";
 import CDCore from "../CompDynamCore";
@@ -10,6 +10,28 @@ export default function Controls({core}: {
 }) {
   const [configOpened, setConfigOpened] = useState(true);
   const [configTab, setConfigTab] = useState<ConfigTab>(ConfigTab.EXPRESSION);
+
+  useEffect(()=>{
+    const cs = document.getElementById('controls');
+    if(!cs){
+      console.error('failed to get controls element');
+      return;
+    }
+
+    const antiPropagation = (e: MouseEvent) => {
+      e.stopPropagation();
+    }
+
+    cs.addEventListener('mousedown', antiPropagation);
+    cs.addEventListener('mousemove', antiPropagation);
+    cs.addEventListener('mouseup', antiPropagation);
+
+    return () => {
+      cs.removeEventListener('mousedown', antiPropagation);
+      cs.removeEventListener('mousemove', antiPropagation);
+      cs.removeEventListener('mouseup', antiPropagation);
+    }
+  });
 
   return (
     <div id='controls' className={configOpened ? 'max' : 'min'}>

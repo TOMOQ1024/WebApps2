@@ -42,6 +42,7 @@ export default function MainWrapper() {
 
     const onMouseDown = (e: MouseEvent) => {
       e.preventDefault();
+      e.stopPropagation();
       const rect = core.glmgr.cvs!.getBoundingClientRect();
       const m = Math.min(rect.width, rect.height);
       core.mouse.pos = new Vec2(

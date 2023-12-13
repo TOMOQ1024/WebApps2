@@ -1,7 +1,8 @@
 import CDCore from "../CompDynamCore";
 import { ConfigTab } from "../Definitions"
+import FuncEditor from "./FuncEditor";
 
-export default function ControlsContent({selected}: {
+export default function ControlsContent({selected, core}: {
   selected: ConfigTab;
   core: CDCore;
 }) {
@@ -12,7 +13,7 @@ export default function ControlsContent({selected}: {
       {/* プリセット選択 */}
       <div>Under Construction...</div>
       {/* 数式編集 */}
-      <div>Under Construction...</div>
+      <FuncEditor core={core}/>
     </div>
   )
 }

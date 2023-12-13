@@ -8,6 +8,7 @@ export default class CDCore {
   glmgr = new GLMgr(this);
   iter: number = 100;
   func: string = 'z = csq(z) - vec2(.6, .42);';
+  expr: string = 'z^2-0.6-0.42i';
 
   async init() {
     await this.glmgr.init();

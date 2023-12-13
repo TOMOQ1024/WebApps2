@@ -12,7 +12,7 @@ export function Parse(input: string, dvn: string[]): ParseResult {
   let eType: ExprType;
 
   if(!input.match(/[<>=]/)){
-    return NullParseResult;
+    eType = 'expr';
   } else if(input.match(/[><]/)){
     eType = 'ineq';
   } else {
@@ -39,7 +39,7 @@ export function Parse(input: string, dvn: string[]): ParseResult {
     return ({
       status: true,
       type: input.match(/=/) ? 'defi' : 'ineq',
-      result: cst.togl(cst.root)
+      cstack: cst
     });
   }
   
