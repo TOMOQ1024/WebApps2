@@ -1,5 +1,6 @@
 import './globals.scss'
 import Header from '@/components/header'
+import { Analytics } from '@vercel/analytics/react';
 
 export default function RootLayout({
   children,
@@ -16,6 +17,7 @@ export default function RootLayout({
       <body>
         <Header/>
         {children}
+        <Analytics />
       </body>
     </html>
   )
