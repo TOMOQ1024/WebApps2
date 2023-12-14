@@ -73,7 +73,7 @@ export default function MainWrapper() {
       core.mouse.isDown = false;
     }
 
-    const onResize = (e: UIEvent) => {
+    const onResize = () => {
       const wrapper = core.glmgr.cvs!.parentElement!;
       const rect = wrapper.getBoundingClientRect();
       core.glmgr.cvs!.width = rect.width;
@@ -81,6 +81,8 @@ export default function MainWrapper() {
       core.glmgr.updateResolutionUniform();
       core.glmgr.render();
     }
+    
+    onResize();
 
     document.addEventListener('keydown', onKeyDown);
     core.glmgr.cvs!.addEventListener('wheel', onWheel, {passive: false});
