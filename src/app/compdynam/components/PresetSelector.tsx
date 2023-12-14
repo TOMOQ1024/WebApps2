@@ -13,12 +13,15 @@ export default function PresetSelector({core}: {
     // テキストの解析
     let result = Parse(expr, ['z', 'i']);
 
+    const ctl = document.getElementById('controls')!
     if(result.status){
+      ctl.className = ctl.className.replace(/(?:in)?valid/, 'valid');
       core.setExpression(expr);
       core.func = result.cstack.tocdgl(result.cstack.root);
       core.init();
     }
     else {
+      ctl.className = ctl.className.replace(/(?:in)?valid/, 'invalid');
       console.error(`failed to parse preset expression no.${i}`);
     }
   }

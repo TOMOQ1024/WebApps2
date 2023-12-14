@@ -25,10 +25,15 @@ export default function FuncEditor({core}: {
       // )
     );
 
+    const ctl = document.getElementById('controls')!
     if(result.status){
+      ctl.className = ctl.className.replace(/(?:in)?valid/, 'valid');
       core.setExpression(textarea.innerText);
       core.func = result.cstack.tocdgl(result.cstack.root);
       core.init();
+    }
+    else {
+      ctl.className = ctl.className.replace(/(?:in)?valid/, 'invalid');
     }
     // updateGmgr();
 

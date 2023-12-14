@@ -20,6 +20,14 @@
     & svg {
       transition: .3s ease all;
     }
+    &.valid {
+      box-shadow: #013 0px 0px 50px 20px inset;
+      border: 0.6px solid #cdf;
+    }
+    &.invalid {
+      box-shadow: #301 0px 0px 50px 20px inset;
+      border: 0.6px solid #fbc;
+    }
     &.min {
       width: 38px;
       height: 38px;
@@ -93,6 +101,12 @@
             height: auto;
             margin: 3px;
             border-radius: 20%;
+            transition: .3s ease all;
+            box-shadow: #8c8 0px 0px 0px 0px;
+            &:hover {
+              box-shadow: #8c8 0px 0px 2px 2px;
+              scale: 1.1;
+            }
           }
         }
       }

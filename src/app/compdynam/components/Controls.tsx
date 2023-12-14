@@ -34,7 +34,7 @@ export default function Controls({core}: {
   });
 
   return (
-    <div id='controls' className={configOpened ? 'max' : 'min'}>
+    <div id='controls' className={`${configOpened ? 'max' : 'min'} valid`}>
       <button id='icon-sliders' className={configTab===ConfigTab.SETTINGS ? 'selected' : ''} onClick={_=>setConfigTab(ConfigTab.SETTINGS)}>
         <FontAwesomeIcon icon={faSliders} size='2x' color={configTab===ConfigTab.SETTINGS ? '#ddd' : '#666'}/>
       </button>
