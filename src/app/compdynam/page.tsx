@@ -1,16 +1,10 @@
 import './app.scss';
-import Controls from './components/Controls';
-import GraphWrapper from "./components/GraphWrapper";
+import MainWrapper from './components/MainWrapper';
 
 export const metadata = {
   title: 'CompDynam',
 }
 
 export default function Main(){
-  return (
-    <main id='compdynam-main'>
-      <GraphWrapper/>
-      <Controls/>
-    </main>
-  )
+  return <MainWrapper/>;
 }
