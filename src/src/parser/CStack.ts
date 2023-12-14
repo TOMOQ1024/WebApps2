@@ -122,4 +122,58 @@ export class CStack {
 
     return '';
   }
+
+  tocdgl(node: (BNode|null)): string{
+    if(node === null) return '';
+
+    switch(node.kind){
+      case BNodeKind.FNC:
+        switch(node.val){
+          case FuncName.NIL: return `${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)}`;
+          case FuncName.COH: return `ccosh(${this.tocdgl(node.lhs)})`;
+          case FuncName.SIH: return `csinh(${this.tocdgl(node.lhs)})`;
+          case FuncName.COS: return `ccos(${this.tocdgl(node.lhs)})`;
+          case FuncName.SIN: return `csin(${this.tocdgl(node.lhs)})`;
+          case FuncName.TAN: return `ctan(${this.tocdgl(node.lhs)})`;
+          case FuncName.FLR: return `cfloor(${this.tocdgl(node.lhs)})`;
+          case FuncName.RND: return `cround(${this.tocdgl(node.lhs)})`;
+          case FuncName.CIL: return `cceil(${this.tocdgl(node.lhs)})`;
+          case FuncName.ABS: return `cabs(${this.tocdgl(node.lhs)})`;
+          case FuncName.SQR: return `csqrt(${this.tocdgl(node.lhs)})`;
+          case FuncName.CBR: return `ccbrt(${this.tocdgl(node.lhs)})`;
+          case FuncName.EXP: return `cexp(${this.tocdgl(node.lhs)})`;
+          case FuncName.MAX: return `cmax(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
+          case FuncName.MIN: return `cmin(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
+          case FuncName.MED: return `cmedian(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
+          case FuncName.AVG: return `caverage(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
+        }
+        break;
+      case BNodeKind.VAR:
+        switch(node.val){
+          case VarName.X: return `x`;
+          case VarName.Y: return `y`;
+          case VarName.PI: return `vec2(PI,0.)`;
+          case VarName.E: return `vec2(E,0.)`;
+        }
+        break;
+      case BNodeKind.NUM: return node.val===Math.floor(Number(node.val)) ? `vec2(${node.val}.,0.)` : `vec2(${node.val},0.)`;
+      case BNodeKind.NID: return `${node.val}`;
+      case BNodeKind.DFD: return `${node.val==='i' ? 'vec2(0.,1.)' : node.val}`;
+      // case BNodeKind.EQL: return this.eType==='defi'
+      //   ? `${this.tocdgl(node.lhs)}=${this.tocdgl(node.rhs)}`
+      //   : `${this.tocdgl(node.lhs)}==${this.tocdgl(node.rhs)}`;
+      // case BNodeKind.GEQ: return `${this.tocdgl(node.lhs)}>=${this.tocdgl(node.rhs)}`;
+      // case BNodeKind.LEQ: return `${this.tocdgl(node.lhs)}<=${this.tocdgl(node.rhs)}`;
+      // case BNodeKind.GET: return `${this.tocdgl(node.lhs)}>${this.tocdgl(node.rhs)}`;
+      // case BNodeKind.LET: return `${this.tocdgl(node.lhs)}<${this.tocdgl(node.rhs)}`;
+      case BNodeKind.ADD: return `${this.tocdgl(node.lhs)}+${this.tocdgl(node.rhs)}`;
+      case BNodeKind.SUB: return `${this.tocdgl(node.lhs)}-${this.tocdgl(node.rhs)}`;
+      case BNodeKind.MUL: return `cprod(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
+      case BNodeKind.DIV: return `cdiv(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
+      case BNodeKind.MOD: return `cmod(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
+      case BNodeKind.POW: return `cpow(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
+    }
+
+    return '';
+  }
 }

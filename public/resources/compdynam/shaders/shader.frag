@@ -1,5 +1,6 @@
 precision mediump float;
 const float PI = 3.14159265359;
+const float E = 2.71828182846;
 varying vec2 vPosition;
 uniform vec2 uResolution;
 struct Graph {
@@ -55,7 +56,7 @@ float sinh(float x) {
 
 vec2 cpow(vec2 z, vec2 w) {
   vec2 Z = d2p(z);
-  return cprod(z, p2d(cosh(Z.y*w.y) - sinh(Z.y*w.y), w.y*log(z.x)));
+  return cprod(p2d(pow(Z.x,w.x), Z.y*w.x), p2d(cosh(Z.y*w.y) - sinh(Z.y*w.y), w.y*log(Z.x)));
 }
 
 vec2 cconj(vec2 z) {
@@ -99,11 +100,13 @@ vec2 compdynam(vec2 z0) {
   // int i;
   vec2 z = vec2(z0.x, z0.y);
 
-  for(int i=0; i<100; i++) {
-    // z = csq(z) + vec2(.395, .2);
-    z = cexp(csin(z)+vec2(.01, .2));
+  for(int i=0; i<1/* input iter here */; i++) {
+    // z = csq(z) - vec2(.6, .42);
+    // z = cexp(csin(z)+vec2(.01, .2));
     // z = ccos(z) + csin(z);
     // z = cprod(cprod(z, z), z) + vec2(.54, .2);
+    z = z/* input func here */;
+    // z = cpow(z,(vec2(2.,0.)))-vec2(0.6, 0.)-vec2(0., .42);
   }
   return z;
 }

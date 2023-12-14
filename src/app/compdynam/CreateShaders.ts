@@ -1,32 +1,34 @@
+import GLMgr from "./GLMgr";
+
 type Data = {
   vert: string;
   frag: string;
 }
 
-export default async function CreateShaders(gl: WebGLRenderingContext, program: WebGLProgram){
-  let vs = gl.createShader(gl.VERTEX_SHADER)!;
-  var fs = gl.createShader(gl.FRAGMENT_SHADER)!;
+export default async function CreateShaders(this: GLMgr){
+  let vs = this.gl!.createShader(this.gl!.VERTEX_SHADER)!;
+  var fs = this.gl!.createShader(this.gl!.FRAGMENT_SHADER)!;
   try {
     let response = await fetch('/api/compdynam-shaders');
     const data: Data = await response.json();
 
-    gl.shaderSource(vs, data.vert);
-    gl.shaderSource(fs, data.frag);
+    this.gl!.shaderSource(vs, data.vert);
+    this.gl!.shaderSource(fs, data.frag.replace('z/* input func here */', this.parent.func).replace('1/* input iter here */', `${this.parent.iter}`));
     if(vs === null)throw new Error('Vertical Shader Is Null');
     if(fs === null)throw new Error('Fragment Shader Is Null');
-    gl.compileShader(vs);
-    gl.compileShader (fs);
+    this.gl!.compileShader(vs);
+    this.gl!.compileShader (fs);
 
-    console.log('vert compiled successfully: ' + gl.getShaderParameter(vs, gl.COMPILE_STATUS));
-    console.log('Shader compiler log:\n' + gl.getShaderInfoLog(vs));
+    console.log('vert compiled successfully: ' + this.gl!.getShaderParameter(vs, this.gl!.COMPILE_STATUS));
+    console.log('Shader compiler log:\n' + this.gl!.getShaderInfoLog(vs));
 
-    console.log('frag compiled successfully: ' + gl.getShaderParameter(fs, gl.COMPILE_STATUS));
-    console.log('Shader compiler log:\n' + gl.getShaderInfoLog(fs));
+    console.log('frag compiled successfully: ' + this.gl!.getShaderParameter(fs, this.gl!.COMPILE_STATUS));
+    console.log('Shader compiler log:\n' + this.gl!.getShaderInfoLog(fs));
 
     // WebGLProgramとシェーダをリンク
-    gl.attachShader(program, vs);
-    gl.attachShader(program, fs);
-    gl.linkProgram(program);
+    this.gl!.attachShader(this.program!, vs);
+    this.gl!.attachShader(this.program!, fs);
+    this.gl!.linkProgram(this.program!);
     return true;
   }
   catch (e){

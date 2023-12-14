@@ -1,14 +1,14 @@
 import CreateShaders from "./CreateShaders";
 import Render from "./Render";
 import { VBO } from "./VBO";
-import Graph from "./Graph";
+import CDCore from "./CompDynamCore";
 
 export default class GLMgr {
-  cvs: HTMLCanvasElement;
-  gl: WebGLRenderingContext;
-  program: WebGLProgram;
+  cvs: HTMLCanvasElement|null = null;
+  gl: WebGLRenderingContext|null = null;
+  program: WebGLProgram|null = null;
   render = Render;
-  graph = new Graph();
+  createShaders = CreateShaders;
   uniLoc: {[Key:string]:WebGLUniformLocation | null} = {};
   vao_ext: OES_vertex_array_object | null = null;
   vao: WebGLVertexArrayObjectOES | null = null;
@@ -23,14 +23,13 @@ export default class GLMgr {
     2, 3, 1
   ];
 
-  constructor () {
+  constructor (public parent: CDCore) { }
+  
+  async init () {
     this.cvs = document.getElementById('cvs') as HTMLCanvasElement;
     this.gl = this.cvs.getContext('webgl')!;
     this.program = this.gl.createProgram()!;
-  }
-
-  async init () {
-    if(!(await CreateShaders(this.gl, this.program))){
+    if(!(await this.createShaders())){
       console.log('hoge');
       return;
     }
@@ -86,18 +85,18 @@ export default class GLMgr {
   }
 
   updateGraphUniform() {
-    this.gl.uniform2f(
+    this.gl!.uniform2f(
       this.uniLoc.gho,
-      this.graph.origin.x,
-      this.graph.origin.y,
+      this.parent.graph.origin.x,
+      this.parent.graph.origin.y,
     );
-    this.gl.uniform1f(
+    this.gl!.uniform1f(
       this.uniLoc.ghr,
-      this.graph.radius,
+      this.parent.graph.radius,
     );
   }
 
   updateResolutionUniform() {
-    this.gl.uniform2f(this.uniLoc.res, this.cvs.width, this.cvs.height);
+    this.gl!.uniform2f(this.uniLoc.res, this.cvs!.width, this.cvs!.height);
   }
 }

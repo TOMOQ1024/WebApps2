@@ -1,4 +1,4 @@
-#compdynam-main {
+#main-wrapper {
   text-align: center;
   height: calc(100vh - var(--header-height));
   position: relative;
@@ -19,6 +19,14 @@
     overflow: hidden;
     & svg {
       transition: .3s ease all;
+    }
+    &.valid {
+      box-shadow: #013 0px 0px 50px 20px inset;
+      border: 0.6px solid #cdf;
+    }
+    &.invalid {
+      box-shadow: #301 0px 0px 50px 20px inset;
+      border: 0.6px solid #fbc;
     }
     &.min {
       width: 38px;
@@ -72,9 +80,35 @@
       position: absolute;
       left: 46px;
       flex-direction: column;
-      div {
+      transition: .3s ease all;
+      &>div {
         width: 100%;
         height: calc(100%/3);
+      }
+      &.cc-s0 {
+        top: -200%;
+      }
+      &.cc-s1 {
+        top: -100%;
+      }
+      &.cc-s2 {
+        top: 0%;
+      }
+      #preset-selector {
+        #preset-button-wrapper {
+          .preset-button {
+            width: 35px;
+            height: auto;
+            margin: 3px;
+            border-radius: 20%;
+            transition: .3s ease all;
+            box-shadow: #8c8 0px 0px 0px 0px;
+            &:hover {
+              box-shadow: #8c8 0px 0px 2px 2px;
+              scale: 1.1;
+            }
+          }
+        }
       }
     }
   }
