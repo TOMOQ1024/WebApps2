@@ -1,6 +1,8 @@
 export enum FuncName {
   NIL = '',
 
+  COH = 'cosh',
+  SIH = 'sinh',
   COS = 'cos',
   SIN = 'sin',
   TAN = 'tan',
@@ -10,6 +12,7 @@ export enum FuncName {
   ABS = 'abs',
   SQR = 'sqrt',
   CBR = 'cbrt',
+  EXP = 'exp',
 
   MAX = 'max',
   MIN = 'min',

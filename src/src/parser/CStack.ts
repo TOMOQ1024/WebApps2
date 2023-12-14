@@ -130,6 +130,8 @@ export class CStack {
       case BNodeKind.FNC:
         switch(node.val){
           case FuncName.NIL: return `${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)}`;
+          case FuncName.COH: return `ccosh(${this.tocdgl(node.lhs)})`;
+          case FuncName.SIH: return `csinh(${this.tocdgl(node.lhs)})`;
           case FuncName.COS: return `ccos(${this.tocdgl(node.lhs)})`;
           case FuncName.SIN: return `csin(${this.tocdgl(node.lhs)})`;
           case FuncName.TAN: return `ctan(${this.tocdgl(node.lhs)})`;
@@ -139,6 +141,7 @@ export class CStack {
           case FuncName.ABS: return `cabs(${this.tocdgl(node.lhs)})`;
           case FuncName.SQR: return `csqrt(${this.tocdgl(node.lhs)})`;
           case FuncName.CBR: return `ccbrt(${this.tocdgl(node.lhs)})`;
+          case FuncName.EXP: return `cexp(${this.tocdgl(node.lhs)})`;
           case FuncName.MAX: return `cmax(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
           case FuncName.MIN: return `cmin(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
           case FuncName.MED: return `cmedian(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;

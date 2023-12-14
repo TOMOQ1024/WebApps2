@@ -73,7 +73,7 @@
       left: 46px;
       flex-direction: column;
       transition: .3s ease all;
-      div {
+      &>div {
         width: 100%;
         height: calc(100%/3);
       }
@@ -85,6 +85,16 @@
       }
       &.cc-s2 {
         top: 0%;
+      }
+      #preset-selector {
+        #preset-button-wrapper {
+          .preset-button {
+            width: 35px;
+            height: auto;
+            margin: 3px;
+            border-radius: 20%;
+          }
+        }
       }
     }
   }

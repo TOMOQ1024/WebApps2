@@ -47,10 +47,10 @@ export default function FuncEditor({core}: {
   }
   
   return (
-    <div>
+    <div id='func-editor'>
       <div>Current Function:</div>
       <div>
-        <span
+        f(z)=<span
           id='func-textarea'
           role='textbox'
           ref={ref}
