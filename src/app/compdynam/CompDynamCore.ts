@@ -16,4 +16,8 @@ export default class CDCore {
     this.glmgr.updateGraphUniform();
     this.glmgr.render();
   }
+
+  setExpression(s: string) {
+    this.expr = s;
+  }
 }

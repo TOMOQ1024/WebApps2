@@ -26,8 +26,9 @@ export default function FuncEditor({core}: {
     );
 
     if(result.status){
-      // core.setExpression(result.type, textarea.innerText);
-      // core.func = result.cstack.togl(result.cstack.root);
+      core.setExpression(textarea.innerText);
+      core.func = result.cstack.tocdgl(result.cstack.root);
+      core.init();
     }
     // updateGmgr();
 
