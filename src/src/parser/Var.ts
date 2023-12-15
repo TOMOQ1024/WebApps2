@@ -1,7 +1,5 @@
 export enum VarName {
   NIL = '',
-  X = 'x',
-  Y = 'y',
   PI = 'pi',
   E = 'e',
 }

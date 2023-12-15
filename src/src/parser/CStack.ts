@@ -96,8 +96,8 @@ export class CStack {
         break;
       case BNodeKind.VAR:
         switch(node.val){
-          case VarName.X: return `x`;
-          case VarName.Y: return `y`;
+          // case VarName.X: return `x`;
+          // case VarName.Y: return `y`;
           case VarName.PI: return `3.14`;
           case VarName.E: return `2.71`;
         }
@@ -150,8 +150,8 @@ export class CStack {
         break;
       case BNodeKind.VAR:
         switch(node.val){
-          case VarName.X: return `x`;
-          case VarName.Y: return `y`;
+          // case VarName.X: return `x`;
+          // case VarName.Y: return `y`;
           case VarName.PI: return `vec2(PI,0.)`;
           case VarName.E: return `vec2(E,0.)`;
         }
