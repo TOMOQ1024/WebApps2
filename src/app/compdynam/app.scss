@@ -21,11 +21,11 @@
       transition: .3s ease all;
     }
     &.valid {
-      box-shadow: #013 0px 0px 50px 20px inset;
+      box-shadow: #038 0px 0px 50px 20px inset;
       border: 0.6px solid #cdf;
     }
     &.invalid {
-      box-shadow: #301 0px 0px 50px 20px inset;
+      box-shadow: #612 0px 0px 50px 20px inset;
       border: 0.6px solid #fbc;
     }
     &.min {
@@ -106,6 +106,23 @@
             &:hover {
               box-shadow: #8c8 0px 0px 2px 2px;
               scale: 1.1;
+            }
+          }
+        }
+      }
+      #func-editor {
+        #func-display {
+          #func-textarea {
+            background-color: #88668844;
+            border: #072 solid 1px;
+            display: inline-block;
+            min-width: 70%;
+            transition: .3s ease all;
+            border-radius: 5px;
+            margin: 5px;
+            &:focus {
+              outline: 0;
+              border: #2f8 solid 1px;
             }
           }
         }

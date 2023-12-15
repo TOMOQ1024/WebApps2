@@ -7,7 +7,24 @@ export default function FuncEditor({core}: {
 }) {
   const ref = useRef<HTMLElement>(null);
 
-  function HandleInput(e: InputEvent){
+  useEffect(()=>{
+    function onKeyDown(e: KeyboardEvent) {
+      e.stopPropagation();
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        return false;
+      }
+    }
+
+    const ta = document.getElementById('func-textarea')!;
+    ta.addEventListener('keydown', onKeyDown, {passive: false});
+    return () => {
+      ta.removeEventListener('keydown', onKeyDown);
+    }
+  });
+
+
+  function HandleInput(e: InputEvent) {
     let textarea = e.target as HTMLSpanElement;
 
     // 現在のカーソルによる選択場所を記録
@@ -50,11 +67,17 @@ export default function FuncEditor({core}: {
       window.getSelection()?.addRange(range);
     }, 10);
   }
+
+  const HandlePaste = (e: ClipboardEvent) => {
+    e.preventDefault();
+    let text = e.clipboardData!.getData('text/plain');
+    document.execCommand('insertHTML', false, text);
+  }
   
   return (
     <div id='func-editor'>
       <div>Current Function:</div>
-      <div>
+      <div id='func-display'>
         f(z)=<span
           id='func-textarea'
           role='textbox'
@@ -62,6 +85,7 @@ export default function FuncEditor({core}: {
           contentEditable
           suppressContentEditableWarning
           onInput={e=>HandleInput(e as unknown as InputEvent)}
+          onPaste={e=>HandlePaste(e as unknown as ClipboardEvent)}
         >
       {core.expr}
     </span>
