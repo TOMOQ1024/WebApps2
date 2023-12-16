@@ -1,7 +1,12 @@
-export enum ConfigTab {
+export enum ControlsTab {
   EXPRESSION,
   PRESETS,
   SETTINGS
+}
+
+export enum RenderingMode {
+  HSV,
+  GRAYSCALE
 }
 
 export const PresetExpressions = [

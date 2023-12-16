@@ -1,3 +1,4 @@
+import { RenderingMode } from "./Definitions";
 import GLMgr from "./GLMgr";
 
 type Data = {
@@ -13,17 +14,24 @@ export default async function CreateShaders(this: GLMgr){
     const data: Data = await response.json();
 
     this.gl!.shaderSource(vs, data.vert);
-    this.gl!.shaderSource(fs, data.frag.replace('z/* input func here */', this.parent.func).replace('1/* input iter here */', `${this.parent.iter}`));
+    this.gl!.shaderSource(fs, data.frag
+      .replace('z/* input func here */', this.parent.func)
+      .replace('1/* input iter here */', `${this.parent.iter}`)
+      .replace('/* delete if mode is not hsv */', this.parent.renderingMode !== RenderingMode.HSV ? '//' : '')
+      .replace('/* delete if mode is not grayscale */', this.parent.renderingMode !== RenderingMode.GRAYSCALE ? '//' : '')
+    );
     if(vs === null)throw new Error('Vertical Shader Is Null');
     if(fs === null)throw new Error('Fragment Shader Is Null');
     this.gl!.compileShader(vs);
     this.gl!.compileShader (fs);
 
-    console.log('vert compiled successfully: ' + this.gl!.getShaderParameter(vs, this.gl!.COMPILE_STATUS));
-    console.log('Shader compiler log:\n' + this.gl!.getShaderInfoLog(vs));
+    if(!this.gl!.getShaderParameter(vs, this.gl!.COMPILE_STATUS)){
+      console.log('Failed to compile vert shader.\nLog:\n' + this.gl!.getShaderInfoLog(vs));
+    }
 
-    console.log('frag compiled successfully: ' + this.gl!.getShaderParameter(fs, this.gl!.COMPILE_STATUS));
-    console.log('Shader compiler log:\n' + this.gl!.getShaderInfoLog(fs));
+    if(!this.gl!.getShaderParameter(fs, this.gl!.COMPILE_STATUS)){
+      console.log('Failed to compile frag shader.\nLog:\n' + this.gl!.getShaderInfoLog(fs));
+    }
 
     // WebGLProgramとシェーダをリンク
     this.gl!.attachShader(this.program!, vs);

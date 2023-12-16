@@ -77,6 +77,10 @@ vec2 csin(vec2 z) {
   );
 }
 
+vec2 ctan(vec2 z) {
+  return cdiv(csin(z), ccos(z));
+}
+
 vec2 ccosh(vec2 z) {
   return vec2(
     cosh(z.x) * cos(z.y),
@@ -89,6 +93,26 @@ vec2 csinh(vec2 z) {
     sinh(z.x) * cos(z.y),
     cosh(z.x) * sin(z.y)
   );
+}
+
+vec2 ctanh(vec2 z) {
+  return cdiv(csinh(z), ccosh(z));
+}
+
+vec2 cabs(vec2 z) {
+  return vec2(length(z), 0.);
+}
+
+vec2 carg(vec2 z) {
+  return vec2(atan(z.y, z.x), 0.);
+}
+
+vec2 csqrt(vec2 z) {
+  return cpow(z, vec2(.5, 0.));
+}
+
+vec2 ccbrt(vec2 z) {
+  return cpow(z, vec2(1./3., 0.));
 }
 
 vec3 hsv2rgb(float h, float s, float v) {
@@ -117,5 +141,6 @@ void main ()
   // vec2 z0 = vPosition * 2. - uGraph.origin;
   // vec2 z0 = vPosition;
   vec2 a = compdynam(z0);
-	gl_FragColor = vec4(hsv2rgb(atan(a.y, a.x)/2./PI+1., 1., pow(1./(1.+length(a)), .1)), 1.);
+	/* delete if mode is not hsv */gl_FragColor = vec4(hsv2rgb(atan(a.y, a.x)/2./PI+1., 1., pow(1./(1.+length(a)), .1)), 1.);
+	/* delete if mode is not grayscale */gl_FragColor = vec4(hsv2rgb(0., 0., pow(1./(1.+length(a)), .1) * (1.+sin(atan(a.y, a.x)*2.))/2.), 1.);
 }

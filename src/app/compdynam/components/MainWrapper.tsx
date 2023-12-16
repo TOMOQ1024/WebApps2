@@ -73,30 +73,19 @@ export default function MainWrapper() {
       core.mouse.isDown = false;
     }
 
-    const onResize = () => {
-      const wrapper = core.glmgr.cvs!.parentElement!;
-      const rect = wrapper.getBoundingClientRect();
-      core.glmgr.cvs!.width = rect.width;
-      core.glmgr.cvs!.height = rect.height;
-      core.glmgr.updateResolutionUniform();
-      core.glmgr.render();
-    }
-    
-    onResize();
-
     document.addEventListener('keydown', onKeyDown);
     core.glmgr.cvs!.addEventListener('wheel', onWheel, {passive: false});
     document.addEventListener('mousedown', onMouseDown, {passive: false});
     document.addEventListener('mousemove', onMouseMove, {passive: false});
     document.addEventListener('mouseup', onMouseUp, {passive: false});
-    window.addEventListener('resize', onResize);
+    window.addEventListener('resize', core.resizeCanvas);
     return () => {
       document.removeEventListener('keydown', onKeyDown);
       core.glmgr.cvs!.removeEventListener('wheel', onWheel);
       document.removeEventListener('mousedown', onMouseDown);
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
-      window.removeEventListener('resize', onResize);
+      window.removeEventListener('resize', core.resizeCanvas);
     }
   })();}, [core]);
   
