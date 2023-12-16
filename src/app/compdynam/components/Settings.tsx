@@ -10,19 +10,6 @@ export default function Settings({core}: {
   return (
     <div id='settings'>
       <div>- 描画設定 -</div>
-      <div id='iter-editor'>
-        反復回数：
-        <input
-        id='iter-input'
-        className='input'
-        type='number'
-        name='iter'
-        defaultValue={core.iter}
-        onChange={e=>{
-          core.setIter(Number(e.target.value));
-          core.init();
-        }} />
-      </div>
       <div id='rf-editor'>
         解像度倍率：
         <input

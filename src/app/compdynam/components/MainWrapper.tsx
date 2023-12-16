@@ -42,14 +42,13 @@ export default function MainWrapper() {
 
     const onMouseDown = (e: MouseEvent) => {
       e.preventDefault();
-      e.stopPropagation();
       const rect = core.glmgr.cvs!.getBoundingClientRect();
       const m = Math.min(rect.width, rect.height);
-      core.mouse.pos = new Vec2(
+      core.mMgr.pos = new Vec2(
         (2 * (e.clientX - rect.left) / rect.width - 1) * rect.width / m,
         (2 * (e.clientY - rect.top) / rect.height - 1) * rect.height / m
       );
-      core.mouse.isDown = true;
+      core.mMgr.isDown = true;
     }
 
     const onMouseMove = (e: MouseEvent) => {
@@ -60,9 +59,9 @@ export default function MainWrapper() {
         (2 * (e.clientX - rect.left) / rect.width - 1) * rect.width / m,
         (2 * (e.clientY - rect.top) / rect.height - 1) * rect.height / m
       );
-      if(core.mouse.isDown){
-        core.graph.translate(newPos.subed(core.mouse.pos).negY());
-        core.mouse.pos = newPos;
+      if(core.mMgr.isDown){
+        core.graph.translate(newPos.subed(core.mMgr.pos).negY());
+        core.mMgr.pos = newPos;
         core.glmgr.updateGraphUniform();
         core.glmgr.render();
       }
@@ -70,7 +69,70 @@ export default function MainWrapper() {
 
     const onMouseUp = (e: MouseEvent) => {
       e.preventDefault();
-      core.mouse.isDown = false;
+      core.mMgr.isDown = false;
+    }
+
+    const onTouchStart = (e: TouchEvent) => {
+      e.preventDefault();
+      const rect = core.glmgr.cvs!.getBoundingClientRect();
+      const m = Math.min(rect.width, rect.height);
+      const s = e.touches;
+      for(let i=0; i<s.length; i++){
+        core.tMgr.touches[e.touches[i].identifier] =
+          new Vec2(
+            (2 * (s[i].clientX - rect.left) / rect.width - 1) * rect.width / m,
+            (2 * (s[i].clientY - rect.top) / rect.height - 1) * rect.height / m
+          );
+      }
+    }
+
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      const rect = core.glmgr.cvs!.getBoundingClientRect();
+      const m = Math.min(rect.width, rect.height);
+      const c = e.changedTouches;
+      switch(c.length) {
+        case 0:
+          return;
+        case 1:
+          let newPos = new Vec2(
+            (2 * (c[0].clientX - rect.left) / rect.width - 1) * rect.width / m,
+            (2 * (c[0].clientY - rect.top) / rect.height - 1) * rect.height / m
+          );
+          core.graph.translate(newPos.subed(core.tMgr.touches[c[0].identifier]).negY());
+          core.tMgr.touches[c[0].identifier] = newPos;
+          core.glmgr.updateGraphUniform();
+          core.glmgr.render();
+          break;
+        default:
+          let prevPos0 = Vec2.copy(core.tMgr.touches[c[0].identifier]);
+          let newPos0 = new Vec2(
+            (2 * (c[0].clientX - rect.left) / rect.width - 1) * rect.width / m,
+            (2 * (c[0].clientY - rect.top) / rect.height - 1) * rect.height / m
+          );
+          core.tMgr.touches[c[0].identifier] = newPos0;
+
+          let prevPos1 = Vec2.copy(core.tMgr.touches[c[1].identifier]);
+          let newPos1 = new Vec2(
+            (2 * (c[1].clientX - rect.left) / rect.width - 1) * rect.width / m,
+            (2 * (c[1].clientY - rect.top) / rect.height - 1) * rect.height / m
+          );
+          core.tMgr.touches[c[1].identifier] = newPos1;
+
+          // alert(newPos1.subed(newPos0).length() / prevPos1.subed(prevPos0).length());
+          core.graph.zoom(prevPos0.added(prevPos1).muled(0.5), Math.log(prevPos1.subed(prevPos0).length() / newPos1.subed(newPos0).length())*500);
+          core.glmgr.updateGraphUniform();
+          core.glmgr.render();
+          break;
+      }
+    }
+
+    // const onTouchEnd = (e: TouchEvent) => {
+    //   e.preventDefault();
+    // }
+
+    const onResize = () => {
+      core.resizeCanvas();
     }
 
     document.addEventListener('keydown', onKeyDown);
@@ -78,14 +140,20 @@ export default function MainWrapper() {
     document.addEventListener('mousedown', onMouseDown, {passive: false});
     document.addEventListener('mousemove', onMouseMove, {passive: false});
     document.addEventListener('mouseup', onMouseUp, {passive: false});
-    window.addEventListener('resize', core.resizeCanvas);
+    document.addEventListener('touchstart', onTouchStart, {passive: false});
+    document.addEventListener('touchmove', onTouchMove, {passive: false});
+    // document.addEventListener('touchend', onTouchEnd, {passive: false});
+    window.addEventListener('resize', onResize);
     return () => {
       document.removeEventListener('keydown', onKeyDown);
       core.glmgr.cvs!.removeEventListener('wheel', onWheel);
       document.removeEventListener('mousedown', onMouseDown);
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
-      window.removeEventListener('resize', core.resizeCanvas);
+      document.removeEventListener('touchstart', onTouchStart);
+      document.removeEventListener('touchmove', onTouchMove);
+      // document.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('resize', onResize);
     }
   })();}, [core]);
   
