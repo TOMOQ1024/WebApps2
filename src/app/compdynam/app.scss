@@ -2,6 +2,7 @@
   text-align: center;
   height: calc(100vh - var(--header-height));
   position: relative;
+  image-rendering: pixelated;
   #graph-wrapper {
     height: 100%;
     overflow: hidden;
@@ -84,6 +85,9 @@
       &>div {
         width: 100%;
         height: calc(100%/3);
+        &>div {
+          margin: 3px 0;
+        }
       }
       &.cc-s0 {
         top: -200%;
@@ -93,6 +97,39 @@
       }
       &.cc-s2 {
         top: 0%;
+      }
+      #settings {
+        #iter-editor {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: center;
+          #iter-input {
+            width: 120px;
+          }
+        }
+        #rf-editor {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: center;
+          #rf-input {
+            width: 120px;
+          }
+        }
+        #rm-editor {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: center;
+          .radio {
+            margin-left: 10px;
+            margin-right: 3px;
+          }
+          .rm-option {
+            font-size: x-small;
+          }
+        }
       }
       #preset-selector {
         #preset-button-wrapper {
@@ -113,20 +150,25 @@
       #func-editor {
         #func-display {
           #func-input {
-            background-color: #88668844;
-            border: #072 solid 1px;
-            display: inline-block;
             min-width: 70%;
-            transition: .3s ease all;
-            border-radius: 5px;
-            margin: 5px;
-            &:focus {
-              outline: 0;
-              border: #2f8 solid 1px;
-            }
           }
         }
       }
     }
   }
 }
+
+.input {
+  background-color: #88668844;
+  border: #072 solid 1px;
+  display: inline-block;
+  transition: .3s ease all;
+  border-radius: 5px;
+  margin: 5px;
+  &:focus {
+    outline: 0;
+    border: #2f8 solid 1px;
+  }
+}
+
+

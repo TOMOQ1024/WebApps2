@@ -85,10 +85,11 @@ export default function FuncEditor({core}: {
   
   return (
     <div id='func-editor'>
-      <div>Current Function:</div>
+      <div>- 関数・反復回数 -</div>
       <div id='func-display'>
         f(z)=<span
           id='func-input'
+          className='input'
           role='textbox'
           ref={ref}
           aria-label='数式を入力する'

@@ -28,7 +28,7 @@ export default function PresetSelector({core}: {
   
   return (
     <div id='preset-selector'>
-      <div>Presets:</div>
+      <div>- プリセット選択 -</div>
       <div id='preset-button-wrapper'>
         {
           PresetExpressions.map((v,i)=>{
