@@ -1,12 +1,20 @@
 export default class Vec2 {
   constructor(public x=0, public y=0) { }
 
+  static copy(v: Vec2) {
+    return new Vec2(v.x, v.y);
+  }
+
   dot(rhs: Vec2) {
     return this.x * rhs.x + this.y * rhs.y;
   }
 
   det(rhs: Vec2) {
     return this.x * rhs.y - this.y * rhs.x;
+  }
+
+  length() {
+    return Math.sqrt(this.x*this.x + this.y*this.y);
   }
 
   add(rhs1: number|Vec2, rhs2: number|undefined = undefined) {

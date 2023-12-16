@@ -26,12 +26,18 @@ export default function Controls({core}: {
     cs.addEventListener('mousedown', antiPropagation);
     cs.addEventListener('mousemove', antiPropagation);
     cs.addEventListener('mouseup', antiPropagation);
+    cs.addEventListener('touchstart', antiPropagation);
+    cs.addEventListener('touchmove', antiPropagation);
+    cs.addEventListener('touchend', antiPropagation);
 
     return () => {
       cs.removeEventListener('keydown', antiPropagation);
       cs.removeEventListener('mousedown', antiPropagation);
       cs.removeEventListener('mousemove', antiPropagation);
       cs.removeEventListener('mouseup', antiPropagation);
+      cs.removeEventListener('touchstart', antiPropagation);
+      cs.removeEventListener('touchmove', antiPropagation);
+      cs.removeEventListener('touchend', antiPropagation);
     }
   });
 
