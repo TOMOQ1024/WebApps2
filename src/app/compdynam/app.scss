@@ -108,15 +108,6 @@
         top: 0%;
       }
       #settings {
-        #iter-editor {
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          justify-content: center;
-          #iter-input {
-            width: 120px;
-          }
-        }
         #rf-editor {
           display: flex;
           flex-direction: row;
@@ -156,6 +147,15 @@
         }
       }
       #func-editor {
+        #iter-editor {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: center;
+          #iter-input {
+            width: 120px;
+          }
+        }
         #func-display {
           #func-input {
             min-width: 70%;

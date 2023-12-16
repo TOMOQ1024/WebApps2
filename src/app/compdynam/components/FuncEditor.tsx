@@ -86,6 +86,20 @@ export default function FuncEditor({core}: {
   return (
     <div id='func-editor'>
       <div>- 関数・反復回数 -</div>
+      <div id='iter-editor'>
+        反復回数：
+        <input
+        id='iter-input'
+        className='input'
+        type='number'
+        step='1'
+        name='iter'
+        defaultValue={core.iter}
+        onChange={e=>{
+          core.setIter(Number(e.target.value));
+          core.init();
+        }} />
+      </div>
       <div id='func-display'>
         f(z)=<span
           id='func-input'
@@ -98,8 +112,8 @@ export default function FuncEditor({core}: {
           onInput={e=>HandleInput(e as unknown as InputEvent)}
           onPaste={e=>HandlePaste(e as unknown as ClipboardEvent)}
         >
-      {core.expr}
-    </span>
+          {core.expr}
+        </span>
       </div>
     </div>
   )
