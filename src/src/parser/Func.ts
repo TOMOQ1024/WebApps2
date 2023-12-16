@@ -3,13 +3,16 @@ export enum FuncName {
 
   COH = 'cosh',
   SIH = 'sinh',
+  TAH = 'tanh',
   COS = 'cos',
   SIN = 'sin',
   TAN = 'tan',
   FLR = 'floor',
   RND = 'round',
   CIL = 'ceil',
+  FRC = 'fract',
   ABS = 'abs',
+  ARG = 'arg',
   SQR = 'sqrt',
   CBR = 'cbrt',
   EXP = 'exp',
@@ -17,7 +20,7 @@ export enum FuncName {
   MAX = 'max',
   MIN = 'min',
   MED = 'median',
-  AVG = 'average',
+  AVG = 'avg',
 }
 
 export function isFuncName(input: any){

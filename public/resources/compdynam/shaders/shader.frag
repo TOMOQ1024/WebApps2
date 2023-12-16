@@ -77,6 +77,10 @@ vec2 csin(vec2 z) {
   );
 }
 
+vec2 ctan(vec2 z) {
+  return cdiv(csin(z), ccos(z));
+}
+
 vec2 ccosh(vec2 z) {
   return vec2(
     cosh(z.x) * cos(z.y),
@@ -89,6 +93,26 @@ vec2 csinh(vec2 z) {
     sinh(z.x) * cos(z.y),
     cosh(z.x) * sin(z.y)
   );
+}
+
+vec2 ctanh(vec2 z) {
+  return cdiv(csinh(z), ccosh(z));
+}
+
+vec2 cabs(vec2 z) {
+  return vec2(length(z), 0.);
+}
+
+vec2 carg(vec2 z) {
+  return vec2(atan(z.y, z.x), 0.);
+}
+
+vec2 csqrt(vec2 z) {
+  return cpow(z, vec2(.5, 0.));
+}
+
+vec2 ccbrt(vec2 z) {
+  return cpow(z, vec2(1./3., 0.));
 }
 
 vec3 hsv2rgb(float h, float s, float v) {

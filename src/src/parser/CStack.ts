@@ -123,29 +123,32 @@ export class CStack {
     return '';
   }
 
-  tocdgl(node: (BNode|null)): string{
+  tocdgl(node: (BNode|null), fn: (string|undefined)=undefined): string{
     if(node === null) return '';
 
     switch(node.kind){
       case BNodeKind.FNC:
         switch(node.val){
-          case FuncName.NIL: return `${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)}`;
+          case FuncName.NIL: return `${fn}(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
           case FuncName.COH: return `ccosh(${this.tocdgl(node.lhs)})`;
           case FuncName.SIH: return `csinh(${this.tocdgl(node.lhs)})`;
+          case FuncName.TAH: return `ctanh(${this.tocdgl(node.lhs)})`;
           case FuncName.COS: return `ccos(${this.tocdgl(node.lhs)})`;
           case FuncName.SIN: return `csin(${this.tocdgl(node.lhs)})`;
           case FuncName.TAN: return `ctan(${this.tocdgl(node.lhs)})`;
-          case FuncName.FLR: return `cfloor(${this.tocdgl(node.lhs)})`;
-          case FuncName.RND: return `cround(${this.tocdgl(node.lhs)})`;
-          case FuncName.CIL: return `cceil(${this.tocdgl(node.lhs)})`;
+          case FuncName.FLR: return `floor(${this.tocdgl(node.lhs)})`;
+          case FuncName.RND: return `round(${this.tocdgl(node.lhs)})`;
+          case FuncName.CIL: return `ceil(${this.tocdgl(node.lhs)})`;
+          case FuncName.FRC: return `fract(${this.tocdgl(node.lhs)})`;
           case FuncName.ABS: return `cabs(${this.tocdgl(node.lhs)})`;
+          case FuncName.ARG: return `carg(${this.tocdgl(node.lhs)})`;
           case FuncName.SQR: return `csqrt(${this.tocdgl(node.lhs)})`;
           case FuncName.CBR: return `ccbrt(${this.tocdgl(node.lhs)})`;
           case FuncName.EXP: return `cexp(${this.tocdgl(node.lhs)})`;
-          case FuncName.MAX: return `cmax(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
-          case FuncName.MIN: return `cmin(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
-          case FuncName.MED: return `cmedian(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
-          case FuncName.AVG: return `caverage(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
+          case FuncName.MAX: return `max(${this.tocdgl(node.lhs,'max')},${this.tocdgl(node.rhs,'max')})`;
+          case FuncName.MIN: return `min(${this.tocdgl(node.lhs,'min')},${this.tocdgl(node.rhs,'min')})`;
+          case FuncName.MED: throw new Error(`median関数は実装されていません`);
+          case FuncName.AVG: throw new Error(`avg関数は実装されていません`);
         }
         break;
       case BNodeKind.VAR:
@@ -170,7 +173,7 @@ export class CStack {
       case BNodeKind.SUB: return `${this.tocdgl(node.lhs)}-${this.tocdgl(node.rhs)}`;
       case BNodeKind.MUL: return `cprod(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
       case BNodeKind.DIV: return `cdiv(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
-      case BNodeKind.MOD: return `cmod(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
+      case BNodeKind.MOD: throw new Error(`mod関数は実装されていません`);
       case BNodeKind.POW: return `cpow(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
     }
 

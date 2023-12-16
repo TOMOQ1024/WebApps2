@@ -43,10 +43,19 @@ export default function FuncEditor({core}: {
     );
 
     const ctl = document.getElementById('controls')!
+    let func: string = '';
     if(result.status){
+      try {
+        func = result.cstack.tocdgl(result.cstack.root);
+      }
+      catch(e) {
+        ctl.className = ctl.className.replace(/(?:in)?valid/, 'invalid');
+        console.error(e);
+        return;
+      }
       ctl.className = ctl.className.replace(/(?:in)?valid/, 'valid');
+      core.func = func;
       core.setExpression(textarea.innerText);
-      core.func = result.cstack.tocdgl(result.cstack.root);
       core.init();
     }
     else {
