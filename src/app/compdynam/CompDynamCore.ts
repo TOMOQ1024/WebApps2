@@ -1,10 +1,12 @@
 import { RenderingMode } from "./Definitions";
 import GLMgr from "./GLMgr";
 import Graph from "./Graph";
-import Mouse from "./Mouse";
+import MouseMgr from "./Mouse";
+import TouchMgr from "./Touch";
 
 export default class CDCore {
-  mouse = new Mouse();
+  mMgr = new MouseMgr();
+  tMgr = new TouchMgr();
   graph = new Graph();
   glmgr = new GLMgr(this);
   iter: number = 100;
