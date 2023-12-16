@@ -39,7 +39,7 @@
     &.max {
       width: 300px;
       height: 140px;
-      & #icon-gear svg {
+      & #button-controls svg {
         rotate: 210deg;
       }
       * {
@@ -74,7 +74,11 @@
         opacity: 1;
       }
       &:hover {
-        background-color: #bbbbbb77;
+        // background-color: #bbbbbb77;
+        filter: drop-shadow(0 0 1px #000)
+                drop-shadow(0 0 1px #000)
+                drop-shadow(0 0 2px rgb(117, 151, 255))
+                drop-shadow(0 0 1px #dff);
       }
       &.selected {
         left: 12px;
