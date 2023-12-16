@@ -16,7 +16,7 @@ export default function FuncEditor({core}: {
       }
     }
 
-    const ta = document.getElementById('func-textarea')!;
+    const ta = document.getElementById('func-input')!;
     ta.addEventListener('keydown', onKeyDown, {passive: false});
     return () => {
       ta.removeEventListener('keydown', onKeyDown);
@@ -88,9 +88,10 @@ export default function FuncEditor({core}: {
       <div>Current Function:</div>
       <div id='func-display'>
         f(z)=<span
-          id='func-textarea'
+          id='func-input'
           role='textbox'
           ref={ref}
+          aria-label='数式を入力する'
           contentEditable
           suppressContentEditableWarning
           onInput={e=>HandleInput(e as unknown as InputEvent)}

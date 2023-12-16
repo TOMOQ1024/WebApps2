@@ -33,7 +33,14 @@ export default function PresetSelector({core}: {
         {
           PresetExpressions.map((v,i)=>{
             return (
-              <input className='preset-button' key={v} type='image' src={`/resources/compdynam/images/p${i.toString(16)}.png`} onClick={()=>HandleClick(i)} />
+              <input
+              className='preset-button'
+              key={v}
+              type='image'
+              alt={`Select \`${v}\``}
+              src={`/resources/compdynam/images/p${i.toString(16)}.png`}
+              onClick={()=>HandleClick(i)}
+              />
             );
           })
         }

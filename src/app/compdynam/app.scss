@@ -50,21 +50,21 @@
       transition: .3s ease all;
       rotate: 0deg;
       left: 4px;
-      &#icon-gear {
-        bottom: 4px;
-        color: linear-gradient();
+      &#button-settings {
+        bottom: 106px;
       }
-      &#icon-pencil {
-        bottom: 38px;
-      }
-      &#icon-lightbulb {
+      &#button-presets {
         bottom: 72px;
         svg {
           rotate: 20deg;
         }
       }
-      &#icon-sliders {
-        bottom: 106px;
+      &#button-expression {
+        bottom: 38px;
+      }
+      &#button-controls {
+        bottom: 4px;
+        color: linear-gradient();
       }
       &:hover {
         background-color: #bbbbbb77;
@@ -112,7 +112,7 @@
       }
       #func-editor {
         #func-display {
-          #func-textarea {
+          #func-input {
             background-color: #88668844;
             border: #072 solid 1px;
             display: inline-block;
