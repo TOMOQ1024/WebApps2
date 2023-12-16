@@ -28,12 +28,19 @@ export default function PresetSelector({core}: {
   
   return (
     <div id='preset-selector'>
-      <div>Presets:</div>
+      <div>- プリセット選択 -</div>
       <div id='preset-button-wrapper'>
         {
           PresetExpressions.map((v,i)=>{
             return (
-              <input className='preset-button' key={v} type='image' src={`/resources/compdynam/images/p${i.toString(16)}.png`} onClick={()=>HandleClick(i)} />
+              <input
+              className='preset-button'
+              key={v}
+              type='image'
+              alt={`Select \`${v}\``}
+              src={`/resources/compdynam/images/p${i.toString(16)}.png`}
+              onClick={()=>HandleClick(i)}
+              />
             );
           })
         }

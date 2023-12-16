@@ -7,7 +7,24 @@ export default function FuncEditor({core}: {
 }) {
   const ref = useRef<HTMLElement>(null);
 
-  function HandleInput(e: InputEvent){
+  useEffect(()=>{
+    function onKeyDown(e: KeyboardEvent) {
+      e.stopPropagation();
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        return false;
+      }
+    }
+
+    const ta = document.getElementById('func-input')!;
+    ta.addEventListener('keydown', onKeyDown, {passive: false});
+    return () => {
+      ta.removeEventListener('keydown', onKeyDown);
+    }
+  });
+
+
+  function HandleInput(e: InputEvent) {
     let textarea = e.target as HTMLSpanElement;
 
     // 現在のカーソルによる選択場所を記録
@@ -26,10 +43,19 @@ export default function FuncEditor({core}: {
     );
 
     const ctl = document.getElementById('controls')!
+    let func: string = '';
     if(result.status){
+      try {
+        func = result.cstack.tocdgl(result.cstack.root);
+      }
+      catch(e) {
+        ctl.className = ctl.className.replace(/(?:in)?valid/, 'invalid');
+        console.error(e);
+        return;
+      }
       ctl.className = ctl.className.replace(/(?:in)?valid/, 'valid');
+      core.func = func;
       core.setExpression(textarea.innerText);
-      core.func = result.cstack.tocdgl(result.cstack.root);
       core.init();
     }
     else {
@@ -50,18 +76,27 @@ export default function FuncEditor({core}: {
       window.getSelection()?.addRange(range);
     }, 10);
   }
+
+  const HandlePaste = (e: ClipboardEvent) => {
+    e.preventDefault();
+    let text = e.clipboardData!.getData('text/plain');
+    document.execCommand('insertHTML', false, text);
+  }
   
   return (
     <div id='func-editor'>
-      <div>Current Function:</div>
-      <div>
+      <div>- 関数・反復回数 -</div>
+      <div id='func-display'>
         f(z)=<span
-          id='func-textarea'
+          id='func-input'
+          className='input'
           role='textbox'
           ref={ref}
+          aria-label='数式を入力する'
           contentEditable
           suppressContentEditableWarning
           onInput={e=>HandleInput(e as unknown as InputEvent)}
+          onPaste={e=>HandlePaste(e as unknown as ClipboardEvent)}
         >
       {core.expr}
     </span>

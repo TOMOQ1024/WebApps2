@@ -2,6 +2,7 @@
   text-align: center;
   height: calc(100vh - var(--header-height));
   position: relative;
+  image-rendering: pixelated;
   #graph-wrapper {
     height: 100%;
     overflow: hidden;
@@ -21,11 +22,11 @@
       transition: .3s ease all;
     }
     &.valid {
-      box-shadow: #013 0px 0px 50px 20px inset;
+      box-shadow: #038 0px 0px 50px 20px inset;
       border: 0.6px solid #cdf;
     }
     &.invalid {
-      box-shadow: #301 0px 0px 50px 20px inset;
+      box-shadow: #612 0px 0px 50px 20px inset;
       border: 0.6px solid #fbc;
     }
     &.min {
@@ -50,21 +51,21 @@
       transition: .3s ease all;
       rotate: 0deg;
       left: 4px;
-      &#icon-gear {
-        bottom: 4px;
-        color: linear-gradient();
+      &#button-settings {
+        bottom: 106px;
       }
-      &#icon-pencil {
-        bottom: 38px;
-      }
-      &#icon-lightbulb {
+      &#button-presets {
         bottom: 72px;
         svg {
           rotate: 20deg;
         }
       }
-      &#icon-sliders {
-        bottom: 106px;
+      &#button-expression {
+        bottom: 38px;
+      }
+      &#button-controls {
+        bottom: 4px;
+        color: linear-gradient();
       }
       &:hover {
         background-color: #bbbbbb77;
@@ -84,6 +85,9 @@
       &>div {
         width: 100%;
         height: calc(100%/3);
+        &>div {
+          margin: 3px 0;
+        }
       }
       &.cc-s0 {
         top: -200%;
@@ -93,6 +97,39 @@
       }
       &.cc-s2 {
         top: 0%;
+      }
+      #settings {
+        #iter-editor {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: center;
+          #iter-input {
+            width: 120px;
+          }
+        }
+        #rf-editor {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: center;
+          #rf-input {
+            width: 120px;
+          }
+        }
+        #rm-editor {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: center;
+          .radio {
+            margin-left: 10px;
+            margin-right: 3px;
+          }
+          .rm-option {
+            font-size: x-small;
+          }
+        }
       }
       #preset-selector {
         #preset-button-wrapper {
@@ -110,6 +147,28 @@
           }
         }
       }
+      #func-editor {
+        #func-display {
+          #func-input {
+            min-width: 70%;
+          }
+        }
+      }
     }
   }
 }
+
+.input {
+  background-color: #88668844;
+  border: #072 solid 1px;
+  display: inline-block;
+  transition: .3s ease all;
+  border-radius: 5px;
+  margin: 5px;
+  &:focus {
+    outline: 0;
+    border: #2f8 solid 1px;
+  }
+}
+
+
