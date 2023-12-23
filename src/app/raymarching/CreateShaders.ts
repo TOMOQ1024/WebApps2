@@ -1,4 +1,3 @@
-import { RenderingMode } from "./Definitions";
 import GLMgr from "./GLMgr";
 
 type Data = {

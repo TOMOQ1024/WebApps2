@@ -1,15 +1,18 @@
 "use client"
 import { useEffect, useState } from "react";
 import Vec2 from "@/src/Vec2";
-import CDCore from "../RayMarchingCore";
+import RMCore from "../RayMarchingCore";
 import GraphWrapper from "./GraphWrapper";
 
 export default function MainWrapper() {
-  const [core, setCore] = useState(new CDCore());
+  const [core, setCore] = useState(new RMCore());
   useEffect(() => {(async()=>{
     await core.init();
 
     const onKeyDown = (e:KeyboardEvent) => {
+      if(!core.keys[e.key.toLowerCase()]){
+        core.keys[e.key.toLowerCase()] = 2;
+      }
       // フルスクリーン切り替え
       if(e.key === 'f' && !e.shiftKey && !e.metaKey){
         if (!document.fullscreenElement) {
@@ -19,6 +22,14 @@ export default function MainWrapper() {
           document.exitFullscreen();
         }
       }
+    }
+
+    const onKeyUp = (e: KeyboardEvent) => {
+      if(core.keys[e.key.toLowerCase()] === 2)
+        setTimeout(()=>{
+          core.keys[e.key.toLowerCase()]=0;
+        }, 20);
+      else core.keys[e.key.toLowerCase()] = 0;
     }
 
     const onWheel = (e:WheelEvent) => {
@@ -34,7 +45,7 @@ export default function MainWrapper() {
       const dy = e.deltaY;
       // core.graph.zoom(c, dy);
 
-      core.glmgr.updateGraphUniform();
+      // core.glmgr.updateCameraUniform();
 
       core.glmgr.render();
     }
@@ -131,10 +142,11 @@ export default function MainWrapper() {
     // }
 
     const onResize = () => {
-      core.resizeCanvas();
+      core.cvsResized = true;
     }
 
     document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('keyup', onKeyUp);
     core.glmgr.cvs!.addEventListener('wheel', onWheel, {passive: false});
     document.addEventListener('mousedown', onMouseDown, {passive: false});
     document.addEventListener('mousemove', onMouseMove, {passive: false});
@@ -145,6 +157,7 @@ export default function MainWrapper() {
     window.addEventListener('resize', onResize);
     return () => {
       document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('keyup', onKeyUp);
       core.glmgr.cvs!.removeEventListener('wheel', onWheel);
       document.removeEventListener('mousedown', onMouseDown);
       document.removeEventListener('mousemove', onMouseMove);

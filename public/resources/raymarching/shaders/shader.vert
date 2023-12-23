@@ -4,6 +4,6 @@ varying vec2 vPosition;
 void main ()
 {
 	vPosition = aPosition;
+	vPosition.y = vPosition.y;
 	gl_Position = vec4(aPosition, 0., 1.);
-	// gl_PointSize = 5.;
 }

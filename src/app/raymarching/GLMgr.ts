@@ -80,20 +80,29 @@ export default class GLMgr {
     // 解像度uniform
     this.uniLoc.res = this.gl.getUniformLocation(this.program, 'uResolution');
 
-    this.uniLoc.camori = this.gl.getUniformLocation(this.program, 'uCamera.origin');
-    this.uniLoc.camdir = this.gl.getUniformLocation(this.program, 'uCamera.forward');
+    this.uniLoc.campos = this.gl.getUniformLocation(this.program, 'uCamera.position');
+    this.uniLoc.camang = this.gl.getUniformLocation(this.program, 'uCamera.angle');
+    this.uniLoc.camview = this.gl.getUniformLocation(this.program, 'uCamera.view');
   }
 
-  updateGraphUniform() {
-    // this.gl!.uniform2f(
-    //   this.uniLoc.camori,
-    //   this.parent.graph.origin.x,
-    //   this.parent.graph.origin.y,
-    // );
-    // this.gl!.uniform1f(
-    //   this.uniLoc.ghr,
-    //   this.parent.graph.radius,
-    // );
+  updateCameraUniform() {
+    let e3 = this.parent.camera.position;
+    this.gl!.uniform3f(
+      this.uniLoc.campos,
+      e3.x, e3.y, e3.z
+    );
+
+    let e2 = this.parent.camera.angle;
+    this.gl!.uniform2f(
+      this.uniLoc.camang,
+      e2.x, e2.y
+    );
+
+    e2 = this.parent.camera.view;
+    this.gl!.uniform2f(
+      this.uniLoc.camview,
+      e2.x, e2.y
+    );
   }
 
   updateResolutionUniform() {
