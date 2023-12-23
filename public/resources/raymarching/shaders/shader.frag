@@ -14,14 +14,6 @@ struct Ray {
   vec3 direction;
 };
 
-vec3 dir(vec2 angle) {
-  return vec3(
-    cos(angle.y) * cos(angle.x),
-    sin(angle.y),
-    cos(angle.y) * sin(angle.x)
-  );
-}
-
 
 float sdfSphere (vec3 p, vec3 c, float r) {
   return distance(c, p) - r;
@@ -47,6 +39,7 @@ float sMin (float x, float y) {
 
 float sdf (vec3 p) {
   // return sdfCube(p, vec3(5., 0., -2.), 3.);
+  return sdfCube(mod(p+3., 6.)-3., vec3(0., 0., 0.), 1.);
   return sMin(
     sdfCube(p, vec3(18., 3., 3.), 3.),
     sdfCube(p, vec3(15., 0., -3.), 3.)
@@ -59,19 +52,37 @@ float sdf (vec3 p) {
 
 
 void main () {
+  vec3 cF = vec3(
+    cos(uCamera.angle.y) * cos(uCamera.angle.x),
+    sin(uCamera.angle.y),
+    cos(uCamera.angle.y) * sin(uCamera.angle.x)
+  );
+  vec3 cU = vec3(
+    -sin(uCamera.angle.y) * cos(uCamera.angle.x),
+    cos(uCamera.angle.y),
+    -sin(uCamera.angle.y) * sin(uCamera.angle.x)
+  );
+  vec3 cL = vec3(
+    -sin(uCamera.angle.x),
+    0,
+    cos(uCamera.angle.x)
+  );
+  vec2 p = vPosition * uResolution / min(uResolution.x, uResolution.y) * uCamera.view / 2.;
+
   float d;
   vec2 view = vec2(PI, PI);
   vec3 light = normalize(vec3(-3., 2., 1.));
 
   Ray ray = Ray(
     vec3(uCamera.position),
-    dir(uCamera.angle + vPosition * uResolution / min(uResolution.x, uResolution.y) * uCamera.view / 2.)
+    // dir(uCamera.angle + vPosition * uResolution / min(uResolution.x, uResolution.y) * uCamera.view / 2.)
+    normalize(cF + cL*p.x + cU*p.y)
   );
 
-  for(int i=0; i<100; i++){
+  for(int i=0; i<200; i++){
     d = sdf(ray.origin);
-    if(d < 1e-2){
-      float h = 1e-3;
+    if(abs(d) < 1e-2){
+      float h = 1e-4;
       vec3 rx = ray.origin+vec3(h, 0., 0.);
       vec3 ry = ray.origin+vec3(0., h, 0.);
       vec3 rz = ray.origin+vec3(0., 0., h);
@@ -79,6 +90,7 @@ void main () {
       gl_FragColor = vec4(vec3(dot(norm, light)), 1.);
       return;
     }
+    if(d > 1e+2) break;
     ray.origin += ray.direction * d;
   }
   gl_FragColor = vec4((vPosition+1.)/2., 1., 1.);
