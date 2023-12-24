@@ -1,4 +1,4 @@
-import GLMgr from "./Core";
+import GLMgr from "./GLMgr";
 
 export default function Render (this: GLMgr) {
   this.gl.clearColor (0.8, 0.9, 1.0, 1.0);
