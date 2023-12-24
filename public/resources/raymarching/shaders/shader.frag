@@ -187,10 +187,10 @@ HitInfo iter (vec3 p) {
 }
 
 vec3 norm(vec3 p) {
-  vec2 e = vec2(1e-3, 0.);
+  vec2 e = vec2(1e-5, 0.);
   return normalize(vec3(
     iter(p+e.xyy).dist,
-    iter(p+e.xxy).dist,
+    iter(p+e.yxy).dist,
     iter(p+e.yyx).dist
   ) - iter(p).dist);
 }
@@ -234,33 +234,51 @@ void main () {
   );
 
 
-  HitInfo hi = castRay(ray);
-  if(hi.dist < MINDIST) {
-    vec4 baseColor = vec4(vec3((dot(norm(ray.origin), light)+1.)/2.), 1.);
-    Ray toLight = Ray(ray.origin - ray.direction * MINDIST * 2., light);
-    HitInfo hi2l = castRay(toLight);
+  HitInfo hi;
+  vec4 baseColor;
+  Ray toLight;
+  HitInfo hi2l;
+  vec4 c;
+  vec3 n;
+  gl_FragColor = vec4(0.);
+  for(int i=0; i<3; i++) {
+    hi = castRay(ray);
+    if(hi.dist < MINDIST) {
+      n = norm(ray.origin);
+      baseColor = vec4(vec3((dot(n, light)+1.)/2.), 1.);
+      toLight = Ray(ray.origin - ray.direction * MINDIST * 2., light);
+      hi2l = castRay(toLight);
 
-    if(hi.index == 0){
-      float m = 25.;
-      vec2 t = mod(ray.origin.xz*3., m);
-      gl_FragColor = vec4(vec3(.3, 1., .1) * snoise(t, t/m, vec2(m)), 1.);
-    }
-    else if(hi.index == 1){
-      gl_FragColor = vec4(1., 1., .3, 1.) * baseColor;
-    }
-    else if(hi.index == 2){
-      gl_FragColor = vec4(.4, .2, 1., 1.) * baseColor;
+      if(hi.index == 0){
+        float m = 25.;
+        vec2 t = mod(ray.origin.xz*3., m);
+        c = vec4(vec3(.3, 1., .1) * snoise(t, t/m, vec2(m)), 1.);
+      }
+      else if(hi.index == 1){
+        c = vec4(1., .7, .0, 1.) * .6;
+      }
+      else if(hi.index == 2){
+        c = vec4(.4, .2, 1., 1.) * baseColor;
+      }
+      else {
+        c = baseColor;
+      }
+
+      if(hi2l.dist < MINDIST) {
+        c *= vec4(vec3(.5), 1.);
+      }
     }
     else {
-      gl_FragColor = baseColor;
+      c = vec4((vPosition+1.)/2., 1., 1.);
     }
 
-    if(hi2l.dist < MINDIST) {
-      gl_FragColor *= vec4(vec3(.5), 1.);
-      // gl_FragColor = gl_FragColor * .9 + .1;
+    gl_FragColor += c * (1.-gl_FragColor.a);
+    if(gl_FragColor.a < 1.){
+      ray.origin = ray.origin - ray.direction * MINDIST * 2.;
+      ray.direction -= 2. * dot(n, ray.direction) * n;
     }
-  }
-  else {
-    gl_FragColor = vec4((vPosition+1.)/2., 1., 1.);
+    else {
+      break;
+    }
   }
 }
