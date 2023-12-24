@@ -31,10 +31,6 @@ export default function Update(this: Core) {
   
   // キャンバスのリサイズ!!!
   if(this.cvsResized){
-    const wrapper = this.glmgr.cvs!.parentElement!;
-    const rect = wrapper.getBoundingClientRect();
-    this.glmgr.cvs!.width = rect.width * this.resFactor;
-    this.glmgr.cvs!.height = rect.height * this.resFactor;
     const pMatrix = Mat4.pMatrix(90 * Math.PI / 180, this.glmgr.cvs!.width / this.glmgr.cvs!.height, 0.1, 100);
     this.glmgr.gl!.uniformMatrix4fv(this.glmgr.uniLoc.pMat, false, pMatrix.elem);
     this.glmgr.gl!.uniform2f(this.glmgr.uniLoc.res, this.glmgr.cvs!.width, this.glmgr.cvs!.height);

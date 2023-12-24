@@ -36,13 +36,25 @@ export default function MainWrapper() {
       e.preventDefault();
     }
 
+    const onResize = () => {
+      const wrapper = core.glmgr.cvs!.parentElement!;
+      const rect = wrapper.getBoundingClientRect();
+      core.glmgr.cvs!.width = rect.width * core.resFactor;
+      core.glmgr.cvs!.height = rect.height * core.resFactor;
+      core.cvsResized = true;
+      core.update();
+      core.glmgr.render();
+    }
+
     document.addEventListener('keydown', HandleKeyDown);
     document.addEventListener('keyup', HandleKeyUp);
     document.addEventListener('wheel', HandleWheel, {passive: false});
+    window.addEventListener('resize', onResize);
     return () => {
       document.removeEventListener('keydown', HandleKeyDown);
       document.removeEventListener('keyup', HandleKeyUp);
       document.removeEventListener('wheel', HandleWheel);
+      window.removeEventListener('resize', onResize);
     }
   })();}, [core]);
   
