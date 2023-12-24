@@ -3,9 +3,9 @@ import Vec3 from "@/src/Vec3";
 import RMCore from "./RayMarchingCore";
 
 export default class Camera {
-  position = new Vec3(0, 0, 0);
+  position = new Vec3(0, 10, 0);
   // direction = new Vec3(0, -1, -3);
-  angle = new Vec2();
+  angle = new Vec2(0, -.4);
   view = new Vec2(Math.PI/3, Math.PI/3);
   parent: RMCore;
   movSpeed = 0.2;
