@@ -26,6 +26,7 @@ export default class RMCore {
   loop(self: RMCore) {
     self.update();
     self.glmgr.render();
+    console.log('l');
   }
 
   beginLoop() {

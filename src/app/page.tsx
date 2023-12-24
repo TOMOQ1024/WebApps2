@@ -34,6 +34,9 @@ export default function Home() {
       <AppCard
         name='CompDynam'
       />
+      <AppCard
+        name='RayMarching'
+      />
     </main>
   )
 }
