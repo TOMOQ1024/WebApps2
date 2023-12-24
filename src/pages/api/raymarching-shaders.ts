@@ -12,8 +12,8 @@ export default function handler(
   res: NextApiResponse<Data>
 ) {
   // Let's say your json is in /public/assets/my-json.json
-  const vertPath = path.resolve('./public', 'resources', 'raymarching', 'shaders', 'vert.wgsl');
-  const fragPath = path.resolve('./public', 'resources', 'raymarching', 'shaders', 'frag.wgsl');
+  const vertPath = path.resolve('./public', 'resources', 'raymarching', 'shaders', 'shader.vert');
+  const fragPath = path.resolve('./public', 'resources', 'raymarching', 'shaders', 'shader.frag');
   const vertBuf = fs.readFileSync(vertPath);
   const fragBuf = fs.readFileSync(fragPath);
 
