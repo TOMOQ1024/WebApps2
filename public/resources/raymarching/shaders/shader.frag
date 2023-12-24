@@ -2,6 +2,7 @@ precision mediump float;
 const float PI = 3.14159265358979;
 const float MINDIST = 1e-2;
 const float MAXDIST = 1e+2;
+const int MAXITER = 100;
 varying vec2 vPosition;
 uniform vec2 uResolution;
 struct Camera {
@@ -157,19 +158,19 @@ HitInfo iter (vec3 p) {
   d = sdCubOcta(p, vec3(10., 5., -21.), 2.);
   if(hi.dist > d) {
     hi.dist = d;
-    hi.index = 3;
+    hi.index = 4;
   }
 
   d = sdTrOcta(p, vec3(27., 5., -11.), 2.);
   if(hi.dist > d) {
     hi.dist = d;
-    hi.index = 3;
+    hi.index = 5;
   }
 
   d = sdTrHexa(p, vec3(29., 5., -18.), 2.);
   if(hi.dist > d) {
     hi.dist = d;
-    hi.index = 3;
+    hi.index = 6;
   }
 
   d = max(max(
@@ -180,25 +181,44 @@ HitInfo iter (vec3 p) {
   );
   if(hi.dist > d) {
     hi.dist = d;
-    hi.index = 3;
+    hi.index = 7;
+  }
+
+  d = sdSphere(p, vec3(29., 5., -1.), 2.);
+  if(hi.dist > d) {
+    hi.dist = d;
+    hi.index = 8;
   }
 
   return hi;
 }
 
 vec3 norm(vec3 p) {
-  vec2 e = vec2(1e-3, 0.);
+  vec2 e = vec2(1e-5, 0.);
   return normalize(vec3(
     iter(p+e.xyy).dist,
-    iter(p+e.xxy).dist,
+    iter(p+e.yxy).dist,
     iter(p+e.yyx).dist
   ) - iter(p).dist);
+}
+
+HitInfo castRayInner(inout Ray ray) {
+  HitInfo hi;
+
+  for(int i=0; i<MAXITER; i++){
+    hi = iter(ray.origin);
+    if(-hi.dist > MAXDIST) break;
+    ray.origin -= ray.direction * hi.dist;
+    if(-hi.dist < MINDIST) return hi;
+  }
+
+  return hi;
 }
 
 HitInfo castRay(inout Ray ray) {
   HitInfo hi;
 
-  for(int i=0; i<200; i++){
+  for(int i=0; i<MAXITER; i++){
     hi = iter(ray.origin);
     if(hi.dist > MAXDIST) break;
     ray.origin += ray.direction * hi.dist;
@@ -222,7 +242,7 @@ void main () {
   );
   vec3 cL = vec3(
     -sin(uCamera.angle.x),
-    0,
+    0.,
     cos(uCamera.angle.x)
   );
   vec2 p = vPosition * uResolution / min(uResolution.x, uResolution.y) * uCamera.view / 2.;
@@ -234,33 +254,69 @@ void main () {
   );
 
 
-  HitInfo hi = castRay(ray);
-  if(hi.dist < MINDIST) {
-    vec4 baseColor = vec4(vec3((dot(norm(ray.origin), light)+1.)/2.), 1.);
-    Ray toLight = Ray(ray.origin - ray.direction * MINDIST * 2., light);
-    HitInfo hi2l = castRay(toLight);
+  HitInfo hi;
+  vec4 baseColor;
+  Ray toLight;
+  HitInfo hi2l;
+  vec4 c;
+  vec3 n;
+  gl_FragColor = vec4(0.);
+  bool willRefract = false;
+  float eta = 1.2;
+  bool inside = false;
+  for(int i=0; i<8; i++) {
+    willRefract = false;
+    inside = iter(ray.origin).dist < 0.;
+    if(inside) hi = castRayInner(ray);
+    else hi = castRay(ray);
+    if(hi.dist < MINDIST) {
+      n = norm(ray.origin);
+      if(inside) n *= -1.;
+      baseColor = vec4(vec3((dot(n, light)+1.)/2.), 1.);
+      toLight = Ray(ray.origin - ray.direction * MINDIST * 2., light);
 
-    if(hi.index == 0){
-      float m = 25.;
-      vec2 t = mod(ray.origin.xz*3., m);
-      gl_FragColor = vec4(vec3(.3, 1., .1) * snoise(t, t/m, vec2(m)), 1.);
-    }
-    else if(hi.index == 1){
-      gl_FragColor = vec4(1., 1., .3, 1.) * baseColor;
-    }
-    else if(hi.index == 2){
-      gl_FragColor = vec4(.4, .2, 1., 1.) * baseColor;
+      if(hi.index == 0){
+        float m = 25.;
+        vec2 t = mod(ray.origin.xz*3., m);
+        c = vec4(vec3(.3, 1., .1) * snoise(t, t/m, vec2(m)), 1.);
+      }
+      else if(hi.index == 1){
+        c = vec4(1., .7, .0, 1.) * .1;
+        willRefract = true;
+      }
+      else if(hi.index == 2){
+        c = vec4(.4, .2, 1., 1.) * baseColor;
+      }
+      else if(hi.index == 3 || hi.index == 8){
+        c = vec4(.0, 1., .4, 1.) * .6;
+      }
+      else {
+        c = baseColor;
+      }
+
     }
     else {
-      gl_FragColor = baseColor;
+      c = vec4((vPosition+1.)/2., 1., 1.);
     }
 
-    if(hi2l.dist < MINDIST) {
-      gl_FragColor *= vec4(vec3(.5), 1.);
-      // gl_FragColor = gl_FragColor * .9 + .1;
+    gl_FragColor += c * (1.-gl_FragColor.a);
+    if(gl_FragColor.a < 1.){
+      if(willRefract) {
+        ray.origin += ray.direction * MINDIST * 10.;
+        ray.direction = refract(ray.direction, n, inside ? eta : 1./eta);
+      }
+      else {
+        ray.origin -= ray.direction * MINDIST * 2.;
+        ray.direction = reflect(ray.direction, n);
+      }
+    }
+    else {
+      hi2l = castRay(toLight);
+      if(hi2l.dist < MINDIST) {
+        gl_FragColor *= vec4(vec3(.5), 1.);
+      }
+      break;
     }
   }
-  else {
-    gl_FragColor = vec4((vPosition+1.)/2., 1., 1.);
-  }
+  // gl_FragColor = floor(gl_FragColor*16.)/16.;
 }
