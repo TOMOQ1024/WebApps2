@@ -8,7 +8,7 @@ export default class RMCore {
   mMgr = new MouseMgr();
   tMgr = new TouchMgr();
   glmgr = new GLMgr(this);
-  resFactor = 1;
+  resFactor = .4;
   camera = new Camera(this);
   keys: {[Key:string]: number} = {};
   cvsResized = true;
