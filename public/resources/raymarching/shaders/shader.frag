@@ -66,6 +66,10 @@ float snoise(vec2 p, vec2 q, vec2 r){
 
 
 
+float sdPlane (vec3 p, vec3 n, float s) {
+  return dot(n, p) - s;
+}
+
 float sdSphere (vec3 p, vec3 c, float r) {
   return distance(c, p) - r;
 }
@@ -78,6 +82,35 @@ float sdCube (vec3 p, vec3 c, float r) {
 float sdBox (vec3 p, vec3 c, vec3 b) {
   vec3 q = abs(p - c) - b;
   return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
+}
+
+float sdOcta (vec3 p, vec3 c, float r) {
+  return dot(normalize(vec3(1.)), abs(p-c)) - r;
+}
+
+float sdTrHexa (vec3 p, vec3 c, float r) {
+  return max(
+    sdOcta(p, c, r / sqrt(3.) * (sqrt(2.)+1.)),
+    sdCube(p, c, r)
+  );
+}
+
+float sdTrOcta (vec3 p, vec3 c, float r) {
+  return max(
+    sdOcta(p, c, r * sqrt(3.) / 2.),
+    sdCube(p, c, r)
+  );
+}
+
+float sdCubOcta (vec3 p, vec3 c, float r) {
+  return max(
+    sdOcta(p, c, r * 2. / sqrt(3.)),
+    sdCube(p, c, r)
+  );
+}
+
+float sdTetra (vec3 p, vec3 c, float r) {
+  return 1.;
 }
 
 float sMax (float x, float y) {
@@ -113,6 +146,41 @@ HitInfo iter (vec3 p) {
   if(hi.dist > d) {
     hi.dist = d;
     hi.index = 2;
+  }
+
+  d = sdOcta(p, vec3(17., 5., -15.), 2.);
+  if(hi.dist > d) {
+    hi.dist = d;
+    hi.index = 3;
+  }
+
+  d = sdCubOcta(p, vec3(10., 5., -21.), 2.);
+  if(hi.dist > d) {
+    hi.dist = d;
+    hi.index = 3;
+  }
+
+  d = sdTrOcta(p, vec3(27., 5., -11.), 2.);
+  if(hi.dist > d) {
+    hi.dist = d;
+    hi.index = 3;
+  }
+
+  d = sdTrHexa(p, vec3(29., 5., -18.), 2.);
+  if(hi.dist > d) {
+    hi.dist = d;
+    hi.index = 3;
+  }
+
+  d = max(max(
+    -sdCube(p, vec3(22., 5., -29.), 3.6),
+    sdCube(p, vec3(22., 5., -29.), 4.)
+  ),
+    -sdOcta(p, vec3(22., 5., -29.), 4.)
+  );
+  if(hi.dist > d) {
+    hi.dist = d;
+    hi.index = 3;
   }
 
   return hi;
@@ -168,19 +236,28 @@ void main () {
 
   HitInfo hi = castRay(ray);
   if(hi.dist < MINDIST) {
+    vec4 baseColor = vec4(vec3((dot(norm(ray.origin), light)+1.)/2.), 1.);
+    Ray toLight = Ray(ray.origin - ray.direction * MINDIST * 2., light);
+    HitInfo hi2l = castRay(toLight);
+
     if(hi.index == 0){
       float m = 25.;
       vec2 t = mod(ray.origin.xz*3., m);
       gl_FragColor = vec4(vec3(.3, 1., .1) * snoise(t, t/m, vec2(m)), 1.);
     }
     else if(hi.index == 1){
-      gl_FragColor = vec4(1., 1., .3, 1.) * vec4(vec3((dot(norm(ray.origin), light)+1.)/2.), 1.);
+      gl_FragColor = vec4(1., 1., .3, 1.) * baseColor;
     }
     else if(hi.index == 2){
-      gl_FragColor = vec4(.4, .2, 1., 1.) * vec4(vec3((dot(norm(ray.origin), light)+1.)/2.), 1.);
+      gl_FragColor = vec4(.4, .2, 1., 1.) * baseColor;
     }
     else {
-      gl_FragColor = vec4(vec3((dot(norm(ray.origin), light)+1.)/2.), 1.);
+      gl_FragColor = baseColor;
+    }
+
+    if(hi2l.dist < MINDIST) {
+      gl_FragColor *= vec4(vec3(.5), 1.);
+      // gl_FragColor = gl_FragColor * .9 + .1;
     }
   }
   else {
