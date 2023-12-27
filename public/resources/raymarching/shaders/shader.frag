@@ -262,11 +262,13 @@ void main () {
   vec3 n;
   gl_FragColor = vec4(0.);
   bool willRefract = false;
-  float eta = 1.2;
+  float eta = 1.1;
   bool inside = false;
+  vec3 ori;
   for(int i=0; i<8; i++) {
     willRefract = false;
     inside = iter(ray.origin).dist < 0.;
+    ori = vec3(ray.origin);
     if(inside) hi = castRayInner(ray);
     else hi = castRay(ray);
     if(hi.dist < MINDIST) {
@@ -294,12 +296,23 @@ void main () {
         c = baseColor;
       }
 
+      // 減衰
+      gl_FragColor += c * (1.-gl_FragColor.a);
+      float d = distance(ori, ray.origin);
+      float a = 6e-3;
+      gl_FragColor *= vec4(vec3(exp(-d*a)), 1.);
     }
-    else {
-      c = vec4((vPosition+1.)/2., 1., 1.);
+    else {// 何にも衝突しなかった → 空
+      float d = dot(ray.direction, light);
+      if(d > .999) {
+        c = vec4(10., 10., 10., 1.);
+      }
+      else {
+        c = vec4(vec3(d*.5+1.5), 1.) * vec4(.7, .8, 1., 1.);
+      }
+      gl_FragColor += c * (1.-gl_FragColor.a);
     }
 
-    gl_FragColor += c * (1.-gl_FragColor.a);
     if(gl_FragColor.a < 1.){
       if(willRefract) {
         ray.origin += ray.direction * MINDIST * 10.;
