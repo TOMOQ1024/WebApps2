@@ -1,4 +1,4 @@
-import GLMgr from "./Core";
+import Core from "./Core";
 import Vec3 from "./Vector";
 
 export default class Camera {
@@ -6,13 +6,10 @@ export default class Camera {
   // direction = new Vec3(0, -1, -3);
   angleH = Math.PI/2*3;
   angleV = Math.atan2(-1, 3);
-  parent: GLMgr;
   movSpeed = 0.2;
   rotSpeed = 0.03;
 
-  constructor(parent: GLMgr){
-    this.parent = parent;
-  }
+  constructor(public parent: Core){ }
 
   get forward(){
     return new Vec3(
@@ -83,7 +80,7 @@ export default class Camera {
     //   vdown: 'D',
     // }[direction]);
     
-    this.parent.matUpdated = true;
+    this.parent.glmgr.matUpdated = true;
   }
 
   rotate(direction: 'left'|'right'|'up'|'down', speed: number){
@@ -94,6 +91,6 @@ export default class Camera {
       case 'up': this.angleV = Math.min(Math.max(this.angleV + s, -Math.PI/2), Math.PI/2); break;
       case 'down': this.angleV = Math.min(Math.max(this.angleV - s, -Math.PI/2), Math.PI/2); break;
     }
-    this.parent.matUpdated = true;
+    this.parent.glmgr.matUpdated = true;
   }
 }
