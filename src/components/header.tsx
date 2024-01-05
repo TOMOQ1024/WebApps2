@@ -14,11 +14,11 @@ export default function Header(){
       <a href='/' className='title'>
         JS test chamber
       </a>
-      <input
+      {/* <input
       type='button'
       value='TOGGLE THEME(does not work)'
       onClick={e=>ToggleTheme()}
-      />
+      /> */}
     </header>
   )
 }

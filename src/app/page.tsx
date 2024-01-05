@@ -31,6 +31,12 @@ export default function Home() {
       <AppCard
         name='WebGPU'
       />
+      <AppCard
+        name='CompDynam'
+      />
+      <AppCard
+        name='RayMarching'
+      />
     </main>
   )
 }

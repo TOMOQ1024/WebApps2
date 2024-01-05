@@ -23,10 +23,11 @@ export default class Parser {
       this.nextToken();
       switch(eType){
         case 'defi':
-          console.log('defi!');
           return this.defi();
         case 'ineq':
           return this.ineq();
+        case 'expr':
+          return this.expr();
         case 'null':
           return new BNode();
       }
@@ -227,6 +228,7 @@ Node* func(int id)
     (async s=> await (s_=>new Promise( resolve => setTimeout(resolve, 1000*s_) ))(s))( 0.5 );
     let character = this.character();
     let str = this.currentLine.slice(this.currentPointer);
+    let v: string;
     let fn: FuncName;
     let vn: VarName;
     let dvn: string;
@@ -237,14 +239,10 @@ Node* func(int id)
       return;
     }
 
-    if (this.isNumber(character)) {
-      let numberText = '';
-      while (this.isNumber(character)) {
-        numberText += character;
-        character = this.nextCharacter();
-      }
+    if (v = this.isNumber(str)) {
       this.token.type = TokenType.NUM;
-      this.token.value = parseInt(numberText, 10);
+      this.token.value = parseFloat(v);
+      for(let i=0; i<v.length; i++) this.nextCharacter();
       return;
     }
 
@@ -372,8 +370,13 @@ Node* func(int id)
     return val as number;
   }
 
-  isNumber(text: string): boolean {
-    return /\d+/.test(text);
+  isNumber(text: string): string {
+    let m = text.match(/(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/);
+    // console.log(text, m);
+    if(m !== null && m.index === 0){
+      return m[0];
+    }
+    return '';
   }
 
   isVariable(text: string): VarName {

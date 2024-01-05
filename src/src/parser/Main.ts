@@ -12,7 +12,7 @@ export function Parse(input: string, dvn: string[]): ParseResult {
   let eType: ExprType;
 
   if(!input.match(/[<>=]/)){
-    return NullParseResult;
+    eType = 'expr';
   } else if(input.match(/[><]/)){
     eType = 'ineq';
   } else {
@@ -28,7 +28,7 @@ export function Parse(input: string, dvn: string[]): ParseResult {
     console.log(result.toStr());
     console.log(`parse end in ${performance.now()-n}ms`);
     cst = new CStack(result, eType);
-    console.log(cst.togl(cst.root));
+    console.log(cst.tocdgl(cst.root));
   } catch (e) {
     console.error(e);
     return NullParseResult;
@@ -39,7 +39,7 @@ export function Parse(input: string, dvn: string[]): ParseResult {
     return ({
       status: true,
       type: input.match(/=/) ? 'defi' : 'ineq',
-      result: cst.togl(cst.root)
+      cstack: cst
     });
   }
   
