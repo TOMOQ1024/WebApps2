@@ -11,8 +11,8 @@ export default function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  const vertPath = path.resolve('./public', 'resources', 'curved', 'shaders', 'vert.wgsl');
-  const fragPath = path.resolve('./public', 'resources', 'curved', 'shaders', 'frag.wgsl');
+  const vertPath = path.resolve('./public', 'resources', 'curved', 'shaders', 'shader.vert');
+  const fragPath = path.resolve('./public', 'resources', 'curved', 'shaders', 'shader.frag');
   const vertBuf = fs.readFileSync(vertPath);
   const fragBuf = fs.readFileSync(fragPath);
 
