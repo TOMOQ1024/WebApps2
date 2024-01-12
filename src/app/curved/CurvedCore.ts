@@ -1,5 +1,7 @@
 import GLMgr from "./GLMgr";
 import MouseMgr from "./Mouse";
+import { CObj, CSquare } from "./Object";
+import Pol2 from "./Pol2";
 import TouchMgr from "./Touch";
 import Update from "./Update";
 
@@ -8,11 +10,15 @@ export default class CCore {
   tMgr = new TouchMgr();
   glmgr = new GLMgr(this);
   resFactor = 1;
+  curvature = 1;
   keys: {[Key:string]: number} = {};
   cvsResized = true;
   ctrlAllowed = false;
   update = Update;
   interval: NodeJS.Timer|null = null;
+  objs: CObj[] = [
+    new CSquare(this, .5, 20),
+  ];
 
   async init() {
     await this.glmgr.init();
