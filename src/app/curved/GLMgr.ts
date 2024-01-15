@@ -2,6 +2,7 @@ import CreateShaders from "./CreateShaders";
 import Render from "./Render";
 import { VBO } from "./VBO";
 import CCore from "./CurvedCore";
+import Pol2 from "./Pol2";
 
 export default class GLMgr {
   cvs: HTMLCanvasElement|null = null;
@@ -75,12 +76,32 @@ export default class GLMgr {
     // 解像度uniform
     this.uniLoc.res = this.gl.getUniformLocation(this.program, 'uResolution');
 
-    // this.uniLoc.campos = this.gl.getUniformLocation(this.program, 'uCamera.position');
-    // this.uniLoc.camang = this.gl.getUniformLocation(this.program, 'uCamera.angle');
-    // this.uniLoc.camview = this.gl.getUniformLocation(this.program, 'uCamera.view');
+    // 曲率uniform
+    this.uniLoc.cur = this.gl.getUniformLocation(this.program, 'K');
+    this.uniLoc.crd = this.gl.getUniformLocation(this.program, 'k');
+
+    // カメラ位置
+    this.uniLoc.cps = this.gl.getUniformLocation(this.program, 'uCameraPos');
+
+    // モデル位置
+    this.uniLoc.mps = this.gl.getUniformLocation(this.program, 'uModelPos');
   }
 
   updateResolutionUniform() {
     this.gl!.uniform2f(this.uniLoc.res, this.cvs!.width, this.cvs!.height);
+  }
+
+  updateCurvatureUniform() {
+    this.gl!.uniform1f(this.uniLoc.cur, this.parent.curvature);
+    this.gl!.uniform1f(this.uniLoc.crd, 1/Math.sqrt(Math.abs(this.parent.curvature)));
+  }
+
+  updateCameraPositionUniform() {
+    const c = this.parent.cameraPos;
+    this.gl!.uniform3f(this.uniLoc.cps, c.r, c.a, c.b);
+  }
+
+  updateModelPositionUniform(c: Pol2) {
+    this.gl!.uniform3f(this.uniLoc.mps, c.r, c.a, c.b);
   }
 }

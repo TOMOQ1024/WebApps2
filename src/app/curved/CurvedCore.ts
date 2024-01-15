@@ -6,22 +6,34 @@ import TouchMgr from "./Touch";
 import Update from "./Update";
 
 export default class CCore {
+  _curvature = 1;
+  get curvature(){
+    return this._curvature;
+  }
+  set curvature(c: number) {
+    this._curvature = c;
+    this.glmgr.updateCurvatureUniform();
+  }
   mMgr = new MouseMgr();
   tMgr = new TouchMgr();
   glmgr = new GLMgr(this);
   resFactor = 1;
-  curvature = 1;
   keys: {[Key:string]: number} = {};
   cvsResized = true;
   ctrlAllowed = false;
   update = Update;
   interval: NodeJS.Timer|null = null;
   objs: CObj[] = [
-    new CSquare(this, .5, 20),
+    new CSquare(this, .5, 5),
   ];
+  cameraPos = new Pol2(this);
 
   async init() {
     await this.glmgr.init();
+    this.glmgr.updateResolutionUniform();
+    this.glmgr.updateCurvatureUniform();
+    this.glmgr.updateCameraPositionUniform();
+    this.glmgr.updateModelPositionUniform(this.objs[0].modelPos);
     this.beginLoop();
     this.ctrlAllowed = true;
   }

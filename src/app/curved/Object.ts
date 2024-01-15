@@ -2,6 +2,7 @@ import CCore from "./CurvedCore";
 import Pol2 from "./Pol2";
 
 export class CObj {
+  modelPos: Pol2 = new Pol2();
   position: Pol2[] = [];
   index: number[] = [];// 3
   color: number[] = [];// 4
@@ -35,12 +36,11 @@ export class CSquare extends CObj {
         this.texCoord.push(c/m+.5, s/m+.5);
       }
     }
-    console.log(this.position.length);
     this.index = [];
     let i=1;
     for(; i<4*v; i++) {
       this.index.push(0, i, i+1);
     }
-    this.index.push(0, i, 1);
+    this.index.push(0, 4*v, 1);
   }
 }

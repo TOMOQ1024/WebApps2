@@ -54,11 +54,19 @@ export default class Pol2 {
       Math.cos(c.r/k)*Math.cos(v.r/k)+
       Math.sin(c.r/k)*Math.sin(v.r/k)*Math.cos(b)
     );
+    if(c.r === 0 || rr === 0) return new Pol2(c.parent, rr, 0, c.b);
     const ra = c.a+Math.sign(b0-Math.PI)*Math.acos(
-      (Math.cos(v.r/k)-Math.cos(c.r/k)*Math.cos(rr/k))/
-      (Math.sin(c.r/k)*Math.sin(rr/k))
+      Math.min(
+        (Math.cos(v.r/k)-Math.cos(c.r/k)*Math.cos(rr/k))/
+        (Math.sin(c.r/k)*Math.sin(rr/k)),
+        1
+      )
     );
-    return new Pol2(c.parent, rr, ra);
+    // console.log(
+    //   (Math.cos(v.r/k)-Math.cos(c.r/k)*Math.cos(rr/k)),
+    //   (Math.sin(c.r/k)*Math.sin(rr/k))
+    // );
+    return new Pol2(c.parent, rr, ra, c.b);
   }
 
   static dif(c: Pol2, v: Pol2) {
