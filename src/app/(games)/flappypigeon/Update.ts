@@ -8,7 +8,7 @@ export default function Update(game: Game) {
   game.dt = now - game.now;
   game.now = now;
   // console.log(sceneMgr.current);
-  console.log(game.highScore);
+  // console.log(game.highScore);
   switch(sceneMgr.current){
     case 'title_in':
       if(timer.isEnded()) sceneMgr.set('title');
