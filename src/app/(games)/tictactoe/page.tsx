@@ -15,30 +15,26 @@ export default function Main(){
         document.getElementById('cvs') as HTMLCanvasElement,
         3, 3
       )
-
-      const GameLoop = () => {
-        Update()
-        Render(initGame)
-        requestAnimationFrame(GameLoop)
-      }
-      GameLoop()
-
+      
       setGame(initGame);
+    }
+    else {
+      const GameLoop = () => {
+        Update();
+        Render(game);
+      }
+      const interval = setInterval(GameLoop, 1000/60);
 
       const HandleClick = (e: MouseEvent) => {
-        _HandleClick(initGame, e);
+        _HandleClick(game, e);
       }
-
-      initGame.cvs.addEventListener('click', HandleClick)
+      game.cvs.addEventListener('click', HandleClick)
       return () => {
-        initGame.cvs.removeEventListener('click', HandleClick)
+        clearInterval(interval);
+        game.cvs.removeEventListener('click', HandleClick)
       }
     }
-  }, []);
-
-  useEffect(()=>{
-
-  })
+  }, [game]);
 
   return (
     <main
