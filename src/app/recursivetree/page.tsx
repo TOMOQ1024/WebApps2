@@ -34,7 +34,7 @@ export default function Main(){
 
     ctx.lineWidth = 1;
     ctx.translate(w/2, h/2);
-    setInterval(()=>{
+    const interval = setInterval(()=>{
       d0 += Math.PI / 500;
       d = d0 - Math.sin(6*d0)/6;
       // draw
@@ -49,6 +49,10 @@ export default function Main(){
       f(w / 4);
       ctx.restore();
     }, 1000/60);
+
+    return () => {
+      clearInterval(interval);
+    }
   }, []);
 
   function HandleLoad2() {
