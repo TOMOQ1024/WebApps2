@@ -34,7 +34,9 @@ export default class RMCore {
   }
 
   endLoop() {
-    if(!this.interval)return;
+    if(!this.interval){
+      return;
+    }
     clearInterval(this.interval);
   }
 
