@@ -4,14 +4,9 @@ import { useEffect, useState } from "react"
 import Core from "./Core";
 
 export default function Main(){
-  useEffect(() => {(async()=>{
-    document.title = 'Life Game';
-    const core = new Core();
-
-    const itv = setInterval(()=>{
-      core.update();
-      core.render();
-    }, 1000/20);
+  useEffect(() => {
+    let core: Core;
+    let itv: NodeJS.Timer;
 
     const onKeyDown = (e:KeyboardEvent) => {
       console.log(e);
@@ -44,17 +39,29 @@ export default function Main(){
       if(e.buttons)core.penMove(x,y);
     }
 
-    document.addEventListener('keydown', onKeyDown);
-    document.addEventListener('wheel', onWheel, {passive: false});
-    core.cvs.addEventListener('mousedown', onMouseDown);
-    core.cvs.addEventListener('mousemove', onMouseMove);
+    (async()=>{
+      document.title = 'Life Game';
+      core = new Core();
+
+      itv = setInterval(()=>{
+        core.update();
+        core.render();
+      }, 1000/20);
+
+      document.addEventListener('keydown', onKeyDown);
+      document.addEventListener('wheel', onWheel, {passive: false});
+      core.cvs.addEventListener('mousedown', onMouseDown);
+      core.cvs.addEventListener('mousemove', onMouseMove);
+    })();
+    
     return () => {
+      clearInterval(itv);
       document.removeEventListener('keydown', onKeyDown);
       document.removeEventListener('wheel', onWheel);
       core.cvs.removeEventListener('mousedown', onMouseDown);
       core.cvs.removeEventListener('mousemove', onMouseMove);
     }
-  })();}, []);
+  }, []);
 
 
   return (

@@ -14,9 +14,10 @@ export default function Main(){
     const GameLoop = () => {
       Update(game);
       Render(game);
-      requestAnimationFrame(GameLoop);
+      console.log('loop');
     }
-    GameLoop();
+
+    const interval = setInterval(GameLoop, 1000/60);
 
     const HandleKeyDown = (e: KeyboardEvent) => {
       if(!game.keys[e.key.toLowerCase()]){
@@ -38,6 +39,7 @@ export default function Main(){
     document.addEventListener('keydown', HandleKeyDown);
     document.addEventListener('keyup', HandleKeyUp);
     return () => {
+      clearInterval(interval);
       document.removeEventListener('keydown', HandleKeyDown);
       document.removeEventListener('keyup', HandleKeyUp);
     }

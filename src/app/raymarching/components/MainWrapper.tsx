@@ -6,9 +6,7 @@ import GraphWrapper from "./GraphWrapper";
 
 export default function MainWrapper() {
   const [core, setCore] = useState(new RMCore());
-  useEffect(() => {(async()=>{
-    await core.init();
-
+  useEffect(() => {
     const onKeyDown = (e:KeyboardEvent) => {
       if(!core.keys[e.key.toLowerCase()]){
         core.keys[e.key.toLowerCase()] = 2;
@@ -145,17 +143,24 @@ export default function MainWrapper() {
       core.cvsResized = true;
     }
 
-    document.addEventListener('keydown', onKeyDown);
-    document.addEventListener('keyup', onKeyUp);
-    core.glmgr.cvs!.addEventListener('wheel', onWheel, {passive: false});
-    document.addEventListener('mousedown', onMouseDown, {passive: false});
-    document.addEventListener('mousemove', onMouseMove, {passive: false});
-    document.addEventListener('mouseup', onMouseUp, {passive: false});
-    document.addEventListener('touchstart', onTouchStart, {passive: false});
-    document.addEventListener('touchmove', onTouchMove, {passive: false});
-    // document.addEventListener('touchend', onTouchEnd, {passive: false});
-    window.addEventListener('resize', onResize);
+    (async()=>{
+      await core.init();
+
+
+      document.addEventListener('keydown', onKeyDown);
+      document.addEventListener('keyup', onKeyUp);
+      core.glmgr.cvs!.addEventListener('wheel', onWheel, {passive: false});
+      document.addEventListener('mousedown', onMouseDown, {passive: false});
+      document.addEventListener('mousemove', onMouseMove, {passive: false});
+      document.addEventListener('mouseup', onMouseUp, {passive: false});
+      document.addEventListener('touchstart', onTouchStart, {passive: false});
+      document.addEventListener('touchmove', onTouchMove, {passive: false});
+      // document.addEventListener('touchend', onTouchEnd, {passive: false});
+      window.addEventListener('resize', onResize);
+    })();
+    
     return () => {
+      core.endLoop();
       document.removeEventListener('keydown', onKeyDown);
       document.removeEventListener('keyup', onKeyUp);
       core.glmgr.cvs!.removeEventListener('wheel', onWheel);
@@ -167,7 +172,7 @@ export default function MainWrapper() {
       // document.removeEventListener('touchend', onTouchEnd);
       window.removeEventListener('resize', onResize);
     }
-  })();}, [core]);
+  }, [core]);
   
   return (
     <main id='main-wrapper'>
