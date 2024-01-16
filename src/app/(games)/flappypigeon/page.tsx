@@ -19,10 +19,9 @@ export default function Main(){
     const GameLoop = () => {
       Update(game);
       Render(game);
-      // requestAnimationFrame(GameLoop);
-      setTimeout(GameLoop, 1000/Params.FRAMERATE);
     }
-    GameLoop();
+
+    const interval = setInterval(GameLoop, 1000/Params.FRAMERATE);
 
     const KeyDown = (keyName: string) => game.keyDown(keyName);
     const KeyUp = (keyName: string) => game.keyUp(keyName);
@@ -41,6 +40,7 @@ export default function Main(){
     document.addEventListener('touchstart', HandleTouchStart);
     document.addEventListener('touchend', HandleTouchEnd);
     return () => {
+      clearInterval(interval);
       document.removeEventListener('keydown', HandleKeyDown);
       document.removeEventListener('keyup', HandleKeyUp);
       document.removeEventListener('mousedown', HandleMouseDown);
