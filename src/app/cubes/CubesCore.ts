@@ -29,7 +29,7 @@ export default class CCore {
         for (let x=-1; x<=1; x++) {
           const c = new Cube(
             new Vec3(x, y, z).scaledBy(2),
-            0.9
+            1.
           );
           c.color = [
             x<0 ? [1., .5, 0., 1.] : B,// -x

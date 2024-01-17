@@ -23,6 +23,6 @@ void main ()
 	float diffuse  = clamp(dot(vNormal, invLight), 0.0, 1.0) + .2;
 	float specular = pow(clamp(dot(vNormal, halfLE), 0.0, 1.0), 50.0);
 	// gl_FragColor = vColor * vec4(vec3(diffuse), 1.0) + vec4(vec3(specular), 0.0);
-	gl_FragColor = vColor;
+	gl_FragColor = dot(pow(vTexCoord*2.-1., vec2(12., 12.)), vec2(1., 1.)) > .6 ? vec4(0., 0., 0., 1.) : vColor;
   // gl_FragColor = vec4(1., .5, .5, 1.);
 }
