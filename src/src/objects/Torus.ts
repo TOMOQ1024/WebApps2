@@ -36,6 +36,5 @@ export default class Torus extends Obj {
         this.index.push(v+column+1, v+1, v+column+2);
       }
     }
-    console.log(this.position.length, this.color.length, this.index.length);
   }
 }

@@ -15,6 +15,8 @@ export default class Vec3 {
     this.z = z;
   }
 
+  static ZERO = new Vec3 ();
+
   get elem(){
     return [this.x, this.y, this.z];
   }
@@ -155,6 +157,30 @@ export default class Vec3 {
       lhs.y + rhs.y,
       lhs.z + rhs.z,
     )
+  }
+
+  abs () {
+    return new Vec3(
+      Math.abs(this.x),
+      Math.abs(this.y),
+      Math.abs(this.z),
+    )
+  }
+
+  max (rhs: Vec3) {
+    return new Vec3(
+      Math.max(this.x, rhs.x),
+      Math.max(this.y, rhs.y),
+      Math.max(this.z, rhs.z),
+    )
+  }
+
+  length () {
+    return Math.sqrt(
+      this.x * this.x +
+      this.y * this.y +
+      this.z * this.z
+    );
   }
 
   get x_z(){

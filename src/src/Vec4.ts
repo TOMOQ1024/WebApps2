@@ -108,6 +108,13 @@ export default class Vec4 {
     );
   }
 
+  scaleBy(rhs: number){
+    this.x *= rhs;
+    this.y *= rhs;
+    this.z *= rhs;
+    this.w *= rhs;
+  }
+
   scaledBy(rhs: number){
     return new Vec4(
       this.x * rhs,

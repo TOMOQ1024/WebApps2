@@ -57,10 +57,11 @@ export default function MainWrapper() {
       const rect = core.glmgr.cvs!.getBoundingClientRect();
       const m = Math.min(rect.width, rect.height);
       core.mMgr.pos = new Vec2(
-        (2 * (e.clientX - rect.left) / rect.width - 1) * rect.width / m,
-        (2 * (e.clientY - rect.top) / rect.height - 1) * rect.height / m
-      );
+        (2 * (e.clientX - rect.left) / rect.width - 1),
+        (2 * (e.clientY - rect.top) / rect.height - 1)
+      ).negY();
       core.mMgr.isDown = true;
+      core.cbmgr.onClick(core.mMgr.pos);
     }
 
     const onMouseMove = (e: MouseEvent) => {
@@ -71,9 +72,9 @@ export default function MainWrapper() {
         (2 * (e.clientX - rect.left) / rect.width - 1) * rect.width / m,
         (2 * (e.clientY - rect.top) / rect.height - 1) * rect.height / m
       );
+      core.mMgr.pos = newPos;
       if(core.mMgr.isDown){
         // core.graph.translate(newPos.subed(core.mMgr.pos).negY());
-        // core.mMgr.pos = newPos;
         // core.glmgr.updateGraphUniform();
         // core.glmgr.render();
       }

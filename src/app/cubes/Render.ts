@@ -10,7 +10,7 @@ export default function Render (this: GLMgr) {
     this.vao_ext!.bindVertexArrayOES(this.VAOs[i]);
     let o = this.parent.objs[i];
     
-    this.gl!.uniformMatrix4fv(this.uniLoc.miMat, false, o.mdlMat.inverse().elem);
+    this.gl!.uniformMatrix4fv(this.uniLoc.miMat, false, o.mdlMat.inversed().elem);
     this.gl!.uniformMatrix4fv(this.uniLoc.mMat, false, o.mdlMat.elem);
     // 描画
     this.gl!.drawElements(this.gl!.TRIANGLES, o.index.length, this.gl!.UNSIGNED_INT, 0);

@@ -50,15 +50,15 @@ export default function Update(this: CCore) {
       this.glmgr.cvs!.width,
       this.glmgr.cvs!.height
     );
-    const pMatrix = Mat4.pMatrix(90 * Math.PI / 180, this.glmgr.cvs!.width / this.glmgr.cvs!.height, 0.1, 100);
-    this.glmgr.gl!.uniformMatrix4fv(this.glmgr.uniLoc.pMat, false, pMatrix.elem);
+    this.pMatrix = Mat4.pMatrix(90 * Math.PI / 180, this.glmgr.cvs!.width / this.glmgr.cvs!.height, 0.1, 100);
+    this.glmgr.gl!.uniformMatrix4fv(this.glmgr.uniLoc.pMat, false, this.pMatrix.elem);
     this.cvsResized = false;
   }
   
   // 行列の更新
   if(this.matUpdated){
-    const vMatrix = Mat4.vMatrix(this.camera.position, this.camera.forward, this.camera.up);
-    this.glmgr.gl!.uniformMatrix4fv(this.glmgr.uniLoc.vMat, false, vMatrix.elem);
+    this.vMatrix = Mat4.vMatrix(this.camera.position, this.camera.forward, this.camera.up);
+    this.glmgr.gl!.uniformMatrix4fv(this.glmgr.uniLoc.vMat, false, this.vMatrix.elem);
     this.matUpdated = false;
   }
 

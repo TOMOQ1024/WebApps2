@@ -93,15 +93,29 @@ export default class Mat4 {
     }
   }
 
-  multedBy(rhs: Vec4): Vec4{
-    let e: number[] = [];
-    for(let i=0; i<4; i++){
-      e.push(0);
-      for(let j=0; j<4; j++){
-        e[i] += this.elem[i*4+j] * rhs.elem[j];
+  multedBy (rhs: Mat4|Vec4) {
+    if (rhs.elem.length === 4) {
+      let e: number[] = [];
+      for(let i=0; i<4; i++){
+        e.push(0);
+        for(let j=0; j<4; j++){
+          e[i] += this.elem[i*4+j] * rhs.elem[j];
+        }
       }
+      return new Vec4(...e);
     }
-    return new Vec4(...e);
+    else {
+      let e: number[] = [];
+      for(let i=0; i<4; i++){
+        for(let j=0; j<4; j++){
+          e.push(0);
+          for(let k=0; k<4; k++){
+            e[i*4+j] += this.elem[i*4+k] * rhs.elem[k*4+j];
+          }
+        }
+      }
+      return new Mat4(...e);
+    }
   }
 
   sum(lhs: Mat4, rhs: Mat4): Mat4{
@@ -142,7 +156,7 @@ export default class Mat4 {
     return new Mat4(...this.elem.map(e=>e*rhs));
   }
 
-  inverse(){
+  inversed(){
     let e: number[] = [];
     let det = 0;
     let m3: number[];

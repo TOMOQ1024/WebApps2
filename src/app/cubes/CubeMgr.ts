@@ -1,12 +1,15 @@
 import Mat4 from "@/src/Mat4";
 import Cube from "@/src/objects/Cube";
+import Sphere from "@/src/objects/Sphere";
+import Torus from "@/src/objects/Torus";
+import Vec2 from "@/src/Vec2";
 import Vec3 from "@/src/Vec3";
 import Vec4 from "@/src/Vec4";
 import CCore from "./CubesCore";
 
 export default class CubeMgr {
   cubes: Cube[] = [];
-  private _size = new Vec3(3, 3, 2);
+  private _size = new Vec3(3, 2, 2);
   get size() {
     return this._size;
   }
@@ -55,7 +58,7 @@ export default class CubeMgr {
     // console.log(S);
     for (let i=0; i<this.cubes.length; i++) {
       const c = this.cubes[i];
-      const p = c.mdlMat.transposed().multedBy(new Vec4(0, 0, 0, 1)).xyz.addedBy(S).scaledBy(.5);
+      const p = (c.mdlMat.transposed().multedBy(new Vec4(0, 0, 0, 1)) as Vec4).xyz.addedBy(S).scaledBy(.5);
       if (axis.x && Math.abs(p.x - index) > .1) continue;
       if (axis.y && Math.abs(p.y - index) > .1) continue;
       if (axis.z && Math.abs(p.z - index) > .1) continue;
@@ -75,7 +78,7 @@ export default class CubeMgr {
       newCubes.push(null);
       prevElems.push(this.cubes[i].mdlMat.elem.slice(0));
       newMats.push(this.cubes[i].mdlMat.roundedBy(1));
-      const p = newMats[i].transposed().multedBy(new Vec4(0, 0, 0, 1)).xyz;
+      const p = (newMats[i].transposed().multedBy(new Vec4(0, 0, 0, 1)) as Vec4).xyz;
       poses.push(p);
       if(!parity){
         parity = p.moded(2);
@@ -90,5 +93,30 @@ export default class CubeMgr {
       newCubes[(p.z*this.size.y+p.y)*this.size.x+p.x] = this.cubes[i];
     }
     return true;
+  }
+
+  onClick (p: Vec2) {
+    const vi = this.parent.vMatrix.transposed().inversed();
+    const pi = this.parent.pMatrix.transposed().inversed();
+    const vipi = vi.multedBy(pi) as Mat4;
+    const d0 = vipi.multedBy(new Vec4(p.x, p.y, -1, .1)) as Vec4;
+    d0.scaleBy(1/d0.w);
+    const d1 = vipi.multedBy(new Vec4(p.x, p.y, 1, 1)) as Vec4;
+    d1.scaleBy(1/d1.w);
+    let ori = d0.xyz;
+    let dir = d1.subtractedBy(d0).normalized().xyz;
+    let dist: number;
+    for (let i=0; i<20; i++) {
+      const q = ori.abs().subtractedBy(this.size);
+      dist = q.max(Vec3.ZERO).length() + Math.min(Math.max(q.x,q.y,q.z), 0);
+      ori.addBy(dir.scaledBy(dist));
+      if (dist < .01) {
+        let s = new Torus(6, 6, 0, .1);
+        s.mdlMat.translateBy(ori);
+        this.parent.addObj(s);
+        return true;
+      }
+    }
+    return false;
   }
 }
