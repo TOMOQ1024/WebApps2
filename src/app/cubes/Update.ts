@@ -50,5 +50,5 @@ export default function Update(this: CCore) {
 
   // モデル変換行列の更新
   // this.objects[0].mdlMat.rotate(new Vec3(1, 1, 1), .01);
-  this.objs[0].mdlMat.rotate(new Vec3(1, 1, 1), -.01);
+  // this.objs[0].mdlMat.rotate(new Vec3(1, 1, 1), -.01);
 }

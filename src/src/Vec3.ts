@@ -87,6 +87,22 @@ export default class Vec3 {
     this.z += rhs.z;
   }
 
+  addedBy(rhs: Vec3){
+    return new Vec3(
+      this.x + rhs.x,
+      this.y + rhs.y,
+      this.z + rhs.z,
+    );
+  }
+
+  scaledBy(rhs: number){
+    return new Vec3(
+      this.x * rhs,
+      this.y * rhs,
+      this.z * rhs,
+    )
+  }
+
   static sum(lhs: Vec3, rhs: Vec3){
     return new Vec3(
       lhs.x + rhs.x,

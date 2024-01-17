@@ -17,9 +17,11 @@ export default function MainWrapper() {
       if(e.key === 'f' && !e.shiftKey && !e.metaKey){
         if (!document.fullscreenElement) {
           core.glmgr.cvs!.requestFullscreen();
+          core.cvsResized = true;
         }
         else {
           document.exitFullscreen();
+          core.cvsResized = true;
         }
       }
     }

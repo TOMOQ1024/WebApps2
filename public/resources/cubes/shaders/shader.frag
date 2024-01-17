@@ -22,6 +22,7 @@ void main ()
 	vec3  halfLE   = normalize(invLight + invEye);
 	float diffuse  = clamp(dot(vNormal, invLight), 0.0, 1.0) + .2;
 	float specular = pow(clamp(dot(vNormal, halfLE), 0.0, 1.0), 50.0);
-	gl_FragColor = vColor * vec4(vec3(diffuse), 1.0) + vec4(vec3(specular), 0.0);
+	// gl_FragColor = vColor * vec4(vec3(diffuse), 1.0) + vec4(vec3(specular), 0.0);
+	gl_FragColor = vColor;
   // gl_FragColor = vec4(1., .5, .5, 1.);
 }

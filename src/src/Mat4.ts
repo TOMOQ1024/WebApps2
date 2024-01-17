@@ -122,8 +122,12 @@ export default class Mat4 {
     return m.reduce((a,b)=>Mat4.prod(a,b));
   }
 
-  scale(lhs: Mat4, rhs: number): Mat4{
+  static scale(lhs: Mat4, rhs: number): Mat4{
     return new Mat4(...lhs.elem.map(e=>e*rhs));
+  }
+
+  scaledBy(rhs: number): Mat4{
+    return new Mat4(...this.elem.map(e=>e*rhs));
   }
 
   inverse(){
@@ -201,7 +205,7 @@ export default class Mat4 {
     );
   }
 
-  translate(v: Vec3){
+  translateBy(v: Vec3){
     this.elem = this.translated(v).elem;
   }
 

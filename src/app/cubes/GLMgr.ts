@@ -14,7 +14,7 @@ export default class GLMgr {
   vao_ext: OES_vertex_array_object | null = null;
   VAOs: WebGLVertexArrayObjectOES[] = [];
   lightPosition = new Vec3(4.0, 0.0, 0.0);
-  lightDirection = new Vec3(-0.5, 0.5, 0.5);
+  lightDirection = new Vec3(-0.3, 0.5, 0.7).normalized();
   ambientColor = [0.1, 0.1, 0.1, 1.0];
 
   constructor (public parent: CCore) { }
