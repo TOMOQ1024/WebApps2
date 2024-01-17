@@ -1,4 +1,4 @@
-import Vec3 from "./Vector";
+import Vec3 from "./Vec3";
 
 export default class Mat4 {
   elem: number[];

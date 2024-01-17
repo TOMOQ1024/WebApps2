@@ -1,8 +1,8 @@
-import Core from "./Core";
-import Mat4 from "../../src/Mat4";
+import Mat4 from "@/src/Mat4";
 import Vec3 from "@/src/Vec3";
+import CCore from "./CubesCore";
 
-export default function Update(this: Core) {
+export default function Update(this: CCore) {
   // キーの処理
   for(let key in this.keys){
     if(this.keys[key] === 2){
@@ -27,26 +27,28 @@ export default function Update(this: Core) {
 
   // キャンバスのリサイズ!!!
   if(this.cvsResized){
-  }
-  
-  // キャンバスのリサイズ!!!
-  if(this.cvsResized){
     const pMatrix = Mat4.pMatrix(90 * Math.PI / 180, this.glmgr.cvs!.width / this.glmgr.cvs!.height, 0.1, 100);
     this.glmgr.gl!.uniformMatrix4fv(this.glmgr.uniLoc.pMat, false, pMatrix.elem);
-    this.glmgr.gl!.uniform2f(this.glmgr.uniLoc.res, this.glmgr.cvs!.width, this.glmgr.cvs!.height);
+    const wrapper = this.glmgr.cvs!.parentElement!;
+    const rect = wrapper.getBoundingClientRect();
+    this.glmgr.cvs!.width = rect.width * this.resFactor;
+    this.glmgr.cvs!.height = rect.height * this.resFactor;
+    this.glmgr.gl!.uniform2f(
+      this.glmgr.uniLoc.res,
+      this.glmgr.cvs!.width,
+      this.glmgr.cvs!.height
+    );
     this.cvsResized = false;
   }
   
   // 行列の更新
-  if(this.glmgr.matUpdated){
+  if(this.matUpdated){
     const vMatrix = Mat4.vMatrix(this.camera.position, this.camera.forward, this.camera.up);
     this.glmgr.gl!.uniformMatrix4fv(this.glmgr.uniLoc.vMat, false, vMatrix.elem);
-    this.glmgr.matUpdated = false;
+    this.matUpdated = false;
   }
 
   // モデル変換行列の更新
   // this.objects[0].mdlMat.rotate(new Vec3(1, 1, 1), .01);
-  this.glmgr.objects[1].mdlMat.rotate(new Vec3(1, 1, 1), -.01);
+  this.objs[0].mdlMat.rotate(new Vec3(1, 1, 1), -.01);
 }
-
-// let vpMatrix = Mat4.prod(pMatrix, vMatrix);
