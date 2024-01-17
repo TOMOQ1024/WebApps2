@@ -3,6 +3,7 @@ import Cube from "@/src/objects/Cube";
 import Obj from "@/src/objects/Object";
 import Vec3 from "@/src/Vec3";
 import Camera from "./Camera";
+import CubeMgr from "./CubeMgr";
 import GLMgr from "./GLMgr";
 import MouseMgr from "./Mouse";
 import TouchMgr from "./Touch";
@@ -19,30 +20,14 @@ export default class CCore {
   matUpdated = true;
   update = Update;
   interval: NodeJS.Timer|null = null;
-  objs: Obj[] = [];
+  cbmgr = new CubeMgr(this);
+  get objs(): Obj[] {
+    return this.cbmgr.cubes;
+  }
   camera = new Camera(this);
 
   async init() {
-    const B = [0., 0., 0., 1.];
-    for (let z=-1; z<=1; z++) {
-      for (let y=-1; y<=1; y++) {
-        for (let x=-1; x<=1; x++) {
-          const c = new Cube(
-            new Vec3(x, y, z).scaledBy(2),
-            1.
-          );
-          c.color = [
-            x<0 ? [1., .5, 0., 1.] : B,// -x
-            0<x ? [1., 0., 0., 1.] : B,// +x
-            y<0 ? [1., 1., 1., 1.] : B,// -y
-            0<y ? [1., 1., 0., 1.] : B,// +y
-            z<0 ? [0., .8, 0., 1.] : B,// -z
-            0<z ? [0., 0., 1., 1.] : B,// +z
-          ].map(v=>[v, v, v, v]).flat(2);
-          this.objs.push(c);
-        }
-      }
-    }
+    
     await this.glmgr.init();
     this.beginLoop();
     this.ctrlAllowed = true;

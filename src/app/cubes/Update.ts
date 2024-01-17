@@ -2,7 +2,10 @@ import Mat4 from "@/src/Mat4";
 import Vec3 from "@/src/Vec3";
 import CCore from "./CubesCore";
 
+let iii = 0;
+
 export default function Update(this: CCore) {
+  iii++;
   // キーの処理
   for(let key in this.keys){
     if(this.keys[key] === 2){
@@ -23,6 +26,17 @@ export default function Update(this: CCore) {
     if(this.keys.arrowright) this.camera.rotate('right', 1);
     if(this.keys.arrowup) this.camera.rotate('up', 1);
     if(this.keys.arrowdown) this.camera.rotate('down', 1);
+
+    // てんぽらり！
+    if(this.keys.p) this.cbmgr.rotate(0, .01);
+    if(this.keys.o) this.cbmgr.rotate(0, -.01);
+    if(this.keys.l) this.cbmgr.rotate(1, .01);
+    if(this.keys.k) this.cbmgr.rotate(1, -.01);
+    if(this.keys[',']) this.cbmgr.rotate(3, .01);
+    if(this.keys.m) this.cbmgr.rotate(3, -.01);
+    if(this.keys.j) this.cbmgr.normalize();
+    if(iii%5 === 0){
+    }
   }
 
   // キャンバスのリサイズ!!!

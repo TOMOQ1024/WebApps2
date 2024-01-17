@@ -95,12 +95,58 @@ export default class Vec3 {
     );
   }
 
+  subtractBy(rhs: Vec3){
+    this.x -= rhs.x;
+    this.y -= rhs.y;
+    this.z -= rhs.z;
+  }
+
+  subtractedBy(rhs: Vec3){
+    return new Vec3(
+      this.x - rhs.x,
+      this.y - rhs.y,
+      this.z - rhs.z,
+    );
+  }
+
   scaledBy(rhs: number){
     return new Vec3(
       this.x * rhs,
       this.y * rhs,
       this.z * rhs,
     )
+  }
+
+  rounded() {
+    return new Vec3(
+      Math.round(this.x),
+      Math.round(this.y),
+      Math.round(this.z),
+    )
+  }
+
+  moded (m: number) {
+    return new Vec3(
+      (Math.floor(this.x % m) + m) % m,
+      (Math.floor(this.y % m) + m) % m,
+      (Math.floor(this.z % m) + m) % m,
+    )
+  }
+
+  equalTo (rhs: Vec3) {
+    return (
+      this.x === rhs.x &&
+      this.y === rhs.y &&
+      this.z === rhs.z
+    );
+  }
+
+  notEqualTo (rhs: Vec3) {
+    return (
+      this.x !== rhs.x ||
+      this.y !== rhs.y ||
+      this.z !== rhs.z
+    );
   }
 
   static sum(lhs: Vec3, rhs: Vec3){

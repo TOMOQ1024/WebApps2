@@ -1,4 +1,5 @@
 import Vec3 from "./Vec3";
+import Vec4 from "./Vec4";
 
 export default class Mat4 {
   elem: number[];
@@ -90,6 +91,17 @@ export default class Mat4 {
     for(let i=0; i<16; i++){
       this.elem[i] = e[i];
     }
+  }
+
+  multedBy(rhs: Vec4): Vec4{
+    let e: number[] = [];
+    for(let i=0; i<4; i++){
+      e.push(0);
+      for(let j=0; j<4; j++){
+        e[i] += this.elem[i*4+j] * rhs.elem[j];
+      }
+    }
+    return new Vec4(...e);
   }
 
   sum(lhs: Mat4, rhs: Mat4): Mat4{
@@ -207,6 +219,32 @@ export default class Mat4 {
 
   translateBy(v: Vec3){
     this.elem = this.translated(v).elem;
+  }
+
+  roundBy(s: number) {
+    this.elem = this.elem.map(v=>Math.round(v/s)*s);
+  }
+
+  roundedBy(s: number) {
+    return new Mat4(...this.elem.map(v=>Math.round(v/s)*s));
+  }
+
+  transposed() {
+    return new Mat4(
+      this.elem[ 0], this.elem[ 4], this.elem[ 8], this.elem[12], 
+      this.elem[ 1], this.elem[ 5], this.elem[ 9], this.elem[13], 
+      this.elem[ 2], this.elem[ 6], this.elem[10], this.elem[14], 
+      this.elem[ 3], this.elem[ 7], this.elem[11], this.elem[15], 
+    );
+  }
+
+  transpose () {
+    this.elem = [
+      this.elem[ 0], this.elem[ 4], this.elem[ 8], this.elem[12], 
+      this.elem[ 1], this.elem[ 5], this.elem[ 9], this.elem[13], 
+      this.elem[ 2], this.elem[ 6], this.elem[10], this.elem[14], 
+      this.elem[ 3], this.elem[ 7], this.elem[11], this.elem[15], 
+    ];
   }
 
   // translate(mat, vec)
