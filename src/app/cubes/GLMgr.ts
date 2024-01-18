@@ -81,8 +81,10 @@ export default class GLMgr {
 
     // 解像度uniform
     this.uniLoc.res = this.gl.getUniformLocation(this.program, 'uResolution');
-
-
+    
+    // 時間
+    this.uniLoc.time = this.gl.getUniformLocation(this.program, "uTime")!;
+    
     // 行列uniform
     this.uniLoc.miMat = this.gl.getUniformLocation(this.program, "miMat")!;
     this.uniLoc.mMat = this.gl.getUniformLocation(this.program, "mMat")!;
@@ -104,5 +106,8 @@ export default class GLMgr {
     // 環境光
     this.uniLoc.amb = this.gl.getUniformLocation(this.program, "ambientColor")!;
     this.gl.uniform4fv(this.uniLoc.amb, this.ambientColor);
+
+    // キューブ回転情報
+    this.uniLoc.roti = this.gl.getUniformLocation(this.program, "rotInfo")!;
   }
 }

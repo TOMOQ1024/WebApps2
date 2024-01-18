@@ -28,12 +28,12 @@ export default function Update(this: CCore) {
     if(this.keys.arrowdown) this.camera.rotate('down', 1);
 
     // てんぽらり！
-    if(this.keys.p) this.cbmgr.rotate(0, .01);
-    if(this.keys.o) this.cbmgr.rotate(0, -.01);
-    if(this.keys.l) this.cbmgr.rotate(1, .01);
-    if(this.keys.k) this.cbmgr.rotate(1, -.01);
-    if(this.keys[',']) this.cbmgr.rotate(3, .01);
-    if(this.keys.m) this.cbmgr.rotate(3, -.01);
+    if(this.keys.p) this.cbmgr._rotate(0, .01);
+    if(this.keys.o) this.cbmgr._rotate(0, -.01);
+    if(this.keys.l) this.cbmgr._rotate(1, .01);
+    if(this.keys.k) this.cbmgr._rotate(1, -.01);
+    if(this.keys[',']) this.cbmgr._rotate(3, .01);
+    if(this.keys.m) this.cbmgr._rotate(3, -.01);
     if(this.keys.j) this.cbmgr.normalize();
     if(iii%5 === 0){
     }
@@ -61,6 +61,9 @@ export default function Update(this: CCore) {
     this.glmgr.gl!.uniformMatrix4fv(this.glmgr.uniLoc.vMat, false, this.vMatrix.elem);
     this.matUpdated = false;
   }
+
+  // 時間
+  this.glmgr.gl!.uniform1f(this.glmgr.uniLoc.time, performance.now());
 
   // モデル変換行列の更新
   // this.objects[0].mdlMat.rotate(new Vec3(1, 1, 1), .01);

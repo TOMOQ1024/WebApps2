@@ -61,7 +61,7 @@ export default function MainWrapper() {
         (2 * (e.clientY - rect.top) / rect.height - 1)
       ).negY();
       core.mMgr.isDown = true;
-      core.cbmgr.onClick();
+      core.cbmgr.rotate();
     }
 
     const onMouseMove = (e: MouseEvent) => {
@@ -73,7 +73,8 @@ export default function MainWrapper() {
         (2 * (e.clientY - rect.top) / rect.height - 1)
       ).negY();
       core.mMgr.pos = newPos;
-      core.cbmgr.onMouseMove(core.mMgr.pos);
+      core.cbmgr.updatePointer(core.mMgr.pos);
+      core.cbmgr.updateRotInfo();
       if(core.mMgr.isDown){
         // core.graph.translate(newPos.subed(core.mMgr.pos).negY());
         // core.glmgr.updateGraphUniform();

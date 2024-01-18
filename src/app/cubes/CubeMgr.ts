@@ -9,7 +9,7 @@ import CCore from "./CubesCore";
 
 export default class CubeMgr {
   cubes: Cube[] = [];
-  private _size = new Vec3(5, 5, 5);
+  private _size = new Vec3(3, 3, 3);
   get size() {
     return this._size;
   }
@@ -17,6 +17,13 @@ export default class CubeMgr {
     this._size = s.rounded();
   }
   pointer = new Vec3();
+  rotInfo: {
+    index: number;
+    angle: number;
+  } = {
+    index: -1,
+    angle: 0
+  };
 
   constructor (public parent: CCore) {
     const B = [0., 0., 0., 1.];
@@ -42,9 +49,12 @@ export default class CubeMgr {
     }
   }
 
-  rotate (index: number, num: number) {
+  _rotate (index: number, num: number) {
     let axis: Vec3;
-    if (index < this.size.x) {
+    if (index < 0) {
+      return false;
+    }
+    else if (index < this.size.x) {
       axis = new Vec3(1, 0, 0);
     }
     else if ((index -= this.size.x) < this.size.y) {
@@ -65,6 +75,24 @@ export default class CubeMgr {
       if (axis.z && Math.abs(p.z - index) > .1) continue;
       c.mdlMat.multBy(Mat4.Identity.rotated(axis, Math.PI/2*num));
     }
+  }
+
+  rotate () {
+    let i;
+    for (i=0; i<6; i++) {
+      setTimeout(()=> {
+        this._rotate(this.rotInfo.index, this.rotInfo.angle/6);
+      }, 10*i);
+    }
+    setTimeout(()=> {
+      if (!this.normalize()) {
+        for (i=0; i<6; i++) {
+          setTimeout(()=> {
+            this._rotate(this.rotInfo.index, this.rotInfo.angle/6);
+          }, 10*i);
+        }
+      }
+    }, 10*i);
   }
 
   normalize () {
@@ -96,7 +124,7 @@ export default class CubeMgr {
     return true;
   }
 
-  onMouseMove (p: Vec2) {
+  updatePointer (p: Vec2) {
     const vi = this.parent.vMatrix.transposed().inversed();
     const pi = this.parent.pMatrix.transposed().inversed();
     const vipi = vi.multedBy(pi) as Mat4;
@@ -123,8 +151,18 @@ export default class CubeMgr {
     return false;
   }
 
-  onClick () {
-    if (this.pointer.equalTo(Vec3.ZERO)) return;
+  updateRotInfo () {
+    if (this.pointer.equalTo(Vec3.ZERO)) {
+      this.rotInfo.index = -1;
+      this.parent.glmgr.gl!.uniform4f(
+        this.parent.glmgr.uniLoc.roti,
+        this.size.x,
+        this.size.y,
+        this.size.z,
+        this.rotInfo.index
+      );
+      return false;
+    }
     const S = this.size.subtractedBy(new Vec3(1, 1, 1));
     const p = this.pointer.dividedBy(this.size);
     const pa = p.abs();
@@ -148,18 +186,22 @@ export default class CubeMgr {
       a.z === 1 ? p.z : 0,
     );
     const r = this.pointer.addedBy(S).scaledBy(.5).rounded();
-    const index = (
+    this.rotInfo.index = (
       (a.x ? 0 : r.x) +
       (a.y ? 0 : r.y + this.size.x) +
       (a.z ? 0 : r.z + this.size.x + this.size.y)
     );
-    const ang = -Math.sign(pn.dot(Vec3.ONE))*
+    this.rotInfo.angle = -Math.sign(pn.dot(Vec3.ONE))*
     Math.sign(pn.abs().crossedBy(pM.abs()).dot(Vec3.ONE))*
     Math.sign(pM.dot(Vec3.ONE));
-    for (let i=0; i<6; i++) {
-      setTimeout(()=> {
-        this.rotate(index, ang/6);
-      }, 10*i);
-    }
+    
+    this.parent.glmgr.gl!.uniform4f(
+      this.parent.glmgr.uniLoc.roti,
+      this.size.x,
+      this.size.y,
+      this.size.z,
+      this.rotInfo.index
+    );
+    return true;
   }
 }
