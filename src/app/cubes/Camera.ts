@@ -1,4 +1,4 @@
-import Core from "./Core";
+import CCore from "./CubesCore";
 import Vec3 from "@/src/Vec3";
 
 export default class Camera {
@@ -9,7 +9,7 @@ export default class Camera {
   movSpeed = 0.2;
   rotSpeed = 0.03;
 
-  constructor(public parent: Core){ }
+  constructor(public parent: CCore){ }
 
   get forward(){
     return new Vec3(
@@ -80,7 +80,7 @@ export default class Camera {
     //   vdown: 'D',
     // }[direction]);
     
-    this.parent.glmgr.matUpdated = true;
+    this.parent.matUpdated = true;
   }
 
   rotate(direction: 'left'|'right'|'up'|'down', speed: number){
@@ -91,6 +91,6 @@ export default class Camera {
       case 'up': this.angleV = Math.min(Math.max(this.angleV + s, -Math.PI/2), Math.PI/2); break;
       case 'down': this.angleV = Math.min(Math.max(this.angleV - s, -Math.PI/2), Math.PI/2); break;
     }
-    this.parent.glmgr.matUpdated = true;
+    this.parent.matUpdated = true;
   }
 }

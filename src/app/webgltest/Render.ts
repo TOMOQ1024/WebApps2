@@ -11,7 +11,7 @@ export default function Render (this: GLMgr) {
     this.object = this.objects[i];
     
     // モデル変換と描画
-    this.gl!.uniformMatrix4fv(this.uniLoc.miMat, false, this.object.mdlMat.inverse().elem);
+    this.gl!.uniformMatrix4fv(this.uniLoc.miMat, false, this.object.mdlMat.inversed().elem);
     this.gl!.uniformMatrix4fv(this.uniLoc.mMat, false, this.object.mdlMat.elem);
     this.gl!.drawElements(this.gl!.TRIANGLES, this.index.length, this.gl!.UNSIGNED_INT, 0);
     // this.gl!.drawElements(this.gl!.POINTS, this.index.length, this.gl!.UNSIGNED_INT, 0);
