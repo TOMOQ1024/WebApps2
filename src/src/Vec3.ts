@@ -16,6 +16,7 @@ export default class Vec3 {
   }
 
   static ZERO = new Vec3 ();
+  static ONE = new Vec3 (1, 1, 1);
 
   get elem(){
     return [this.x, this.y, this.z];
@@ -26,6 +27,14 @@ export default class Vec3 {
       lhs.x * rhs.x +
       lhs.y * rhs.y +
       lhs.z * rhs.z
+    );
+  }
+
+  dot(rhs: Vec3){
+    return (
+      this.x * rhs.x +
+      this.y * rhs.y +
+      this.z * rhs.z
     );
   }
 
@@ -81,6 +90,15 @@ export default class Vec3 {
       this.z * rhs.x - this.x * rhs.z,
       this.x * rhs.y - this.y * rhs.x,
     );
+    return this;
+  }
+
+  crossedBy(rhs: Vec3){
+    return new Vec3(
+      this.y * rhs.z - this.z * rhs.y,
+      this.z * rhs.x - this.x * rhs.z,
+      this.x * rhs.y - this.y * rhs.x,
+    );
   }
 
   addBy(rhs: Vec3){
@@ -108,6 +126,14 @@ export default class Vec3 {
       this.x - rhs.x,
       this.y - rhs.y,
       this.z - rhs.z,
+    );
+  }
+
+  dividedBy (rhs: Vec3) {
+    return new Vec3(
+      this.x / rhs.x,
+      this.y / rhs.y,
+      this.z / rhs.z,
     );
   }
 

@@ -9,13 +9,14 @@ import CCore from "./CubesCore";
 
 export default class CubeMgr {
   cubes: Cube[] = [];
-  private _size = new Vec3(3, 2, 2);
+  private _size = new Vec3(5, 5, 5);
   get size() {
     return this._size;
   }
   set size(s: Vec3) {
     this._size = s.rounded();
   }
+  pointer = new Vec3();
 
   constructor (public parent: CCore) {
     const B = [0., 0., 0., 1.];
@@ -95,7 +96,7 @@ export default class CubeMgr {
     return true;
   }
 
-  onClick (p: Vec2) {
+  onMouseMove (p: Vec2) {
     const vi = this.parent.vMatrix.transposed().inversed();
     const pi = this.parent.pMatrix.transposed().inversed();
     const vipi = vi.multedBy(pi) as Mat4;
@@ -106,17 +107,59 @@ export default class CubeMgr {
     let ori = d0.xyz;
     let dir = d1.subtractedBy(d0).normalized().xyz;
     let dist: number;
-    for (let i=0; i<20; i++) {
+    for (let i=0; i<100; i++) {
       const q = ori.abs().subtractedBy(this.size);
       dist = q.max(Vec3.ZERO).length() + Math.min(Math.max(q.x,q.y,q.z), 0);
       ori.addBy(dir.scaledBy(dist));
       if (dist < .01) {
-        let s = new Torus(6, 6, 0, .1);
-        s.mdlMat.translateBy(ori);
-        this.parent.addObj(s);
+        // let s = new Torus(6, 6, 0, .1);
+        // s.mdlMat.translateBy(ori);
+        // this.parent.addObj(s);
+        this.pointer = ori;
         return true;
       }
     }
+    this.pointer = Vec3.ZERO;
     return false;
+  }
+
+  onClick () {
+    if (this.pointer.equalTo(Vec3.ZERO)) return;
+    const S = this.size.subtractedBy(new Vec3(1, 1, 1));
+    const p = this.pointer.dividedBy(this.size);
+    const pa = p.abs();
+    const M = Math.max(...pa.elem);
+    const m = Math.min(...pa.elem);
+    // 絶対値によりxyzを優先順位づけしたVec3
+    // 0: 回転の軸
+    const a = new Vec3(
+      pa.x === M ? 2 : pa.x === m ? 0 : 1,
+      pa.y === M ? 2 : pa.y === m ? 0 : 1,
+      pa.z === M ? 2 : pa.z === m ? 0 : 1,
+    );
+    const pM = new Vec3(
+      a.x === 2 ? p.x : 0,
+      a.y === 2 ? p.y : 0,
+      a.z === 2 ? p.z : 0,
+    );
+    const pn = new Vec3(
+      a.x === 1 ? p.x : 0,
+      a.y === 1 ? p.y : 0,
+      a.z === 1 ? p.z : 0,
+    );
+    const r = this.pointer.addedBy(S).scaledBy(.5).rounded();
+    const index = (
+      (a.x ? 0 : r.x) +
+      (a.y ? 0 : r.y + this.size.x) +
+      (a.z ? 0 : r.z + this.size.x + this.size.y)
+    );
+    const ang = -Math.sign(pn.dot(Vec3.ONE))*
+    Math.sign(pn.abs().crossedBy(pM.abs()).dot(Vec3.ONE))*
+    Math.sign(pM.dot(Vec3.ONE));
+    for (let i=0; i<6; i++) {
+      setTimeout(()=> {
+        this.rotate(index, ang/6);
+      }, 10*i);
+    }
   }
 }
