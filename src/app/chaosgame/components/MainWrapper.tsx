@@ -18,25 +18,29 @@ export default function MainWrapper(){
     ctx.translate(w/2, h/2);
     ctx.fillStyle = 'black';
 
-    const seeds_hexa: {mat:Mat3;p:number}[] = [];
-    for (let i=0; i<6; i++) {
-      seeds_hexa.push({
-        p: 1/6,
-        mat: Mat3.cMat(
-        (new Vec2(11, 0)).rotatedBy(Math.PI*2/6*i)
-        ).mixBy(Mat3.Identity, .67)
+    const seeds_n_flake: {mat:Mat3;p:number}[] = [];
+    const N = 5;
+    const R = 1/2/(1+(n=>{
+      let sum = 0;
+      for(let k=1; k<=n; k++){
+        sum += Math.cos(2*Math.PI*k/N)
+      }
+      return sum;
+    })(Math.floor(N/4)));
+    // seeds_n_flake.push({
+    //   p: 1/(N+1),
+    //   mat: Mat3.Identity.mixBy(Mat3.cMat(new Vec2(0, 0)), N%2 ? (1-R)/Math.cos(Math.PI/N)-R : 1-2*R)
+    // });
+    for (let i=0; i<N; i++) {
+      seeds_n_flake.push({
+        p: 1/(N),
+        mat: Mat3.Identity.mixedBy(
+          Mat3.cMat((new Vec2(11, 0)).rotatedBy(Math.PI*2/N*i)),
+          R
+        )
       });
     }
 
-    const seeds_penta: {mat:Mat3;p:number}[] = [];
-    for (let i=0; i<5; i++) {
-      seeds_penta.push({
-        p: 1/5,
-        mat: Mat3.cMat(
-        (new Vec2(11, 0)).rotatedBy(Math.PI*2/5*i)
-        ).mixBy(Mat3.Identity, .62)
-      });
-    }
 
     const seeds_4th_gasket: {mat:Mat3;p:number}[] = [
       {
@@ -135,8 +139,9 @@ export default function MainWrapper(){
       },
     ];
 
-    // const seeds = seeds_penta;
-    const seeds = seeds_hexa;
+    // const seeds = seeds_hexa;
+    // const seeds = seeds_hepta;
+    const seeds = seeds_n_flake;
 
     let p = new Vec3(0, 0, 1);
 

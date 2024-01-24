@@ -47,6 +47,14 @@ export default class Mat3 {
     );
   }
 
+  static rMat (a: number): Mat3 {
+    return new Mat3 (
+      Math.cos(a), -Math.sin(a), 0,
+      Math.sin(a), Math.cos(a), 0,
+      0, 0, 1
+    );
+  }
+
   row (i: number) {
     return new Vec3 (
       this.elem[i*3+0],
@@ -139,5 +147,9 @@ export default class Mat3 {
         (e,i) => i%3-2 ? e : e+v.dot(new Vec2(this.elem[i-2], this.elem[i-1]))
       )
     );
+  }
+
+  rotatedBy (a: number) {
+    return this.multedBy(Mat3.rMat(a));
   }
 }
