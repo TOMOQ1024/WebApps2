@@ -15,6 +15,9 @@ export default function MainWrapper(){
       0.1,
       1000
     );
+    camera.translateZ(15);
+    camera.translateY(15);
+    camera.rotateX(-1);
 
     const renderer = new THREE.WebGLRenderer({
       canvas: cvs,
@@ -24,20 +27,45 @@ export default function MainWrapper(){
     renderer.setSize(cvs.width, cvs.height);
     renderer.setPixelRatio(devicePixelRatio);
 
-    const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
-    const boxMaterial = new THREE.MeshLambertMaterial({
-      color: '#2497f0'
-    });
-    const box = new THREE.Mesh(boxGeometry, boxMaterial);
-    box.position.z = -5;
+    const textureLoader = new THREE.TextureLoader()
+    const boxGeometry = new THREE.BoxGeometry();
+    const boxMaterials = [
+      new THREE.MeshLambertMaterial({
+        map: textureLoader.load('resources/diceroll/images/d6/1.png'),
+      }),
+      new THREE.MeshLambertMaterial({
+        map: textureLoader.load('resources/diceroll/images/d6/6.png'),
+      }),
+      new THREE.MeshLambertMaterial({
+        map: textureLoader.load('resources/diceroll/images/d6/2.png'),
+      }),
+      new THREE.MeshLambertMaterial({
+        map: textureLoader.load('resources/diceroll/images/d6/5.png'),
+      }),
+      new THREE.MeshLambertMaterial({
+        map: textureLoader.load('resources/diceroll/images/d6/3.png'),
+      }),
+      new THREE.MeshLambertMaterial({
+        map: textureLoader.load('resources/diceroll/images/d6/4.png'),
+      }),
+    ];
+    const box = new THREE.Mesh(boxGeometry, boxMaterials);
     box.rotation.set(10, 10, 10);
     scene.add(box);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    const plane = new THREE.Mesh(
+      new THREE.PlaneGeometry(30, 30),
+      new THREE.MeshLambertMaterial({color: '#004400'}),
+    );
+    plane.rotateX(-Math.PI/2)
+    plane.translateZ(-10);
+    scene.add(plane);
+
+    const ambientLight = new THREE.AmbientLight();
     scene.add(ambientLight);
-    const pointLight = new THREE.PointLight(0xffffff, 1.0);
-    pointLight.position.set(1, 2, 3);
-    scene.add(pointLight);
+    const directionalLight = new THREE.DirectionalLight();
+    directionalLight.rotation.x -= Math.PI/2;
+    scene.add(directionalLight);
 
     const clock = new THREE.Clock();
     const tick = () => {
