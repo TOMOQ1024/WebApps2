@@ -1,6 +1,15 @@
 import CCore from "./ChaosCore";
 
 export default function Update (this: CCore) {
+  if (this.isCvsResized) {
+    const wrapper = this.cvs!.parentElement!;
+    const rect = wrapper.getBoundingClientRect();
+    this.cvs!.width = rect.width * this.resFactor;
+    this.cvs!.height = rect.height * this.resFactor;
+    this.glmgr.updateResolutionUniform();
+    this.isCvsResized = false;
+  }
+
   let r = Math.random();
 
   for (let i=0; i<this.seeds.length; i++) {
