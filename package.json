@@ -22,13 +22,16 @@
     "@fortawesome/free-regular-svg-icons": "^6.5.1",
     "@fortawesome/free-solid-svg-icons": "^6.5.1",
     "@fortawesome/react-fontawesome": "^0.2.0",
+    "@types/three": "^0.160.0",
     "@vercel/analytics": "^1.1.1",
     "@webgpu/types": "^0.1.38",
     "babel-plugin-macros": "^3.1.0",
+    "cannon-es": "^0.20.0",
     "next": "^14.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "sass": "^1.58.3",
+    "three": "^0.160.1",
     "webgpu": "^0.1.16"
   }
 }
