@@ -6,7 +6,6 @@ import DRCore from "../DiceRollCore";
 export default function MainWrapper(){
   const [core, setCore] = useState<DRCore>();
   useEffect(() => {
-    console.log(core);
     if (!core) {
       setCore(new DRCore());
       return;
