@@ -11,7 +11,7 @@ export default function MainWrapper(){
       return;
     }
 
-    core.animate();
+    core.beginLoop();
 
     // const scene = new THREE.Scene();
 
