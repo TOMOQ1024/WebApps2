@@ -10,6 +10,7 @@ export default function MainWrapper(){
       setCore(new DRCore());
       return;
     }
+    const cvs = core.cvs;
 
     core.beginLoop();
 
@@ -84,8 +85,11 @@ export default function MainWrapper(){
     // tick()
 
 
+    const onMouseDown = () => {
+      core.clearDie();
+    }
+
     const onResize = () => {
-      const cvs = core.cvs;
       const wrapper = cvs.parentElement!;
       const rect = wrapper.getBoundingClientRect();
       cvs.width = rect.width;
@@ -98,8 +102,10 @@ export default function MainWrapper(){
 
     onResize();
 
+    cvs.addEventListener('mousedown', onMouseDown);
     window.addEventListener('resize', onResize);
     return () => {
+      cvs.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('resize', onResize);
     }
   }, [core]);
