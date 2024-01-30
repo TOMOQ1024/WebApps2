@@ -86,7 +86,8 @@ export default function MainWrapper(){
 
 
     const onMouseDown = () => {
-      core.clearDie();
+      console.clear();
+      core.diceMgr.roll(100, 6);
     }
 
     const onResize = () => {
