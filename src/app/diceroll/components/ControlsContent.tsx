@@ -1,5 +1,6 @@
 import DRCore from "../DiceRollCore";
 import { ControlsTab } from "../Definitions"
+import PresetSelector from "./PresetSelector";
 // import FuncEditor from "./FuncEditor";
 // import PresetSelector from "./PresetSelector";
 // import Settings from "./Settings";
@@ -10,9 +11,9 @@ export default function ControlsContent({selected, core}: {
 }) {
   return (
     <div id='controls-content' className={`cc-s${selected}`}>
-      {/* <Settings core={core}/>
+      {/* <Settings core={core}/> */}
       <PresetSelector core={core}/>
-      <FuncEditor core={core}/> */}
+      {/* <FuncEditor core={core}/> */}
     </div>
   )
 }
