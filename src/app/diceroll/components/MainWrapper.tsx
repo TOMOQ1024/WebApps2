@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react"
 import CanvasWrapper from "./CanvasWrapper";
 import DRCore from "../DiceRollCore";
+import Controls from "./Controls";
 
 export default function MainWrapper(){
   const [core, setCore] = useState<DRCore>();
@@ -114,6 +115,7 @@ export default function MainWrapper(){
   return (
     <main id='main-wrapper'>
       <CanvasWrapper/>
+      <Controls core={core!}/>
     </main>
   )
 }
