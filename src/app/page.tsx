@@ -40,6 +40,9 @@ export default function Home() {
       <AppCard
         name='Chaos Game'
       />
+      <AppCard
+        name='DiceRoll'
+      />
     </main>
   )
 }
