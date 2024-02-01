@@ -126,6 +126,8 @@ export class D4 implements Die {
       ) {
         this.isStatic = true;
         this.body.collisionFilterGroup = CollisionFilterGroup.DICE_STATIC;
+        const m = this.mesh.material as THREE.Material;
+        m.depthTest = false;
       }
     }
     else {
