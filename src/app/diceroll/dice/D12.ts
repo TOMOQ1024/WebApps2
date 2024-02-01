@@ -29,6 +29,7 @@ export class D12 implements Die {
   });
   num = 0;
   isStatic = false;
+  isReady = false;
   
 
   constructor () {

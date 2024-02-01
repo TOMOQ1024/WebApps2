@@ -4,12 +4,14 @@ import DRCore from "../DiceRollCore";
 import { D6 } from "./D6";
 import { Die } from "./Die";
 import { DieMsg } from './DieMsg';
+import { D4 } from './D4';
 
 export default class DiceMgr {
   array: Die[] = [];
   diceToAdd: number[] = [];
   sum: number = 0;
   MAXIMUM_ARRAYSIZE = 100;
+  addList: Die[] = [];
 
   constructor (public parent: DRCore) {}
 
@@ -42,17 +44,30 @@ export default class DiceMgr {
     switch (F) {
       case undefined:
         return false;
+      case 4:
+        die = new D4();
+        break;
       case 6:
         die = new D6();
         break;
       default:
         return false;
     }
-    // boxBody.angularDamping = 0.1;
-    this.array.push(die);
-    this.parent.scene.add(die.mesh);
-    this.parent.world.addBody(die.body);
+    this.addList.push(die);
     return true;
+  }
+
+  updateAddList () {
+    let die: Die;
+    for (let i=this.addList.length-1; 0<=i; i--) {
+      die = this.addList[i];
+      if (this.addList[i].isReady) {
+        this.array.push(die);
+        this.parent.scene.add(die.mesh);
+        this.parent.world.addBody(die.body);
+        this.addList.splice(i, 1);
+      }
+    }
   }
 
   remove (i: number) {
@@ -62,6 +77,7 @@ export default class DiceMgr {
   }
 
   update () {
+    this.updateAddList();
     let p: CANNON.Vec3;
     let q: CANNON.Quaternion;
     let toRemove: number[] = [];

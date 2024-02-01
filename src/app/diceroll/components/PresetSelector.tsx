@@ -9,6 +9,7 @@ export default function PresetSelector({core}: {
 
   function HandleClick(i: number){
     const R = PresetRolls[i];
+    console.clear();
     core.diceMgr.roll(R[0], R[1]);
   }
   
