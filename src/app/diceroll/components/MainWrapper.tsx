@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react"
 import CanvasWrapper from "./CanvasWrapper";
 import DRCore from "../DiceRollCore";
+import Controls from "./Controls";
 
 export default function MainWrapper(){
   const [core, setCore] = useState<DRCore>();
@@ -87,7 +88,7 @@ export default function MainWrapper(){
 
     const onMouseDown = () => {
       console.clear();
-      core.diceMgr.roll(100, 6);
+      core.diceMgr.roll(1, 4);
     }
 
     const onResize = () => {
@@ -114,6 +115,7 @@ export default function MainWrapper(){
   return (
     <main id='main-wrapper'>
       <CanvasWrapper/>
+      <Controls core={core!}/>
     </main>
   )
 }

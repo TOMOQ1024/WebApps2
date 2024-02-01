@@ -1,6 +1,6 @@
 "use client";
 import MainCanvas from "@/components/maincanvas";
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { Game } from "./Game";
 import Render from "./Render/Render";
 import Update from "./Update";
@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { Params } from "./Params";
 
 
-export default function Main(){
+function _Main(){
   const searchParams = useSearchParams();
   if(searchParams)Params.get(searchParams.get);
 
@@ -68,5 +68,13 @@ export default function Main(){
         }}
       >操作：ANY KEY</div>
     </main>
+  )
+}
+
+export default function Main () {
+  return (
+    <Suspense>
+      <_Main/>
+    </Suspense>
   )
 }
