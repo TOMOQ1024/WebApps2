@@ -50,6 +50,7 @@ export class D6 implements Die {
   });
   num = 0;
   isStatic = false;
+  isReady = true;
   
 
   constructor () {
