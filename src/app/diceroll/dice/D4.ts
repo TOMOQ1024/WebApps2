@@ -65,7 +65,7 @@ export class D4 implements Die {
     const objs = gltf.scene.children;
     for (let i=0; i<objs.length; i++) {
       const m = objs[i];
-      if (m.name === 'Cube') {
+      if (m.name === 'Dice') {
         this.mesh = m as THREE.Mesh;
         const t = this.mesh.material as THREE.Material;
         t.transparent = true;
