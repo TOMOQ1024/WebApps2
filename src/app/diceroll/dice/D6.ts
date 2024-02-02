@@ -12,32 +12,26 @@ export class D6 implements Die {
     new THREE.MeshLambertMaterial({
       map: this.textureLoader.load('resources/diceroll/images/d6/1.png'),
       transparent: true,
-      depthTest: false,
     }),
     new THREE.MeshLambertMaterial({
       map: this.textureLoader.load('resources/diceroll/images/d6/6.png'),
       transparent: true,
-      depthTest: false,
     }),
     new THREE.MeshLambertMaterial({
       map: this.textureLoader.load('resources/diceroll/images/d6/2.png'),
       transparent: true,
-      depthTest: false,
     }),
     new THREE.MeshLambertMaterial({
       map: this.textureLoader.load('resources/diceroll/images/d6/5.png'),
       transparent: true,
-      depthTest: false,
     }),
     new THREE.MeshLambertMaterial({
       map: this.textureLoader.load('resources/diceroll/images/d6/3.png'),
       transparent: true,
-      depthTest: false,
     }),
     new THREE.MeshLambertMaterial({
       map: this.textureLoader.load('resources/diceroll/images/d6/4.png'),
       transparent: true,
-      depthTest: false,
     }),
   ];
   mesh = new THREE.Mesh(this.geometry, this.material);
@@ -100,6 +94,7 @@ export class D6 implements Die {
       ) {
         this.isStatic = true;
         this.body.collisionFilterGroup = CollisionFilterGroup.DICE_STATIC;
+        this.material.map(m=>m.depthTest = false);
       }
     }
     else {
