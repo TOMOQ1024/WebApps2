@@ -1,13 +1,10 @@
 import { Parse } from "@/src/parser/Main";
-import { useEffect, useRef } from "react";
 import CDCore from "../CompDynamCore";
 import { PresetExpressions } from "../Definitions";
 
 export default function PresetSelector({core}: {
   core: CDCore;
 }) {
-  const ref = useRef<HTMLElement>(null);
-
   function HandleClick(i: number){
     const expr = PresetExpressions[i];
     // テキストの解析
@@ -16,7 +13,7 @@ export default function PresetSelector({core}: {
     const ctl = document.getElementById('controls')!
     if(result.status){
       ctl.className = ctl.className.replace(/(?:in)?valid/, 'valid');
-      core.setExpression(expr);
+      core.expr = expr;
       core.func = result.cstack.tocdgl(result.cstack.root);
       core.init();
     }

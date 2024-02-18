@@ -1,8 +1,8 @@
+import MouseMgr from "@/src/MouseMgr";
+import TouchMgr from "@/src/TouchMgr";
 import { RenderingMode } from "./Definitions";
 import GLMgr from "./GLMgr";
 import Graph from "./Graph";
-import MouseMgr from "./Mouse";
-import TouchMgr from "./Touch";
 
 export default class CDCore {
   mMgr = new MouseMgr();
@@ -10,6 +10,8 @@ export default class CDCore {
   graph = new Graph();
   glmgr = new GLMgr(this);
   iter: number = 100;
+  z0: string = 'c';
+  z0expr: string = 'c';
   func: string = 'z = csq(z) - vec2(.6, .42);';
   expr: string = 'z^2-0.6-0.42i';
   resFactor: number = 1;
@@ -19,10 +21,6 @@ export default class CDCore {
     await this.glmgr.init();
     this.glmgr.updateGraphUniform();
     this.resizeCanvas();
-  }
-
-  setExpression(s: string) {
-    this.expr = s;
   }
 
   setIter(i: number) {

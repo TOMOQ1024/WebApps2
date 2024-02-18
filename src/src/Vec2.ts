@@ -1,6 +1,10 @@
 export default class Vec2 {
   constructor(public x=0, public y=0) { }
 
+  get elem(){
+    return [this.x, this.y];
+  }
+
   static copy(v: Vec2) {
     return new Vec2(v.x, v.y);
   }
