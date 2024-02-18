@@ -1,4 +1,5 @@
 import Obj from "../objects/Object";
+import Vec2 from "../Vec2";
 import Vec3 from "../Vec3";
 import CreateGLShaders from "./CreateGLShaders";
 import { VBO } from "./VBO";
@@ -7,15 +8,27 @@ export default class GLMgrBase {
   cvs: HTMLCanvasElement|null = null;
   gl: WebGLRenderingContext|null = null;
   program: WebGLProgram|null = null;
-  createShaders = CreateGLShaders;
+  createShaders: Function;
   uniLoc: {[Key:string]:WebGLUniformLocation | null} = {};
   vao_ext: OES_vertex_array_object | null = null;
-  VAOs: WebGLVertexArrayObjectOES[] = [];
+  VAOs: {
+    vao: WebGLVertexArrayObjectOES,
+    indices: number[]
+  }[] = [];
   lightPosition = new Vec3(4.0, 0.0, 0.0);
   lightDirection = new Vec3(-0.3, 0.5, 0.7).normalized();
   ambientColor = [0.1, 0.1, 0.1, 1.0];
 
-  constructor () {}
+  constructor (options?: {
+    createShaders: Function
+  }) {
+    if (options) {
+      this.createShaders = options.createShaders;
+    }
+    else {
+      this.createShaders = CreateGLShaders;
+    }
+  }
   
   async _init (name: string) {
     this.cvs = document.getElementById('cvs') as HTMLCanvasElement;
@@ -55,20 +68,32 @@ export default class GLMgrBase {
   }
 
   pushVAO (obj: Obj) {
-    const i = this.VAOs.push(this.vao_ext!.createVertexArrayOES()!) - 1;
-    this.vao_ext!.bindVertexArrayOES(this.VAOs[i]);
+    const vao = this.vao_ext!.createVertexArrayOES()!;
+    const i = this.VAOs.push({
+      vao: vao,
+      indices: obj.index,
+    }) - 1;
+    this.vao_ext!.bindVertexArrayOES(vao);
 
-    let pVBO = new VBO(this, 'aPosition', 3, obj.position);
-    pVBO.enable();
+    if (obj.position.length) {
+      let pVBO = new VBO(this, 'aPosition', obj.dim, obj.position);
+      pVBO.enable();
+    }
     
-    let nVBO = new VBO(this, 'aNormal', 3, obj.normal);
-    nVBO.enable();
+    if (obj.normal.length) {
+      let nVBO = new VBO(this, 'aNormal', 3, obj.normal);
+      nVBO.enable();
+    }
 
-    let cVBO = new VBO(this, 'aColor', 4, obj.color);
-    cVBO.enable();
+    if (obj.color.length) {
+      let cVBO = new VBO(this, 'aColor', 4, obj.color);
+      cVBO.enable();
+    }
 
-    let tVBO = new VBO(this, 'aTexCoord', 2, obj.texCoord);
-    tVBO.enable();
+    if (obj.texCoord.length) {
+      let tVBO = new VBO(this, 'aTexCoord', 2, obj.texCoord);
+      tVBO.enable();
+    }
 
     // IBO
     let indexBuffer = this.gl!.createBuffer();
@@ -80,7 +105,19 @@ export default class GLMgrBase {
     this.uniLoc[name] = this.gl!.getUniformLocation(this.program!, name)!;
   }
 
-  setUniformV3 (name: string, v: Vec3) {
+  setUniform1F (name: string, v: number) {
+    this.gl!.uniform1f(this.uniLoc[name], v);
+  }
+
+  setUniform2F (name: string, v1: number, v2: number) {
+    this.gl!.uniform2f(this.uniLoc[name], v1, v2);
+  }
+
+  setUniform2FV (name: string, v: Vec2) {
+    this.gl!.uniform2fv(this.uniLoc[name], v.elem);
+  }
+
+  setUniform3FV (name: string, v: Vec3) {
     this.gl!.uniform3fv(this.uniLoc[name], v.elem);
   }
 }

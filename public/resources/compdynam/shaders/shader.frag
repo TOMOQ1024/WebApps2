@@ -120,17 +120,13 @@ vec3 hsv2rgb(float h, float s, float v) {
   // return ((clamp(abs(fract(h+vec4(0.,2.,1.,1.)/3.)*6.-3.)-1.,0.,1.)-1.)*s+1.)*v;
 }
 
-vec2 compdynam(vec2 z0) {
-  // int i;
-  vec2 z = vec2(z0.x, z0.y);
+vec2 compdynam(vec2 C) {
+  vec2 c = vec2(C);
+  vec2 z = c/* input z0 here */;
 
   for(int i=0; i<1/* input iter here */; i++) {
-    // z = csq(z) - vec2(.6, .42);
-    // z = cexp(csin(z)+vec2(.01, .2));
-    // z = ccos(z) + csin(z);
-    // z = cprod(cprod(z, z), z) + vec2(.54, .2);
     z = z/* input func here */;
-    // z = cpow(z,(vec2(2.,0.)))-vec2(0.6, 0.)-vec2(0., .42);
+    // if (40. < abs(log(length(z)))) break;
   }
   return z;
 }
@@ -138,9 +134,8 @@ vec2 compdynam(vec2 z0) {
 void main ()
 {
   vec2 z0 = vPosition * uResolution / min(uResolution.x, uResolution.y) * uGraph.radius - uGraph.origin;
-  // vec2 z0 = vPosition * 2. - uGraph.origin;
-  // vec2 z0 = vPosition;
   vec2 a = compdynam(z0);
+
 	/* delete if mode is not hsv */gl_FragColor = vec4(hsv2rgb(atan(a.y, a.x)/2./PI+1., 1., pow(1./(1.+length(a)), .1)), 1.);
 	/* delete if mode is not grayscale */gl_FragColor = vec4(hsv2rgb(0., 0., pow(1./(1.+length(a)), .1) * (1.+sin(atan(a.y, a.x)*2.))/2.), 1.);
 }

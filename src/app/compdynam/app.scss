@@ -38,7 +38,7 @@
     }
     &.max {
       width: 300px;
-      height: 140px;
+      height: 150px;
       & #button-controls svg {
         rotate: 210deg;
       }
@@ -156,6 +156,11 @@
             font-size: medium;
             padding: 2px;
             width: 120px;
+          }
+        }
+        #z0-display {
+          #z0-input {
+            min-width: 70%;
           }
         }
         #func-display {

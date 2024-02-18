@@ -6,10 +6,14 @@ export default function Render (this: GLMgr) {
   this.gl!.clear (this.gl!.COLOR_BUFFER_BIT | this.gl!.DEPTH_BUFFER_BIT);
   this.gl!.viewport(0, 0, this.gl!.canvas.width, this.gl!.canvas.height);
 
-  this.vao_ext!.bindVertexArrayOES(this.vao);
+  for (let i=0; i<this.VAOs.length; i++) {
+    const vao = this.VAOs[i];
+    this.vao_ext!.bindVertexArrayOES(vao.vao);
+
+    // 描画
+    this.gl!.drawElements(this.gl!.TRIANGLES, vao.indices.length, this.gl!.UNSIGNED_INT, 0);
+  }
   
-  // 描画
-  this.gl!.drawElements(this.gl!.TRIANGLES, this.indices.length, this.gl!.UNSIGNED_INT, 0);
   
   // コンテキストの再描画
   this.gl!.flush();
