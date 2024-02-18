@@ -17,11 +17,13 @@ export default async function CreateShaders(gl: WebGLRenderingContext, program: 
     gl.compileShader(vs);
     gl.compileShader (fs);
 
-    console.log('vert compiled successfully: ' + gl.getShaderParameter(vs, gl.COMPILE_STATUS));
-    console.log('Shader compiler log:\n' + gl.getShaderInfoLog(vs));
+    if(!gl.getShaderParameter(vs, gl.COMPILE_STATUS)) {
+      console.log('Failed to compile vert shader.\nLog:\n' + gl.getShaderInfoLog(vs));
+    }
 
-    console.log('frag compiled successfully: ' + gl.getShaderParameter(fs, gl.COMPILE_STATUS));
-    console.log('Shader compiler log:\n' + gl.getShaderInfoLog(fs));
+    if(!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) {
+      console.log('Failed to compile frag shader.\nLog:\n' + gl.getShaderInfoLog(fs));
+    }
 
     // WebGLProgramとシェーダをリンク
     gl.attachShader(program, vs);

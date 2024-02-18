@@ -34,6 +34,15 @@ export default function Home() {
       <AppCard
         name='CompDynam'
       />
+      <AppCard
+        name='RayMarching'
+      />
+      <AppCard
+        name='Chaos Game'
+      />
+      <AppCard
+        name='DiceRoll'
+      />
     </main>
   )
 }

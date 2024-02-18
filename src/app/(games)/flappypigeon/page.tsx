@@ -1,6 +1,6 @@
 "use client";
 import MainCanvas from "@/components/maincanvas";
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { Game } from "./Game";
 import Render from "./Render/Render";
 import Update from "./Update";
@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { Params } from "./Params";
 
 
-export default function Main(){
+function _Main(){
   const searchParams = useSearchParams();
   if(searchParams)Params.get(searchParams.get);
 
@@ -19,10 +19,9 @@ export default function Main(){
     const GameLoop = () => {
       Update(game);
       Render(game);
-      // requestAnimationFrame(GameLoop);
-      setTimeout(GameLoop, 1000/Params.FRAMERATE);
     }
-    GameLoop();
+
+    const interval = setInterval(GameLoop, 1000/Params.FRAMERATE);
 
     const KeyDown = (keyName: string) => game.keyDown(keyName);
     const KeyUp = (keyName: string) => game.keyUp(keyName);
@@ -41,6 +40,7 @@ export default function Main(){
     document.addEventListener('touchstart', HandleTouchStart);
     document.addEventListener('touchend', HandleTouchEnd);
     return () => {
+      clearInterval(interval);
       document.removeEventListener('keydown', HandleKeyDown);
       document.removeEventListener('keyup', HandleKeyUp);
       document.removeEventListener('mousedown', HandleMouseDown);
@@ -68,5 +68,13 @@ export default function Main(){
         }}
       >操作：ANY KEY</div>
     </main>
+  )
+}
+
+export default function Main () {
+  return (
+    <Suspense>
+      <_Main/>
+    </Suspense>
   )
 }
