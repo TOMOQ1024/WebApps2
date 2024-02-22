@@ -64,7 +64,9 @@ export default class GLMgrBase {
     this.gl.depthFunc(this.gl.LEQUAL);
     // ブレンディングの設定
     this.gl.blendEquation(this.gl.FUNC_ADD);
-    this.gl.blendFuncSeparate(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA, this.gl.ONE, this.gl.ONE)
+    this.gl.blendFuncSeparate(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA, this.gl.ONE, this.gl.ONE);
+
+    this.VAOs = [];
   }
 
   pushVAO (obj: Obj) {
