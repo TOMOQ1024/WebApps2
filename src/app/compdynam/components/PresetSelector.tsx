@@ -13,6 +13,8 @@ export default function PresetSelector({core}: {
     const ctl = document.getElementById('controls')!
     if(result.status){
       ctl.className = ctl.className.replace(/(?:in)?valid/, 'valid');
+      core.z0expr = 'c';
+      core.z0 = 'c';
       core.expr = expr;
       core.func = result.cstack.tocdgl(result.cstack.root);
       core.init();
