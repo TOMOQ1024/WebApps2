@@ -21,6 +21,14 @@ vec2 p2d(float x, float y) {
   return max(x, 1e-38) * vec2(cos(y), sin(y));
 }
 
+vec2 cre(vec2 z) {
+  return vec2(z.x, 0.);
+}
+
+vec2 cim(vec2 z) {
+  return vec2(z.y, 0.);
+}
+
 vec2 cexp(vec2 z) {
   return p2d(exp(z.x), z.y);
 }
@@ -55,6 +63,7 @@ float sinh(float x) {
 }
 
 vec2 cpow(vec2 z, vec2 w) {
+  if (length(z) == 0.) return vec2(0., 0.);
   vec2 Z = d2p(z);
   return cprod(p2d(pow(Z.x,w.x), Z.y*w.x), p2d(cosh(Z.y*w.y) - sinh(Z.y*w.y), w.y*log(Z.x)));
 }
