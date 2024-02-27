@@ -63,6 +63,7 @@ float sinh(float x) {
 }
 
 vec2 cpow(vec2 z, vec2 w) {
+  if (length(z) == 0.) return vec2(0., 0.);
   vec2 Z = d2p(z);
   return cprod(p2d(pow(Z.x,w.x), Z.y*w.x), p2d(cosh(Z.y*w.y) - sinh(Z.y*w.y), w.y*log(Z.x)));
 }
