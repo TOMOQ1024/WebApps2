@@ -1,6 +1,9 @@
 export enum FuncName {
   NIL = '',
 
+  REP = 'Re',
+  IMP = 'Im',
+  COJ = 'conj',
   COH = 'cosh',
   SIH = 'sinh',
   TAH = 'tanh',
