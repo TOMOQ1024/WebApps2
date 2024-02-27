@@ -21,6 +21,14 @@ vec2 p2d(float x, float y) {
   return max(x, 1e-38) * vec2(cos(y), sin(y));
 }
 
+vec2 cre(vec2 z) {
+  return vec2(z.x, 0.);
+}
+
+vec2 cim(vec2 z) {
+  return vec2(z.y, 0.);
+}
+
 vec2 cexp(vec2 z) {
   return p2d(exp(z.x), z.y);
 }

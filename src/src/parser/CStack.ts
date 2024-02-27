@@ -130,6 +130,9 @@ export class CStack {
       case BNodeKind.FNC:
         switch(node.val){
           case FuncName.NIL: return `${fn}(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
+          case FuncName.REP: return `cre(${this.tocdgl(node.lhs)})`;
+          case FuncName.IMP: return `cim(${this.tocdgl(node.lhs)})`;
+          case FuncName.COJ: return `cconj(${this.tocdgl(node.lhs)})`;
           case FuncName.COH: return `ccosh(${this.tocdgl(node.lhs)})`;
           case FuncName.SIH: return `csinh(${this.tocdgl(node.lhs)})`;
           case FuncName.TAH: return `ctanh(${this.tocdgl(node.lhs)})`;
