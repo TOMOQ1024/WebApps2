@@ -124,6 +124,10 @@ vec2 ccbrt(vec2 z) {
   return cpow(z, vec2(1./3., 0.));
 }
 
+vec2 cmix(vec2 z, vec2 w, vec2 t) {
+  return mix(z, w, t.x);
+}
+
 vec3 hsv2rgb(float h, float s, float v) {
   return ((clamp(abs(fract(h+vec3(0,2,1)/3.)*6.-3.)-1.,0.,1.)-1.)*s+1.)*v;
   // return ((clamp(abs(fract(h+vec4(0.,2.,1.,1.)/3.)*6.-3.)-1.,0.,1.)-1.)*s+1.)*v;

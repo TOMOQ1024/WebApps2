@@ -173,6 +173,7 @@ export default function FuncEditor({core}: {
           contentEditable
           suppressContentEditableWarning
           onInput={e=>HandleFuncInput(e as unknown as InputEvent)}
+          onClick={e=>HandleFuncInput(e as unknown as InputEvent)}
           onPaste={e=>HandlePaste(e as unknown as ClipboardEvent)}
         >
           {core.expr}
