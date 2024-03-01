@@ -29,6 +29,7 @@ export default function PixiTemplate() {
         t += delta * 5e-2;
         bunny.rotation += Math.sin(t)/4;
     });
+
   }, []);
   return (
     <div id='pixi-wrapper'></div>
