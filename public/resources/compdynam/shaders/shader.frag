@@ -153,7 +153,7 @@ void main ()
 
   if (false/* input boolean of nessy here */) {
     vec2 A = (a*3.+1.)/2.;
-    gl_FragColor = length(a)<2. ? texture2D(uImage0, vec2(A.x, -A.y)) : vec4(0., 0., 0., 1.);
+    gl_FragColor = length(a)<1e20 ? texture2D(uImage0, vec2(A.x, -A.y)) : vec4(0., 0., 0., 1.);
   }
   else {
     /* delete if mode is not hsv */gl_FragColor = vec4(hsv2rgb(atan(a.y, a.x)/2./PI+1., 1., pow(1./(1.+length(a)), .1)), 1.);
