@@ -20,6 +20,8 @@ export default class Core {
   async init () {
     this.player.ctrlAllowed = true;
     const titleScene = new TitleScene(this);
+    await this.assetLoader.load();
+    this.threeMgr.addFC();
     await titleScene.init();
     this.sceneMgr.addScene('title', titleScene);
     this.sceneMgr.setScene('title');

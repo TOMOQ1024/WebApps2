@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import Core from "./Core";
 import Map from "./Map";
 
@@ -6,6 +7,11 @@ type MapData = {
 }
 
 export default class AssetLoader {
+  assets: {
+    [key:string]: THREE.Texture
+  } = {};
+  loader = new THREE.TextureLoader();
+
   constructor (
     public core: Core
   ) {
@@ -29,5 +35,22 @@ export default class AssetLoader {
     }
 
     return new Map(this.core, w, h, map);
+  }
+
+  setAsset (name: string, filename: string, repeatX: number, repeatY: number) {
+    this.assets[name] = this.loader.load(`resources/untitled/images/${filename}`);
+    this.assets[name].minFilter = THREE.NearestFilter;
+    this.assets[name].magFilter = THREE.NearestFilter;
+    this.assets[name].repeat.x = repeatX;
+    this.assets[name].repeat.y = repeatY;
+    this.assets[name].wrapS = THREE.RepeatWrapping;
+    this.assets[name].wrapT = THREE.RepeatWrapping;
+  }
+
+  async load () {
+    this.setAsset('wall', 'tile-blue.png', 1, 2);
+    this.setAsset('ceil', 'tile-blue.png', 51, 51);
+    this.setAsset('floor', 'tile-blue.png', 51, 51);
+    this.setAsset('gate', 'tile-blue-tiny.png', 2, 1);
   }
 }

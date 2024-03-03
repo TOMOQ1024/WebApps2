@@ -6,11 +6,9 @@ export default class ThreeMgr {
   camera: THREE.PerspectiveCamera;
   scene: THREE.Scene;
   cvs: HTMLCanvasElement;
-  floorMesh: THREE.Mesh;
-  ceilMesh: THREE.Mesh;
   textureLoader = new THREE.TextureLoader();
 
-  constructor (public parent: Core) {
+  constructor (public core: Core) {
     this.cvs = document.getElementById('cvs') as HTMLCanvasElement;
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(
@@ -28,33 +26,39 @@ export default class ThreeMgr {
     this.renderer.setSize(this.cvs.width, this.cvs.height);
     this.renderer.setPixelRatio(devicePixelRatio);
 
-    const ambientLight = new THREE.AmbientLight();
+    const ambientLight = new THREE.AmbientLight('white', 1);
     this.scene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight();
-    directionalLight.position.set(.3, 1., .3).normalize();
+    const directionalLight = new THREE.DirectionalLight('#eef', .3);
+    directionalLight.position.set(.3, 1., .7).normalize();
     directionalLight.castShadow = true;
     this.scene.add(directionalLight);
+  }
 
-    this.floorMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(30, 30),
-      new THREE.MeshLambertMaterial({color: '#004400'}),
+  addFC () {
+    const floorMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(51, 51),
+      new THREE.MeshLambertMaterial({
+        map: this.core.assetLoader.assets.floor
+      }),
     );
-    this.floorMesh.rotateX(-Math.PI/2);
-    this.floorMesh.translateZ(-1);
-    this.scene.add(this.floorMesh);
+    floorMesh.rotateX(-Math.PI/2);
+    floorMesh.translateZ(-1);
+    this.scene.add(floorMesh);
 
-    this.ceilMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(30, 30),
-      new THREE.MeshLambertMaterial({color: '#440000'}),
+    const ceilMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(51, 51),
+      new THREE.MeshLambertMaterial({
+        map: this.core.assetLoader.assets.ceil
+      }),
     );
-    this.ceilMesh.rotateX(+Math.PI/2);
-    this.ceilMesh.translateZ(-1);
-    this.scene.add(this.ceilMesh);
+    ceilMesh.rotateX(+Math.PI/2);
+    ceilMesh.translateZ(-1);
+    this.scene.add(ceilMesh);
   }
 
   update (dt: number) {
-    this.camera.position.copy(this.parent.player.pos);
-    this.camera.quaternion.copy(this.parent.player.qua);
+    this.camera.position.copy(this.core.player.pos);
+    this.camera.quaternion.copy(this.core.player.qua);
   }
 
   render () {

@@ -8,7 +8,7 @@ export default class Player {
   ang: THREE.Vector2;
   dag: THREE.Vector2;
   ctrlAllowed = false;
-  spd = 1e-3;
+  spd = 3e-3;
   ash = 7e-4;
   asv = 7e-4;
 

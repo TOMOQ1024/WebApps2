@@ -27,13 +27,17 @@ export default class Map {
         const W = parseInt(d[0], 16);
         for (let i=0; i<4; i++) {
           if (W & (1<<i)) {
-            geometry = new THREE.BoxGeometry(1, 2, .1);
-            material = new THREE.MeshLambertMaterial();
+            geometry = new THREE.BoxGeometry(0, 2, 1);
+            material = new THREE.MeshLambertMaterial({
+              map: core.assetLoader.assets.wall,
+            });
             mesh = new THREE.Mesh(geometry, material);
             mesh.rotateY(Math.PI/2*i);
-            // mesh.quaternion.setFromEuler(new THREE.Euler(0, Math.PI/2*i, 0));
-            mesh.translateX(Math.cos(Math.PI/2*i)/2);
-            mesh.translateZ(Math.sin(Math.PI/2*i)/2);
+            mesh.position.set(
+              x + Math.cos(Math.PI/2*i)/2,
+              0,
+              y + Math.sin(Math.PI/2*i)/2
+            )
             meshes.push(mesh);
           }
         }
