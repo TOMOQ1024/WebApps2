@@ -16,6 +16,7 @@ export default class CDCore {
   expr: string = 'z^2-0.6-0.42i';
   resFactor: number = 1;
   renderingMode: RenderingMode = RenderingMode.HSV;
+  nessyMode = false;
 
   async init() {
     await this.glmgr.init();

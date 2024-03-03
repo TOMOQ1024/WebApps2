@@ -4,12 +4,20 @@ import Vec2 from "@/src/Vec2";
 import CDCore from "../CompDynamCore";
 import Controls from "./Controls";
 import GraphWrapper from "./GraphWrapper";
+import { useSearchParams } from "next/navigation";
 
 export default function MainWrapper() {
+  const searchParams = useSearchParams();
   const [core, setCore] = useState(new CDCore());
   useEffect(() => {(async()=>{
+    if (searchParams) {
+      let v = searchParams.get('nessy');
+      if (v !== null) {
+        core.nessyMode = true;
+      }
+    }
     await core.init();
-
+    
     const onKeyDown = (e:KeyboardEvent) => {
       // フルスクリーン切り替え
       if(e.key === 'f' && !e.shiftKey && !e.metaKey){
@@ -203,7 +211,7 @@ export default function MainWrapper() {
       // document.removeEventListener('touchend', onTouchEnd);
       window.removeEventListener('resize', onResize);
     }
-  })();}, [core]);
+  })();}, [core, searchParams]);
   
   return (
     <main id='main-wrapper'>
