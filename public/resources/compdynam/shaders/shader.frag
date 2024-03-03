@@ -8,6 +8,7 @@ struct Graph {
   float radius;
 };
 uniform Graph uGraph;
+uniform sampler2D uImage0;
 
 vec2 d2p(vec2 z) {
   return vec2(length(z), atan(z.y, z.x));
@@ -124,6 +125,10 @@ vec2 ccbrt(vec2 z) {
   return cpow(z, vec2(1./3., 0.));
 }
 
+vec2 cmix(vec2 z, vec2 w, vec2 t) {
+  return mix(z, w, t.x);
+}
+
 vec3 hsv2rgb(float h, float s, float v) {
   return ((clamp(abs(fract(h+vec3(0,2,1)/3.)*6.-3.)-1.,0.,1.)-1.)*s+1.)*v;
   // return ((clamp(abs(fract(h+vec4(0.,2.,1.,1.)/3.)*6.-3.)-1.,0.,1.)-1.)*s+1.)*v;
@@ -145,6 +150,13 @@ void main ()
   vec2 z0 = vPosition * uResolution / min(uResolution.x, uResolution.y) * uGraph.radius - uGraph.origin;
   vec2 a = compdynam(z0);
 
-	/* delete if mode is not hsv */gl_FragColor = vec4(hsv2rgb(atan(a.y, a.x)/2./PI+1., 1., pow(1./(1.+length(a)), .1)), 1.);
-	/* delete if mode is not grayscale */gl_FragColor = vec4(hsv2rgb(0., 0., pow(1./(1.+length(a)), .1) * (1.+sin(atan(a.y, a.x)*2.))/2.), 1.);
+
+  if (false/* input boolean of nessy here */) {
+    vec2 A = (a*3.+1.)/2.;
+    gl_FragColor = length(a)<2. ? texture2D(uImage0, vec2(A.x, -A.y)) : vec4(0., 0., 0., 1.);
+  }
+  else {
+    /* delete if mode is not hsv */gl_FragColor = vec4(hsv2rgb(atan(a.y, a.x)/2./PI+1., 1., pow(1./(1.+length(a)), .1)), 1.);
+    /* delete if mode is not grayscale */gl_FragColor = vec4(hsv2rgb(0., 0., pow(1./(1.+length(a)), .1) * (1.+sin(atan(a.y, a.x)*2.))/2.), 1.);
+  }
 }
