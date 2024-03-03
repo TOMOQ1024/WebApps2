@@ -1,12 +1,12 @@
 "use client"
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Vec2 from "@/src/Vec2";
 import CDCore from "../CompDynamCore";
 import Controls from "./Controls";
 import GraphWrapper from "./GraphWrapper";
 import { useSearchParams } from "next/navigation";
 
-export default function MainWrapper() {
+function _MainWrapper() {
   const searchParams = useSearchParams();
   const [core, setCore] = useState(new CDCore());
   useEffect(() => {(async()=>{
@@ -219,4 +219,12 @@ export default function MainWrapper() {
       <Controls core={core}/>
     </main>
   );
+}
+
+export default function MainWrapper () {
+  return (
+    <Suspense>
+      <_MainWrapper/>
+    </Suspense>
+  )
 }
