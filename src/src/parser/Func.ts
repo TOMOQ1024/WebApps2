@@ -22,6 +22,7 @@ export enum FuncName {
 
   MAX = 'max',
   MIN = 'min',
+  MIX = 'mix',
   MED = 'median',
   AVG = 'avg',
 }

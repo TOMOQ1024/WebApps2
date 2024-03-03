@@ -3,6 +3,7 @@ import CDCore from "./CompDynamCore";
 import GLMgrBase from "@/src/WebGL/GLMgrBase";
 import Obj from "@/src/objects/Object";
 import CreateShaders from "./CreateShaders";
+import loadImage from "./Image";
 
 export default class GLMgr extends GLMgrBase {
   render = Render;
@@ -29,6 +30,19 @@ export default class GLMgr extends GLMgrBase {
     super.addUniform('uResolution');
     super.addUniform('uGraph.origin');
     super.addUniform('uGraph.radius');
+
+    let img0 = await loadImage('/resources/compdynam/images/nessy.png');
+    let tex0 = this.gl!.createTexture();
+    this.gl!.bindTexture(this.gl!.TEXTURE_2D, tex0);
+    this.gl!.texParameteri(this.gl!.TEXTURE_2D, this.gl!.TEXTURE_MAG_FILTER, this.gl!.NEAREST);
+    this.gl!.texParameteri(this.gl!.TEXTURE_2D, this.gl!.TEXTURE_MIN_FILTER, this.gl!.NEAREST);
+    this.gl!.texImage2D(this.gl!.TEXTURE_2D, 0, this.gl!.RGBA, this.gl!.RGBA, this.gl!.UNSIGNED_BYTE, img0);
+    this.gl!.generateMipmap(this.gl!.TEXTURE_2D);
+    this.gl!.bindTexture(this.gl!.TEXTURE_2D, null);
+    this.uniLoc.tex0 = this.gl!.getUniformLocation(this.program!, "uImage0");
+    this.gl!.activeTexture(this.gl!.TEXTURE0);
+    this.gl!.bindTexture(this.gl!.TEXTURE_2D, tex0);
+    this.gl!.uniform1i(this.uniLoc.tex0, 0);
   }
 
   updateGraphUniform() {
