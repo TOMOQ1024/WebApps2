@@ -38,6 +38,8 @@ export default class Player {
       if(this.parent.keys.arrowright) this.rotateR(dt);
       if(this.parent.keys.arrowup) this.rotateU(dt);
       if(this.parent.keys.arrowdown) this.rotateD(dt);
+      this.rotateR(this.parent.mouseMovement.x*6);
+      this.rotateD(this.parent.mouseMovement.y*6);
 
       const qx = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.ang.x);
       this.qua.set(0, 0, 0, 1)

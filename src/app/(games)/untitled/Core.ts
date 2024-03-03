@@ -13,6 +13,7 @@ export default class Core {
   interval: NodeJS.Timer|null = null;
   player = new Player(this);
   keys: {[Key:string]: number} = {};
+  mouseMovement = {x: 0, y: 0};
 
   constructor () { }
   
@@ -41,5 +42,8 @@ export default class Core {
     this.sceneMgr.update();
     this.threeMgr.update(1000/60);
     this.threeMgr.render();
+
+    this.mouseMovement.x = 0;
+    this.mouseMovement.y = 0;
   }
 }
