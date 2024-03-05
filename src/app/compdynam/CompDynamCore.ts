@@ -17,11 +17,28 @@ export default class CDCore {
   resFactor: number = 1;
   renderingMode: RenderingMode = RenderingMode.HSV;
   nessyMode = false;
+  interval: NodeJS.Timer | null = null;
 
   async init() {
     await this.glmgr.init();
     this.glmgr.updateGraphUniform();
     this.resizeCanvas();
+  }
+
+  beginLoop () {
+    this.interval = setInterval(() => {
+      this.loop();
+    }, 50);
+  }
+
+  endLoop () {
+    if (!this.interval) return;
+    clearInterval(this.interval);
+  }
+
+  loop () {
+    this.glmgr.updateTimeUniform();
+    // this.glmgr.render();
   }
 
   setIter(i: number) {

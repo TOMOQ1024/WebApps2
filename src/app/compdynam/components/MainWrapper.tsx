@@ -17,6 +17,7 @@ function _MainWrapper() {
       }
     }
     await core.init();
+    core.beginLoop();
     
     const onKeyDown = (e:KeyboardEvent) => {
       // フルスクリーン切り替え
@@ -201,6 +202,8 @@ function _MainWrapper() {
     // document.addEventListener('touchend', onTouchEnd, {passive: false});
     window.addEventListener('resize', onResize);
     return () => {
+      core.endLoop();
+      console.log('e');
       document.removeEventListener('keydown', onKeyDown);
       core.glmgr.cvs!.removeEventListener('wheel', onWheel);
       document.removeEventListener('mousedown', onMouseDown);
