@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Reflector } from 'three/examples/jsm/Addons';
 import Core from './Core';
 
 export default class Map {
@@ -24,33 +25,64 @@ export default class Map {
         let material: THREE.Material;
         let mesh: THREE.Mesh;
         let meshes: THREE.Mesh[] = [];
-        const W = parseInt(d[0], 16);
+        let W = parseInt(d[0], 16);
         for (let i=0; i<4; i++) {
           if (W & (1<<i)) {
-            geometry = new THREE.BoxGeometry(0, 2, 1);
+            geometry = new THREE.PlaneGeometry(1, 2);
             material = new THREE.MeshLambertMaterial({
               map: core.assetLoader.assets.wall,
             });
             mesh = new THREE.Mesh(geometry, material);
-            mesh.rotateY(Math.PI/2*i);
+            mesh.rotateY(-Math.PI/2*(i+1));
             mesh.position.set(
               x + Math.cos(Math.PI/2*i)/2,
               0,
               y + Math.sin(Math.PI/2*i)/2
-            )
+            );
             meshes.push(mesh);
           }
         }
-        for (let i=1 ;i<d.length; i++) {
-          if (/^W/.test(d[i])) {
-            geometry = new THREE.BoxGeometry(1, 2, .1);
+        for (let j=1 ;j<d.length;) {
+          d = data[y][x].slice(j);
+          if (/^M[0-9A-F]/.test(d)) {
+            W = parseInt(d[1], 16);
+            for (let i=0; i<4; i++) {
+              if (W & (1<<i)) {
+                geometry = new THREE.PlaneGeometry(1, 2);
+                mesh = new Reflector(geometry, {
+                  clipBias: 0.003,
+                  color: new THREE.Color(0xcccccc),
+                  textureWidth: window.innerWidth * window.devicePixelRatio,
+                  textureHeight: window.innerHeight * window.devicePixelRatio,
+                });
+                mesh.rotateY(-Math.PI/2*(i+1));
+                mesh.position.set(
+                  x + Math.cos(Math.PI/2*i)/2,
+                  0,
+                  y + Math.sin(Math.PI/2*i)/2
+                );
+                meshes.push(mesh);
+              }
+            }
+            j += 2;
+            continue;
+          }
+          if (/^I/.test(d)) {
+            geometry = new THREE.IcosahedronGeometry(.2, 0);
             material = new THREE.MeshLambertMaterial();
             mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(
+              x,
+              -.5,
+              y
+            );
             meshes.push(mesh);
+            j += 1;
+            continue;
           }
-          else {
-            console.error(`Unexpected`);
-          }
+          console.error(`Unexpected`);
+          j += 1;
+          continue;
         }
         
         this.data[y].push({
