@@ -30,6 +30,7 @@ export default class GLMgr extends GLMgrBase {
     super.addUniform('uResolution');
     super.addUniform('uGraph.origin');
     super.addUniform('uGraph.radius');
+    super.addUniform('uTime');
 
     let img0 = await loadImage('/resources/compdynam/images/nessy.png');
     let tex0 = this.gl!.createTexture();
@@ -61,6 +62,13 @@ export default class GLMgr extends GLMgrBase {
       'uResolution',
       this.cvs!.width,
       this.cvs!.height
+    );
+  }
+
+  updateTimeUniform () {
+    super.setUniform1F(
+      'uTime',
+      performance.now() / 1000
     );
   }
 }
