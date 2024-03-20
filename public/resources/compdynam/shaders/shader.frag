@@ -3,6 +3,7 @@ const float PI = 3.14159265359;
 const float E = 2.71828182846;
 varying vec2 vPosition;
 uniform vec2 uResolution;
+uniform float uTime;
 struct Graph {
   vec2 origin;
   float radius;
@@ -152,7 +153,13 @@ void main ()
 
 
   if (false/* input boolean of nessy here */) {
-    vec2 A = (a*3.+1.)/2.;
+    // vec2 A = (a*3.+1.)/2. + uTime / 4.;
+    vec2 A0 = (a*3.+1.)/2.;
+    // vec2 A = vec2(
+    //   A0.x*cos(uTime) + A0.y*sin(uTime),
+    //   A0.x*sin(uTime) - A0.y*cos(uTime)
+    // );
+    vec2 A = A0;
     gl_FragColor = length(a)<1e20 ? texture2D(uImage0, vec2(A.x, -A.y)) : vec4(0., 0., 0., 1.);
   }
   else {

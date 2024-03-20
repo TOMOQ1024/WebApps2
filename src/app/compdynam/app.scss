@@ -10,6 +10,9 @@
       width: 100%;
     }
   }
+  * {
+    color: rgb(var(--foreground-rgb-dark));
+  }
   #controls {
     font-family: var(--font-mono);
     position: absolute;

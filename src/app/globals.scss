@@ -5,8 +5,13 @@
     'Roboto Mono', 'Oxygen Mono', 'Ubuntu Monospace', 'Source Code Pro',
     'Fira Mono', 'Droid Sans Mono', 'Courier New', monospace;
 
-  --foreground-rgb: 0, 0, 0;
-  --background-rgb: 214, 219, 220;
+  --foreground-rgb-light: 0, 0, 0;
+  --background-rgb-light: 214, 219, 220;
+  --foreground-rgb-dark: 255, 255, 255;
+  --background-rgb-dark: 20, 0, 30;
+
+  --foreground-rgb: var(--foreground-rgb-light);
+  --background-rgb: var(--background-rgb-light);
 
   --background-header: linear-gradient(180deg, #bbb, #fff, #eee, #ddd, #aaa);
 
@@ -45,8 +50,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-rgb: 20, 0, 30;
+    --foreground-rgb: var(--foreground-rgb-dark);
+    --background-rgb: var(--background-rgb-dark);
 
     --background-header: linear-gradient(180deg, #223, #112, #223, #334, #445);
 
