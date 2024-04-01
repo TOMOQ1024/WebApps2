@@ -1,5 +1,8 @@
 import AppCard from "@/components/appcard";
-import Link from "next/link";
+
+export const metadata = {
+  title: 'tomoq apps'
+};
 
 export default function Home() {
   return (
