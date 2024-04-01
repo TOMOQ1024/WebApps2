@@ -8,7 +8,7 @@ export default function Model() {
       
     })
   });
-  const gltf = useLoader(GLTFLoader, '/resources/diceroll/models/d4.glb');
+  const gltf = useLoader(GLTFLoader, '/models/8040001587529932248.vrm');
   return <primitive object={gltf.scene} />
 }
 

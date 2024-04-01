@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { VRM } from '@pixiv/three-vrm';
+import { VRM, VRMUtils } from '@pixiv/three-vrm';
 
 export class Avatar {
 
@@ -17,12 +17,12 @@ export class Avatar {
 
     if (this._vrm) {
       this._scene.remove(this._vrm.scene);
-      this._vrm.dispose();
+      VRMUtils.deepDispose(this._vrm.scene);
     }
 
     const loader = new GLTFLoader();
     const gltf = await loader.loadAsync(url);
-    const vrm = await VRM.from(gltf);
+    const vrm = gltf.userData.vrm;
     this._scene.add(vrm.scene);
     this._vrm = vrm;
   }
