@@ -3,11 +3,13 @@ const float PI = 3.14159265359;
 const float E = 2.71828182846;
 varying vec2 vPosition;
 uniform vec2 uResolution;
+uniform float uTime;
 struct Graph {
   vec2 origin;
   float radius;
 };
 uniform Graph uGraph;
+uniform sampler2D uImage0;
 
 vec2 d2p(vec2 z) {
   return vec2(length(z), atan(z.y, z.x));
@@ -19,6 +21,14 @@ vec2 p2d(vec2 z) {
 
 vec2 p2d(float x, float y) {
   return max(x, 1e-38) * vec2(cos(y), sin(y));
+}
+
+vec2 cre(vec2 z) {
+  return vec2(z.x, 0.);
+}
+
+vec2 cim(vec2 z) {
+  return vec2(z.y, 0.);
 }
 
 vec2 cexp(vec2 z) {
@@ -55,6 +65,7 @@ float sinh(float x) {
 }
 
 vec2 cpow(vec2 z, vec2 w) {
+  if (length(z) == 0.) return vec2(0., 0.);
   vec2 Z = d2p(z);
   return cprod(p2d(pow(Z.x,w.x), Z.y*w.x), p2d(cosh(Z.y*w.y) - sinh(Z.y*w.y), w.y*log(Z.x)));
 }
@@ -115,22 +126,22 @@ vec2 ccbrt(vec2 z) {
   return cpow(z, vec2(1./3., 0.));
 }
 
+vec2 cmix(vec2 z, vec2 w, vec2 t) {
+  return mix(z, w, t.x);
+}
+
 vec3 hsv2rgb(float h, float s, float v) {
   return ((clamp(abs(fract(h+vec3(0,2,1)/3.)*6.-3.)-1.,0.,1.)-1.)*s+1.)*v;
   // return ((clamp(abs(fract(h+vec4(0.,2.,1.,1.)/3.)*6.-3.)-1.,0.,1.)-1.)*s+1.)*v;
 }
 
-vec2 compdynam(vec2 z0) {
-  // int i;
-  vec2 z = vec2(z0.x, z0.y);
+vec2 compdynam(vec2 C) {
+  vec2 c = vec2(C);
+  vec2 z = c/* input z0 here */;
 
   for(int i=0; i<1/* input iter here */; i++) {
-    // z = csq(z) - vec2(.6, .42);
-    // z = cexp(csin(z)+vec2(.01, .2));
-    // z = ccos(z) + csin(z);
-    // z = cprod(cprod(z, z), z) + vec2(.54, .2);
     z = z/* input func here */;
-    // z = cpow(z,(vec2(2.,0.)))-vec2(0.6, 0.)-vec2(0., .42);
+    // if (40. < abs(log(length(z)))) break;
   }
   return z;
 }
@@ -138,9 +149,21 @@ vec2 compdynam(vec2 z0) {
 void main ()
 {
   vec2 z0 = vPosition * uResolution / min(uResolution.x, uResolution.y) * uGraph.radius - uGraph.origin;
-  // vec2 z0 = vPosition * 2. - uGraph.origin;
-  // vec2 z0 = vPosition;
   vec2 a = compdynam(z0);
-	/* delete if mode is not hsv */gl_FragColor = vec4(hsv2rgb(atan(a.y, a.x)/2./PI+1., 1., pow(1./(1.+length(a)), .1)), 1.);
-	/* delete if mode is not grayscale */gl_FragColor = vec4(hsv2rgb(0., 0., pow(1./(1.+length(a)), .1) * (1.+sin(atan(a.y, a.x)*2.))/2.), 1.);
+
+
+  if (false/* input boolean of nessy here */) {
+    // vec2 A = (a*3.+1.)/2. + uTime / 4.;
+    vec2 A0 = (a*3.+1.)/2.;
+    // vec2 A = vec2(
+    //   A0.x*cos(uTime) + A0.y*sin(uTime),
+    //   A0.x*sin(uTime) - A0.y*cos(uTime)
+    // );
+    vec2 A = A0;
+    gl_FragColor = length(a)<1e20 ? texture2D(uImage0, vec2(A.x, -A.y)) : vec4(0., 0., 0., 1.);
+  }
+  else {
+    /* delete if mode is not hsv */gl_FragColor = vec4(hsv2rgb(atan(a.y, a.x)/2./PI+1., 1., pow(1./(1.+length(a)), .1)), 1.);
+    /* delete if mode is not grayscale */gl_FragColor = vec4(hsv2rgb(0., 0., pow(1./(1.+length(a)), .1) * (1.+sin(atan(a.y, a.x)*2.))/2.), 1.);
+  }
 }

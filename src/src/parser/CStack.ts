@@ -129,7 +129,12 @@ export class CStack {
     switch(node.kind){
       case BNodeKind.FNC:
         switch(node.val){
-          case FuncName.NIL: return `${fn}(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
+          case FuncName.NIL: return fn
+          ? `${fn}(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`
+          : `${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)}`;
+          case FuncName.REP: return `cre(${this.tocdgl(node.lhs)})`;
+          case FuncName.IMP: return `cim(${this.tocdgl(node.lhs)})`;
+          case FuncName.COJ: return `cconj(${this.tocdgl(node.lhs)})`;
           case FuncName.COH: return `ccosh(${this.tocdgl(node.lhs)})`;
           case FuncName.SIH: return `csinh(${this.tocdgl(node.lhs)})`;
           case FuncName.TAH: return `ctanh(${this.tocdgl(node.lhs)})`;
@@ -147,6 +152,7 @@ export class CStack {
           case FuncName.EXP: return `cexp(${this.tocdgl(node.lhs)})`;
           case FuncName.MAX: return `max(${this.tocdgl(node.lhs,'max')},${this.tocdgl(node.rhs,'max')})`;
           case FuncName.MIN: return `min(${this.tocdgl(node.lhs,'min')},${this.tocdgl(node.rhs,'min')})`;
+          case FuncName.MIX: return `cmix(${this.tocdgl(node.lhs)},${this.tocdgl(node.rhs)})`;
           case FuncName.MED: throw new Error(`median関数は実装されていません`);
           case FuncName.AVG: throw new Error(`avg関数は実装されていません`);
         }

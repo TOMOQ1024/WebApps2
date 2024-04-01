@@ -1,6 +1,9 @@
 export enum FuncName {
   NIL = '',
 
+  REP = 'Re',
+  IMP = 'Im',
+  COJ = 'conj',
   COH = 'cosh',
   SIH = 'sinh',
   TAH = 'tanh',
@@ -19,6 +22,7 @@ export enum FuncName {
 
   MAX = 'max',
   MIN = 'min',
+  MIX = 'mix',
   MED = 'median',
   AVG = 'avg',
 }

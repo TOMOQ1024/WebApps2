@@ -6,6 +6,7 @@ export default function FuncEditor({core}: {
   core: CDCore;
 }) {
   const ref = useRef<HTMLElement>(null);
+  const ref2 = useRef<HTMLElement>(null);
 
   useEffect(()=>{
     function onKeyDown(e: KeyboardEvent) {
@@ -24,7 +25,7 @@ export default function FuncEditor({core}: {
   });
 
 
-  function HandleInput(e: InputEvent) {
+  function HandleZ0Input(e: InputEvent) {
     let textarea = e.target as HTMLSpanElement;
 
     // 現在のカーソルによる選択場所を記録
@@ -36,13 +37,61 @@ export default function FuncEditor({core}: {
     // テキストの解析
     let result = Parse(
       textarea.innerText,
-      ['z', 'i']
-      // gmgr.definedVariableNames.filter(
-      //   vn=>vn!==gmgr.expressions[exprno].statement.split('=')[0]
-      // )
+      ['i', 'c']
+    );
+    console.log(textarea.innerText);
+
+    const ctl = document.getElementById('controls')!;
+    let z0: string = '';
+    if(result.status){
+      try {
+        z0 = result.cstack.tocdgl(result.cstack.root);
+      }
+      catch(e) {
+        ctl.className = ctl.className.replace(/(?:in)?valid/, 'invalid');
+        console.error(e);
+        return;
+      }
+      ctl.className = ctl.className.replace(/(?:in)?valid/, 'valid');
+      core.z0 = z0;
+      core.z0expr = textarea.innerText;
+      core.init();
+    }
+    else {
+      ctl.className = ctl.className.replace(/(?:in)?valid/, 'invalid');
+    }
+
+    // 再描画が行われるため，カーソルの選択場所を復元する
+    setTimeout(()=>{
+      if(textarea.firstChild){
+        range.setStart(textarea.firstChild, so);
+        range.setEnd(textarea.firstChild, eo);
+      } else {
+        range.setStart(textarea, so);
+        range.setEnd(textarea, eo);
+      }
+      window.getSelection()?.removeAllRanges();
+      window.getSelection()?.addRange(range);
+    }, 10);
+  }
+
+
+  function HandleFuncInput(e: InputEvent) {
+    let textarea = e.target as HTMLSpanElement;
+
+    // 現在のカーソルによる選択場所を記録
+    let range0 = window.getSelection()?.getRangeAt(0);
+    let so = range0?.startOffset as number;
+    let eo = range0?.endOffset as number;
+    let range = document.createRange();
+    
+    // テキストの解析
+    let result = Parse(
+      textarea.innerText,
+      ['z', 'i', 'c']
     );
 
-    const ctl = document.getElementById('controls')!
+    const ctl = document.getElementById('controls')!;
     let func: string = '';
     if(result.status){
       try {
@@ -55,13 +104,12 @@ export default function FuncEditor({core}: {
       }
       ctl.className = ctl.className.replace(/(?:in)?valid/, 'valid');
       core.func = func;
-      core.setExpression(textarea.innerText);
+      core.expr = textarea.innerText;
       core.init();
     }
     else {
       ctl.className = ctl.className.replace(/(?:in)?valid/, 'invalid');
     }
-    // updateGmgr();
 
     // 再描画が行われるため，カーソルの選択場所を復元する
     setTimeout(()=>{
@@ -100,6 +148,21 @@ export default function FuncEditor({core}: {
           core.init();
         }} />
       </div>
+      <div id='z0-display'>
+        z_0=<span
+          id='z0-input'
+          className='input'
+          role='textbox'
+          ref={ref2}
+          aria-label='初期値を入力する'
+          contentEditable
+          suppressContentEditableWarning
+          onInput={e=>HandleZ0Input(e as unknown as InputEvent)}
+          onPaste={e=>HandlePaste(e as unknown as ClipboardEvent)}
+        >
+          {core.z0expr}
+        </span>
+      </div>
       <div id='func-display'>
         f(z)=<span
           id='func-input'
@@ -109,7 +172,8 @@ export default function FuncEditor({core}: {
           aria-label='数式を入力する'
           contentEditable
           suppressContentEditableWarning
-          onInput={e=>HandleInput(e as unknown as InputEvent)}
+          onInput={e=>HandleFuncInput(e as unknown as InputEvent)}
+          onClick={e=>HandleFuncInput(e as unknown as InputEvent)}
           onPaste={e=>HandlePaste(e as unknown as ClipboardEvent)}
         >
           {core.expr}

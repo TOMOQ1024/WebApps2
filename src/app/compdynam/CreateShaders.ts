@@ -17,8 +17,10 @@ export default async function CreateShaders(this: GLMgr){
     this.gl!.shaderSource(fs, data.frag
       .replace('z/* input func here */', this.parent.func)
       .replace('1/* input iter here */', `${this.parent.iter}`)
-      .replace('/* delete if mode is not hsv */', this.parent.renderingMode !== RenderingMode.HSV ? '//' : '')
+      .replace('c/* input z0 here */', `${this.parent.z0}`)
       .replace('/* delete if mode is not grayscale */', this.parent.renderingMode !== RenderingMode.GRAYSCALE ? '//' : '')
+      .replace('/* delete if mode is not hsv */', this.parent.renderingMode !== RenderingMode.HSV ? '//' : '')
+      .replace('false/* input boolean of nessy here */', this.parent.nessyMode ? 'true' : 'false')
     );
     if(vs === null)throw new Error('Vertical Shader Is Null');
     if(fs === null)throw new Error('Fragment Shader Is Null');
