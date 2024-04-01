@@ -2,7 +2,7 @@
 import React from 'react';
 import { Cube } from './Cube';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+// import { OrbitControls } from '@react-three/drei';
 
 export default function CanvasWrapper() {
 	return (
@@ -18,7 +18,7 @@ export default function CanvasWrapper() {
 				<Cube />
 				<ambientLight args={[0xffffff]} intensity={0.2} />
 				<directionalLight position={[1, 1, 1]} intensity={0.8} />
-        <OrbitControls />
+        {/* <OrbitControls /> */}
 			</Canvas>
 		</div>
 	);
