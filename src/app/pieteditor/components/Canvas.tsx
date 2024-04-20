@@ -1,4 +1,4 @@
-import Core from "../Core";
+import Core from "../src/Core";
 
 export default function Canvas ({ core }: {
   core: Core | undefined
@@ -16,19 +16,14 @@ export default function Canvas ({ core }: {
     if (!core) return;
     const { X, Y } = getPos(e);
     const F = e.buttons&2 ? true : false;
-    if (core.setCodel(X, Y, F)) core.draw();
+    if (core.fillCodel(X, Y, F)) core.draw();
   }
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    console.log(e.buttons);
     if (!core || !e.buttons) return;
     const { X, Y } = getPos(e);
     const F = e.buttons&2 ? true : false;
-    if (core.setCodel(X, Y, F)) core.draw();
-  }
-
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
+    if (core.fillCodel(X, Y, F)) core.draw();
   }
 
   return (
@@ -38,7 +33,6 @@ export default function Canvas ({ core }: {
       height={400}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
-      onContextMenu={handleContextMenu}
     />
   )
 }

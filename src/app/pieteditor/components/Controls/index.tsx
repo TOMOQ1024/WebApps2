@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import ControlsContent from "./ControlsContent";
-import { ControlsTab } from "../../Definitions";
-import Core from "../../Core";
+import { ControlsTab } from "../../src/Definitions";
+import Core from "../../src/Core";
 import ControlsNav from "./ControlsNav";
 
 
@@ -39,7 +39,7 @@ export default function Controls({core}: {
 
   return (
     <div id='controls' className={`${controlsOpened ? 'max' : 'min'} valid`}>
-      <ControlsNav controlsTab={controlsTab} setControlsTab={setControlsTab} setControlsOpened={setControlsOpened}/>
+      {/* <ControlsNav controlsTab={controlsTab} setControlsTab={setControlsTab} setControlsOpened={setControlsOpened}/> */}
       <ControlsContent selected={controlsTab} core={core}/>
     </div>
   );

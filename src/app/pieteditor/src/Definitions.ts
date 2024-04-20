@@ -33,3 +33,15 @@ export enum ControlsTab {
   PRESETS,
   SETTINGS
 };
+
+export enum TOOLS {
+  HAND,
+  PENCIL,
+  BUCKET
+}
+
+export const Tools = [
+  'hand',
+  'pencil',
+  'bucket',
+]

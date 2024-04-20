@@ -1,6 +1,7 @@
-import Core from "../../../Core";
-import { ControlsTab } from "../../../Definitions"
+import Core from "../../../src/Core";
+import { ControlsTab } from "../../../src/Definitions"
 import Palette from "./Palette";
+import ToolSelector from "./ToolSelector";
 
 export default function ControlsContent({selected, core}: {
   selected: ControlsTab;
@@ -8,8 +9,8 @@ export default function ControlsContent({selected, core}: {
 }) {
   return (
     <div id='controls-content' className={`cc-s${selected}`}>
-      {/* 詳細設定 */}
-      <Palette core={core}/>
+      <Palette core={core} />
+      <ToolSelector core={core} />
     </div>
   )
 }

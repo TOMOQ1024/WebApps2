@@ -51,9 +51,6 @@
       display: inline-flex;
       height: 300%;
       flex-direction: column;
-      &>div {
-        height: calc(100%/3);
-      }
     }
   }
 }
@@ -62,6 +59,7 @@
   flex-direction: column;
   flex-wrap: wrap;
   column-count: 3;
+  height: 100px;
   * {
     display: inline-block;
     width: 30px;
@@ -69,6 +67,18 @@
     color: black;
     text-shadow: white 0 0 2px,
     white 0 0 2px;
+    cursor: pointer;
+  }
+}
+
+#tool-selector {
+  * {
+    display: inline-block;
+    margin: 0 5px;
+    cursor: pointer;
+    &.selected {
+      font-size: x-large;
+    }
   }
 }
 

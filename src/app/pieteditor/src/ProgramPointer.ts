@@ -5,6 +5,6 @@ export default class ProgramPointer {
   next = new Vector2(-1, -1);
   dp = 0;
   cc = 0;
-  block: Vector2[] = [];
+  block: number[] = [];
   stuckCount = 0;
 }

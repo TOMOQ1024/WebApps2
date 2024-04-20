@@ -1,5 +1,5 @@
-import { COLORS, Colors, Operations } from "../../../Definitions";
-import Core from "../../../Core";
+import { COLORS, Colors, Operations } from "../../../src/Definitions";
+import Core from "../../../src/Core";
 
 export default function Palette({core}: {
   core: Core | undefined;

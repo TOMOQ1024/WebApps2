@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState } from "react";
-import Core from "../Core";
+import Core from "../src/Core";
 import Canvas from "./Canvas";
 import Controls from "./Controls";
 

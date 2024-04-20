@@ -1,11 +1,11 @@
 import { Vector2 } from "three";
-import { COLORS, Colors } from "./Definitions";
+import { COLORS, Colors, TOOLS } from "./Definitions";
 import ProgramPointer from "./ProgramPointer";
 
 export default class Core {
   pp = new ProgramPointer();
   size = new Vector2(10, 10);
-  code: COLORS[][] = [];
+  code: COLORS[] = [];
   codelSize = 40;
   codeHistory: string[][][] = [];
   currentCodeAt = 0;
@@ -17,6 +17,7 @@ export default class Core {
   ctrl = 'draw';
   cvs: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
+  tool = TOOLS.PENCIL;
 
   constructor () {
     this.cvs = document.getElementById('cvs') as HTMLCanvasElement;
@@ -28,26 +29,58 @@ export default class Core {
   init () {
     this.code = [];
     for (let y=0; y<this.size.y; y++) {
-      this.code.push([]);
       for (let x=0; x<this.size.x; x++) {
-        this.code[y].push(COLORS.W);
+        this.code.push(COLORS.W);
         // this.code[y].push((x+y*this.size.x)%Colors.length);
       }
     }
   }
 
-  setCodel (x: number, y: number, f = false) {
+  getBlock (x: number, y: number, b: number[] = []) {
+    if (x < 0) return b;
+    if (y < 0) return b;
+    if (this.size.x<=x) return b;
+    if (this.size.y<=y) return b;
+    const I = y*this.size.x+x;
+    if (b.indexOf(I) < 0) {
+      if (b.length && this.code[b[0]]!==this.code[I]) return b;
+      b.push(I);
+      this.getBlock(x-1, y, b);
+      this.getBlock(x+1, y, b);
+      this.getBlock(x, y-1, b);
+      this.getBlock(x, y+1, b);
+    }
+    return b;
+  }
+
+  fillCodel (x: number, y: number, f = false) {
     const c = this.fillColor[f ? 1 : 0];
-    if (this.code[y][x] === c) return false;
-    this.code[y][x] = c;
-    return true;
+    switch (this.tool) {
+      case TOOLS.PENCIL: {
+        if (this.code[y*this.size.x+x] === c) return false;
+        this.code[y*this.size.x+x] = c;
+        return true;
+      }
+      case TOOLS.BUCKET: {
+        if (this.code[y*this.size.x+x] === c) return false;
+        const b = this.getBlock(x, y);
+        this.code[y*this.size.x+x] = c;
+        for (let i=0; i<b.length; i++) {
+          this.code[b[i]] = c;
+        }
+        return true;
+      }
+      default:
+        console.log('default fillCodel');
+        return;
+    }
   }
 
   draw () {
     let c: COLORS;
     for (let y=0; y<this.size.y; y++) {
       for (let x=0; x<this.size.x; x++) {
-        c = this.code[y][x];
+        c = this.code[y*this.size.x+x];
         this.ctx.fillStyle = Colors[c];
         this.ctx.fillRect(x*this.codelSize, y*this.codelSize, this.codelSize, this.codelSize);
       }
