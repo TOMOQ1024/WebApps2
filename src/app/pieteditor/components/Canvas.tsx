@@ -14,23 +14,17 @@ export default function Canvas ({ core }: {
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!core) return;
-    core.isMouseDown = true;
     const { X, Y } = getPos(e);
     const F = e.buttons&2 ? true : false;
     if (core.setCodel(X, Y, F)) core.draw();
   }
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!core || !core.isMouseDown) return;
-    const { X, Y } = getPos(e);
     console.log(e.buttons);
+    if (!core || !e.buttons) return;
+    const { X, Y } = getPos(e);
     const F = e.buttons&2 ? true : false;
     if (core.setCodel(X, Y, F)) core.draw();
-  }
-
-  const handleMouseUp = (e: React.MouseEvent) => {
-    if (!core) return;
-    core.isMouseDown = false;
   }
 
   const handleContextMenu = (e: React.MouseEvent) => {
@@ -44,7 +38,6 @@ export default function Canvas ({ core }: {
       height={400}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
       onContextMenu={handleContextMenu}
     />
   )

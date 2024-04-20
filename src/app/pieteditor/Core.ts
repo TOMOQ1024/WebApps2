@@ -1,19 +1,15 @@
 import { Vector2 } from "three";
 import { COLORS, Colors } from "./Definitions";
+import ProgramPointer from "./ProgramPointer";
 
 export default class Core {
-  crnt = new Vector2(0, 0);
-  next = new Vector2(-1, -1);
+  pp = new ProgramPointer();
   size = new Vector2(10, 10);
   code: COLORS[][] = [];
   codelSize = 40;
   codeHistory: string[][][] = [];
   currentCodeAt = 0;
-  dp = 0;
-  cc = 0;
-  block: Vector2[] = [];
-  stuckCount = 0;
-  isHalted = false;
+  // isHalted = false;
   stack: number[] = [];
   input = '';
   output = '';
@@ -21,7 +17,6 @@ export default class Core {
   ctrl = 'draw';
   cvs: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
-  isMouseDown = false;
 
   constructor () {
     this.cvs = document.getElementById('cvs') as HTMLCanvasElement;
@@ -35,7 +30,8 @@ export default class Core {
     for (let y=0; y<this.size.y; y++) {
       this.code.push([]);
       for (let x=0; x<this.size.x; x++) {
-        this.code[y].push((x+y*this.size.x)%Colors.length);
+        this.code[y].push(COLORS.W);
+        // this.code[y].push((x+y*this.size.x)%Colors.length);
       }
     }
   }
@@ -56,5 +52,12 @@ export default class Core {
         this.ctx.fillRect(x*this.codelSize, y*this.codelSize, this.codelSize, this.codelSize);
       }
     }
+
+    this.ctx.save();
+    this.ctx.strokeStyle = 'black';
+    this.ctx.lineWidth = this.codelSize / 10;
+    this.ctx.lineCap = this.ctx.lineJoin = 'round';
+    this.ctx.imageSmoothingEnabled = true;
+    this.ctx.translate(this.pp.current.x*this.codelSize, this.pp.current.y*this.codelSize);
   }
 }

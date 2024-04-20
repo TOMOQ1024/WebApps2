@@ -27,3 +27,9 @@ export const Operations = [
   'in(c)', 'out(n)', 'out(c)',
   'white', 'black', ''
 ];
+
+export enum ControlsTab {
+  EXPRESSION,
+  PRESETS,
+  SETTINGS
+};
