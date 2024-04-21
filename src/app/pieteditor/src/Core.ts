@@ -3,13 +3,12 @@ import { COLORS, Colors, TOOLS } from "./Definitions";
 import ProgramPointer from "./ProgramPointer";
 
 export default class Core {
-  pp = new ProgramPointer();
+  pp = new ProgramPointer(this);
   size = new Vector2(10, 10);
   code: COLORS[] = [];
   codelSize = 40;
   codeHistory: string[][][] = [];
   currentCodeAt = 0;
-  // isHalted = false;
   stack: number[] = [];
   input = '';
   output = '';
@@ -88,9 +87,22 @@ export default class Core {
 
     this.ctx.save();
     this.ctx.strokeStyle = 'black';
-    this.ctx.lineWidth = this.codelSize / 10;
+    this.ctx.lineWidth = this.codelSize / 640;
     this.ctx.lineCap = this.ctx.lineJoin = 'round';
     this.ctx.imageSmoothingEnabled = true;
-    this.ctx.translate(this.pp.current.x*this.codelSize, this.pp.current.y*this.codelSize);
+    this.ctx.scale(this.codelSize, this.codelSize);
+    this.ctx.translate(
+      this.pp.currentX - .0,
+      this.pp.currentY - .0
+    );
+    this.ctx.rotate(Math.PI * .5 * (this.pp.dp + (this.pp.cc % 2 * 2 - 1) * .1));
+    this.ctx.beginPath();
+    [0, 1].forEach(i => {
+      this.ctx.moveTo(.3 * i + .25, .3);
+      this.ctx.lineTo(.3 * i + .5, .5);
+      this.ctx.lineTo(.3 * i + .25, .7);
+    });
+    this.ctx.stroke();
+    this.ctx.restore();
   }
 }

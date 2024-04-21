@@ -33,7 +33,7 @@
     }
     &.max {
       width: 400px;
-      height: 150px;
+      height: 300px;
       & #button-controls svg {
         rotate: 210deg;
       }
@@ -54,6 +54,7 @@
     }
   }
 }
+
 #palette {
   display: flex;
   flex-direction: column;

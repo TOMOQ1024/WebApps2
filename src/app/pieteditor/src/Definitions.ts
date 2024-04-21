@@ -38,10 +38,25 @@ export enum TOOLS {
   HAND,
   PENCIL,
   BUCKET
-}
+};
 
 export const Tools = [
   'hand',
   'pencil',
   'bucket',
-]
+];
+
+export const Runner = [
+  'reset',
+  'run',
+  'step',
+  // 'stop',
+] as const;
+
+export type runner = (typeof Runner)[number];
+
+export const isIn = (x: number, y: number, w: number, h: number) => {
+  if (x < 0 || y < 0) return false;
+  if (w <= x || h <= y) return false;
+  return true;
+}
