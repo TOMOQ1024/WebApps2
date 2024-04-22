@@ -107,7 +107,7 @@ export default class ProgramPointer {
     // console.log('this.block: ');
     // console.log(this.block);
     let z: number;
-    switch (this.dp % 4) {
+    switch ((this.dp % 4 + 4) % 4) {
       case 0:// 右
         bound = -1;
         for (let i = 0; i < this.block.length; i++) {
