@@ -61,14 +61,17 @@
   flex-wrap: wrap;
   column-count: 3;
   height: 100px;
-  * {
+  div {
     display: inline-block;
     width: 30px;
     height: 30px;
-    color: black;
-    text-shadow: white 0 0 2px,
-    white 0 0 2px;
     cursor: pointer;
+    span {
+      font-size: x-small;
+      color: black;
+      text-shadow: white 0 0 2px,
+      white 0 0 2px;
+    }
   }
 }
 

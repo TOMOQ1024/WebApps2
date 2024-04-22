@@ -18,6 +18,15 @@ export const Colors = [
   '#ffffff', '#000000', '#ffc0c0'
 ];
 
+export enum OPERATIONS {
+  NOP, PSH, POP,
+  ADD, SUB, MUL,
+  DIV, MOD, NOT,
+  GRT, PNT, SWT,
+  DUP, ROL, INN,
+  INC, OTN, OTC,
+}
+
 export const Operations = [
   '*', 'push', 'pop',
   'add', 'sub', 'mul',

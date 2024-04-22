@@ -1,6 +1,5 @@
-import { Vector2 } from "three";
 import Core from "./Core";
-import { COLORS, isIn } from "./Definitions";
+import { COLORS, OPERATIONS, Operations, isIn } from "./Definitions";
 
 export default class ProgramPointer {
   current = 0;
@@ -23,6 +22,8 @@ export default class ProgramPointer {
     this.next = -1;
     this.dp = 0;
     this.cc = 0;
+    this.parent.stack.clear();
+    // this.parent.input!!!
   }
 
   run () {
@@ -38,10 +39,41 @@ export default class ProgramPointer {
       return true;
     }
     
+    this.updateStack();
     this.current = this.next;
     this.updateNext();
-    console.log(this.current);
     return true;
+  }
+
+  updateStack () : number{
+    const d = (this.parent.code[this.next]-this.parent.code[this.current]+18)%18;
+
+    const dx = d%3;
+    const dy = Math.floor(d/3);
+    const s = this.parent.stack;
+    switch (d) {
+      case OPERATIONS.NOP: break;
+      case OPERATIONS.PSH: s.psh(this.block.length); break;
+      case OPERATIONS.POP: s.pop(); break;
+      case OPERATIONS.ADD: s.add(); break;
+      case OPERATIONS.SUB: s.sub(); break;
+      case OPERATIONS.DIV: s.div(); break;
+      case OPERATIONS.DUP: s.dup(); break;
+      case OPERATIONS.GRT: s.grt(); break;
+      case OPERATIONS.INC: s.inc(); break;
+      case OPERATIONS.INN: s.inn(); break;
+      case OPERATIONS.MOD: s.mod(); break;
+      case OPERATIONS.MUL: s.mul(); break;
+      case OPERATIONS.NOT: s.not(); break;
+      case OPERATIONS.OTC: s.otc(); break;
+      case OPERATIONS.OTN: s.otn(); break;
+      case OPERATIONS.PNT: s.pnt(); break;
+      case OPERATIONS.ROL: s.rol(); break;
+      case OPERATIONS.SWT: s.swt(); break;
+    }
+    console.log(this.parent.stack.stack);
+    // push state!!!
+    return 0;
   }
 
   updateNext () {

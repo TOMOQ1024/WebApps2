@@ -1,6 +1,7 @@
 import { Vector2 } from "three";
 import { COLORS, Colors, TOOLS } from "./Definitions";
 import ProgramPointer from "./ProgramPointer";
+import Stack from "./Stack";
 
 export default class Core {
   pp = new ProgramPointer(this);
@@ -9,7 +10,7 @@ export default class Core {
   codelSize = 40;
   codeHistory: string[][][] = [];
   currentCodeAt = 0;
-  stack: number[] = [];
+  stack = new Stack(this);
   input = '';
   output = '';
   fillColor: [COLORS, COLORS] = [COLORS.W, COLORS.K];
