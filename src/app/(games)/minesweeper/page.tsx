@@ -1,4 +1,4 @@
-import MainWrapper from "./MainWrapper";
+import MainWrapper from "./components/MainWrapper";
 import dynamic from "next/dynamic";
 import './app.scss';
 
