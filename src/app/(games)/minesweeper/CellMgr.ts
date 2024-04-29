@@ -4,9 +4,14 @@ import Game from "./Game";
 import { AlphaFilter, Container, DisplayObject, Filter, Sprite, Texture, filters } from 'pixi.js';
 
 export default class CellMgr {
-  l: number = 64;
+  parent: Game;
+  cvsW: number = 100;
+  cvsH: number = 100;
   w: number = 9;
   h: number = 9;
+  get l () {
+    return Math.min(this.cvsW/this.w, this.cvsH/this.h);
+  }
   mines = 9;
   cells: {
     state: CELLSTATE;
@@ -20,13 +25,28 @@ export default class CellMgr {
   }
   isHalted = false;
 
-  constructor (
-    public parent: Game
-  ) {
+  constructor (parent: Game) {
+    this.parent = parent;
     this.parent.app.stage.addChild(this.tileContainer);
     this.w = parseInt(prompt(`横のサイズ(標準：${this.w})`) || `${this.w}`) || this.w;
     this.h = parseInt(prompt(`縦のサイズ(標準：${this.h})`) || `${this.h}`) || this.h;
     this.mines = parseInt(prompt(`地雷の数(標準：${this.mines})`) || `${this.mines}`) || this.mines;
+  }
+
+  onResize () {
+    this.cvsW = this.parent.app.screen.width;
+    this.cvsH = this.parent.app.screen.height;
+    if (!this.cells.length) return;
+    for (let y=0 ;y<this.h; y++) {
+      for (let x=0; x<this.w; x++) {
+        this.cells[y][x].sprites.map(s=>{
+          s.x = x*this.l + this.cvsW/2 - this.l*this.w/2;
+          s.y = y*this.l + this.cvsH/2 - this.l*this.h/2;
+          s.width = this.l;
+          s.height = this.l;
+        });
+      }
+    }
   }
 
   bindTextures (textures: Texture[]) {
@@ -106,7 +126,8 @@ export default class CellMgr {
   createSprite (x: number, y: number, i: number) {
     let sp: DisplayObject & Sprite;
     sp = Sprite.from(this.textures[i]);
-    sp.position = { x: x*this.l, y: y*this.l };
+    sp.x = x*this.l + this.cvsW/2 - this.l*this.w/2;
+    sp.y = y*this.l + this.cvsH/2 - this.l*this.h/2;
     sp.width = this.l;
     sp.height = this.l;
     this.tileContainer.addChild(sp);
