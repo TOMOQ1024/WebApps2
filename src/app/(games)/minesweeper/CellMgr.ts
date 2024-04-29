@@ -1,12 +1,13 @@
 import sleep from "@/src/Sleep";
 import { CELLSTATE, CELLTYPE } from "./Definitions";
 import Game from "./Game";
-import { Container, DisplayObject, Sprite, Texture } from 'pixi.js';
+import { AlphaFilter, Container, DisplayObject, Filter, Sprite, Texture, filters } from 'pixi.js';
 
 export default class CellMgr {
-  w: number = 20;
-  h: number = 20;
   l: number = 64;
+  w: number = 9;
+  h: number = 9;
+  mines = 9;
   cells: {
     state: CELLSTATE;
     type: CELLTYPE;
@@ -14,12 +15,18 @@ export default class CellMgr {
   }[][] = [];
   tileContainer =  new Container();
   textures: Texture[] = [];
-  mines = 50;
+  get remainCount () {
+    return this.cells.flat().filter(c=>c.state!==CELLSTATE.OPENED).length;
+  }
+  isHalted = false;
 
   constructor (
     public parent: Game
   ) {
     this.parent.app.stage.addChild(this.tileContainer);
+    this.w = parseInt(prompt(`横のサイズ(標準：${this.w})`) || `${this.w}`) || this.w;
+    this.h = parseInt(prompt(`縦のサイズ(標準：${this.h})`) || `${this.h}`) || this.h;
+    this.mines = parseInt(prompt(`地雷の数(標準：${this.mines})`) || `${this.mines}`) || this.mines;
   }
 
   bindTextures (textures: Texture[]) {
@@ -44,7 +51,7 @@ export default class CellMgr {
   }
 
   build (x: number, y: number) {
-    if (this.w * this.h === this.mines) {
+    if (this.w * this.h <= this.mines) {
       console.log('full of mine');
       return;
     }
@@ -154,8 +161,11 @@ export default class CellMgr {
   async open (x: number, y: number) {
     if (!this.cells[y] || !this.cells[y][x]) return;
     if (this.cells[y][x].state === CELLSTATE.OPENED && this.cells[y][x].type === CELLTYPE.ZERO) return;
-    if (this.cells[y][x].type === CELLTYPE.MINE) {
+    if (this.cells[y][x].type === CELLTYPE.MINE || this.cells[y][x].state === CELLSTATE.FLAG) {
       console.error('It\'s mine!');
+      // 赤くしたりしたい!!!
+      // this.cells[y][x].sprites[this.cells[y][x].sprites.length-1];
+      this.isHalted = true;
       return;
     }
     this.cells[y][x].state = CELLSTATE.OPENED;
@@ -164,11 +174,18 @@ export default class CellMgr {
       for (let i=-4; i<5; i++) {
         if (!i) continue;
         await sleep(10);
+        if (this.isHalted) return;
         this.open(
           x + i-Math.round(i/3)*3,
           y + Math.round(i/3)
         );
       }
+    }
+    
+    // クリア判定
+    if (this.remainCount === this.mines) {
+      console.log('cleared');
+      this.isHalted = true;
     }
   }
 

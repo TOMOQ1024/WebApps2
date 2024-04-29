@@ -8,7 +8,7 @@ export default class Game {
   constructor () {
     const wr = document.querySelector('#main-wrapper') as HTMLElement;
     this.app = new Application({
-      resizeTo: wr
+      resizeTo: wr,
     });
     wr.appendChild(this.app.view as HTMLCanvasElement);
 
