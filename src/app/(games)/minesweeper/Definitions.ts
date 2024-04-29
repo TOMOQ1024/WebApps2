@@ -1,5 +1,11 @@
-export enum CELL {
-  MINE = -2,
+export enum CELLSTATE {
+  CLOSED,
+  FLAG,
+  OPENED,
+};
+
+export enum CELLTYPE {
+  MINE,
   FLAG,
   ZERO,
   ONE,
@@ -13,5 +19,6 @@ export enum CELL {
 };
 
 export enum ASSETS {
-  MINE = 'mine'
+  SHEET = 'sheet',
+  JSON = 'json',
 };
