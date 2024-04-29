@@ -1,90 +1,205 @@
+import sleep from "@/src/Sleep";
 import { CELLSTATE, CELLTYPE } from "./Definitions";
 import Game from "./Game";
 import { Container, DisplayObject, Sprite, Texture } from 'pixi.js';
 
 export default class CellMgr {
-  w: number = 9;
-  h: number = 9;
+  w: number = 20;
+  h: number = 20;
   l: number = 64;
   cells: {
     state: CELLSTATE;
     type: CELLTYPE;
+    sprites: (DisplayObject & Sprite)[];
   }[][] = [];
   tileContainer =  new Container();
+  textures: Texture[] = [];
+  mines = 50;
 
   constructor (
     public parent: Game
   ) {
-    // const mineTex = Assets.get(ASSETS.MINE);
-    // const mine = Sprite.from(mineTex);
-    // mine.scale.set(3);
-
-    // mine.anchor.set(0.5);
-
-    // mine.x = this.app.screen.width / 2;
-    // mine.y = this.app.screen.height / 2;
     this.parent.app.stage.addChild(this.tileContainer);
   }
 
-  build (textures: Texture[]) {
-    let sp: DisplayObject & Sprite;
+  bindTextures (textures: Texture[]) {
+    this.textures = textures;
+  }
 
+  clear () {
+    // セルの初期化
     this.cells = [];
     for (let y=0 ;y<this.h; y++) {
       this.cells.push([]);
       for (let x=0; x<this.w; x++) {
-        // this.cells[y].push({
-        //   state: CELLSTATE.OPENED,
-        //   type: CELLTYPE.ZERO,
-        // });
         this.cells[y].push({
-          state: Math.floor(Math.random()*3),
-          type: Math.floor(Math.random()*11),
+          state: CELLSTATE.CLOSED,
+          type: CELLTYPE.ZERO,
+          sprites: [],
         });
       }
     }
 
+    this.initTileContainer(true);
+  }
+
+  build (x: number, y: number) {
+    if (this.w * this.h === this.mines) {
+      console.log('full of mine');
+      return;
+    }
+    const minePos = [];
+    const freePos = [];
+    for (let i=0; i<this.w*this.h; i++) {
+      if (i === x+y*this.w) continue;
+      freePos.push(i);
+    }
+    while (minePos.length < this.mines) {
+      if (!freePos.length) {
+        console.error('!?!?!?!?');
+        return;
+      }
+      const i = freePos.splice(Math.floor(Math.random()*freePos.length), 1)[0];
+      minePos.push(i);
+    }
+
+    const inc = (x: number, y: number) => {
+      if (!this.cells[y] || !this.cells[y][x]) return;
+      if (this.cells[y][x].type === CELLTYPE.MINE) return;
+      this.cells[y][x].type += 1;
+    }
+
+    for (let j=0; j<minePos.length; j++) {
+      let x = minePos[j]%this.w;
+      let y = Math.floor(minePos[j]/this.w);
+      this.cells[y][x].type = CELLTYPE.MINE;
+      for (let i=-4; i<5; i++) {
+        if (!i) continue;
+        inc(
+          x + i-Math.round(i/3)*3,
+          y + Math.round(i/3)
+        );
+      }
+    }
+
+    this.initTileContainer();
+    this.open(x, y);
+  }
+
+  // タイルスプライトの作成
+  initTileContainer (onClear = false) {
+    this.tileContainer.removeChildren();
     for (let y=0 ;y<this.h; y++) {
       for (let x=0; x<this.w; x++) {
-        switch (this.cells[y][x].state) {
-          case CELLSTATE.CLOSED:
-          case CELLSTATE.FLAG:
-            sp = Sprite.from(textures[1]);
-            sp.position = { x: x*this.l, y: y*this.l };
-            sp.width = this.l;
-            sp.height = this.l;
-            sp.eventMode = 'static';
-            sp.on('click', ()=>this.onClick(x, y));
-            this.tileContainer.addChild(sp);
-            if (this.cells[y][x].state === CELLSTATE.FLAG) {
-              sp = Sprite.from(textures[3]);
-              sp.position = { x: x*this.l, y: y*this.l };
-              sp.width = this.l;
-              sp.height = this.l;
-              this.tileContainer.addChild(sp);
-            }
-            break;
-          case CELLSTATE.OPENED:
-            sp = Sprite.from(textures[4]);
-            sp.position = { x: x*this.l, y: y*this.l };
-            sp.width = this.l;
-            sp.height = this.l;
-            this.tileContainer.addChild(sp);
-            sp = Sprite.from(textures[
-              this.cells[y][x].type+2
-            ]);
-            sp.position = { x: x*this.l, y: y*this.l };
-            sp.width = this.l;
-            sp.height = this.l;
-            this.tileContainer.addChild(sp);
-            break;
-        }
-        
+        this.updateTile(x, y, onClear);
       }
     }
   }
 
-  onClick (x: number, y: number) {
-    console.log(`(${x},${y}) clicked`);
+  createSprite (x: number, y: number, i: number) {
+    let sp: DisplayObject & Sprite;
+    sp = Sprite.from(this.textures[i]);
+    sp.position = { x: x*this.l, y: y*this.l };
+    sp.width = this.l;
+    sp.height = this.l;
+    this.tileContainer.addChild(sp);
+    this.cells[y][x].sprites.push(sp);
+    return sp;
+  }
+
+  updateTile (x: number, y: number, onClear = false) {
+    let sp: DisplayObject & Sprite;
+    this.tileContainer.removeChild(...this.cells[y][x].sprites);
+    this.cells[y][x].sprites = [];
+    switch (this.cells[y][x].state) {
+      case CELLSTATE.CLOSED:
+      case CELLSTATE.FLAG:
+        sp = this.createSprite(x, y, 1);
+        sp.eventMode = 'static';
+        sp.cursor = 'pointer';
+        if (onClear) {
+          sp.on('click', ()=>this.build(x, y));
+        }
+        else {
+          sp.on('click', () => {
+            if (this.cells[y][x].state === CELLSTATE.FLAG) {
+              this.toggleFlag(x, y);
+            }
+            else {
+              this.open(x, y);
+            }
+          });
+          sp.on('rightclick', (e)=>{
+            e.preventDefault();
+            this.toggleFlag(x, y);
+          });
+        }
+        if (this.cells[y][x].state === CELLSTATE.FLAG) {
+          sp = this.createSprite(x, y, 3);
+          sp.on('click', ()=>this.toggleFlag(x, y));
+        }
+        break;
+      case CELLSTATE.OPENED:
+        sp = this.createSprite(x, y, 4);
+        sp = this.createSprite(x, y, this.cells[y][x].type+2);
+        if (this.cells[y][x].type !== CELLTYPE.ZERO) {
+          sp.eventMode = 'static';
+          sp.cursor = 'pointer';
+          sp.on('click', ()=>this.openWithNum(x, y));
+        }
+        break;
+    }
+  }
+
+  async open (x: number, y: number) {
+    if (!this.cells[y] || !this.cells[y][x]) return;
+    if (this.cells[y][x].state === CELLSTATE.OPENED && this.cells[y][x].type === CELLTYPE.ZERO) return;
+    if (this.cells[y][x].type === CELLTYPE.MINE) {
+      console.error('It\'s mine!');
+      return;
+    }
+    this.cells[y][x].state = CELLSTATE.OPENED;
+    this.updateTile(x, y);
+    if (this.cells[y][x].type === CELLTYPE.ZERO) {
+      for (let i=-4; i<5; i++) {
+        if (!i) continue;
+        await sleep(10);
+        this.open(
+          x + i-Math.round(i/3)*3,
+          y + Math.round(i/3)
+        );
+      }
+    }
+  }
+
+  async openWithNum (x: number, y: number) {
+    let flagCount = 0;
+    for (let i=-4; i<5; i++) {
+      if (!i) continue;
+      let X = x + i-Math.round(i/3)*3;
+      let Y = y + Math.round(i/3);
+      if (!this.cells[Y] || !this.cells[Y][X]) continue;
+      if (this.cells[Y][X].state === CELLSTATE.FLAG) {
+        flagCount++;
+      }
+    }
+    if (flagCount !== this.cells[y][x].type-2) return;
+    for (let i=-4; i<5; i++) {
+      let X = x + i-Math.round(i/3)*3;
+      let Y = y + Math.round(i/3);
+      if (!i || (this.cells[Y] && this.cells[Y][X] && this.cells[Y][X].state === CELLSTATE.FLAG)) continue;
+      await sleep(10);
+      this.open(X, Y);
+    }
+  }
+
+  toggleFlag (x: number, y: number) {
+    if (this.cells[y][x].state === CELLSTATE.FLAG) {
+      this.cells[y][x].state = CELLSTATE.CLOSED;
+    }
+    else {
+      this.cells[y][x].state = CELLSTATE.FLAG;
+    }
+    this.updateTile(x, y);
   }
 }
