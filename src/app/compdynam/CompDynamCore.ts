@@ -38,7 +38,7 @@ export default class CDCore {
 
   loop () {
     this.glmgr.updateTimeUniform();
-    // this.glmgr.render();
+    this.glmgr.render();
   }
 
   setIter(i: number) {

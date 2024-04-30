@@ -136,6 +136,7 @@ vec3 hsv2rgb(float h, float s, float v) {
 }
 
 vec2 compdynam(vec2 C) {
+  vec2 t = vec2(uTime, 0.);
   vec2 c = vec2(C);
   vec2 z = c/* input z0 here */;
 
