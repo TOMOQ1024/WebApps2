@@ -37,7 +37,7 @@ export default function FuncEditor({core}: {
     // テキストの解析
     let result = Parse(
       textarea.innerText,
-      ['i', 'c']
+      ['i', 'c', 't']
     );
     console.log(textarea.innerText);
 
@@ -88,7 +88,7 @@ export default function FuncEditor({core}: {
     // テキストの解析
     let result = Parse(
       textarea.innerText,
-      ['z', 'i', 'c']
+      ['z', 'i', 'c', 't']
     );
 
     const ctl = document.getElementById('controls')!;
