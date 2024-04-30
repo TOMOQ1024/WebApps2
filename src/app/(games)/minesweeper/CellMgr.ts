@@ -146,10 +146,10 @@ export default class CellMgr {
         sp.eventMode = 'static';
         sp.cursor = 'pointer';
         if (onClear) {
-          sp.on('click', ()=>this.build(x, y));
+          sp.on('pointerdown', ()=>this.build(x, y));
         }
         else {
-          sp.on('click', () => {
+          sp.on('pointerdown', () => {
             if (this.cells[y][x].state === CELLSTATE.FLAG) {
               this.toggleFlag(x, y);
             }
@@ -164,7 +164,7 @@ export default class CellMgr {
         }
         if (this.cells[y][x].state === CELLSTATE.FLAG) {
           sp = this.createSprite(x, y, 3);
-          sp.on('click', ()=>this.toggleFlag(x, y));
+          sp.on('pointerdown', ()=>this.toggleFlag(x, y));
         }
         break;
       case CELLSTATE.OPENED:
@@ -173,7 +173,7 @@ export default class CellMgr {
         if (this.cells[y][x].type !== CELLTYPE.ZERO) {
           sp.eventMode = 'static';
           sp.cursor = 'pointer';
-          sp.on('click', ()=>this.openWithNum(x, y));
+          sp.on('pointerdown', ()=>this.openWithNum(x, y));
         }
         break;
     }
