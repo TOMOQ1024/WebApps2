@@ -35,6 +35,7 @@ export default class Game {
       // new pixi_tilemap.CompositeRectTileLayer(0, [sheet])
       cm.bindTextures(textures);
       cm.clear();
+      cm.onResize();
     })(this.cellMgr);
 
     let t = 0;
