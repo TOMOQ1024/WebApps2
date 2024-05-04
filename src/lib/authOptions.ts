@@ -17,7 +17,7 @@ export const authOptions = {
       },
       authorize: async (credentials, req) => {
         const hash = createHash('sha512');
-        return fetch(`${process.env.NEXTAUTH_URL}/api/get-user`, {
+        return fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_LOCAL_API_BASE_URL}/api/get-user`, {
           method: 'GET',
           headers: {
             'username': credentials!.username,
