@@ -8,14 +8,14 @@ export async function GET(
   res: NextResponse
 ) {
   try {
-    const user = await getServerSession(authOptions);
-    if (!user) {
-      throw new Error('no session data');
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      throw new Error('Unauthorized');
     }
     const data = await prisma.post.findMany();
     
     return NextResponse.json(data);
   } catch (error) {
-    return NextResponse.json({ error }, {status: 403});
+    return NextResponse.json({ error }, {status: 401});
   }
 }
