@@ -4,18 +4,23 @@
   "private": true,
   "scripts": {
     "dev": "PORT=3001 next dev",
-    "build": "next build",
+    "build": "yarn prisma generate && next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
     "@pixiv/three-vrm": "^2.1.1",
+    "@prisma/client": "5.13.0",
     "@types/node": "18.14.1",
     "@types/react": "18.0.28",
     "@types/react-dom": "18.0.11",
+    "@vercel/postgres": "^0.8.0",
+    "axios": "^1.6.8",
     "eslint": "8.34.0",
     "eslint-config-next": "13.1.6",
+    "next-auth": "^4.24.7",
     "pixi-tilemap": "^2.1.4",
+    "prisma": "^5.13.0",
     "typescript": "^5.4.3",
     "yarn": "^1.22.22"
   },
