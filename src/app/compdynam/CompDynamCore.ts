@@ -17,7 +17,7 @@ export default class CDCore {
   resFactor: number = 1;
   renderingMode: RenderingMode = RenderingMode.HSV;
   nessyMode = false;
-  interval: NodeJS.Timer | null = null;
+  interval: NodeJS.Timeout | null = null;
 
   async init() {
     await this.glmgr.init();

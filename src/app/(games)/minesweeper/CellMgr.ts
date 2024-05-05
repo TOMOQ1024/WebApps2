@@ -1,7 +1,7 @@
 import sleep from "@/src/Sleep";
 import { CELLSTATE, CELLTYPE } from "./Definitions";
 import Game from "./Game";
-import { AlphaFilter, Container, DisplayObject, Filter, Sprite, Texture, filters } from 'pixi.js';
+import { AlphaFilter, Container, Filter, Sprite, Texture } from 'pixi.js';
 
 export default class CellMgr {
   parent: Game;
@@ -16,7 +16,7 @@ export default class CellMgr {
   cells: {
     state: CELLSTATE;
     type: CELLTYPE;
-    sprites: (DisplayObject & Sprite)[];
+    sprites: Sprite[];
   }[][] = [];
   tileContainer =  new Container();
   textures: Texture[] = [];
@@ -124,7 +124,7 @@ export default class CellMgr {
   }
 
   createSprite (x: number, y: number, i: number) {
-    let sp: DisplayObject & Sprite;
+    let sp: Sprite;
     sp = Sprite.from(this.textures[i]);
     sp.x = x*this.l + this.cvsW/2 - this.l*this.w/2;
     sp.y = y*this.l + this.cvsH/2 - this.l*this.h/2;
@@ -136,7 +136,7 @@ export default class CellMgr {
   }
 
   updateTile (x: number, y: number, onClear = false) {
-    let sp: DisplayObject & Sprite;
+    let sp: Sprite;
     this.tileContainer.removeChild(...this.cells[y][x].sprites);
     this.cells[y][x].sprites = [];
     switch (this.cells[y][x].state) {

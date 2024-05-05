@@ -22,13 +22,15 @@ export default class Game {
       for (let i=0; i<atlas.length; i++) {
         textures.push(
           new Texture(
-            tilesetTex,
-            new Rectangle(
-              atlas[i].frame.x,
-              atlas[i].frame.y,
-              atlas[i].frame.w,
-              atlas[i].frame.h
-            )
+            {
+              frame: new Rectangle(
+                atlas[i].frame.x,
+                atlas[i].frame.y,
+                atlas[i].frame.w,
+                atlas[i].frame.h
+              ),
+              source: tilesetTex.source
+            }
           )
         );
       }
@@ -39,9 +41,9 @@ export default class Game {
     })(this.cellMgr);
 
     let t = 0;
-    this.app.ticker.add((delta) =>
+    this.app.ticker.add((tck) =>
     {
-      t += delta * 5e-2;
+      t += tck.deltaMS;
     });
   }
 }
