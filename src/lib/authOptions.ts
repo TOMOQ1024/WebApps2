@@ -19,7 +19,7 @@ export const authOptions = {
       authorize: async (credentials, req) => {
         const hash = createHash('sha512');
         console.log(`api_base_url: ${process.env.VERCEL_URL || process.env.LOCAL_API_BASE_URL}`);
-        return axios.get(`https://${process.env.VERCEL_URL || process.env.LOCAL_API_BASE_URL}/api/get-user`, {
+        return await axios.get(`https://${process.env.VERCEL_URL || process.env.LOCAL_API_BASE_URL}/api/get-user`, {
           headers: {
             'username': credentials!.username,
             'passhash': hash.update(credentials!.password).digest('hex'),
