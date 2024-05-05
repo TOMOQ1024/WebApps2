@@ -6,7 +6,7 @@ import Core from "./Core";
 export default function MainWrapper(){
   useEffect(() => {
     let core: Core;
-    let itv: NodeJS.Timer;
+    let itv: NodeJS.Timeout;
 
     const onKeyDown = (e:KeyboardEvent) => {
       console.log(e);
