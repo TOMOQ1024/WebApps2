@@ -15,6 +15,7 @@ export async function GET(
         passhash: passhash
       }
     })
+    console.log(user);
     if (user) {
       return NextResponse.json(user);
     } else {
