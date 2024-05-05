@@ -2,22 +2,22 @@ import { Application, Assets, Rectangle, SCALE_MODES, Texture } from 'pixi.js';
 import CellMgr from './CellMgr';
 
 export default class Game {
-  app: Application;
-  cellMgr: CellMgr;
+  app = new Application();
+  cellMgr = new CellMgr(this);
 
   constructor () {
     const wr = document.querySelector('#main-wrapper') as HTMLElement;
-    this.app = new Application({
-      resizeTo: wr,
-    });
-    wr.appendChild(this.app.view as HTMLCanvasElement);
-
-    this.cellMgr = new CellMgr(this);
-
-    (async (cm: CellMgr) => {
-      const tilesetTex = (await Assets.load('/resources/minesweeper/tileset.png') as Texture).baseTexture;
+    
+    (async () => {
+      await this.app.init({
+        resizeTo: wr,
+      });
+      console.log(this.app);
+      wr.appendChild(this.app.canvas);
+  
+      const tilesetTex = await Assets.load('/resources/minesweeper/tileset.png') as Texture;
       const atlas = (await Assets.load('/resources/minesweeper/tileset.json')).data.frames;
-      tilesetTex.scaleMode = SCALE_MODES.NEAREST;
+      tilesetTex.source.scaleMode = 'nearest';
       const textures = [];
       for (let i=0; i<atlas.length; i++) {
         textures.push(
@@ -35,15 +35,16 @@ export default class Game {
         );
       }
       // new pixi_tilemap.CompositeRectTileLayer(0, [sheet])
-      cm.bindTextures(textures);
-      cm.clear();
-      cm.onResize();
-    })(this.cellMgr);
+      this.cellMgr.bindTextures(textures);
+      this.cellMgr.clear();
+      this.cellMgr.onResize();
 
-    let t = 0;
-    this.app.ticker.add((tck) =>
-    {
-      t += tck.deltaMS;
-    });
+      let t = 0;
+      this.app.ticker.add((tck) =>
+      {
+        t += tck.deltaMS;
+      });
+    })();
+
   }
 }
