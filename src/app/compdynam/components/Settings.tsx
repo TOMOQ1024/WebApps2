@@ -1,8 +1,8 @@
-import CDCore from "../CompDynamCore";
+import Core from "../CompDynamCore";
 import { RenderingMode } from "../Definitions";
 
 export default function Settings({core}: {
-  core: CDCore;
+  core: Core;
 }) {
   return (
     <div id='settings'>
@@ -19,7 +19,7 @@ export default function Settings({core}: {
         step='0.01'
         onChange={e=>{
           core.setRF(10**(Number(e.target.value)));
-          core.resizeCanvas();
+          // core.resizeCanvas();
         }} />
       </div>
       <div id='rm-editor'>
@@ -33,7 +33,7 @@ export default function Settings({core}: {
         defaultChecked
         onChange={e=>{
           core.setRM(RenderingMode.HSV);
-          core.init();
+          core.updateShader();
         }}
         /><span className='rm-option'>HSV</span>
         <input
@@ -44,7 +44,7 @@ export default function Settings({core}: {
         value='grayscale'
         onChange={e=>{
           core.setRM(RenderingMode.GRAYSCALE);
-          core.init();
+          core.updateShader();
         }}
         /><span className='rm-option'>Grayscale</span>
       </div>

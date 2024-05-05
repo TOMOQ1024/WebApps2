@@ -40,7 +40,7 @@ export default function PresetSelector({core}: {
       ctl.className = ctl.className.replace(/(?:in)?valid/, 'valid');
       core.z0 = z0;
       core.z0expr = expr[0];
-      core.init();
+      core.updateShader();
     }
   }
   

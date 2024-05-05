@@ -9,7 +9,7 @@ struct Graph {
   float radius;
 };
 uniform Graph uGraph;
-uniform sampler2D uImage0;
+uniform sampler2D uTexture;
 
 vec2 d2p(vec2 z) {
   return vec2(length(z), atan(z.y, z.x));
@@ -161,7 +161,7 @@ void main ()
     //   A0.x*sin(uTime) - A0.y*cos(uTime)
     // );
     vec2 A = A0;
-    gl_FragColor = length(a)<1e20 ? texture2D(uImage0, vec2(A.x, -A.y)) : vec4(0., 0., 0., 1.);
+    gl_FragColor = length(a)<1e20 ? texture2D(uTexture, vec2(A.x, -A.y)) : vec4(0., 0., 0., 1.);
   }
   else {
     /* delete if mode is not hsv */gl_FragColor = vec4(hsv2rgb(atan(a.y, a.x)/2./PI+1., 1., pow(1./(1.+length(a)), .1)), 1.);

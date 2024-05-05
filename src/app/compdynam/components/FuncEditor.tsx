@@ -55,7 +55,7 @@ export default function FuncEditor({core}: {
       ctl.className = ctl.className.replace(/(?:in)?valid/, 'valid');
       core.z0 = z0;
       core.z0expr = textarea.innerText;
-      core.init();
+      core.updateShader();
     }
     else {
       ctl.className = ctl.className.replace(/(?:in)?valid/, 'invalid');
@@ -105,7 +105,7 @@ export default function FuncEditor({core}: {
       ctl.className = ctl.className.replace(/(?:in)?valid/, 'valid');
       core.func = func;
       core.expr = textarea.innerText;
-      core.init();
+      core.updateShader();
     }
     else {
       ctl.className = ctl.className.replace(/(?:in)?valid/, 'invalid');
@@ -145,7 +145,7 @@ export default function FuncEditor({core}: {
         defaultValue={core.iter}
         onChange={e=>{
           core.setIter(Number(e.target.value));
-          core.init();
+          core.updateShader();
         }} />
       </div>
       <div id='z0-display'>

@@ -1,4 +1,4 @@
-import CDCore from "../CompDynamCore";
+import Core from "../CompDynamCore";
 import { ControlsTab } from "../Definitions"
 import FuncEditor from "./FuncEditor";
 import PresetSelector from "./PresetSelector";
@@ -6,7 +6,7 @@ import Settings from "./Settings";
 
 export default function ControlsContent({selected, core}: {
   selected: ControlsTab;
-  core: CDCore;
+  core: Core;
 }) {
   return (
     <div id='controls-content' className={`cc-s${selected}`}>

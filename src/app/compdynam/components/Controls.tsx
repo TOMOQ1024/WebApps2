@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import ControlsContent from "./ControlsContent";
 import { ControlsTab } from "../Definitions";
-import CDCore from "../CompDynamCore";
+import Core from "../CompDynamCore";
 import ControlsNav from "./ControlsNav";
 
 export default function Controls({core}: {
-  core: CDCore;
+  core: Core;
 }) {
   const [controlsOpened, setControlsOpened] = useState(true);
   const [controlsTab, setControlsTab] = useState<ControlsTab>(ControlsTab.EXPRESSION);

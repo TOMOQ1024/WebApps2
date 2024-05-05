@@ -1,8 +1,8 @@
-import Vec2 from "@/src/Vec2";
+import { Vector2 } from "three";
 
 export default class Graph {
-  origin: Vec2 = new Vec2(0, 0);
-  radius: number = 2;
+  origin = new Vector2(0, 0);
+  radius = 2;
 
   constructor(){}
 
@@ -12,15 +12,15 @@ export default class Graph {
    * @param c キャンバス内座標[-1,1]
    * @param s ズーム割合
    */
-  zoom(c: Vec2, s: number){
+  zoom(c: Vector2, s: number){
     // (x,y)を固定して scale**s 倍縮小する
     const ds = Math.exp(s/500);
-    const dor = c.mul(this.radius * (1-1/ds)).negY();
+    const dor = c.clone().multiplyScalar(this.radius*(1-1/ds)).multiply({x: 1, y: -1})
     this.origin.add(dor);
     this.radius *= ds;
   }
 
-  translate(v: Vec2) {
-    this.origin.add(v.muled(this.radius));
+  translate(v: Vector2) {
+    this.origin.add(v.clone().multiplyScalar(this.radius));
   }
 }
