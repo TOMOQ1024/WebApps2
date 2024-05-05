@@ -27,8 +27,8 @@ export const authOptions = {
             'passhash': hash.update(credentials!.password).digest('hex'),
           },
         }).then(async(res: any) => {
+          console.log(`res.json: ${await res.json()}`);
           if(!res.ok){
-            console.log(`res.json: ${await res.json()}`);
             throw new Error(res.error);
           }
           const user = await res.json();
