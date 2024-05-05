@@ -8,7 +8,7 @@ export async function GET(
   try {
     const username = req.headers.get('username') || '';
     const passhash = req.headers.get('passhash') || '';
-    console.log(username, passhash, prisma);
+    console.log(username, passhash);
     console.log(`findmany: ${await prisma.user.findMany()}`);
     const user = await prisma.user.findFirst({
       where: {
