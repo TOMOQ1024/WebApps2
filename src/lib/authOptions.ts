@@ -1,6 +1,7 @@
 import GithubProvider from "next-auth/providers/github";
 import Credentials from "next-auth/providers/credentials";
 import { createHash } from "crypto";
+import axios from "axios";
 
 // https://zenn.dev/okumura_daiki/articles/c9e0065716d862
 
@@ -20,8 +21,7 @@ export const authOptions = {
         console.log(`api_base_url: ${process.env.VERCEL_URL || process.env.LOCAL_API_BASE_URL}`);
         console.log(`username: ${credentials!.username}`);
         console.log(`passhash: ${hash.update(credentials!.password).digest('hex')}`);
-        return fetch(`https://${process.env.VERCEL_URL || process.env.LOCAL_API_BASE_URL}/api/get-user`, {
-          method: 'GET',
+        return axios.get(`https://${process.env.VERCEL_URL || process.env.LOCAL_API_BASE_URL}/api/get-user`, {
           headers: {
             'username': credentials!.username,
             'passhash': hash.update(credentials!.password).digest('hex'),
