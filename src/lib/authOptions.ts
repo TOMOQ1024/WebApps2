@@ -34,8 +34,9 @@ export const authOptions = {
           const user = await res.json();
           return user;
         }).catch(e=>{
+          console.log(e);
           return null;
-        })
+        });
         // const user = findUserByCredentials(credentials);
         // if (user) {
         //   // 返されたオブジェクトはすべてJWTの`user`プロパティに保存される
