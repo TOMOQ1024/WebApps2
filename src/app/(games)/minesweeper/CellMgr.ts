@@ -149,7 +149,8 @@ export default class CellMgr {
           sp.on('pointerdown', ()=>this.build(x, y));
         }
         else {
-          sp.on('pointerdown', () => {
+          sp.on('pointerdown', (e) => {
+            if (e.buttons & 0b010) return;
             if (this.cells[y][x].state === CELLSTATE.FLAG) {
               this.toggleFlag(x, y);
             }
