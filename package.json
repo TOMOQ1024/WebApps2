@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "PORT=3001 next dev",
-    "build": "yarn prisma generate && next build",
+    "postinstall": "prisma generate",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
