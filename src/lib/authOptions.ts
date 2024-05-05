@@ -20,7 +20,7 @@ export const authOptions = {
         console.log(`api_base_url: ${process.env.VERCEL_URL || process.env.LOCAL_API_BASE_URL}`);
         console.log(`username: ${credentials!.username}`);
         console.log(`passhash: ${hash.update(credentials!.password).digest('hex')}`);
-        return fetch(`${process.env.VERCEL_URL || process.env.LOCAL_API_BASE_URL}/api/get-user`, {
+        return fetch(`https://${process.env.VERCEL_URL || process.env.LOCAL_API_BASE_URL}/api/get-user`, {
           method: 'GET',
           headers: {
             'username': credentials!.username,
