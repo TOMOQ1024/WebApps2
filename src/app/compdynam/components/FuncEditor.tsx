@@ -62,8 +62,8 @@ export default function FuncEditor({core}: {
   }
   
   return (
-    <Stack direction='column' p={1}>
-      <Typography>
+    <Stack direction='column'>
+      <Typography textAlign='center'>
         - 関数・反復回数 -
       </Typography>
       <Stack direction="row" spacing={1}>
@@ -77,7 +77,7 @@ export default function FuncEditor({core}: {
           inputProps={{
             step: 1,
             style: {
-              padding: 5
+              padding: 5,
             }
           }}
           onChange={e=>{

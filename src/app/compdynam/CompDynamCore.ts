@@ -63,7 +63,6 @@ export default class CDCore {
     this.quad.width = wr.clientWidth * 4;
     this.quad.height = wr.clientHeight * 4;
     this.quad.eventMode = 'static';
-    this.quad.cursor = 'pointer';
     this.setEvents();
 
     this.rawShaderData = await axios.get('/api/compdynam-shaders').then(res=>{

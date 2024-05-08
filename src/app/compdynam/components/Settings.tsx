@@ -7,8 +7,8 @@ export default function Settings({core}: {
   core: Core;
 }) {
   return (
-    <Stack direction='column' p={1}>
-      <Typography>
+    <Stack direction='column'>
+      <Typography textAlign='center'>
         - 描画設定 -
       </Typography>
       <Stack direction="row" spacing={1}>
@@ -21,7 +21,7 @@ export default function Settings({core}: {
           max={+1}
           step={0.1}
           sx={{
-            width: 250
+            width: 190
           }}
           valueLabelDisplay="auto"
           valueLabelFormat={(v,i)=>(
@@ -46,7 +46,7 @@ export default function Settings({core}: {
               core.updateShader();
             }}
           >
-            <FormControlLabel value="hsv" control={<Radio />} label="HSV" />
+            <FormControlLabel value="hsv" control={<Radio />} label="HSV" defaultChecked />
             <FormControlLabel value="grayscale" control={<Radio />} label="Grayscale" />
           </RadioGroup>
         </FormControl>
