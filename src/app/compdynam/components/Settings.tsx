@@ -13,19 +13,23 @@ export default function Settings({core}: {
       </Typography>
       <Stack direction="row" spacing={1}>
         <Typography my='auto'>
-          解像度倍率
+          解像度
         </Typography>
         <Slider
-          defaultValue={core.resFactor}
-          min={-1}
+          defaultValue={Math.log10(core.app.renderer?.resolution ?? 1)}
+          min={-3}
           max={+1}
-          step={0.01}
-          // sx={{
-          //   p: 5,
-          // }}
+          step={0.1}
+          sx={{
+            width: 250
+          }}
+          valueLabelDisplay="auto"
+          valueLabelFormat={(v,i)=>(
+            <>1E{v}</>
+          )}
           aria-label="Volume"
           onChange={(_, n)=>{
-            core.setRF(n as number);
+            core.setRF(10**(n as number));
           }}
         />
       </Stack>

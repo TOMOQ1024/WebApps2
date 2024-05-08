@@ -10,6 +10,9 @@
       width: 100%;
     }
   }
+  *:has(&) {
+    overflow: hidden;
+  }
   * {
     color: rgb(var(--foreground-rgb-dark));
   }

@@ -75,10 +75,19 @@ function _MainWrapper() {
           }, 100);
         }
       }
+
+      const onResize = (e: UIEvent) => {
+        const wr = document.querySelector('#main-wrapper') as HTMLElement;
+        core.quad.width = wr.clientWidth * 4;
+        core.quad.height = wr.clientHeight * 4;
+        console.log('!');
+      }
     
       document.addEventListener('keydown', onKeyDown);
+      document.body.addEventListener('resize', onResize);
       return () => {
         document.removeEventListener('keydown', onKeyDown);
+        document.body.removeEventListener('resize', onResize);
       }
     })();
   }, [core, searchParams]);

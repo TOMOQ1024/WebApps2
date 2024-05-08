@@ -22,10 +22,8 @@ export default class CDCore {
   z0expr: string = 'c';
   func: string = 'z = csq(z) - vec2(.6, .42);';
   expr: string = 'z^2-0.6-0.42i';
-  resFactor: number = 1;
   renderingMode: RenderingMode = RenderingMode.HSV;
   nessyMode = false;
-  interval: NodeJS.Timeout | null = null;
   quad = new Mesh<Geometry, Shader>({geometry: new Geometry({
     attributes: {
       aPosition: [
@@ -50,6 +48,7 @@ export default class CDCore {
       preference: 'webgl',
     });
     wr.appendChild(this.app.canvas);
+    this.app.canvas.style.width = '100%';
 
     this.nessyTex = new Texture({
       source: await Assets.load('/resources/compdynam/images/nessy.png'),
@@ -61,8 +60,10 @@ export default class CDCore {
     // 表示には影響しないが，これを表示すると何故かテクスチャがシェーダーに適用される(???)
     this.nessySp = Sprite.from(this.nessyTex);
     this.nessySp.alpha = 0;
-    this.nessySp.setSize(this.app.canvas.width, this.app.canvas.height);
-    this.nessySp.eventMode = 'static';
+    this.quad.width = wr.clientWidth * 4;
+    this.quad.height = wr.clientHeight * 4;
+    this.quad.eventMode = 'static';
+    this.quad.cursor = 'pointer';
     this.setEvents();
 
     this.rawShaderData = await axios.get('/api/compdynam-shaders').then(res=>{
@@ -73,8 +74,8 @@ export default class CDCore {
 
     this.updateShader();
     
-    this.app.stage.addChild(this.quad);
     this.app.stage.addChild(this.nessySp);
+    this.app.stage.addChild(this.quad);
 
     this.app.ticker.add(() =>
     {
@@ -106,8 +107,6 @@ export default class CDCore {
     });
   
     this.quad.shader = shader;
-
-    // this.glmgr.updateGraphUniform();
   }
 
   setIter(i: number) {
@@ -115,7 +114,7 @@ export default class CDCore {
   }
 
   setRF(x: number) {
-    this.resFactor = x;
+    this.app.renderer.resolution = x;
   }
 
   setRM(m: RenderingMode) {
@@ -123,7 +122,7 @@ export default class CDCore {
   }
 
   setEvents () {
-    this.nessySp
+    this.quad
     .on('wheel', e => {
       e.preventDefault();
       const rect = this.app.canvas.getBoundingClientRect();
@@ -166,22 +165,26 @@ export default class CDCore {
           this.updateShader();
           break;
         default:
-          let ori = new Vector2(
-            1 * (c[1].clientX + c[0].clientX) / m,
-            1 * (c[1].clientY + c[0].clientY) / m
+          const C0 = pidx === 0 ? e : c[0];
+          const C1 = pidx === 1 ? e : c[1];
+          let pOri = new Vector2(
+            ((c[1].clientX + c[0].clientX) / rect.width - 1) * rect.width / m,
+            ((c[1].clientY + c[0].clientY) / rect.height - 1) * rect.height / m
           );
+          let dOri = (new Vector2(
+            ((C1.clientX + C0.clientX) / rect.width - 1) * rect.width / m,
+            ((C1.clientY + C0.clientY) / rect.height - 1) * rect.height / m
+          )).sub(pOri).multiply({x:1,y:-1});
           let pDelta = Math.hypot(
             2 * (c[1].clientX - c[0].clientX) / m,
             2 * (c[1].clientY - c[0].clientY) / m
           );
-          const C0 = pidx === 0 ? e : c[0];
-          const C1 = pidx === 1 ? e : c[1];
           let nDelta = Math.hypot(
             2 * (C1.clientX - C0.clientX) / m,
             2 * (C1.clientY - C0.clientY) / m
           );
-  
-          this.graph.zoom(ori, Math.log(pDelta / nDelta)*500);
+          this.graph.translate(dOri);
+          this.graph.zoom(pOri, Math.log(pDelta / nDelta)*500);
           this.updateShader();
           break;
       }
