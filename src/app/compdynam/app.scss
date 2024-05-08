@@ -19,43 +19,29 @@
     left: 10px;
     bottom: 10px;
     border-radius: 5px;
-    background-color: #11001188;
+    background-color: rgb(114, 122, 140);
+    // background-color: #11001188;
     transition: .3s ease all;
     overflow: hidden;
     display: flex;
-    * {
-      transition: inherit;
-    }
     &.valid {
-      box-shadow: #038 0px 0px 50px 20px inset;
+      // box-shadow: #038 0px 0px 50px 20px inset;
       border: 0.6px solid #cdf;
     }
     &.invalid {
-      box-shadow: #612 0px 0px 50px 20px inset;
+      // box-shadow: #612 0px 0px 50px 20px inset;
       border: 0.6px solid #fbc;
     }
     &.min {
-      width: 38px;
-      height: 38px;
-      *:not(#controls-nav, #button-controls, #button-controls *) {
-        opacity: 0;
-      }
+      width: 64px;
+      height: 27.5px;
     }
     &.max {
       width: 400px;
-      height: 150px;
+      height: 160px;
       & #button-controls svg {
         rotate: 210deg;
       }
-      * {
-        opacity: 1;
-      }
-    }
-    #controls-nav {
-      height: 100%;
-      display: flex;
-      flex-wrap: nowrap;
-      flex-direction: column-reverse;
     }
     #controls-content {
       display: inline-flex;
@@ -115,30 +101,6 @@
           }
         }
       }
-      #func-editor {
-        #iter-editor {
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          justify-content: center;
-          #iter-input {
-            font-size: medium;
-            padding: 2px;
-            width: 120px;
-          }
-        }
-        #z0-display {
-          #z0-input {
-            min-width: 70%;
-          }
-        }
-        #func-display {
-          #func-input {
-            min-width: 70%;
-            max-width: 80%;
-          }
-        }
-      }
     }
   }
 }
@@ -152,27 +114,5 @@
   &:focus {
     outline: 0;
     border: #2f8 solid 1px;
-  }
-}
-
-button {
-  width: 30px;
-  height: 30px;
-  border-radius: 20%;
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  rotate: 0deg;
-  margin: 4px;
-
-  &:hover {
-    // background-color: #bbbbbb77;
-    filter: drop-shadow(0 0 1px #000)
-            drop-shadow(0 0 1px #000)
-            drop-shadow(0 0 2px rgb(117, 151, 255))
-            drop-shadow(0 0 1px #dff);
-  }
-  &.selected {
-    translate: 6px 0;
   }
 }

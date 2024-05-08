@@ -3,7 +3,6 @@ import { Suspense, useEffect, useState } from "react";
 import Core from "../CompDynamCore";
 import Controls from "./Controls";
 import { useSearchParams } from "next/navigation";
-import { Vector2 } from "three";
 
 function _MainWrapper() {
   const searchParams = useSearchParams();
@@ -16,7 +15,6 @@ function _MainWrapper() {
       }
     }
     (async () => {
-
       await core.init();
       const onKeyDown = (e:KeyboardEvent) => {
         // フルスクリーン切り替え
@@ -78,132 +76,15 @@ function _MainWrapper() {
         }
       }
     
-      const onWheel = (e:WheelEvent) => {
-        e.preventDefault();
-        // console.log(e);
-        const rect = core.app.canvas.getBoundingClientRect();
-        // [0,1]正規化した座標
-        const m = Math.min(rect.width, rect.height);
-        const c = new Vector2(
-          (2 * (e.clientX - rect.left) / rect.width - 1) * rect.width / m,
-          (2 * (e.clientY - rect.top) / rect.height - 1) * rect.height / m
-        );
-        const dy = e.deltaY;
-        core.graph.zoom(c, dy);
-    
-        core.updateShader();
-      }
-    
-      const onMouseDown = (e: MouseEvent) => {
-        e.preventDefault();
-        const rect = core.app.canvas.getBoundingClientRect();
-        const m = Math.min(rect.width, rect.height);
-        core.mMgr.pos = new Vector2(
-          (2 * (e.clientX - rect.left) / rect.width - 1) * rect.width / m,
-          (2 * (e.clientY - rect.top) / rect.height - 1) * rect.height / m
-        );
-        core.mMgr.isDown = true;
-      }
-    
-      const onMouseMove = (e: MouseEvent) => {
-        e.preventDefault();
-        const rect = core.app.canvas.getBoundingClientRect();
-        const m = Math.min(rect.width, rect.height);
-        const newPos = new Vector2(
-          (2 * (e.clientX - rect.left) / rect.width - 1) * rect.width / m,
-          (2 * (e.clientY - rect.top) / rect.height - 1) * rect.height / m
-        );
-        if(core.mMgr.isDown){
-          core.graph.translate(newPos.clone().sub(core.mMgr.pos).multiply({x:1,y:-1}));
-          core.mMgr.pos = newPos;
-          core.updateShader();
-        }
-      }
-    
-      const onMouseUp = (e: MouseEvent) => {
-        e.preventDefault();
-        core.mMgr.isDown = false;
-      }
-    
-      const onTouchStart = (e: TouchEvent) => {
-        e.preventDefault();
-        const rect = core.app.canvas.getBoundingClientRect();
-        const m = Math.min(rect.width, rect.height);
-        const s = e.touches;
-        for(let i=0; i<s.length; i++){
-          core.tMgr.touches[e.touches[i].identifier] =
-            new Vector2(
-              (2 * (s[i].clientX - rect.left) / rect.width - 1) * rect.width / m,
-              (2 * (s[i].clientY - rect.top) / rect.height - 1) * rect.height / m
-            );
-        }
-      }
-    
-      const onTouchMove = (e: TouchEvent) => {
-        e.preventDefault();
-        const rect = core.app.canvas.getBoundingClientRect();
-        const m = Math.min(rect.width, rect.height);
-        const c = e.changedTouches;
-        switch(c.length) {
-          case 0:
-            return;
-          case 1:
-            let newPos = new Vector2(
-              (2 * (c[0].clientX - rect.left) / rect.width - 1) * rect.width / m,
-              (2 * (c[0].clientY - rect.top) / rect.height - 1) * rect.height / m
-            );
-            core.graph.translate(newPos.clone().sub(core.tMgr.touches[c[0].identifier]).multiply({x:1,y:-1}));
-            core.tMgr.touches[c[0].identifier] = newPos;
-            core.updateShader();
-            break;
-          default:
-            let prevPos0 = core.tMgr.touches[c[0].identifier].clone();
-            let newPos0 = new Vector2(
-              (2 * (c[0].clientX - rect.left) / rect.width - 1) * rect.width / m,
-              (2 * (c[0].clientY - rect.top) / rect.height - 1) * rect.height / m
-            );
-            core.tMgr.touches[c[0].identifier] = newPos0;
-    
-            let prevPos1 = core.tMgr.touches[c[1].identifier].clone();
-            let newPos1 = new Vector2(
-              (2 * (c[1].clientX - rect.left) / rect.width - 1) * rect.width / m,
-              (2 * (c[1].clientY - rect.top) / rect.height - 1) * rect.height / m
-            );
-            core.tMgr.touches[c[1].identifier] = newPos1;
-    
-            // alert(newPos1.subed(newPos0).length() / prevPos1.subed(prevPos0).length());
-            core.graph.zoom(prevPos0.clone().add(prevPos1).multiplyScalar(0.5), Math.log(prevPos1.clone().sub(prevPos0).length() / newPos1.clone().sub(newPos0).length())*500);
-            core.updateShader();
-            break;
-        }
-      }
-    
       document.addEventListener('keydown', onKeyDown);
-      core.app.canvas.addEventListener('wheel', onWheel, {passive: false});
-      document.addEventListener('mousedown', onMouseDown, {passive: false});
-      document.addEventListener('mousemove', onMouseMove, {passive: false});
-      document.addEventListener('mouseup', onMouseUp, {passive: false});
-      document.addEventListener('touchstart', onTouchStart, {passive: false});
-      document.addEventListener('touchmove', onTouchMove, {passive: false});
-      // document.addEventListener('touchend', onTouchEnd, {passive: false});
       return () => {
         document.removeEventListener('keydown', onKeyDown);
-        core.app.canvas.removeEventListener('wheel', onWheel);
-        document.removeEventListener('mousedown', onMouseDown);
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-        document.removeEventListener('touchstart', onTouchStart);
-        document.removeEventListener('touchmove', onTouchMove);
-        // document.removeEventListener('touchend', onTouchEnd);
       }
     })();
   }, [core, searchParams]);
-    
-  // })();}, [core, searchParams]);
   
   return (
     <main id='main-wrapper'>
-      <div id='graph-wrapper'></div>
       <Controls core={core}/>
     </main>
   );

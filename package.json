@@ -10,6 +10,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@fontsource/roboto": "^5.0.13",
+    "@mui/material": "^5.15.16",
     "@pixiv/three-vrm": "^2.1.1",
     "@prisma/client": "5.13.0",
     "@types/node": "20.12.8",

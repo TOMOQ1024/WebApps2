@@ -2,48 +2,38 @@ import { useEffect, useState } from "react";
 import ControlsContent from "./ControlsContent";
 import { ControlsTab } from "../Definitions";
 import Core from "../CompDynamCore";
-import ControlsNav from "./ControlsNav";
+import { Button, Stack } from "@mui/material";
+import { faGear, faPencil, faLightbulb, faSliders } from "@fortawesome/free-solid-svg-icons";
+import FASvgIcon from "@/components/FASvgIcon";
 
 export default function Controls({core}: {
   core: Core;
 }) {
   const [controlsOpened, setControlsOpened] = useState(true);
   const [controlsTab, setControlsTab] = useState<ControlsTab>(ControlsTab.EXPRESSION);
+  const [error, setError] = useState('');
 
   useEffect(()=>{
-    const cs = document.getElementById('controls');
-    if(!cs){
-      console.error('failed to get controls element');
-      return;
-    }
-
-    const antiPropagation = (e: Event) => {
-      e.stopPropagation();
-    }
-
-    cs.addEventListener('keydown', antiPropagation);
-    cs.addEventListener('mousedown', antiPropagation);
-    cs.addEventListener('mousemove', antiPropagation);
-    cs.addEventListener('mouseup', antiPropagation);
-    cs.addEventListener('touchstart', antiPropagation);
-    cs.addEventListener('touchmove', antiPropagation);
-    cs.addEventListener('touchend', antiPropagation);
-
-    return () => {
-      cs.removeEventListener('keydown', antiPropagation);
-      cs.removeEventListener('mousedown', antiPropagation);
-      cs.removeEventListener('mousemove', antiPropagation);
-      cs.removeEventListener('mouseup', antiPropagation);
-      cs.removeEventListener('touchstart', antiPropagation);
-      cs.removeEventListener('touchmove', antiPropagation);
-      cs.removeEventListener('touchend', antiPropagation);
-    }
-  });
+    core._setError = setError;
+  }, [core]);
 
   return (
-    <div id='controls' className={`${controlsOpened ? 'max' : 'min'} valid`}>
-      <ControlsNav controlsTab={controlsTab} setControlsTab={setControlsTab} setControlsOpened={setControlsOpened}/>
+    <Stack direction='row' id='controls' className={`${controlsOpened ? 'max' : 'min'} ${error ? 'invalid' : 'valid'}`}>
+      <Stack direction='column-reverse' spacing={1} textAlign='center'>
+        <Button size='small' onClick={_=>setControlsOpened(c=>!c)}>
+          <FASvgIcon icon={faGear} size='xl' color="#ddd"/>
+        </Button>
+        <Button size='small' onClick={_=>setControlsTab(ControlsTab.EXPRESSION)}>
+          <FASvgIcon icon={faPencil} size='xl' color="#ddd"/>
+        </Button>
+        <Button size='small' onClick={_=>setControlsTab(ControlsTab.PRESETS)}>
+          <FASvgIcon icon={faLightbulb} size='xl' color="#ddd"/>
+        </Button>
+        <Button size='small' onClick={_=>setControlsTab(ControlsTab.SETTINGS)}>
+          <FASvgIcon icon={faSliders} size='xl' color="#ddd"/>
+        </Button>
+      </Stack>
       <ControlsContent selected={controlsTab} core={core}/>
-    </div>
+    </Stack>
   );
 }

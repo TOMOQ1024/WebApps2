@@ -1,53 +1,52 @@
+import { FormControl, FormControlLabel, Radio, RadioGroup, Slider, Stack, Typography } from "@mui/material";
 import Core from "../CompDynamCore";
 import { RenderingMode } from "../Definitions";
+import React from "react";
 
 export default function Settings({core}: {
   core: Core;
 }) {
   return (
-    <div id='settings'>
-      <div>- 描画設定 -</div>
-      <div id='rf-editor'>
-        解像度倍率：
-        <input
-        id='rf-input'
-        className='range'
-        type='range'
-        name='rf'
-        min='-1'
-        max='1'
-        step='0.01'
-        onChange={e=>{
-          core.setRF(10**(Number(e.target.value)));
-          // core.resizeCanvas();
-        }} />
-      </div>
-      <div id='rm-editor'>
-        描画モード：
-        <input
-        id='rm-input-h'
-        className='radio'
-        type='radio'
-        name='rm'
-        value='hsv'
-        defaultChecked
-        onChange={e=>{
-          core.setRM(RenderingMode.HSV);
-          core.updateShader();
-        }}
-        /><span className='rm-option'>HSV</span>
-        <input
-        id='rm-input-v'
-        className='radio'
-        type='radio'
-        name='rm'
-        value='grayscale'
-        onChange={e=>{
-          core.setRM(RenderingMode.GRAYSCALE);
-          core.updateShader();
-        }}
-        /><span className='rm-option'>Grayscale</span>
-      </div>
-    </div>
+    <Stack direction='column' p={1}>
+      <Typography>
+        - 描画設定 -
+      </Typography>
+      <Stack direction="row" spacing={1}>
+        <Typography my='auto'>
+          解像度倍率
+        </Typography>
+        <Slider
+          defaultValue={core.resFactor}
+          min={-1}
+          max={+1}
+          step={0.01}
+          // sx={{
+          //   p: 5,
+          // }}
+          aria-label="Volume"
+          onChange={(_, n)=>{
+            core.setRF(n as number);
+          }}
+        />
+      </Stack>
+      <Stack direction="row" spacing={1}>
+        <Typography my='auto'>
+          描画モード
+        </Typography>
+        <FormControl>
+          <RadioGroup
+            aria-labelledby="demo-controlled-radio-buttons-group"
+            name="controlled-radio-buttons-group"
+            onChange={e=>{
+              core.setRM(e.target.value === 'hsv' ? RenderingMode.HSV : RenderingMode.GRAYSCALE);
+              core.updateShader();
+            }}
+          >
+            <FormControlLabel value="hsv" control={<Radio />} label="HSV" />
+            <FormControlLabel value="grayscale" control={<Radio />} label="Grayscale" />
+          </RadioGroup>
+        </FormControl>
+      </Stack>
+    </Stack>
   );
 }

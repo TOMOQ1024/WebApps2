@@ -3,20 +3,18 @@ import Graph from "./Graph";
 import { Application, Assets, Geometry, Mesh, Rectangle, Shader, Sprite, Texture } from "pixi.js";
 import axios from "axios";
 import { Vector2 } from "three";
+import { Dispatch, SetStateAction } from "react";
 
 export default class CDCore {
-  mMgr = {
-    isDown: false,
-    dPos: new Vector2(),
-    pos: new Vector2(),
-  };
-  tMgr: {
-    touches: {
-      [id: number]: Vector2
-    }
-  } = {
-    touches: {}
-  }
+  pointers: {
+    pointerId: number,
+    clientX: number,
+    clientY: number,
+  }[] = [];
+  _error = '';
+  get error () { return this._error };
+  set error (e) { this._setError(this._error = e) };
+  _setError: Dispatch<SetStateAction<string>> = ()=>{};
   graph = new Graph();
   app = new Application();
   iter: number = 100;
@@ -43,8 +41,16 @@ export default class CDCore {
     frag: '',
   };
   nessyTex = new Texture();
+  nessySp = new Sprite();
 
   async init () {
+    const wr = document.querySelector('#main-wrapper') as HTMLElement;
+    await this.app.init({
+      resizeTo: wr,
+      preference: 'webgl',
+    });
+    wr.appendChild(this.app.canvas);
+
     this.nessyTex = new Texture({
       source: await Assets.load('/resources/compdynam/images/nessy.png'),
       frame: new Rectangle(0, 0, 128, 128),
@@ -53,16 +59,11 @@ export default class CDCore {
     this.nessyTex.source.scaleMode = 'nearest';
 
     // 表示には影響しないが，これを表示すると何故かテクスチャがシェーダーに適用される(???)
-    const nessySp = Sprite.from(this.nessyTex);
-    nessySp.x = -200;
-    this.app.stage.addChild(nessySp);
-
-    const wr = document.querySelector('#graph-wrapper') as HTMLElement;
-    await this.app.init({
-      resizeTo: wr,
-      preference: 'webgl',
-    });
-    wr.appendChild(this.app.canvas);
+    this.nessySp = Sprite.from(this.nessyTex);
+    this.nessySp.alpha = 0;
+    this.nessySp.setSize(this.app.canvas.width, this.app.canvas.height);
+    this.nessySp.eventMode = 'static';
+    this.setEvents();
 
     this.rawShaderData = await axios.get('/api/compdynam-shaders').then(res=>{
       return res.data;
@@ -71,13 +72,9 @@ export default class CDCore {
     });
 
     this.updateShader();
-  
-    this.quad.width = this.app.screen.width;
-    this.quad.height = this.app.screen.height;
-    this.quad.x = this.app.screen.width / 2;
-    this.quad.y = this.app.screen.height / 2;
-      
+    
     this.app.stage.addChild(this.quad);
+    this.app.stage.addChild(this.nessySp);
 
     this.app.ticker.add(() =>
     {
@@ -123,5 +120,83 @@ export default class CDCore {
 
   setRM(m: RenderingMode) {
     this.renderingMode = m;
+  }
+
+  setEvents () {
+    this.nessySp
+    .on('wheel', e => {
+      e.preventDefault();
+      const rect = this.app.canvas.getBoundingClientRect();
+      // [0,1]正規化した座標
+      const m = Math.min(rect.width, rect.height);
+      const c = new Vector2(
+        (2 * (e.clientX - rect.left) / rect.width - 1) * rect.width / m,
+        (2 * (e.clientY - rect.top) / rect.height - 1) * rect.height / m
+      );
+      const dy = e.deltaY;
+      this.graph.zoom(c, dy);
+  
+      this.updateShader();
+    })
+    .on('pointerdown', e => {
+      e.preventDefault();
+      this.app.canvas.setPointerCapture(e.pointerId);// キャンバス外も追跡
+      this.pointers.push({
+        pointerId: e.pointerId,
+        clientX: e.clientX,
+        clientY: e.clientY,
+      });
+    })
+    .on('pointermove', e => {
+      e.preventDefault();
+      const rect = this.app.canvas.getBoundingClientRect();
+      const m = Math.min(rect.width, rect.height);
+      const pidx = this.pointers.findIndex(p=>p.pointerId===e.pointerId);
+      const p = this.pointers[pidx] ?? e;
+      const c = this.pointers;
+      switch(c.length) {
+        case 0:
+          return;
+        case 1:
+          let delta = new Vector2(
+            2 * (e.clientX - p.clientX) / m,
+            2 * (p.clientY - e.clientY) / m
+          );
+          this.graph.translate(delta);
+          this.updateShader();
+          break;
+        default:
+          let ori = new Vector2(
+            1 * (c[1].clientX + c[0].clientX) / m,
+            1 * (c[1].clientY + c[0].clientY) / m
+          );
+          let pDelta = Math.hypot(
+            2 * (c[1].clientX - c[0].clientX) / m,
+            2 * (c[1].clientY - c[0].clientY) / m
+          );
+          const C0 = pidx === 0 ? e : c[0];
+          const C1 = pidx === 1 ? e : c[1];
+          let nDelta = Math.hypot(
+            2 * (C1.clientX - C0.clientX) / m,
+            2 * (C1.clientY - C0.clientY) / m
+          );
+  
+          this.graph.zoom(ori, Math.log(pDelta / nDelta)*500);
+          this.updateShader();
+          break;
+      }
+      if (0 <= pidx) {
+        this.pointers[pidx] = {
+          pointerId: e.pointerId,
+          clientX: e.clientX,
+          clientY: e.clientY,
+        };
+      }
+    })
+    .on('pointerup', e => {
+      e.preventDefault();
+      this.app.canvas.releasePointerCapture(e.pointerId);
+      this.pointers.splice(this.pointers.findIndex(p=>p.pointerId===e.pointerId), 1);
+    })
   }
 }
