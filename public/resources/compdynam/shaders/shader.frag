@@ -130,6 +130,27 @@ vec2 cmix(vec2 z, vec2 w, vec2 t) {
   return mix(z, w, t.x);
 }
 
+vec2 cfloor(vec2 z) {
+  return vec2(
+    floor(z.x),
+    floor(z.y)
+  );
+}
+
+vec2 cround(vec2 z) {
+  return vec2(
+    floor(z.x + .5),
+    floor(z.y + .5)
+  );
+}
+
+vec2 cceil(vec2 z) {
+  return vec2(
+    ceil(z.x),
+    ceil(z.y)
+  );
+}
+
 vec3 hsv2rgb(float h, float s, float v) {
   return ((clamp(abs(fract(h+vec3(0,2,1)/3.)*6.-3.)-1.,0.,1.)-1.)*s+1.)*v;
   // return ((clamp(abs(fract(h+vec4(0.,2.,1.,1.)/3.)*6.-3.)-1.,0.,1.)-1.)*s+1.)*v;

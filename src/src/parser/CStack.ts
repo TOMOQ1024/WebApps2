@@ -141,9 +141,9 @@ export class CStack {
           case FuncName.COS: return `ccos(${this.tocdgl(node.lhs)})`;
           case FuncName.SIN: return `csin(${this.tocdgl(node.lhs)})`;
           case FuncName.TAN: return `ctan(${this.tocdgl(node.lhs)})`;
-          case FuncName.FLR: return `floor(${this.tocdgl(node.lhs)})`;
-          case FuncName.RND: return `round(${this.tocdgl(node.lhs)})`;
-          case FuncName.CIL: return `ceil(${this.tocdgl(node.lhs)})`;
+          case FuncName.FLR: return `cfloor(${this.tocdgl(node.lhs)})`;
+          case FuncName.RND: return `cround(${this.tocdgl(node.lhs)})`;
+          case FuncName.CIL: return `cceil(${this.tocdgl(node.lhs)})`;
           case FuncName.FRC: return `fract(${this.tocdgl(node.lhs)})`;
           case FuncName.ABS: return `cabs(${this.tocdgl(node.lhs)})`;
           case FuncName.ARG: return `carg(${this.tocdgl(node.lhs)})`;
