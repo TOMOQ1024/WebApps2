@@ -51,7 +51,7 @@ export default class CDCore {
     this.app.canvas.style.width = '100%';
 
     this.nessyTex = new Texture({
-      source: await Assets.load('/resources/compdynam/images/nessy.png'),
+      source: await Assets.load('/resources/compdynam/images/earth.jpg'),
       frame: new Rectangle(0, 0, 128, 128),
     });
     this.nessyTex.source.addressMode = 'repeat';
@@ -123,7 +123,6 @@ export default class CDCore {
   setEvents () {
     this.quad
     .on('wheel', e => {
-      e.preventDefault();
       const rect = this.app.canvas.getBoundingClientRect();
       // [0,1]正規化した座標
       const m = Math.min(rect.width, rect.height);
