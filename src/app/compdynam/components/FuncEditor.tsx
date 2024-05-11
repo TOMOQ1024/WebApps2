@@ -1,66 +1,9 @@
-import { Parse } from "@/src/parser/Main";
 import Core from "../CompDynamCore";
 import { Alert, Stack, TextField, Tooltip, Typography } from "@mui/material";
 
 export default function FuncEditor({core}: {
   core: Core;
 }) {
-  function HandleZ0Input(e: React.ChangeEvent<HTMLInputElement>) {
-    // テキストの解析
-    let result = Parse(
-      e.target.value,
-      ['i', 'c', 't']
-    );
-    console.log(e.target.value);
-
-    let z0: string = '';
-    if(result.status){
-      try {
-        z0 = result.cstack.tocdgl(result.cstack.root);
-      }
-      catch(e) {
-        core.error = `${e}`;
-        console.error(e);
-        return;
-      }
-      core.error = '';
-      core.z0 = z0;
-      core.z0expr = e.target.value;
-      core.updateShader();
-    }
-    else {
-      core.error = 'parse failed';
-    }
-  }
-
-
-  function HandleFuncInput(e: React.ChangeEvent<HTMLInputElement>) {
-    // テキストの解析
-    let result = Parse(
-      e.target.value,
-      ['z', 'i', 'c', 't']
-    );
-
-    let func: string = '';
-    if(result.status){
-      try {
-        func = result.cstack.tocdgl(result.cstack.root);
-      }
-      catch(e) {
-        core.error = `${e}`;
-        console.error(e);
-        return;
-      }
-      core.error = '';
-      core.func = func;
-      core.expr = e.target.value;
-      core.updateShader();
-    }
-    else {
-      core.error = 'parse failed';
-    }
-  }
-  
   return (
     <Stack direction='column'>
       <Typography textAlign='center'>
@@ -98,7 +41,7 @@ export default function FuncEditor({core}: {
               padding: 5
             }
           }}
-          onChange={HandleZ0Input}
+          onChange={e => core.z0expr = e.target.value}
         />
       </Stack>
       <Stack direction="row" spacing={1}>
@@ -108,13 +51,13 @@ export default function FuncEditor({core}: {
         <Tooltip title={core.error ?? <Alert severity="error">{core.error}</Alert>} arrow>
           <TextField
             autoComplete='off'
-            defaultValue={core.expr}
+            defaultValue={core.funcexpr}
             inputProps={{
               style: {
                 padding: 5
               }
             }}
-            onChange={HandleFuncInput}
+            onChange={e => core.funcexpr = e.target.value}
           />
         </Tooltip>
       </Stack>
