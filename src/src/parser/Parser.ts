@@ -1,5 +1,5 @@
 import { BNodeKind, BNode } from './Node';
-import { FuncName } from "./Func";
+import { Funcs, isFunc } from "./Func";
 import { Token, TokenType } from './Token'
 import { VarName } from './Var';
 import { ExprType } from './Def';
@@ -116,7 +116,7 @@ export default class Parser {
 
   prim(): BNode {
     let node: BNode;
-    let fn: FuncName;
+    let fn: string;
     let vn: VarName;
     if(this.consumeToken(TokenType.LPT)){
       node = this.expr();
@@ -151,16 +151,16 @@ Node* func(int id)
 	return new_node_func(id, mult(), NULL);
 }
 */
-  func(fn: FuncName): BNode {
+  func(fn: string): BNode {
     let node : BNode;
 
     if(this.consumeToken(TokenType.LPT)){
       node = this.expr();
       while(this.consumeToken(TokenType.CMA)){
-        node = new BNode(BNodeKind.FNC, node, this.expr(), FuncName.NIL);
+        node = new BNode(BNodeKind.FNC, node, this.expr(), 'cma');
       }
       this.expectToken(TokenType.RPT);
-      if(node.kind === BNodeKind.FNC && node.val === FuncName.NIL){
+      if(node.kind === BNodeKind.FNC && node.val === 'cma'){
         node.val = fn;
         return node;
       } else {
@@ -229,7 +229,7 @@ Node* func(int id)
     let character = this.character();
     let str = this.currentLine.slice(this.currentPointer);
     let v: string;
-    let fn: FuncName;
+    let fn: string;
     let vn: VarName;
     let dvn: string;
     this.token = new Token(TokenType.UNK, 0, character);
@@ -246,10 +246,10 @@ Node* func(int id)
       return;
     }
 
-    if (fn = this.isFunction(str)) {
+    if (fn = isFunc(str)) {
       this.token.type = TokenType.FNC;
       this.token.value = fn;
-      for(let i=0; i<fn.length; i++) this.nextCharacter();
+      for(let i=0; i<Funcs[fn].str.length; i++) this.nextCharacter();
       return;
     }
 
@@ -347,11 +347,11 @@ Node* func(int id)
     return true;
   }
 
-  consumeFunc(): FuncName {
-    if(this.token.type != TokenType.FNC)return FuncName.NIL;
-    let fn = this.token.value as FuncName;
+  consumeFunc(): string {
+    if(this.token.type != TokenType.FNC)return '';
+    let fn = this.token.value;
     this.nextToken();
-    return fn;
+    return fn as string;
   }
 
   consumeVar(): VarName {
@@ -389,17 +389,5 @@ Node* func(int id)
       }
     }
     return VarName.NIL;
-  }
-
-  isFunction(text: string): FuncName {
-    let fns = Object.values(FuncName);
-    let fn: FuncName;
-    for(let i=0; i<fns.length; i++){
-      fn = fns[i];
-      if(fn && (new RegExp(`^${fn}`)).test(text)){
-        return fn;
-      }
-    }
-    return FuncName.NIL;
   }
 }

@@ -185,7 +185,8 @@ void main ()
     gl_FragColor = length(a)<1e20 ? texture2D(uTexture, vec2(A.x, -A.y)) : vec4(0., 0., 0., 1.);
   }
   else {
-    /* delete if mode is not hsv */gl_FragColor = vec4(hsv2rgb(atan(a.y, a.x)/2./PI+1., 1., pow(1./(1.+length(a)), .1)), 1.);
-    /* delete if mode is not grayscale */gl_FragColor = vec4(hsv2rgb(0., 0., pow(1./(1.+length(a)), .1) * (1.+sin(atan(a.y, a.x)*2.))/2.), 1.);
+    float b = a.x != 0. ? atan(a.y, a.x) : a.y<0. ? -PI/2. : PI/2.;
+    /* delete if mode is not hsv */gl_FragColor = vec4(hsv2rgb(b/2./PI+1., 1., pow(1./(1.+length(a)), .1)), 1.);
+    /* delete if mode is not grayscale */gl_FragColor = vec4(hsv2rgb(0., 0., pow(1./(1.+length(a)), .1) * (1.+sin(b*2.))/2.), 1.);
   }
 }

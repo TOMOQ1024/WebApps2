@@ -1,161 +1,192 @@
-export enum FuncName {
-  NIL = '',
+import { median, mean } from "../Math";
+import { BNode } from "./Node";
 
-  REP = 'Re',
-  IMP = 'Im',
-  COJ = 'conj',
-  COH = 'cosh',
-  SIH = 'sinh',
-  TAH = 'tanh',
-  COS = 'cos',
-  SIN = 'sin',
-  TAN = 'tan',
-  FLR = 'floor',
-  RND = 'round',
-  CIL = 'ceil',
-  FRC = 'fract',
-  ABS = 'abs',
-  ARG = 'arg',
-  SQR = 'sqrt',
-  CBR = 'cbrt',
-  EXP = 'exp',
-
-  MAX = 'max',
-  MIN = 'min',
-  MIX = 'mix',
-  MED = 'median',
-  AVG = 'avg',
-}
-
-const Funcs = {
-  nil: {
+export const Funcs: {
+  [fn: string]: {
+    str: string,
+    argc: number,
+    cdgl?: string,
+    calc?: (node: BNode) => number[],
+    togl?: (node: BNode) => string,
+    tocdgl?: (node: BNode, fn?: string) => string,
+  }
+} = {
+  cma: {
+    str: '0',
     argc: 0,
     cdgl: '',
+    calc: n => [...n.calcL(),...n.calcR()],
+    togl: n => `${n.toglL()},${n.toglR()}`,
+    tocdgl: (n,fn) => fn
+    ? `${fn}(${n.tocdglL()},${n.tocdglR()})`
+    : `${n.tocdglL()},${n.tocdglR()}`,
   },
   rep: {
     str: 'Re',
     argc: 1,
-    cdgl: 'cre',
+    tocdgl: n => `cre(${n.tocdglL()})`,
   },
   imp: {
     str: 'Im',
     argc: 1,
-    cdgl: 'cim',
+    tocdgl: n => `cim(${n.tocdglL()})`,
   },
   coj: {
     str: 'conj',
     argc: 1,
-    cdgl: 'cconj',
+    tocdgl: n => `cconj(${n.tocdglL()})`,
   },
   abs: {
     str: 'abs',
     argc: 1,
-    cdgl: 'cabs',
+    calc: n => [Math.abs(n.calcL()[0])],
+    togl: n => `abs(${n.toglL()})`,
+    tocdgl: n => `cabs(${n.tocdglL()})`,
   },
   arg: {
     str: 'arg',
     argc: 1,
-    cdgl: 'carg',
+    tocdgl: n => `carg(${n.tocdglL()})`,
   },
   // 指数関数
   exp: {
     str: 'exp',
     argc: 1,
-    cdgl: 'cexp',
+    calc: n => [Math.exp(n.calcL()[0])],
+    togl: n => `exp(${n.toglL()})`,
+    tocdgl: n => `cexp(${n.tocdglL()})`,
   },
   // 双曲線関数
   coh: {
     str: 'cosh',
     argc: 1,
-    cdgl: 'ccosh',
+    calc: n => [Math.cosh(n.calcL()[0])],
+    togl: n => `cosh(${n.toglL()})`,
+    tocdgl: n => `ccosh(${n.tocdglL()})`,
   },
   sih: {
     str: 'sinh',
     argc: 1,
-    cdgl: 'csinh',
+    calc: n => [Math.sinh(n.calcL()[0])],
+    togl: n => `sinh(${n.toglL()})`,
+    tocdgl: n => `csinh(${n.tocdglL()})`,
   },
   tah: {
     str: 'tanh',
     argc: 1,
-    cdgl: 'ctanh',
+    calc: n => [Math.tanh(n.calcL()[0])],
+    togl: n => `tanh(${n.toglL()})`,
+    tocdgl: n => `ctanh(${n.tocdglL()})`,
   },
   // 三角関数
   cos: {
     str: 'cos',
     argc: 1,
-    cdgl: 'ccos',
+    calc: n => [Math.cos(n.calcL()[0])],
+    togl: n => `cos(${n.toglL()})`,
+    tocdgl: n => `ccos(${n.tocdglL()})`,
   },
   sin: {
     str: 'sin',
     argc: 1,
-    cdgl: 'csin',
+    calc: n => [Math.sin(n.calcL()[0])],
+    togl: n => `sin(${n.toglL()})`,
+    tocdgl: n => `csin(${n.tocdglL()})`,
   },
   tan: {
     str: 'tan',
     argc: 1,
-    cdgl: 'ctan',
+    calc: n => [Math.tan(n.calcL()[0])],
+    togl: n => `tan(${n.toglL()})`,
+    tocdgl: n => `ctan(${n.tocdglL()})`,
   },
-  // 冪乗
+  // n乗根
   sqr: {
     str: 'sqrt',
     argc: 1,
-    cdgl: 'csqrt',
+    calc: n => [Math.sqrt(n.calcL()[0])],
+    togl: n => `sqrt(${n.toglL()})`,
+    tocdgl: n => `csqrt(${n.tocdglL()})`,
   },
   cbr: {
     str: 'cbrt',
     argc: 1,
-    cdgl: 'ccbrt',
+    calc: n => [Math.cbrt(n.calcL()[0])],
+    togl: n => `cbrt(${n.toglL()})`,
+    tocdgl: n => `ccbrt(${n.tocdglL()})`,
   },
   // 整数，小数
   flr: {
     str: 'floor',
     argc: 1,
-    cdgl: 'cfloor',
+    calc: n => [Math.floor(n.calcL()[0])],
+    togl: n => `floor(${n.toglL()})`,
+    tocdgl: n => `cfloor(${n.tocdglL()})`,
   },
   rnd: {
     str: 'round',
     argc: 1,
-    cdgl: 'cround',
+    calc: n => [Math.round(n.calcL()[0])],
+    togl: n => `floor(${n.toglL()}+.5)`,
+    tocdgl: n => `cround(${n.tocdglL()})`,
   },
   cil: {
     str: 'ceil',
     argc: 1,
-    cdgl: 'cceil',
+    calc: n => [Math.ceil(n.calcL()[0])],
+    togl: n => `ceil(${n.toglL()})`,
+    tocdgl: n => `cceil(${n.tocdglL()})`,
   },
   frc: {
     str: 'fract',
     argc: 1,
-    cdgl: 'fract',
+    calc: n => (x=>[x-Math.floor(x)])(n.calcL()[0]),
+    togl: n => `fract(${n.toglL()})`,
+    tocdgl: n => `fract(${n.tocdglL()})`,
   },
   // 多変数関数
   mix: {
-    str: 'cmix',
+    str: 'mix',
     argc: 3,
     cdgl: 'cmix',
+    tocdgl: n => `mix(${n.tocdglL()},${n.tocdglR()})`,
   },
   max: {
     str: 'max',
     argc: Infinity,
     cdgl: 'max',
+    calc: n => [Math.max(...n.calcL(),...n.calcR())],
+    togl: n => `max(${n.toglL()},${n.toglR()})`,
+    tocdgl: n => `max(${n.tocdglL('max')},${n.tocdglR('max')})`,
   },
   min: {
     str: 'min',
     argc: Infinity,
     cdgl: 'min',
+    calc: n => [Math.min(...n.calcL(),...n.calcR())],
+    togl: n => `min(${n.toglL()},${n.toglR()})`,
+    tocdgl: n => `min(${n.tocdglL('min')},${n.tocdglR('min')})`,
   },
   med: {
     str: 'median',
     argc: Infinity,
     // cdgl: 'median',
+    calc: n => [median(...n.calcL(),...n.calcR())],
+    togl: n => `median(${n.toglL()},${n.toglR()})`,
   },
   men: {
     str: 'mean',
     argc: Infinity,
     // cdgl: 'mean',
+    calc: n => [mean(...n.calcL(),...n.calcR())],
+    togl: n => `mean(${n.toglL()},${n.toglR()})`,
   },
 };
 
-export function isFuncName(input: any){
+export function isFunc(input: any){
   let s = String(input);
-  return 0<=Object.values(FuncName).map(t=>String(t)).indexOf(s);
+  for (let fn in Funcs) {
+    if ((new RegExp(`^${{...Funcs}[fn]!.str}`)).test(s)) return fn;
+  }
+  return '';
 }

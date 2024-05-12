@@ -28,7 +28,7 @@ export default class CDCore {
     let z0 = '';
     if (result.status) {
       try {
-        z0 = result.cstack.tocdgl(result.cstack.root);
+        z0 = result.root!.tocdgl();
       }
       catch(e) {
         this.error = `${e}`;
@@ -54,7 +54,7 @@ export default class CDCore {
     let f = '';
     if (result.status) {
       try {
-        f = result.cstack.tocdgl(result.cstack.root);
+        f = result.root!.tocdgl();
       }
       catch(e) {
         this.error = `${e}`;
