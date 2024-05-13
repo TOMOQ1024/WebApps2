@@ -10,6 +10,7 @@ export default class Parser {
   currentLine: string = '';
   currentPointer: number = 0;
   token = new Token();
+  debug = false;
 
   constructor(){}
 
@@ -19,25 +20,30 @@ export default class Parser {
     this.currentLine = input;
     this.currentPointer = 0;
 
-    try {
-      this.nextToken();
-      switch(eType){
-        case 'defi':
-          return this.defi();
+    this.nextToken();
+    let node: BNode;
+    switch(eType){
+      case 'defi':
+        node = this.defi();
+        break;
         case 'ineq':
-          return this.ineq();
+        node = this.ineq();
+        break;
         case 'expr':
-          return this.expr();
-        case 'null':
-          return new BNode();
-      }
-    } catch (e) {
-      console.error(e);
-      process.exit(1);
+        node = this.expr();
+        break;
+      case 'null':
+        node = new BNode();
+        break;
     }
+    if (this.checkToken(TokenType.RPT)) {
+      throw new Error(`不正な括弧`);
+    }
+    return node;
   }
 
   ineq(): BNode {
+    if (this.debug) console.log('ineq');
     let node = this.expr();
     for(;;){
       if(this.consumeToken(TokenType.GEQ)){
@@ -49,20 +55,22 @@ export default class Parser {
       } else if(this.consumeToken(TokenType.LET)){
         node = new BNode(BNodeKind.LET, node, this.expr());
       } else {
+        if (this.debug) console.log(`ineq: ${node}`);
         return node;
       }
     }
   }
 
   defi(): BNode {
+    if (this.debug) console.log('defi');
     let node = this.nwid();
     this.expectToken(TokenType.EQL);
     return new BNode(BNodeKind.EQL, node, this.expr());
   }
 
   expr(): BNode {
+    if (this.debug) console.log(`expr(${this.currentPointer})`);
     let node: BNode;
-    // this.nextToken();
     if(this.consumeToken(TokenType.SUB)){
       node = new BNode(BNodeKind.SUB, BNode.zero, this.mult());
     }
@@ -78,12 +86,14 @@ export default class Parser {
         node = new BNode(BNodeKind.SUB, node, this.mult());
       }
       else {
+        if (this.debug) console.log(`expr: ${this.currentPointer}`);
         return node;
       }
     }
   }
 
   mult(): BNode {
+    if (this.debug) console.log(`mult(${this.currentPointer})`);
     let node = this.powr();
 
     for(;;){
@@ -99,28 +109,33 @@ export default class Parser {
       ) && !this.checkToken(TokenType.EOL)){
         node = new BNode(BNodeKind.MUL, node, this.powr());
       } else {
+        if (this.debug) console.log(`mult: ${this.currentPointer}`);
         return node;
       }
     }
   }
 
   powr(): BNode {
+    if (this.debug) console.log(`powr(${this.currentPointer})`);
     let node = this.prim();
 
     if(this.consumeToken(TokenType.POW)){
       return new BNode(BNodeKind.POW, node, this.powr());
     }
 
+    if (this.debug) console.log(`powr: ${this.currentPointer}`);
     return node;
   }
 
   prim(): BNode {
+    if (this.debug) console.log(`prim(${this.currentPointer})`);
     let node: BNode;
     let fn: string;
     let vn: VarName;
     if(this.consumeToken(TokenType.LPT)){
       node = this.expr();
       this.expectToken(TokenType.RPT);
+      if (this.debug) console.log('rpt consumed');
       return node;
     }
     else if(fn = this.consumeFunc()){
@@ -152,6 +167,7 @@ Node* func(int id)
 }
 */
   func(fn: string): BNode {
+    if (this.debug) console.log(`func(${this.currentPointer})`);
     let node : BNode;
 
     if(this.consumeToken(TokenType.LPT)){
@@ -162,12 +178,17 @@ Node* func(int id)
       this.expectToken(TokenType.RPT);
       if(node.kind === BNodeKind.FNC && node.val === 'cma'){
         node.val = fn;
+        if (this.debug) console.log(`func: ${this.currentPointer}`);
         return node;
       } else {
-        return new BNode(BNodeKind.FNC, node, null, fn);
+        node = new BNode(BNodeKind.FNC, node, null, fn);
+        if (this.debug) console.log(`func: ${this.currentPointer}`);
+        return node;
       }
     }
-    return new BNode(BNodeKind.FNC, this.mult(), null, fn);
+    node = new BNode(BNodeKind.FNC, this.mult(), null, fn);
+    if (this.debug) console.log(`func: ${this.currentPointer}`);
+    return node;
   }
 
   vari(vn: VarName): BNode {
@@ -195,6 +216,7 @@ Node* func(int id)
   }
 
   dfnd(): BNode {
+    if (this.debug) console.log(`dfnd(${this.currentPointer})`);
     let dvn = this.token.value as string;
     if(dvn){
       // this.currentPointer += dvn.length - 1;
@@ -205,7 +227,10 @@ Node* func(int id)
   }
 
   nmbr(x: number): BNode {
-    return new BNode(BNodeKind.NUM, null, null, x);
+    if (this.debug) console.log(`nmbr(${this.currentPointer})`);
+    let node = new BNode(BNodeKind.NUM, null, null, x);
+    if (this.debug) console.log(`nmbr: ${this.currentPointer}`);
+    return node;
   }
 
   character(): string {
@@ -366,7 +391,10 @@ Node* func(int id)
       throw new Error(`Unexpected token error. Expected TokenType: NUM, but caught following token: ${this.token.type}`);
     }
     let val = this.token.value;
+    console.log(val, this.currentPointer);
     this.nextToken();
+    console.log(this.token);
+    console.log(this.currentPointer);
     return val as number;
   }
 

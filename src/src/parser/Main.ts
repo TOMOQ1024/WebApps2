@@ -23,18 +23,24 @@ export function Parse(input: string, dvn: string[]): ParseResult {
     n = performance.now();
     result = parser.parse(input, eType, dvn);
     if(!result)return NullParseResult;
+    console.log(parser.currentLine.length, parser.currentPointer);
+    if (parser.currentPointer < parser.currentLine.length) {
+      throw new Error(`不正な文字列です．解析できなかった文字列：${parser.currentLine}`);
+    }
     console.log(result.toStr());
     console.log(`parse end in ${performance.now()-n}ms`);
     console.log(result.tocdgl());
-  } catch (e) {
-    console.error(e);
-    return NullParseResult;
-  } finally {
     return ({
       status: true,
       type: input.match(/=/) ? 'defi' : 'ineq',
       root: result
     });
+  } catch (e) {
+    const E = e as Error;
+    console.error(E.message);
+    return NullParseResult;
+  } finally {
+    console.log(`result: ${result}`);
   }
   
 }

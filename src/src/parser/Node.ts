@@ -36,6 +36,10 @@ export class BNode {
 
   static zero = new BNode(BNodeKind.NUM, null, null, 0);
 
+  toString () {
+    return this.toStr();
+  }
+
   toStr(i:number=0){
     let str = '';
     str += `${''.padStart(i,'| ')}${this.kind} : ${this.val}\n`;
