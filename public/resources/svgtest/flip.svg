@@ -1,0 +1,38 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <path
+    class="c"
+    fill="cyan"
+    onclick="flip(this);"
+    d="
+    M 90 50
+    A 10 10 0 1 0 10 50
+    A 10 10 0 1 0 90 50z
+    "
+  />
+  <script>
+    function flip(e) {
+      let a = 0;
+      let f = true;
+      let i = setInterval(()=>{
+        if (a>1) {
+          clearInterval(i);
+        }
+        else if (a>.5 ? f : 0) {
+          if (e.classList.contains('c')) {
+            e.classList.add('m');
+            e.classList.remove('c');
+            e.setAttribute('fill', 'magenta');
+          }
+          else {
+            e.classList.add('c');
+            e.classList.remove('m');
+            e.setAttribute('fill', 'cyan');
+          }
+          f = false;
+        }
+        e.setAttribute('transform', 'translate(50 0) scale('+Math.cos(a*Math.PI)+' 1) translate(-50 0)');
+        a += .1;
+      }, 20);
+    }
+  </script>
+</svg>

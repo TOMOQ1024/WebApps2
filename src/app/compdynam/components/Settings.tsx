@@ -4,9 +4,6 @@ import { RenderingMode } from "../Definitions";
 export default function Settings({core}: {
   core: CDCore;
 }) {
-  function HandleInput(e: InputEvent) {
-
-  }
   return (
     <div id='settings'>
       <div>- 描画設定 -</div>

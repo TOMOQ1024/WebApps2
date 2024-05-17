@@ -5,9 +5,7 @@ import Core from "../Core";
 
 export default function MainWrapper() {
   const [core, setCore] = useState(new Core());
-  useEffect(() => {(async()=>{
-    await core.init();
-
+  useEffect(() => {
     const HandleKeyDown = (e: KeyboardEvent) => {
       if(!core.keys[e.key.toLowerCase()]){
         core.keys[e.key.toLowerCase()] = 2;
@@ -46,17 +44,22 @@ export default function MainWrapper() {
       core.glmgr.render();
     }
 
-    document.addEventListener('keydown', HandleKeyDown);
-    document.addEventListener('keyup', HandleKeyUp);
-    document.addEventListener('wheel', HandleWheel, {passive: false});
-    window.addEventListener('resize', onResize);
+    (async()=>{
+      await core.init();
+
+      document.addEventListener('keydown', HandleKeyDown);
+      document.addEventListener('keyup', HandleKeyUp);
+      document.addEventListener('wheel', HandleWheel, {passive: false});
+      window.addEventListener('resize', onResize);
+    })();
     return () => {
+      core.endLoop();
       document.removeEventListener('keydown', HandleKeyDown);
       document.removeEventListener('keyup', HandleKeyUp);
       document.removeEventListener('wheel', HandleWheel);
       window.removeEventListener('resize', onResize);
     }
-  })();}, [core]);
+  }, [core]);
   
   return (
     <main id='main-wrapper'>

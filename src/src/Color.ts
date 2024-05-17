@@ -1,4 +1,4 @@
-export function hsva(h: number, s: number, v: number, a: number){
+export default function hsva(h: number, s: number, v: number, a: number){
   if(s > 1 || v > 1 || a > 1){return [0, 0, 0, 0];}
   var th = h % 360;
   var i = Math.floor(th / 60);

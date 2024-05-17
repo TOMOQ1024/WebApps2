@@ -15,6 +15,9 @@ export default class Vec3 {
     this.z = z;
   }
 
+  static ZERO = new Vec3 ();
+  static ONE = new Vec3 (1, 1, 1);
+
   get elem(){
     return [this.x, this.y, this.z];
   }
@@ -24,6 +27,14 @@ export default class Vec3 {
       lhs.x * rhs.x +
       lhs.y * rhs.y +
       lhs.z * rhs.z
+    );
+  }
+
+  dot(rhs: Vec3){
+    return (
+      this.x * rhs.x +
+      this.y * rhs.y +
+      this.z * rhs.z
     );
   }
 
@@ -79,6 +90,15 @@ export default class Vec3 {
       this.z * rhs.x - this.x * rhs.z,
       this.x * rhs.y - this.y * rhs.x,
     );
+    return this;
+  }
+
+  crossedBy(rhs: Vec3){
+    return new Vec3(
+      this.y * rhs.z - this.z * rhs.y,
+      this.z * rhs.x - this.x * rhs.z,
+      this.x * rhs.y - this.y * rhs.x,
+    );
   }
 
   addBy(rhs: Vec3){
@@ -87,12 +107,106 @@ export default class Vec3 {
     this.z += rhs.z;
   }
 
+  addedBy(rhs: Vec3){
+    return new Vec3(
+      this.x + rhs.x,
+      this.y + rhs.y,
+      this.z + rhs.z,
+    );
+  }
+
+  subtractBy(rhs: Vec3){
+    this.x -= rhs.x;
+    this.y -= rhs.y;
+    this.z -= rhs.z;
+  }
+
+  subtractedBy(rhs: Vec3){
+    return new Vec3(
+      this.x - rhs.x,
+      this.y - rhs.y,
+      this.z - rhs.z,
+    );
+  }
+
+  dividedBy (rhs: Vec3) {
+    return new Vec3(
+      this.x / rhs.x,
+      this.y / rhs.y,
+      this.z / rhs.z,
+    );
+  }
+
+  scaledBy(rhs: number){
+    return new Vec3(
+      this.x * rhs,
+      this.y * rhs,
+      this.z * rhs,
+    )
+  }
+
+  rounded() {
+    return new Vec3(
+      Math.round(this.x),
+      Math.round(this.y),
+      Math.round(this.z),
+    )
+  }
+
+  moded (m: number) {
+    return new Vec3(
+      (Math.floor(this.x % m) + m) % m,
+      (Math.floor(this.y % m) + m) % m,
+      (Math.floor(this.z % m) + m) % m,
+    )
+  }
+
+  equalTo (rhs: Vec3) {
+    return (
+      this.x === rhs.x &&
+      this.y === rhs.y &&
+      this.z === rhs.z
+    );
+  }
+
+  notEqualTo (rhs: Vec3) {
+    return (
+      this.x !== rhs.x ||
+      this.y !== rhs.y ||
+      this.z !== rhs.z
+    );
+  }
+
   static sum(lhs: Vec3, rhs: Vec3){
     return new Vec3(
       lhs.x + rhs.x,
       lhs.y + rhs.y,
       lhs.z + rhs.z,
     )
+  }
+
+  abs () {
+    return new Vec3(
+      Math.abs(this.x),
+      Math.abs(this.y),
+      Math.abs(this.z),
+    )
+  }
+
+  max (rhs: Vec3) {
+    return new Vec3(
+      Math.max(this.x, rhs.x),
+      Math.max(this.y, rhs.y),
+      Math.max(this.z, rhs.z),
+    )
+  }
+
+  length () {
+    return Math.sqrt(
+      this.x * this.x +
+      this.y * this.y +
+      this.z * this.z
+    );
   }
 
   get x_z(){

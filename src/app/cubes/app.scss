@@ -1,0 +1,13 @@
+#main-wrapper {
+  text-align: center;
+  height: calc(100vh - var(--header-height));
+  position: relative;
+  image-rendering: pixelated;
+  #canvas-wrapper {
+    height: 100%;
+    overflow: hidden;
+    #cvs {
+      width: 100%;
+    }
+  }
+}

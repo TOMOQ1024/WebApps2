@@ -20,7 +20,7 @@ export default function AppCard({
   return (
     <div className='appcard'>
       <Link href={href}>
-        <Image src={`/app-icons/${id}.png`} width={100} height={100} alt={`App icon of ${id}`} />
+        <Image src={`/app-icons/${id}.png`} width={128} height={128} alt={`App icon of ${id}`} />
       </Link>
       <div>{name}</div>
     </div>

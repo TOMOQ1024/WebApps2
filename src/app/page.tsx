@@ -1,5 +1,8 @@
 import AppCard from "@/components/appcard";
-import Link from "next/link";
+
+export const metadata = {
+  title: 'tomoq apps'
+};
 
 export default function Home() {
   return (
@@ -36,6 +39,15 @@ export default function Home() {
       />
       <AppCard
         name='RayMarching'
+      />
+      <AppCard
+        name='Chaos Game'
+      />
+      <AppCard
+        name='DiceRoll'
+      />
+      <AppCard
+        name='Minesweeper'
       />
     </main>
   )

@@ -1,28 +1,46 @@
 import { Parse } from "@/src/parser/Main";
-import { useEffect, useRef } from "react";
 import CDCore from "../CompDynamCore";
 import { PresetExpressions } from "../Definitions";
 
 export default function PresetSelector({core}: {
   core: CDCore;
 }) {
-  const ref = useRef<HTMLElement>(null);
-
   function HandleClick(i: number){
-    const expr = PresetExpressions[i];
+    const expr = PresetExpressions[i].split('|');
     // テキストの解析
-    let result = Parse(expr, ['z', 'i']);
+    let result = Parse(expr[1], ['z', 'i', 'c']);
 
     const ctl = document.getElementById('controls')!
     if(result.status){
       ctl.className = ctl.className.replace(/(?:in)?valid/, 'valid');
-      core.setExpression(expr);
+      core.z0 = 'c';
+      core.expr = expr[1];
       core.func = result.cstack.tocdgl(result.cstack.root);
-      core.init();
     }
     else {
       ctl.className = ctl.className.replace(/(?:in)?valid/, 'invalid');
       console.error(`failed to parse preset expression no.${i}`);
+    }
+
+    result = Parse(
+      expr[0],
+      ['i', 'c']
+    );
+
+    let z0: string = '';
+    if(result.status){
+      try {
+        z0 = result.cstack.tocdgl(result.cstack.root);
+      }
+      catch(e) {
+        ctl.className = ctl.className.replace(/(?:in)?valid/, 'invalid');
+        console.error(e);
+        return;
+      }
+      ctl.className = ctl.className.replace(/(?:in)?valid/, 'valid');
+      core.z0 = z0;
+      core.z0expr = expr[0];
+      core.init();
     }
   }
   

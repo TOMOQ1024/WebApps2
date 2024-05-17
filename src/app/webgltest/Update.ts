@@ -1,6 +1,6 @@
 import Core from "./Core";
-import Mat4 from "./Matrix";
-import Vec3 from "./Vector";
+import Mat4 from "../../src/Mat4";
+import Vec3 from "@/src/Vec3";
 
 export default function Update(this: Core) {
   // キーの処理

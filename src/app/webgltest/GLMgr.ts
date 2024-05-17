@@ -2,12 +2,13 @@ import Camera from "./Camera";
 import CreateShaders from "./CreateShaders";
 import Update from "./Update";
 import Render from "./Render";
-import { Cube, Obj, Torus } from "./Object";
-import Vec3 from "./Vector";
-import Mat4 from "./Matrix";
+import Obj from "../../src/objects/Object";
+import Vec3 from "@/src/Vec3";
 import { VBO } from "./VBO";
 import loadImage from "./Image";
 import Core from "./Core";
+import MinCube from "@/src/objects/MinCube";
+import Torus from "@/src/objects/Torus";
 
 export default class GLMgr {
   cvs: HTMLCanvasElement|null = null;
@@ -15,7 +16,7 @@ export default class GLMgr {
   program: WebGLProgram|null = null;
   objects: Obj[] = [
     new Torus(50, 30, 5, 1),
-    new Cube(),
+    new MinCube(),
   ];
   // object: Obj = new Sphere(10, 3, 1);
   object: Obj = this.objects[0];

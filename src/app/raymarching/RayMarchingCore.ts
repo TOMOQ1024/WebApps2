@@ -14,7 +14,7 @@ export default class RMCore {
   cvsResized = true;
   ctrlAllowed = false;
   update = Update;
-  interval: NodeJS.Timer|null = null;
+  interval: NodeJS.Timeout|null = null;
 
   async init() {
     await this.glmgr.init();
@@ -34,7 +34,9 @@ export default class RMCore {
   }
 
   endLoop() {
-    if(!this.interval)return;
+    if(!this.interval){
+      return;
+    }
     clearInterval(this.interval);
   }
 

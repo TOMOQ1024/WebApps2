@@ -1,5 +1,5 @@
 import Core from "./Core";
-import Vec3 from "./Vector";
+import Vec3 from "@/src/Vec3";
 
 export default class Camera {
   position = new Vec3(0, 3, 9);

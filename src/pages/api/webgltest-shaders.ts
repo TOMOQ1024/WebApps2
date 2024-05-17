@@ -7,10 +7,10 @@ type Data = {
   frag: string;
 }
 
-export default (
+export default function handler (
   req: NextApiRequest,
   res: NextApiResponse<Data>
-) => {
+) {
   // Let's say your json is in /public/assets/my-json.json
   const vertPath = path.resolve('./public', 'resources', 'webgltest', 'shaders', 'shader.vert');
   const fragPath = path.resolve('./public', 'resources', 'webgltest', 'shaders', 'shader.frag');

@@ -1,15 +1,24 @@
 "use client"
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Vec2 from "@/src/Vec2";
 import CDCore from "../CompDynamCore";
 import Controls from "./Controls";
 import GraphWrapper from "./GraphWrapper";
+import { useSearchParams } from "next/navigation";
 
-export default function MainWrapper() {
+function _MainWrapper() {
+  const searchParams = useSearchParams();
   const [core, setCore] = useState(new CDCore());
   useEffect(() => {(async()=>{
+    if (searchParams) {
+      let v = searchParams.get('nessy');
+      if (v !== null) {
+        core.nessyMode = true;
+      }
+    }
     await core.init();
-
+    core.beginLoop();
+    
     const onKeyDown = (e:KeyboardEvent) => {
       // フルスクリーン切り替え
       if(e.key === 'f' && !e.shiftKey && !e.metaKey){
@@ -19,6 +28,54 @@ export default function MainWrapper() {
         else {
           document.exitFullscreen();
         }
+      }
+      if(0 && e.key === 'v' && !e.shiftKey && !e.metaKey){
+        // 仮
+        const ipt = document.querySelector('#func-input') as HTMLSpanElement;
+
+        const stream = core.glmgr.cvs!.captureStream();
+        const recorder = new MediaRecorder(stream, {
+          mimeType: 'video/mp4',
+          videoBitsPerSecond: 2500000,
+        });
+        const anchor = document.createElement('a');
+        anchor.innerText = 'download';
+        anchor.style.display = 'none';
+        ipt.parentNode?.appendChild(anchor);
+
+        recorder.ondataavailable = (e) => {
+          const videoBlob = new Blob([e.data], {type: e.data.type});
+          const blobUrl = window.URL.createObjectURL(videoBlob);
+          anchor.download = 'movie.mp4';
+          anchor.href = blobUrl;
+          anchor.style.display = 'block';
+        };
+        
+        // const C1 = '-0.2-0.7i';// c
+        const C1 = '-0.63i';
+        // const C2 = '-0.2-0.7i';
+        // const C2 = '-0.6-0.42i';
+        const C2 = '-0.8';
+        ipt.innerHTML = `z^2+mix(${C1},${C2},${0.00})`;
+        ipt.click();
+        recorder.start();
+
+        let t = 0;
+        const itv = setInterval(()=>{
+          const T = t*t*(3-2*t);
+
+          ipt.innerHTML = `z^2+mix(${C1},${C2},${T})`;
+          ipt.click();
+          // ipt.innerHTML = `z^2+mix(c,-0.2-0.7i,${T.toFixed(2)})`;
+          ipt.innerHTML = `z^2+mix(${C1},${C2},${T.toFixed(2)})`;
+
+          if (1 < t) {
+            clearInterval(itv);
+            recorder.stop();
+          }
+
+          t+=0.005;
+        }, 100);
       }
     }
 
@@ -145,6 +202,8 @@ export default function MainWrapper() {
     // document.addEventListener('touchend', onTouchEnd, {passive: false});
     window.addEventListener('resize', onResize);
     return () => {
+      core.endLoop();
+      console.log('e');
       document.removeEventListener('keydown', onKeyDown);
       core.glmgr.cvs!.removeEventListener('wheel', onWheel);
       document.removeEventListener('mousedown', onMouseDown);
@@ -155,7 +214,7 @@ export default function MainWrapper() {
       // document.removeEventListener('touchend', onTouchEnd);
       window.removeEventListener('resize', onResize);
     }
-  })();}, [core]);
+  })();}, [core, searchParams]);
   
   return (
     <main id='main-wrapper'>
@@ -163,4 +222,12 @@ export default function MainWrapper() {
       <Controls core={core}/>
     </main>
   );
+}
+
+export default function MainWrapper () {
+  return (
+    <Suspense>
+      <_MainWrapper/>
+    </Suspense>
+  )
 }
