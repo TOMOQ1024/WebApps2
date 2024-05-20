@@ -14,6 +14,7 @@ export default class Graph {
    */
   zoom(c: Vector2, s: number){
     // (x,y)を固定して scale**s 倍縮小する
+    console.log(`s: ${s}`);
     const ds = Math.exp(s/500);
     const dor = c.clone().multiplyScalar(this.radius*(1-1/ds)).multiply({x: 1, y: -1})
     this.origin.add(dor);

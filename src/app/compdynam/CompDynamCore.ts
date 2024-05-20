@@ -5,6 +5,7 @@ import axios from "axios";
 import { Vector2 } from "three";
 import { Dispatch, SetStateAction } from "react";
 import { Parse } from "@/src/parser/Main";
+import preventDefault from "@/src/preventDefault";
 
 export default class CDCore {
   pointers: {

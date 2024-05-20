@@ -108,6 +108,7 @@ function _MainWrapper() {
     screen.orientation?.addEventListener('change', onResize);
     document.body.firstChild!.addEventListener('fullscreenchange', onResize);
     document.addEventListener('wheel', preventDefault, { passive: false });
+    document.addEventListener('contextmenu', preventDefault, { passive: false });
     // document.addEventListener('touchstart', preventDefault, { passive: false });
     
     return () => {
@@ -116,6 +117,7 @@ function _MainWrapper() {
       screen.orientation?.removeEventListener('change', onResize);
       document.body.firstChild!.removeEventListener('fullscreenchange', onResize);
       document.removeEventListener('wheel', preventDefault);
+      document.removeEventListener('contextmenu', preventDefault);
       // document.removeEventListener('touchstart', preventDefault);
     }
   }, [core, searchParams]);
