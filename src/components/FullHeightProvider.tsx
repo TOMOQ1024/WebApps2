@@ -4,11 +4,11 @@ import { useEffect } from "react";
 
 export const FullHeightProvider = () => {
   useEffect(() => {
-    document.body.style.setProperty('--full-height',`${document.documentElement.offsetHeight}px`);
-
-    const handleResize = (e: Event) => {
+    const handleResize = () => {
       document.body.style.setProperty('--full-height',`${document.documentElement.offsetHeight}px`);
     }
+
+    handleResize();
 
     document.documentElement.addEventListener('resize', handleResize);
     window.addEventListener("orientationchange", preventDefault, { passive: false });

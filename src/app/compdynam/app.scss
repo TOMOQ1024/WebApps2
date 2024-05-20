@@ -2,11 +2,18 @@
   height: calc(var(--full-height) - var(--header-height));
   position: relative;
   image-rendering: pixelated;
+  &.full {
+    height: var(--full-height);
+  }
   *:has(&) {
     overflow: hidden;
   }
   * {
     color: rgb(var(--foreground-rgb-dark));
+  }
+  background-color: #fbc;
+  canvas{
+    background-color: #cbf;
   }
   .controls {
     // font-family: var(--font-mono);

@@ -4,6 +4,7 @@ import Core from "../CompDynamCore";
 import Controls from "./Controls";
 import { useSearchParams } from "next/navigation";
 import preventDefault from "@/src/preventDefault";
+import sleep from "@/src/Sleep";
 
 function _MainWrapper() {
   const searchParams = useSearchParams();
@@ -17,26 +18,32 @@ function _MainWrapper() {
       }
     }
 
-    core.init();
+    if (!core.rawShaderData.frag) {
+      core.init();
+    }
 
-    const onResize = () => {
+    const onResize = async () => {
+      await sleep(100);
+      document.body.style.setProperty('--full-height',`${document.documentElement.clientHeight}px`);
+      await sleep(100);
       const wr = document.querySelector('#main-wrapper') as HTMLElement;
-      // core.app.canvas.width = wr.clientWidth;
-      // core.app.canvas.height = wr.clientHeight;
       core.quad.width = wr.clientWidth * 4;
       core.quad.height = wr.clientHeight * 4;
-      console.log('!');
+      console.log(wr.clientHeight);
+      core.app.renderer.resize(wr.clientWidth, wr.clientHeight);
+      // // Resizeイベントの強制発火
+      // const resizeEvent = new Event('resize');
+      // wr.dispatchEvent(resizeEvent);
     }
 
     const onKeyDown = (e:KeyboardEvent) => {
       // フルスクリーン切り替え
-      if(e.key === 'f' && !e.shiftKey && !e.metaKey){
+      const tagName = (e.target as HTMLElement).tagName;
+      if(e.key === 'f' && !e.shiftKey && !e.metaKey && tagName !== 'INPUT'){
+        const wr = core.app.canvas.parentElement!;
         if (!document.fullscreenElement) {
           setIsFull(true);
-          const wr = core.app.canvas.parentElement!;
           wr.requestFullscreen();
-          // core.app.canvas.width = wr.clientWidth;
-          // core.app.canvas.height = wr.clientHeight;
           onResize();
         }
         else {
@@ -98,16 +105,18 @@ function _MainWrapper() {
     window.screen.orientation
     document.addEventListener('keydown', onKeyDown);
     document.body.addEventListener('resize', onResize);
+    screen.orientation?.addEventListener('change', onResize);
     document.body.firstChild!.addEventListener('fullscreenchange', onResize);
     document.addEventListener('wheel', preventDefault, { passive: false });
-    document.addEventListener('touchstart', preventDefault, { passive: false });
+    // document.addEventListener('touchstart', preventDefault, { passive: false });
     
     return () => {
       document.removeEventListener('keydown', onKeyDown);
       document.body.removeEventListener('resize', onResize);
+      screen.orientation?.removeEventListener('change', onResize);
       document.body.firstChild!.removeEventListener('fullscreenchange', onResize);
       document.removeEventListener('wheel', preventDefault);
-      document.removeEventListener('touchstart', preventDefault);
+      // document.removeEventListener('touchstart', preventDefault);
     }
   }, [core, searchParams]);
   
