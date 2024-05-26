@@ -1,5 +1,5 @@
 import fs from 'fs'
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 import path from 'path'
 
 type Data = {
@@ -7,18 +7,20 @@ type Data = {
   frag: string;
 }
 
-export default function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>
+export function GET(
+  req: NextRequest,
+  res: NextResponse<Data>
 ) {
-  // Let's say your json is in /public/assets/my-json.json
   const vertPath = path.resolve('./public', 'resources', 'compdynam', 'shaders', 'shader.vert');
   const fragPath = path.resolve('./public', 'resources', 'compdynam', 'shaders', 'shader.frag');
   const vertBuf = fs.readFileSync(vertPath);
   const fragBuf = fs.readFileSync(fragPath);
 
-  res.status(200).json({
-    vert: vertBuf.toString(),
-    frag: fragBuf.toString()
-  });
+  return NextResponse.json(
+    {
+      vert: vertBuf.toString(),
+      frag: fragBuf.toString()
+    },
+    { status: 200 }
+  );
 }
