@@ -1,31 +1,29 @@
 #main-wrapper {
-  text-align: center;
-  height: calc(100vh - var(--header-height));
+  height: calc(var(--full-height) - var(--header-height));
   position: relative;
   image-rendering: pixelated;
-  #graph-wrapper {
-    height: 100%;
+  &.full {
+    height: var(--full-height);
+  }
+  *:has(&) {
     overflow: hidden;
-    #cvs {
-      width: 100%;
-    }
   }
   * {
     color: rgb(var(--foreground-rgb-dark));
   }
-  #controls {
-    font-family: var(--font-mono);
-    position: absolute;
+  background-color: #fbc;
+  canvas{
+    background-color: #cbf;
+  }
+  .controls {
+    // font-family: var(--font-mono);
+    position: fixed;
     left: 10px;
     bottom: 10px;
     border-radius: 5px;
-    background-color: #11001188;
-    transition: .3s ease all;
-    overflow: hidden;
-    display: flex;
-    * {
-      transition: inherit;
-    }
+    background-color: #00000099;
+    backdrop-filter: blur(10px);
+    transition: .3s;
     &.valid {
       box-shadow: #038 0px 0px 50px 20px inset;
       border: 0.6px solid #cdf;
@@ -35,144 +33,21 @@
       border: 0.6px solid #fbc;
     }
     &.min {
-      width: 38px;
-      height: 38px;
-      *:not(#controls-nav, #button-controls, #button-controls *) {
-        opacity: 0;
-      }
+      width: 64px;
+      height: 27.5px;
     }
     &.max {
       width: 400px;
-      height: 150px;
-      & #button-controls svg {
-        rotate: 210deg;
-      }
-      * {
-        opacity: 1;
-      }
+      height: 160px;
+      // & {
+      //   rotate: 210deg;
+      // }
     }
-    #controls-nav {
-      height: 100%;
-      display: flex;
-      flex-wrap: nowrap;
-      flex-direction: column-reverse;
-    }
-    #controls-content {
-      display: inline-flex;
+    .controls-content {
       height: 300%;
-      flex-direction: column;
-      &>div {
+      &>* {
         height: calc(100%/3);
-        &>div {
-          margin: 3px 0;
-        }
-      }
-      &.cc-s0 {
-        transform: translateY(-66.67%);
-      }
-      &.cc-s1 {
-        transform: translateY(-33.33%);
-      }
-      &.cc-s2 {
-        transform: translateY(-0%);
-      }
-      #settings {
-        #rf-editor {
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          justify-content: center;
-          #rf-input {
-            width: 120px;
-          }
-        }
-        #rm-editor {
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          justify-content: center;
-          .radio {
-            margin-left: 10px;
-            margin-right: 3px;
-          }
-          .rm-option {
-            font-size: x-small;
-          }
-        }
-      }
-      #preset-selector {
-        #preset-button-wrapper {
-          .preset-button {
-            width: 35px;
-            height: auto;
-            margin: 3px;
-            border-radius: 20%;
-            box-shadow: #8c8 0px 0px 0px 0px;
-            &:hover {
-              box-shadow: #8c8 0px 0px 2px 2px;
-              scale: 1.1;
-            }
-          }
-        }
-      }
-      #func-editor {
-        #iter-editor {
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          justify-content: center;
-          #iter-input {
-            font-size: medium;
-            padding: 2px;
-            width: 120px;
-          }
-        }
-        #z0-display {
-          #z0-input {
-            min-width: 70%;
-          }
-        }
-        #func-display {
-          #func-input {
-            min-width: 70%;
-            max-width: 80%;
-          }
-        }
       }
     }
-  }
-}
-
-.input {
-  background-color: #88668844;
-  border: #072 solid 1px;
-  display: inline-block;
-  border-radius: 5px;
-  margin: 5px;
-  &:focus {
-    outline: 0;
-    border: #2f8 solid 1px;
-  }
-}
-
-button {
-  width: 30px;
-  height: 30px;
-  border-radius: 20%;
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  rotate: 0deg;
-  margin: 4px;
-
-  &:hover {
-    // background-color: #bbbbbb77;
-    filter: drop-shadow(0 0 1px #000)
-            drop-shadow(0 0 1px #000)
-            drop-shadow(0 0 2px rgb(117, 151, 255))
-            drop-shadow(0 0 1px #dff);
-  }
-  &.selected {
-    translate: 6px 0;
   }
 }
