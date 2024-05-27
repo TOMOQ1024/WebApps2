@@ -2,19 +2,19 @@ import { ExprType, NullParseResult, ParseResult } from "./Def";
 import { BNode } from "./Node";
 import Parser from "./Parser";
 
-export function Parse(input: string, dvn: string[]): ParseResult {
+export function Parse(input: string, dvn: string[], eType: ExprType='null'): ParseResult {
   let parser = new Parser();
   let n: number;
   let result: (BNode|null) = null;
 
-  let eType: ExprType;
-
-  if(!input.match(/[<>=]/)){
-    eType = 'expr';
-  } else if(input.match(/[><]/)){
-    eType = 'ineq';
-  } else {
-    eType = 'defi';
+  if (eType === 'null') {
+    if(!input.match(/[<>=]/)){
+      eType = 'expr';
+    } else if(input.match(/[><]/)){
+      eType = 'ineq';
+    } else {
+      eType = 'defi';
+    }
   }
 
   console.clear();
@@ -29,7 +29,7 @@ export function Parse(input: string, dvn: string[]): ParseResult {
     }
     console.log(result.toStr());
     console.log(`parse end in ${performance.now()-n}ms`);
-    console.log(result.tocdgl());
+    console.log(result.togl());
     return ({
       status: true,
       type: input.match(/=/) ? 'defi' : 'ineq',
@@ -40,7 +40,7 @@ export function Parse(input: string, dvn: string[]): ParseResult {
     console.error(E.message);
     return NullParseResult;
   } finally {
-    console.log(`result: ${result}`);
+    // console.log(`result: ${result}`);
   }
   
 }
