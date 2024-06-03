@@ -29,7 +29,7 @@ export function Parse(input: string, dvn: string[], eType: ExprType='null'): Par
     }
     console.log(result.toStr());
     console.log(`parse end in ${performance.now()-n}ms`);
-    console.log(result.togl());
+    console.log(result.tocdgl());
     return ({
       status: true,
       type: input.match(/=/) ? 'defi' : 'ineq',

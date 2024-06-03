@@ -149,7 +149,7 @@ export const Funcs: {
     str: 'mix',
     argc: 3,
     cdgl: 'cmix',
-    tocdgl: n => `mix(${n.tocdglL()},${n.tocdglR()})`,
+    tocdgl: n => `cmix(${n.tocdglL()},${n.tocdglR()})`,
   },
   max: {
     str: 'max',

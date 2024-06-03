@@ -25,7 +25,7 @@ export default class CDCore {
   _setZ0Expr: Dispatch<SetStateAction<string>> = ()=>{};
   get z0expr () { return this._z0expr; }
   set z0expr (s: string) {
-    const result = Parse( s, ['i', 'c', 't'] );
+    const result = Parse( s, ['i', 'c', 't'], 'expr' );
     let z0 = '';
     if (result.status) {
       try {
@@ -51,7 +51,7 @@ export default class CDCore {
   _setFuncexpr: Dispatch<SetStateAction<string>> = ()=>{};
   get funcexpr () { return this._funcexpr; }
   set funcexpr (s: string) {
-    const result = Parse( s, ['z', 'i', 'c', 't'] );
+    const result = Parse( s, ['z', 'i', 'c', 't'], 'expr' );
     let f = '';
     if (result.status) {
       try {

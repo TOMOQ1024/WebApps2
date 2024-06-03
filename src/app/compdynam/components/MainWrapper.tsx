@@ -54,7 +54,8 @@ function _MainWrapper() {
       }
       if(0 && e.key === 'v' && !e.shiftKey && !e.metaKey){
         // 仮
-        const ipt = document.querySelector('#func-input') as HTMLSpanElement;
+        const ipt = document.querySelector('#func-input') as HTMLInputElement;
+        console.log(ipt);
   
         const stream = core.app.canvas.captureStream();
         const recorder = new MediaRecorder(stream, {
@@ -79,7 +80,7 @@ function _MainWrapper() {
         // const C2 = '-0.2-0.7i';
         // const C2 = '-0.6-0.42i';
         const C2 = '-0.8';
-        ipt.innerHTML = `z^2+mix(${C1},${C2},${0.00})`;
+        ipt.value = `z^2+mix(c,-z,0.00)`;
         ipt.click();
         recorder.start();
   
@@ -87,10 +88,10 @@ function _MainWrapper() {
         const itv = setInterval(()=>{
           const T = t*t*(3-2*t);
   
-          ipt.innerHTML = `z^2+mix(${C1},${C2},${T})`;
+          ipt.value = `z^2+mix(c,-z,${T})`;
           ipt.click();
           // ipt.innerHTML = `z^2+mix(c,-0.2-0.7i,${T.toFixed(2)})`;
-          ipt.innerHTML = `z^2+mix(${C1},${C2},${T.toFixed(2)})`;
+          ipt.value = `z^2+mix(c,-z,${T.toFixed(2)})`;
   
           if (1 < t) {
             clearInterval(itv);
