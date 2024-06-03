@@ -65,7 +65,7 @@ export default function MainWrapper () {
           sortedApps.map((a,i) => {
             return (
               <div key={i}>
-                <Link href={a.name.replace(/\s/g,'').toLowerCase()}>{a.name}</Link>
+                <Link href={`/${a.name.replace(/\s/g,'').toLowerCase()}`}>{a.name}</Link>
               </div>
             );
           })
