@@ -4,7 +4,7 @@ import { RenderingMode } from "../Definitions";
 import React from "react";
 
 export default function Settings({core}: {
-  core: Core;
+  core?: Core;
 }) {
   return (
     <Stack direction='column'>
@@ -12,11 +12,11 @@ export default function Settings({core}: {
         - 描画設定 -
       </Typography>
       <Stack direction="row" spacing={1}>
-        <Typography my='auto'>
+        {/* <Typography my='auto'>
           解像度
         </Typography>
         <Slider
-          defaultValue={Math.log10(core.app.renderer?.resolution ?? 1)}
+          defaultValue={Math.log10(core?.app.renderer?.resolution ?? 1)}
           min={-3}
           max={+1}
           step={0.1}
@@ -31,7 +31,7 @@ export default function Settings({core}: {
           onChange={(_, n)=>{
             core.setRF(10**(n as number));
           }}
-        />
+        /> */}
       </Stack>
       <Stack direction="row" spacing={1}>
         <Typography my='auto'>
@@ -42,8 +42,8 @@ export default function Settings({core}: {
             aria-labelledby="demo-controlled-radio-buttons-group"
             name="controlled-radio-buttons-group"
             onChange={e=>{
-              core.setRM(e.target.value === 'hsv' ? RenderingMode.HSV : RenderingMode.GRAYSCALE);
-              core.updateShader();
+              core?.setRM(e.target.value === 'hsv' ? RenderingMode.HSV : RenderingMode.GRAYSCALE);
+              core?.updateShader();
             }}
           >
             <FormControlLabel value="hsv" control={<Radio />} label="HSV" defaultChecked />

@@ -9,14 +9,16 @@ import Settings from "./Settings";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 
 export default function Controls({core}: {
-  core: Core;
+  core?: Core;
 }) {
   const [controlsOpened, setControlsOpened] = useState(true);
   const [controlsTab, setControlsTab] = useState<ControlsTab>(ControlsTab.EXPRESSION);
   const [error, setError] = useState('');
 
   useEffect(()=>{
-    core._setError = setError;
+    if (core) {
+      core._setError = setError;
+    }
   }, [core]);
 
   const handleChange = (e: SyntheticEvent, n: string) => {

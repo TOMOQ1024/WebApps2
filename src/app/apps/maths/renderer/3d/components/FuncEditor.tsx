@@ -2,7 +2,7 @@ import Core from "../Core";
 import { Alert, Stack, TextField, Tooltip, Typography } from "@mui/material";
 
 export default function FuncEditor({core}: {
-  core: Core;
+  core?: Core;
 }) {
   return (
     <Stack direction='column'>
@@ -13,16 +13,20 @@ export default function FuncEditor({core}: {
         <Typography my='auto'>
           不等式：
         </Typography>
-        <Tooltip title={core.error ?? <Alert severity="error">{core.error}</Alert>} arrow>
+        <Tooltip title={core?.error ?? <Alert severity="error">{core?.error}</Alert>} arrow>
           <TextField
             autoComplete='off'
-            defaultValue={core.funcexpr}
+            defaultValue={core?.funcexpr}
             inputProps={{
               style: {
                 padding: 5
               }
             }}
-            onChange={e => core.funcexpr = e.target.value}
+            onChange={e => {
+              if (core) {
+                core.funcexpr = e.target.value;
+              }
+            }}
           />
         </Tooltip>
       </Stack>
