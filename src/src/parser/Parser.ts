@@ -391,10 +391,7 @@ Node* func(int id)
       throw new Error(`Unexpected token error. Expected TokenType: NUM, but caught following token: ${this.token.type}`);
     }
     let val = this.token.value;
-    console.log(val, this.currentPointer);
     this.nextToken();
-    console.log(this.token);
-    console.log(this.currentPointer);
     return val as number;
   }
 

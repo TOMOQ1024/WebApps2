@@ -1,11 +1,10 @@
 import { RenderingMode } from "./Definitions";
-import Graph from "./Graph";
 import { Application, Assets, Geometry, Mesh, Rectangle, Shader, Sprite, Texture } from "pixi.js";
 import axios from "axios";
 import { Vector2 } from "three";
 import { Dispatch, SetStateAction } from "react";
 import { Parse } from "@/src/parser/Main";
-import preventDefault from "@/src/preventDefault";
+import GraphMgr from "@/src/GraphMgr";
 
 export default class CDCore {
   pointers: {
@@ -17,45 +16,18 @@ export default class CDCore {
   _setError: Dispatch<SetStateAction<string>> = ()=>{};
   get error () { return this._error };
   set error (e) { this._setError(this._error = e) };
-  graph = new Graph();
+  graph = new GraphMgr();
   app = new Application();
-  iter: number = 100;
-  z0: string = 'c';
-  _z0expr: string = 'c';
-  _setZ0Expr: Dispatch<SetStateAction<string>> = ()=>{};
-  get z0expr () { return this._z0expr; }
-  set z0expr (s: string) {
-    const result = Parse( s, ['i', 'c', 't'], 'expr' );
-    let z0 = '';
-    if (result.status) {
-      try {
-        z0 = result.root!.tocdgl();
-      }
-      catch(e) {
-        this.error = `${e}`;
-        console.error(e);
-        return;
-      }
-      this.error = '';
-      this.z0 = z0;
-      this._z0expr = s;// this line will be deleted
-      this._setZ0Expr(s);
-      this.updateShader();
-    }
-    else {
-      this.error = 'parse failed';
-    }
-  }
-  func: string = 'z = csq(z) - vec2(.6, .42);';
-  _funcexpr: string = 'z^2-0.6-0.42i';
+  func: string = '0.>sin(y-sin(x))';
+  _funcexpr: string = '0>sin(y-sinx)';
   _setFuncexpr: Dispatch<SetStateAction<string>> = ()=>{};
   get funcexpr () { return this._funcexpr; }
   set funcexpr (s: string) {
-    const result = Parse( s, ['z', 'i', 'c', 't'], 'expr' );
+    const result = Parse( s, ['x', 'y', 't'], 'ineq' );
     let f = '';
     if (result.status) {
       try {
-        f = result.root!.tocdgl();
+        f = result.root!.togl();
       }
       catch(e) {
         this.error = `${e}`;
@@ -100,10 +72,6 @@ export default class CDCore {
     wr.appendChild(this.app.canvas);
     this.app.canvas.style.width = '100%';
 
-    this.nessyTex = new Texture({
-      source: await Assets.load('/resources/compdynam/images/earth.jpg'),
-      frame: new Rectangle(0, 0, 128, 128),
-    });
     this.nessyTex.source.addressMode = 'repeat';
     this.nessyTex.source.scaleMode = 'nearest';
 
@@ -115,7 +83,7 @@ export default class CDCore {
     this.quad.eventMode = 'static';
     this.setEvents();
 
-    this.rawShaderData = await axios.get('/api/compdynam-shaders').then(res=>{
+    this.rawShaderData = await axios.get('/api/shaders/maths2d').then(res=>{
       return res.data;
     }).catch(e=>{
       throw new Error(e);
@@ -137,12 +105,7 @@ export default class CDCore {
       gl: {
         vertex: this.rawShaderData.vert,
         fragment: this.rawShaderData.frag
-          .replace('z/* input func here */', this.func)
-          .replace('1/* input iter here */', `${this.iter}`)
-          .replace('c/* input z0 here */', `${this.z0}`)
-          .replace('/* delete if mode is not grayscale */', this.renderingMode !== RenderingMode.GRAYSCALE ? '//' : '')
-          .replace('/* delete if mode is not hsv */', this.renderingMode !== RenderingMode.HSV ? '//' : '')
-          .replace('false/* input boolean of nessy here */', this.nessyMode ? 'true' : 'false'),
+          .replace('x/* input func here */', this.func)
       },
       resources: {
         uniforms: {
@@ -156,10 +119,6 @@ export default class CDCore {
     });
   
     this.quad.shader = shader;
-  }
-
-  setIter(i: number) {
-    this.iter = i;
   }
 
   setRF(x: number) {

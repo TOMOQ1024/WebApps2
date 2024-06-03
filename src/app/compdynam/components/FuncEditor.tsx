@@ -50,6 +50,7 @@ export default function FuncEditor({core}: {
         </Typography>
         <Tooltip title={core.error ?? <Alert severity="error">{core.error}</Alert>} arrow>
           <TextField
+            id='func-input'
             autoComplete='off'
             defaultValue={core.funcexpr}
             inputProps={{
@@ -58,6 +59,7 @@ export default function FuncEditor({core}: {
               }
             }}
             onChange={e => core.funcexpr = e.target.value}
+            onClick={e => core.funcexpr = (e.target as HTMLInputElement).value}
           />
         </Tooltip>
       </Stack>
