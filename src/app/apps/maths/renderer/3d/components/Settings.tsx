@@ -43,7 +43,6 @@ export default function Settings({core}: {
             name="controlled-radio-buttons-group"
             onChange={e=>{
               core?.setRM(e.target.value === 'hsv' ? RenderingMode.HSV : RenderingMode.GRAYSCALE);
-              core?.updateShader();
             }}
           >
             <FormControlLabel value="hsv" control={<Radio />} label="HSV" defaultChecked />
