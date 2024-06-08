@@ -81,8 +81,8 @@ export default class Core {
     this.renderer.setPixelRatio(devicePixelRatio);
 
     this.scene.add(new Mesh(
-      new BoxGeometry(),
-      new MeshLambertMaterial({color: '#88ff88'}),
+      new BoxGeometry(10, 10, 10),
+      new MeshLambertMaterial({color: '#ffffff', wireframe: true}),
     ));
     this.scene.add(new GridHelper());
     this.scene.add(new AxesHelper());

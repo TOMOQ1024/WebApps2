@@ -13,14 +13,34 @@ export class MarchingCubesMgr {
     return this._func;
   }
 
-  size = {
+  res = {
     x: 30,
     y: 30,
     z: 30,
   };
 
+  min = {
+    x: -5,
+    y: -5,
+    z: -5,
+  };
+
+  max = {
+    x: +5,
+    y: +5,
+    z: +5,
+  };
+
+  get size () {
+    return ({
+      x: this.max.x - this.min.x,
+      y: this.max.y - this.min.y,
+      z: this.max.z - this.min.z,
+    });
+  }
+
   getIndex (x: number, y: number, z: number, o: number) {
-    return x<this.size.x && y<this.size.y && z<this.size.z ? o+3*(x+this.size.x*(y+this.size.y*z)) : undefined;
+    return x<this.res.x && y<this.res.y && z<this.res.z ? o+3*(x+this.res.x*(y+this.res.y*z)) : undefined;
   }
 
   vertices: number[] = [];
@@ -33,12 +53,17 @@ export class MarchingCubesMgr {
   calc () {
     this.vals = [];
 
-    for (let z=0; z<=this.size.z; z++) {
+    const s = this.size;
+    for (let z=0; z<=this.res.z; z++) {
       this.vals.push([]);
-      for (let y=0; y<=this.size.y; y++) {
+      for (let y=0; y<=this.res.y; y++) {
         this.vals[z].push([]);
-        for (let x=0; x<=this.size.x; x++) {
-          this.vals[z][y].push(this.func(x,y,z));
+        for (let x=0; x<=this.res.x; x++) {
+          this.vals[z][y].push(this.func(
+            this.min.x+x*s.x,
+            this.min.y+y*s.y,
+            this.min.z+z*s.z
+          ));
         }
       }
     }
@@ -60,15 +85,24 @@ export class MarchingCubesMgr {
   constructor (
     public scene: Scene
   ) {
+    const p = {
+      x: 0,
+      y: 0,
+      z: 0,
+    };
     this.vertices = [];
-    for (let z=0; z<this.size.z; z++) {
-      for (let y=0; y<this.size.y; y++) {
-        for (let x=0; x<this.size.x; x++) {
+    const s = this.size;
+    for (let z=0; z<this.res.z; z++) {
+      for (let y=0; y<this.res.y; y++) {
+        for (let x=0; x<this.res.x; x++) {
           // 各セルに対して3辺に対応する頂点を追加する
+          p.x = this.min.x+x*s.x;
+          p.y = this.min.y+y*s.y;
+          p.z = this.min.z+z*s.z;
           this.vertices.push(
-            x, y, z,
-            x, y, z,
-            x, y, z,
+            p.x, p.y, p.z,
+            p.x, p.y, p.z,
+            p.x, p.y, p.z,
           );
         }
       }
@@ -108,9 +142,9 @@ export class MarchingCubesMgr {
     let tt: number[];
     this.errors = [];
     this.indices = [];
-    for (let z=0; z<this.size.z; z++) {
-      for (let y=0; y<this.size.y; y++) {
-        for (let x=0; x<this.size.x; x++) {
+    for (let z=0; z<this.res.z; z++) {
+      for (let y=0; y<this.res.y; y++) {
+        for (let x=0; x<this.res.x; x++) {
           dv = this.getIndex(x  , y  , z  , 0)!
           v = [
             this.getIndex(x  , y  , z  , 0) ?? dv,
