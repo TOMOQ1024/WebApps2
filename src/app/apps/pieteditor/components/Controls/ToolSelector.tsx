@@ -1,6 +1,7 @@
-import { TOOLS, Tools } from "../../../src/Definitions";
-import Core from "../../../src/Core";
+import { TOOLS, Tools } from "../../src/Definitions";
+import Core from "../../src/Core";
 import { useState } from "react";
+import styles from "../../page.module.scss";
 
 export default function ToolSelector({core}: {
   core: Core | undefined;
@@ -13,11 +14,11 @@ export default function ToolSelector({core}: {
   }
 
   return (
-    <div id='tool-selector'>
+    <div className={styles.tool_selector}>
       {Tools.map((t,i)=>{
         const f = i === tool;
         return (
-          <div key={i} onMouseDown={(e)=>handleMouseDown(e,i)} className={f ? 'selected' : ''}>
+          <div key={i} onMouseDown={(e)=>handleMouseDown(e,i)} className={f ? styles.selected : ''}>
             {t}
           </div>
         )

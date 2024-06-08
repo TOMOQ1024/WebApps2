@@ -1,6 +1,7 @@
-import { COLORS, Colors, Operations } from "../../../src/Definitions";
-import Core from "../../../src/Core";
+import { COLORS, Colors, Operations } from "../../src/Definitions";
+import Core from "../../src/Core";
 import { useState } from "react";
+import styles from "../../page.module.scss";
 
 export default function Palette({core}: {
   core: Core | undefined;
@@ -17,7 +18,7 @@ export default function Palette({core}: {
     }
   }
   return (
-    <div id='palette'>
+    <div className={styles.palette}>
       {Colors.map((c,i)=>{
         return (
           <div key={i} style={{backgroundColor:c}} onMouseDown={(e)=>handleMouseDown(e,i)}>

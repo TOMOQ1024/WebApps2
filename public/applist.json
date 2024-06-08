@@ -154,5 +154,11 @@
     "desc": "",
     "since": "",
     "lastUpdate": ""
+  },
+  "Piet Editor": {
+    "tag": [ "EXPERIMENTAL", "ESOLANG", "EDITOR" ],
+    "desc": "",
+    "since": "",
+    "lastUpdate": ""
   }
 }

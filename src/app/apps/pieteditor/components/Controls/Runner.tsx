@@ -1,5 +1,6 @@
-import { Runner, runner } from "../../../src/Definitions";
-import Core from "../../../src/Core";
+import { Runner, runner } from "../../src/Definitions";
+import Core from "../../src/Core";
+import styles from "../../page.module.scss";
 
 export default function RunnerButtons({core}: {
   core: Core | undefined;
@@ -22,7 +23,7 @@ export default function RunnerButtons({core}: {
   }
 
   return (
-    <div id='tool-selector'>
+    <div className={styles.runner}>
       {Runner.map((r,i)=>{
         return (
           <div key={i} onMouseDown={(e)=>handleMouseDown(e,r)} >

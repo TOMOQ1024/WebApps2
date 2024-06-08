@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import Core from "../src/Core";
 import Canvas from "./Canvas";
 import Controls from "./Controls";
+import Logs from "./Logs";
+import styles from "../page.module.scss";
 
 export default function MainWrapper() {
   const [core, setCore] = useState<Core>();
@@ -17,9 +19,10 @@ export default function MainWrapper() {
   }
   
   return (
-    <main id='main-wrapper' onContextMenu={handleContextMenu}>
+    <main className={styles.main_wrapper} onContextMenu={handleContextMenu}>
       <Canvas core={core}/>
       <Controls core={core}/>
+      <Logs core={core}/>
     </main>
   );
 }
