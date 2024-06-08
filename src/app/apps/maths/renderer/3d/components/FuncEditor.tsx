@@ -11,7 +11,7 @@ export default function FuncEditor({core}: {
       </Typography>
       <Stack direction="row" spacing={1}>
         <Typography my='auto'>
-          不等式：
+          {`不等式：0>`}
         </Typography>
         <Tooltip title={core?.error ?? <Alert severity="error">{core?.error}</Alert>} arrow>
           <TextField

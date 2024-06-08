@@ -48,22 +48,29 @@ export class BNode {
     return str;
   }
 
-  calcL (): number[] { return this.lhs ? this.lhs.calc() : []; }
-  calcR (): number[] { return this.rhs ? this.rhs.calc() : []; }
-  calc (): number[] {
+  calcL (args: {[key:string]:number}): number[] { return this.lhs ? this.lhs.calc(args) : []; }
+  calcR (args: {[key:string]:number}): number[] { return this.rhs ? this.rhs.calc(args) : []; }
+  calc (args: {[key:string]:number}): number[] {
     switch(this.kind){
       case BNodeKind.FNC: {
         const f = Funcs[this.val];
         if (!f) break;
-        return f.calc!(this);
+        return f.calc!(this, args);
       }
+      case BNodeKind.VAR:
+        switch(this.val){
+          case VarName.PI: return [Math.PI];
+          case VarName.E: return [Math.E];
+        }
+        break;
+      case BNodeKind.DFD: return [args[this.val]];
       case BNodeKind.NUM: return [this.val as number];
-      case BNodeKind.ADD: return [this.calcL()[0] + this.calcR()[0]];
-      case BNodeKind.SUB: return [this.calcL()[0] - this.calcR()[0]];
-      case BNodeKind.MUL: return [this.calcL()[0] * this.calcR()[0]];
-      case BNodeKind.DIV: return [this.calcL()[0] / this.calcR()[0]];
-      case BNodeKind.MOD: return [this.calcL()[0] % this.calcR()[0]];
-      case BNodeKind.POW: return [this.calcL()[0] ** this.calcR()[0]];
+      case BNodeKind.ADD: return [this.calcL(args)[0] + this.calcR(args)[0]];
+      case BNodeKind.SUB: return [this.calcL(args)[0] - this.calcR(args)[0]];
+      case BNodeKind.MUL: return [this.calcL(args)[0] * this.calcR(args)[0]];
+      case BNodeKind.DIV: return [this.calcL(args)[0] / this.calcR(args)[0]];
+      case BNodeKind.MOD: return [this.calcL(args)[0] % this.calcR(args)[0]];
+      case BNodeKind.POW: return [this.calcL(args)[0] ** this.calcR(args)[0]];
     }
 
     return [];

@@ -2,8 +2,9 @@ import { RenderingMode } from "./Definitions";
 import { Dispatch, SetStateAction } from "react";
 import { Parse } from "@/src/parser/Main";
 import GraphMgr from "@/src/GraphMgr";
-import { AmbientLight, BoxGeometry, DirectionalLight, GridHelper, Mesh, MeshLambertMaterial, PerspectiveCamera, PlaneGeometry, Scene, WebGLRenderer } from "three";
+import { AmbientLight, AxesHelper, BoxGeometry, DirectionalLight, GridHelper, Mesh, MeshBasicMaterial, MeshLambertMaterial, PerspectiveCamera, Scene, WebGLRenderer } from "three";
 import { OrbitControls } from "three/examples/jsm/Addons";
+import { MarchingCubesMgr } from "./MarchingCubesMgr";
 
 export default class Core {
   pointers: {
@@ -16,16 +17,16 @@ export default class Core {
   get error () { return this._error };
   set error (e) { this._setError(this._error = e) };
   graph = new GraphMgr();
-  func: string = '0.>sin(y-sin(x))';
-  _funcexpr: string = '0>sin(y-sinx)';
+  func: string = 'x*x+y*y+z*z-20';
+  _funcexpr: string = 'xx+yy+zz-100';
   _setFuncexpr: Dispatch<SetStateAction<string>> = ()=>{};
   get funcexpr () { return this._funcexpr; }
   set funcexpr (s: string) {
-    const result = Parse( s, ['x', 'y', 't'], 'ineq' );
+    const result = Parse( s, ['x', 'y', 'z', 't'], 'expr' );
     let f = '';
-    if (result.status) {
+    if (true) {//(result.status) {
       try {
-        f = result.root!.togl();
+        f = s;//result.root!.togl();
       }
       catch(e) {
         this.error = `${e}`;
@@ -36,13 +37,13 @@ export default class Core {
       this.func = f;
       this._funcexpr = s;// this line will be deleted
       this._setFuncexpr(s);
+      this.mcMgr.func = (x: number, y: number, z: number) => result.root!.calc({x, y, z})[0];
     }
     else {
       this.error = 'parse failed';
     }
   }
   renderingMode: RenderingMode = RenderingMode.HSV;
-  nessyMode = false;
   rawShaderData = {
     vert: '',
     frag: '',
@@ -53,6 +54,7 @@ export default class Core {
   renderer: WebGLRenderer;
   interval: NodeJS.Timeout | null = null;
   controls: OrbitControls;
+  mcMgr: MarchingCubesMgr;
 
   constructor () {
     const wr = document.querySelector('#main-wrapper') as HTMLElement;
@@ -83,6 +85,7 @@ export default class Core {
       new MeshLambertMaterial({color: '#88ff88'}),
     ));
     this.scene.add(new GridHelper());
+    this.scene.add(new AxesHelper());
 
     const ambientLight = new AmbientLight('#ffffff', .3);
     this.scene.add(ambientLight);
@@ -93,7 +96,11 @@ export default class Core {
 
     this.controls = new OrbitControls(this.camera, this.cvs);
 
+    this.mcMgr = new MarchingCubesMgr(this.scene);
+
     this.beginLoop();
+
+    this.funcexpr = this.funcexpr;
   }
 
   setRF(x: number) {
