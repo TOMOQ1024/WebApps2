@@ -30,6 +30,28 @@ export default function Main () {
         height="100"
         >
       </object>
+      <object
+        type="image/svg+xml"
+        data="resources/svgtest/filter.svg"
+        width="100"
+        height="100"
+        >
+      </object>
+      <p>Filtering test:</p>
+      <div
+        style={{
+          filter: `url("/resources/svgtest/filter.svg#noiseEffect")`
+        }}
+      >
+        The quick brown fox jumps over the lazy dog
+        The quick brown fox jumps over the lazy dog
+        The quick brown fox jumps over the lazy dog
+        The quick brown fox jumps over the lazy dog
+        The quick brown fox jumps over the lazy dog
+        The quick brown fox jumps over the lazy dog
+        The quick brown fox jumps over the lazy dog
+        The quick brown fox jumps over the lazy dog
+      </div>
     </main>
   )
 }

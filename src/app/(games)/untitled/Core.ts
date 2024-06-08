@@ -10,7 +10,7 @@ export default class Core {
   sceneMgr = new SceneMgr();
   matterMgr = new MatterMgr();
   threeMgr = new ThreeMgr(this);
-  interval: NodeJS.Timer|null = null;
+  interval: NodeJS.Timeout|null = null;
   player = new Player(this);
   keys: {[Key:string]: number} = {};
   mouseMovement = {x: 0, y: 0};

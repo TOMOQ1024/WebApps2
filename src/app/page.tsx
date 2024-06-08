@@ -46,6 +46,9 @@ export default function Home() {
       <AppCard
         name='DiceRoll'
       />
+      <AppCard
+        name='Minesweeper'
+      />
     </main>
   )
 }
