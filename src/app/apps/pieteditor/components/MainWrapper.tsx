@@ -10,7 +10,23 @@ export default function MainWrapper() {
   const [core, setCore] = useState<Core>();
   useEffect(() => {
     if (!core) {
-      setCore(new Core());
+      const newCore = new Core();
+      setCore(newCore);
+    }
+    const handleVisibilityChange = () => {
+      console.log('!!!');
+      if (!core) return;
+      const t = core.ctx;
+      if (!t) return;
+      t.save();
+      t.fillStyle = '#00000000';
+      t.fillRect(0, 0, 1, 1);
+      t.restore();
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     }
   }, [core]);
 
