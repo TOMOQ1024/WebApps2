@@ -6,6 +6,7 @@ export default function SvgFilter ({ src, children }: {
 }) {
   const filteredChildren = cloneElement(children as ReactElement, {
     style: {
+      ...(children as ReactElement).props.style,
       filter: `url(${src})`,
     },
     className: `${(children as ReactElement).props.className || ''}`

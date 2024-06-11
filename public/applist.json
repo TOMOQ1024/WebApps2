@@ -143,11 +143,12 @@
     "since": "",
     "lastUpdate": ""
   },
-  "Svg Test": {
+  "Svg": {
     "tag": [ "EXPERIMENTAL" ],
     "desc": "",
     "since": "",
-    "lastUpdate": ""
+    "lastUpdate": "",
+    "path": "/apps/ex/svg"
   },
   "Template": {
     "tag": [ "" ],
