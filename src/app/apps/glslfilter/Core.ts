@@ -34,6 +34,7 @@ void main(void)
   _frag: string = 
 `in vec2 vTexCoord;
 in vec2 vPosition;
+out vec4 finalColor;
 
 uniform vec4 uInputSize;
 uniform vec4 uOutputFrame;
@@ -52,7 +53,7 @@ void main ()
   bool flgX = 3. < abs(vPosition.x * uResolution.x - uMouse.x);
   bool flgY = 3. < abs(vPosition.y * uResolution.y - uMouse.y);
   
-	gl_FragColor = flgX && flgY ? col0 : col1;
+	finalColor = flgX && flgY ? col0 : col1;
 }
 `;
   get frag () {

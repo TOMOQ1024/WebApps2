@@ -1,5 +1,6 @@
 in vec2 vTexCoord;
 in vec2 vPosition;
+out vec4 finalColor;
 
 uniform vec4 uInputSize;
 uniform vec4 uOutputFrame;
@@ -27,5 +28,5 @@ void main ()
   float d = distance(uMouse/uResolution, vPosition);
   float a = exp(-.2/d);
   
-	gl_FragColor = mix(col0,col2,a);
+	finalColor = mix(col0,col2,a);
 }
