@@ -38,6 +38,3 @@ next-env.d.ts
 
 # blender
 *.blend*
-
-# gitmodules
-.gitmodules
