@@ -13,7 +13,9 @@ export default withAuth({
       console.log(referer, process.env.NEXTAUTH_URL, process.env.VERCEL_URL);
       if (
         referer &&
-        referer.startsWith(process.env.NEXTAUTH_URL ?? process.env.VERCEL_URL!)
+        referer.startsWith(
+          process.env.NEXTAUTH_URL ?? `https://${process.env.VERCEL_URL}`
+        )
       ) {
         return true;
       } else {
