@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "vercel-install": "source .env && git clone https://${SUBMOD_PAT}@github.com/TOMOQ1024/tomoq-app-private.git --depth=1 public/private && yarn install"
+    "vercel-install": "git clone https://${SUBMOD_PAT}@github.com/TOMOQ1024/tomoq-app-private.git --depth=1 public/private && yarn install"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
