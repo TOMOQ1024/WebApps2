@@ -7,8 +7,7 @@
     "postinstall": "prisma generate",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "vercel-install": "echo https://${SUBMOD_PAT}@github.com/TOMOQ1024/tomoq-app-private.git && git clone https://${SUBMOD_PAT}@github.com/TOMOQ1024/tomoq-app-private.git --depth=1 public/private && yarn install"
+    "lint": "next lint"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
