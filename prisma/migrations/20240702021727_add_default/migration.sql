@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "CompDynamPost" ALTER COLUMN "expression" SET DEFAULT 'z',
+ALTER COLUMN "z0Expression" SET DEFAULT '0',
+ALTER COLUMN "radius" SET DEFAULT 2,
+ALTER COLUMN "originX" SET DEFAULT 0,
+ALTER COLUMN "originY" SET DEFAULT 0;
