@@ -10,6 +10,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
     if (!session) {
       throw new Error("Unauthorized");
     }
+    console.log(session.user);
     const input = (await req.json()) as CompDynamPost & { tags: string[] };
 
     const tags = await Promise.all(

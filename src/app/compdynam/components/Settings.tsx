@@ -7,8 +7,8 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import Core from "../CompDynamCore";
-import { RenderingMode } from "../Definitions";
+import Core from "@/components/CompDynamCanvas/Core";
+import { RenderingMode } from "@/components/CompDynamCanvas/RenderingMode";
 import React from "react";
 
 export default function Settings({ core }: { core: Core }) {

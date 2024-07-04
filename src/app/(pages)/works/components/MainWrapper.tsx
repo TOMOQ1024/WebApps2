@@ -31,7 +31,6 @@ export default function MainWrapper() {
     const response = await axios.post("/api/works/delete", {
       id: prompt("id?") || "",
     });
-    console.log(response);
   };
 
   return (
