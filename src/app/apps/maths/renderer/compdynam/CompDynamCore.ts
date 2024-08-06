@@ -101,18 +101,6 @@ export default class CDCore {
     this.glmgr.render();
   }
 
-  setIter(i: number) {
-    this.iter = i;
-  }
-
-  setRF(x: number) {
-    this.resFactor = x;
-  }
-
-  setRM(m: RenderingMode) {
-    this.renderingMode = m;
-  }
-
   resizeCanvas() {
     const wrapper = this.glmgr.cvs!.parentElement!;
     const rect = wrapper.getBoundingClientRect();

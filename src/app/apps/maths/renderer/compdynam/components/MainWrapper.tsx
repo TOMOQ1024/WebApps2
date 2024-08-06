@@ -2,7 +2,6 @@
 import { Suspense, useEffect, useState } from "react";
 import CDCore from "../CompDynamCore";
 import Controls from "./Controls";
-import GraphWrapper from "./GraphWrapper";
 import { useSearchParams } from "next/navigation";
 import { Vector2 } from "three";
 import preventDefault from "@/src/preventDefault";
@@ -218,7 +217,9 @@ function _MainWrapper() {
 
   return (
     <main id="main-wrapper">
-      <GraphWrapper />
+      <div id="graph-wrapper">
+        <canvas id="cvs" width={1024} height={1024} />
+      </div>
       <Controls core={core} />
     </main>
   );

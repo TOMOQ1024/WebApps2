@@ -50,7 +50,7 @@ export default function FuncEditor({ core }: { core: CDCore }) {
           name="iter"
           defaultValue={core.iter}
           onChange={(e) => {
-            core.setIter(Number(e.target.value));
+            core.iter = parseInt(e.target.value);
             core.init();
           }}
         />
