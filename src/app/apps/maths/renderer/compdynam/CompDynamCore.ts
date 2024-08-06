@@ -5,8 +5,11 @@ import GLMgr from "./GLMgr";
 import GraphMgr from "@/src/GraphMgr";
 
 export default class CDCore {
-  mMgr = new MouseMgr();
-  tMgr = new TouchMgr();
+  pointers: {
+    pointerId: number;
+    clientX: number;
+    clientY: number;
+  }[] = [];
   graph = new GraphMgr();
   glmgr = new GLMgr(this);
   iter: number = 100;
@@ -18,6 +21,7 @@ export default class CDCore {
   renderingMode: RenderingMode = RenderingMode.HSV;
   nessyMode = false;
   interval: NodeJS.Timeout | null = null;
+  controls = true;
 
   async init() {
     await this.glmgr.init();

@@ -97,123 +97,87 @@ function _MainWrapper() {
         core.glmgr.render();
       };
 
-      const onMouseDown = (e: MouseEvent) => {
+      const onPointerDown = (e: PointerEvent) => {
+        if (!core.controls) return;
+        e.preventDefault();
+        core.glmgr.cvs!.setPointerCapture(e.pointerId); // キャンバス外も追跡
+        core.pointers.push({
+          pointerId: e.pointerId,
+          clientX: e.clientX,
+          clientY: e.clientY,
+        });
+      };
+
+      const onPointerMove = (e: PointerEvent) => {
+        if (!core.controls) return;
         e.preventDefault();
         const rect = core.glmgr.cvs!.getBoundingClientRect();
         const m = Math.min(rect.width, rect.height);
-        core.mMgr.pos = new Vector2(
-          (((2 * (e.clientX - rect.left)) / rect.width - 1) * rect.width) / m,
-          (((2 * (e.clientY - rect.top)) / rect.height - 1) * rect.height) / m
+        const pidx = core.pointers.findIndex(
+          (p) => p.pointerId === e.pointerId
         );
-        core.mMgr.isDown = true;
-      };
-
-      const onMouseMove = (e: MouseEvent) => {
-        e.preventDefault();
-        const rect = core.glmgr.cvs!.getBoundingClientRect();
-        const m = Math.min(rect.width, rect.height);
-        const newPos = new Vector2(
-          (((2 * (e.clientX - rect.left)) / rect.width - 1) * rect.width) / m,
-          (((2 * (e.clientY - rect.top)) / rect.height - 1) * rect.height) / m
-        );
-        if (core.mMgr.isDown) {
-          core.graph.translate(
-            newPos.clone().sub(core.mMgr.pos).multiply({ x: -1, y: 1 })
-          );
-          core.mMgr.pos = newPos;
-          core.glmgr.updateGraphUniform();
-          core.glmgr.render();
-        }
-      };
-
-      const onMouseUp = (e: MouseEvent) => {
-        e.preventDefault();
-        core.mMgr.isDown = false;
-      };
-
-      const onTouchStart = (e: TouchEvent) => {
-        e.preventDefault();
-        const rect = core.glmgr.cvs!.getBoundingClientRect();
-        const m = Math.min(rect.width, rect.height);
-        const s = e.touches;
-        for (let i = 0; i < s.length; i++) {
-          core.tMgr.touches[e.touches[i].identifier] = new Vector2(
-            (((2 * (s[i].clientX - rect.left)) / rect.width - 1) * rect.width) /
-              m,
-            (((2 * (s[i].clientY - rect.top)) / rect.height - 1) *
-              rect.height) /
-              m
-          );
-        }
-      };
-
-      const onTouchMove = (e: TouchEvent) => {
-        e.preventDefault();
-        const rect = core.glmgr.cvs!.getBoundingClientRect();
-        const m = Math.min(rect.width, rect.height);
-        const c = e.changedTouches;
+        const p = core.pointers[pidx] ?? e;
+        const c = core.pointers;
         switch (c.length) {
           case 0:
             return;
           case 1:
-            let newPos = new Vector2(
-              (((2 * (c[0].clientX - rect.left)) / rect.width - 1) *
-                rect.width) /
-                m,
-              (((2 * (c[0].clientY - rect.top)) / rect.height - 1) *
-                rect.height) /
-                m
+            let delta = new Vector2(
+              (2 * (e.clientX - p.clientX)) / m,
+              (2 * (p.clientY - e.clientY)) / m
             );
-            core.graph.translate(
-              newPos
-                .clone()
-                .sub(core.tMgr.touches[c[0].identifier])
-                .multiply({ x: -1, y: 1 })
-            );
-            core.tMgr.touches[c[0].identifier] = newPos;
+            core.graph.translate(delta.negate());
             core.glmgr.updateGraphUniform();
             core.glmgr.render();
             break;
           default:
-            let prevPos0 = core.tMgr.touches[c[0].identifier].clone();
-            let newPos0 = new Vector2(
-              (((2 * (c[0].clientX - rect.left)) / rect.width - 1) *
-                rect.width) /
+            const C0 = pidx === 0 ? e : c[0];
+            const C1 = pidx === 1 ? e : c[1];
+            let pOri = new Vector2(
+              (((c[1].clientX + c[0].clientX) / rect.width - 1) * rect.width) /
                 m,
-              (((2 * (c[0].clientY - rect.top)) / rect.height - 1) *
+              (((c[1].clientY + c[0].clientY) / rect.height - 1) *
                 rect.height) /
                 m
             );
-            core.tMgr.touches[c[0].identifier] = newPos0;
-
-            let prevPos1 = core.tMgr.touches[c[1].identifier].clone();
-            let newPos1 = new Vector2(
-              (((2 * (c[1].clientX - rect.left)) / rect.width - 1) *
-                rect.width) /
-                m,
-              (((2 * (c[1].clientY - rect.top)) / rect.height - 1) *
-                rect.height) /
-                m
+            let dOri = new Vector2(
+              (((C1.clientX + C0.clientX) / rect.width - 1) * rect.width) / m,
+              (((C1.clientY + C0.clientY) / rect.height - 1) * rect.height) / m
+            )
+              .sub(pOri)
+              .multiply({ x: 1, y: -1 });
+            let pDelta = Math.hypot(
+              (2 * (c[1].clientX - c[0].clientX)) / m,
+              (2 * (c[1].clientY - c[0].clientY)) / m
             );
-            core.tMgr.touches[c[1].identifier] = newPos1;
-
-            // alert(newPos1.subed(newPos0).length() / prevPos1.subed(prevPos0).length());
-            core.graph.zoom(
-              prevPos0.clone().add(prevPos1).multiplyScalar(-0.5),
-              Math.log(
-                prevPos1.clone().sub(prevPos0).length() /
-                  newPos1.clone().sub(newPos0).length()
-              ) * 500
+            let nDelta = Math.hypot(
+              (2 * (C1.clientX - C0.clientX)) / m,
+              (2 * (C1.clientY - C0.clientY)) / m
             );
+            core.graph.translate(dOri.negate());
+            core.graph.zoom(pOri.negate(), Math.log(pDelta / nDelta) * 500);
             core.glmgr.updateGraphUniform();
             core.glmgr.render();
             break;
         }
+        if (0 <= pidx) {
+          core.pointers[pidx] = {
+            pointerId: e.pointerId,
+            clientX: e.clientX,
+            clientY: e.clientY,
+          };
+        }
       };
 
-      // const onTouchEnd = (e: TouchEvent) => {
-      //   e.preventDefault();
-      // }
+      const onPointerUp = (e: PointerEvent) => {
+        if (!core.controls) return;
+        e.preventDefault();
+        core.glmgr.cvs!.releasePointerCapture(e.pointerId);
+        core.pointers.splice(
+          core.pointers.findIndex((p) => p.pointerId === e.pointerId),
+          1
+        );
+      };
 
       const onResize = () => {
         core.resizeCanvas();
@@ -221,23 +185,26 @@ function _MainWrapper() {
 
       document.addEventListener("keydown", onKeyDown);
       core.glmgr.cvs!.addEventListener("wheel", onWheel, { passive: false });
-      document.addEventListener("mousedown", onMouseDown, { passive: false });
-      document.addEventListener("mousemove", onMouseMove, { passive: false });
-      document.addEventListener("mouseup", onMouseUp, { passive: false });
-      document.addEventListener("touchstart", onTouchStart, { passive: false });
-      document.addEventListener("touchmove", onTouchMove, { passive: false });
-      // document.addEventListener('touchend', onTouchEnd, {passive: false});
+      core.glmgr.cvs!.addEventListener("pointerdown", onPointerDown, {
+        passive: false,
+        capture: true,
+      });
+      core.glmgr.cvs!.addEventListener("pointermove", onPointerMove, {
+        passive: false,
+        capture: true,
+      });
+      core.glmgr.cvs!.addEventListener("pointerup", onPointerUp, {
+        passive: false,
+      });
       window.addEventListener("resize", onResize);
       return () => {
         core.endLoop();
         console.log("e");
         document.removeEventListener("keydown", onKeyDown);
         core.glmgr.cvs!.removeEventListener("wheel", onWheel);
-        document.removeEventListener("mousedown", onMouseDown);
-        document.removeEventListener("mousemove", onMouseMove);
-        document.removeEventListener("mouseup", onMouseUp);
-        document.removeEventListener("touchstart", onTouchStart);
-        document.removeEventListener("touchmove", onTouchMove);
+        core.glmgr.cvs!.removeEventListener("pointerdown", onPointerDown);
+        core.glmgr.cvs!.removeEventListener("pointermove", onPointerMove);
+        core.glmgr.cvs!.removeEventListener("pointerup", onPointerUp);
         // document.removeEventListener('touchend', onTouchEnd);
         window.removeEventListener("resize", onResize);
       };
