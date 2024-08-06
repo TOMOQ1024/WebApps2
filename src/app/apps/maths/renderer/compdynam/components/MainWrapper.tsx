@@ -5,6 +5,7 @@ import Controls from "./Controls";
 import GraphWrapper from "./GraphWrapper";
 import { useSearchParams } from "next/navigation";
 import { Vector2 } from "three";
+import preventDefault from "@/src/preventDefault";
 
 function _MainWrapper() {
   const searchParams = useSearchParams();
@@ -196,6 +197,9 @@ function _MainWrapper() {
       core.glmgr.cvs!.addEventListener("pointerup", onPointerUp, {
         passive: false,
       });
+      core.glmgr.cvs!.addEventListener("contextmenu", preventDefault, {
+        passive: false,
+      });
       window.addEventListener("resize", onResize);
       return () => {
         core.endLoop();
@@ -205,6 +209,7 @@ function _MainWrapper() {
         core.glmgr.cvs!.removeEventListener("pointerdown", onPointerDown);
         core.glmgr.cvs!.removeEventListener("pointermove", onPointerMove);
         core.glmgr.cvs!.removeEventListener("pointerup", onPointerUp);
+        core.glmgr.cvs!.removeEventListener("contextmenu", preventDefault);
         // document.removeEventListener('touchend', onTouchEnd);
         window.removeEventListener("resize", onResize);
       };
