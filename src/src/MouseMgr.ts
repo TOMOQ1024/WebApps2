@@ -1,9 +1,9 @@
-import Vec2 from "@/src/Vec2";
+import { Vector2 } from "three";
 
 export default class MouseMgr {
   isDown = false;
-  dPos = new Vec2();
-  pos = new Vec2();
+  dPos = new Vector2();
+  pos = new Vector2();
 
-  constructor(){}
+  constructor() {}
 }
