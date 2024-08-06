@@ -1,4 +1,3 @@
-import { Parse } from "@/src/parser/Main";
 import { useEffect, useRef } from "react";
 import CDCore from "../CompDynamCore";
 
@@ -24,91 +23,12 @@ export default function FuncEditor({ core }: { core: CDCore }) {
 
   function HandleZ0Input(e: InputEvent) {
     let textarea = e.target as HTMLSpanElement;
-
-    // 現在のカーソルによる選択場所を記録
-    let range0 = window.getSelection()?.getRangeAt(0);
-    let so = range0?.startOffset as number;
-    let eo = range0?.endOffset as number;
-    let range = document.createRange();
-
-    // テキストの解析
-    let result = Parse(textarea.innerText, ["i", "c", "t"]);
-    console.log(textarea.innerText);
-
-    const ctl = document.getElementById("controls")!;
-    let z0: string = "";
-    if (result.status) {
-      try {
-        z0 = result.root!.tocdgl();
-      } catch (e) {
-        ctl.className = ctl.className.replace(/(?:in)?valid/, "invalid");
-        console.error(e);
-        return;
-      }
-      ctl.className = ctl.className.replace(/(?:in)?valid/, "valid");
-      core.z0 = z0;
-      core.z0expr = textarea.innerText;
-      core.init();
-    } else {
-      ctl.className = ctl.className.replace(/(?:in)?valid/, "invalid");
-    }
-
-    // 再描画が行われるため，カーソルの選択場所を復元する
-    setTimeout(() => {
-      if (textarea.firstChild) {
-        range.setStart(textarea.firstChild, so);
-        range.setEnd(textarea.firstChild, eo);
-      } else {
-        range.setStart(textarea, so);
-        range.setEnd(textarea, eo);
-      }
-      window.getSelection()?.removeAllRanges();
-      window.getSelection()?.addRange(range);
-    }, 10);
+    core.z0expr = textarea.innerText;
   }
 
   function HandleFuncInput(e: InputEvent) {
     let textarea = e.target as HTMLSpanElement;
-
-    // 現在のカーソルによる選択場所を記録
-    let range0 = window.getSelection()?.getRangeAt(0);
-    let so = range0?.startOffset as number;
-    let eo = range0?.endOffset as number;
-    let range = document.createRange();
-
-    // テキストの解析
-    let result = Parse(textarea.innerText, ["z", "i", "c", "t"]);
-
-    const ctl = document.getElementById("controls")!;
-    let func: string = "";
-    if (result.status) {
-      try {
-        func = result.root!.tocdgl();
-      } catch (e) {
-        ctl.className = ctl.className.replace(/(?:in)?valid/, "invalid");
-        console.error(e);
-        return;
-      }
-      ctl.className = ctl.className.replace(/(?:in)?valid/, "valid");
-      core.func = func;
-      core.expr = textarea.innerText;
-      core.init();
-    } else {
-      ctl.className = ctl.className.replace(/(?:in)?valid/, "invalid");
-    }
-
-    // 再描画が行われるため，カーソルの選択場所を復元する
-    setTimeout(() => {
-      if (textarea.firstChild) {
-        range.setStart(textarea.firstChild, so);
-        range.setEnd(textarea.firstChild, eo);
-      } else {
-        range.setStart(textarea, so);
-        range.setEnd(textarea, eo);
-      }
-      window.getSelection()?.removeAllRanges();
-      window.getSelection()?.addRange(range);
-    }, 10);
+    core.funcexpr = textarea.innerText;
   }
 
   const HandlePaste = (e: ClipboardEvent) => {
@@ -165,7 +85,7 @@ export default function FuncEditor({ core }: { core: CDCore }) {
           onClick={(e) => HandleFuncInput(e as unknown as InputEvent)}
           onPaste={(e) => HandlePaste(e as unknown as ClipboardEvent)}
         >
-          {core.expr}
+          {core.funcexpr}
         </span>
       </div>
     </div>
