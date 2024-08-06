@@ -1,5 +1,3 @@
-import MouseMgr from "@/src/MouseMgr";
-import TouchMgr from "@/src/TouchMgr";
 import { RenderingMode } from "./Definitions";
 import GLMgr from "./GLMgr";
 import GraphMgr from "@/src/GraphMgr";
