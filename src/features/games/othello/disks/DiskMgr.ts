@@ -34,6 +34,35 @@ export default class DiskMgr {
     console.log(s);
   }
 
+  ifPut(X: number, Y: number, c: "white" | "black") {
+    if (!IsIn(X, Y, 0, 0, 8, 8) || this.disks[Y][X].state !== "empty")
+      return false;
+    const C = c === "white" ? "black" : "white";
+    for (let i = 0; i < 8; i++) {
+      const dx = Math.round(Math.cos((Math.PI / 4) * i));
+      const dy = Math.round(Math.sin((Math.PI / 4) * i));
+      let x = X;
+      let y = Y;
+      x += dx;
+      y += dy;
+      let j = 1;
+      while (IsIn(x, y, 0, 0, 8, 8)) {
+        switch (this.disks[y][x].state) {
+          case c:
+            if (1 < j) return true;
+            break;
+          case C:
+            j++;
+            x += dx;
+            y += dy;
+            continue;
+        }
+        break;
+      }
+    }
+    return false;
+  }
+
   put(X: number, Y: number, c: "white" | "black") {
     const C = c === "white" ? "black" : "white";
     for (let i = 0; i < 8; i++) {
@@ -44,7 +73,6 @@ export default class DiskMgr {
       x += dx;
       y += dy;
       let j = 1;
-      console.log(dx, dy);
       while (IsIn(x, y, 0, 0, 8, 8)) {
         switch (this.disks[y][x].state) {
           case c:
@@ -63,12 +91,7 @@ export default class DiskMgr {
     }
   }
 
-  add(x: number, y: number) {
-    //
-  }
-
   update() {
-    this.print();
     for (let y = 0; y < 8; y++) {
       for (let x = 0; x < 8; x++) {
         this.disks[y][x].update();

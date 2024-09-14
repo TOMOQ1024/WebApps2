@@ -60,11 +60,9 @@ export class Disk {
           this.parent.parent.player === "white" ? "black" : "white";
         break;
       case "white":
-        console.log(`flip (${this.x},${this.y})`);
         this.state = "wtok";
         break;
       case "black":
-        console.log(`flip (${this.x},${this.y})`);
         this.state = "ktow";
         break;
     }

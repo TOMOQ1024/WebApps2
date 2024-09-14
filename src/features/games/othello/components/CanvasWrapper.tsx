@@ -7,7 +7,7 @@ export default function CanvasWrapper({ core }: { core: Core | undefined }) {
     const cvs = core.cvs;
 
     const onMouseDown = () => {
-      core.flip();
+      // core.flip();
     };
 
     const onMouseMove = (e: MouseEvent) => {
@@ -25,6 +25,20 @@ export default function CanvasWrapper({ core }: { core: Core | undefined }) {
       core.mousePos.x = (x / w) * 2 - 1;
       core.mousePos.y = -(y / h) * 2 + 1;
       core.raycaster.setFromCamera(core.mousePos, core.camera);
+
+      // interactionPosの更新
+      const io = core.raycaster.intersectObject(core.planeMesh, true);
+      for (let i = 0; i < io.length; i++) {
+        const name = io[i].object.name;
+        if (/^Plane$/.test(name)) {
+          const { x: x0, z: z0 } = io[i].point;
+          core.interactionPos.x = Math.floor(x0 / 2 + 4);
+          core.interactionPos.y = Math.floor(z0 / 2 + 4);
+          return;
+        }
+      }
+      core.interactionPos.x = Math.floor(-1);
+      core.interactionPos.y = Math.floor(-1);
     };
 
     cvs.addEventListener("mousedown", onMouseDown);

@@ -11,21 +11,26 @@ import {
   Vector2,
   GridHelper,
   Raycaster,
+  OctahedronGeometry,
 } from "three";
 import DiskMgr from "./disks/DiskMgr";
 import { OrbitControls } from "three/examples/jsm/Addons";
 import { Disk } from "./disks/Disk";
+import { IsIn } from "@/src/misc/maths/IsIn";
+import CursorMgr from "./cursors/CursorMgr";
 
 export default class Core {
   renderer: WebGLRenderer;
   camera: PerspectiveCamera;
   scene: Scene;
   cvs: HTMLCanvasElement;
-  planeMesh = new Mesh();
+  planeMesh: Mesh;
   interval: NodeJS.Timer | null = null;
   textureLoader = new TextureLoader();
   diskMgr: DiskMgr;
+  cursorMgr: CursorMgr;
   mousePos = new Vector2();
+  interactionPos = new Vector2();
   raycaster = new Raycaster();
   keys: { [key: string]: number } = {};
   player: "white" | "black" = "black";
@@ -35,6 +40,7 @@ export default class Core {
 
     this.scene = new Scene();
     this.diskMgr = new DiskMgr(this);
+    this.cursorMgr = new CursorMgr(this);
 
     this.scene.add(new GridHelper(16, 8));
 
@@ -81,30 +87,60 @@ export default class Core {
     );
     this.planeMesh.rotateX(-Math.PI / 2);
     this.planeMesh.translateZ(-Disk.thickness);
+    this.planeMesh.name = `Plane`;
     this.scene.add(this.planeMesh);
   }
 
-  flip() {
-    const io = this.raycaster.intersectObjects(
-      this.diskMgr.object.children,
-      true
+  ifPut() {
+    return this.diskMgr.ifPut(
+      this.interactionPos.x,
+      this.interactionPos.y,
+      this.player
     );
-    for (let i = 0; i < io.length; i++) {
-      const name = io[i].object.name;
-      if (/^Disk-[wk]-\d+-\d+$/.test(name)) {
-        const [, , x, y] = name.split("-").map((a) => +a);
-        this.diskMgr.disks[y][x].flip();
-        return;
-      }
-    }
+  }
+
+  flip() {
+    const { x, y } = this.interactionPos;
+    if (!IsIn(x, y, 0, 0, 8, 8)) return;
+    this.diskMgr.disks[y][x].flip();
+
+    // this.diskMgr.print();
+    const w = this.diskMgr.disks
+      .map((a) => a.filter((d) => /^(white|ktow)$/.test(d.state)).length)
+      .reduce((a, b) => a + b);
+    const k = this.diskMgr.disks
+      .map((a) => a.filter((d) => /^(black|wtok)$/.test(d.state)).length)
+      .reduce((a, b) => a + b);
+    console.log(
+      `%c${w}%c - %c${k}`,
+      `
+        font-size:40px;
+        font-weight:bold;
+        color:white
+      `,
+      `
+        font-size:40px;
+        font-weight:bold;
+        color:yellow
+      `,
+      `
+        font-size:40px;
+        font-weight:bold;
+        color:black
+      `
+    );
   }
 
   update() {
     this.diskMgr.update();
 
+    // カーソル更新
+    this.cursorMgr.reset();
+
+    // キー入力
     if (this.keys[" "] === 2) this.flip();
 
-    // update key state
+    // キー情報の更新
     for (const key in this.keys) {
       if (this.keys[key] === 2) {
         this.keys[key] = 1;
