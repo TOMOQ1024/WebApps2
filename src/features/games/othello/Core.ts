@@ -27,6 +27,7 @@ export default class Core {
   diskMgr: DiskMgr;
   mousePos = new Vector2();
   raycaster = new Raycaster();
+  keys: { [key: string]: number } = {};
 
   constructor() {
     this.cvs = document.getElementById("cvs") as HTMLCanvasElement;
@@ -82,6 +83,34 @@ export default class Core {
     this.scene.add(this.planeMesh);
   }
 
+  flip() {
+    const io = this.raycaster.intersectObjects(
+      this.diskMgr.object.children,
+      true
+    );
+    for (let i = 0; i < io.length; i++) {
+      const name = io[i].object.name;
+      if (/^Disk-[wk]-\d+-\d+$/.test(name)) {
+        const [, , x, y] = name.split("-").map((a) => +a);
+        this.diskMgr.disks[y][x].flip();
+        return;
+      }
+    }
+  }
+
+  update() {
+    this.diskMgr.update();
+
+    if (this.keys[" "] === 2) this.flip();
+
+    // update key state
+    for (const key in this.keys) {
+      if (this.keys[key] === 2) {
+        this.keys[key] = 1;
+      }
+    }
+  }
+
   beginLoop(this: Core) {
     this.interval = setInterval(() => {
       this.loop();
@@ -89,7 +118,7 @@ export default class Core {
   }
 
   loop(this: Core) {
-    this.diskMgr.update();
+    this.update();
 
     // Render three.js
     this.renderer.render(this.scene, this.camera);

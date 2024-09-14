@@ -7,19 +7,7 @@ export default function CanvasWrapper({ core }: { core: Core | undefined }) {
     const cvs = core.cvs;
 
     const onMouseDown = () => {
-      const io = core.raycaster.intersectObjects(
-        core.diskMgr.object.children,
-        true
-      );
-      for (let i = 0; i < io.length; i++) {
-        const name = io[i].object.name;
-        console.log(name);
-        if (/^Disk-[wk]-\d+-\d+$/.test(name)) {
-          const [, , x, y] = name.split("-").map((a) => +a);
-          core.diskMgr.disks[y][x].flip();
-          return;
-        }
-      }
+      core.flip();
     };
 
     const onMouseMove = (e: MouseEvent) => {

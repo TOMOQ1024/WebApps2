@@ -26,11 +26,23 @@ export default function OthelloPage() {
       core.renderer.setPixelRatio(devicePixelRatio);
     };
 
+    const onKeyDown = (e: KeyboardEvent) => {
+      core.keys[e.key] = 2;
+    };
+
+    const onKeyUp = (e: KeyboardEvent) => {
+      core.keys[e.key] = 0;
+    };
+
     onResize();
 
     window.addEventListener("resize", onResize);
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
     return () => {
       window.removeEventListener("resize", onResize);
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
     };
   }, [core]);
 
