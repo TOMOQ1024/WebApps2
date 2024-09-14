@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <filter id="filter" x="-50%" y="-50%" width="200%" height="200%" filterUnits="objectBoundingBox">
+      <feColorMatrix type="matrix" values="
+        -1 -1 -1 +0 +0
+        -1 -1 -1 +0 +0
+        -1 -1 -1 +0 +0
+        -1 -1 -1 +1 +0" result="blackPart" />
+      <feMorphology id="morph" in="blackPart" operator="dilate" radius="2" />
+      <feColorMatrix type="matrix" values="
+        0 0 0 0 1
+        0 0 0 0 1
+        0 0 0 0 1
+        0 0 0 1 0" result="outline" />
+      <!-- <feMerge in="result" in2="SourceGraphic"/> -->
+      <feMerge>
+        <feMergeNode in="SourceGraphic" />
+        <feMergeNode in="outline" />
+        <feMergeNode in="blackPart" />
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="100" height="100" fill="aqua" />
+  <g filter="url(#filter)">
+    <text x="35" y="50" font-size="2em" text-anchor="left" fill="black">Sample Text</text>
+    <text x="35" y="100" font-size="2em" text-anchor="left" fill="purple">Another Text</text>
+  </g>
+</svg>

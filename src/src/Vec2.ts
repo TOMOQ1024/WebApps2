@@ -1,12 +1,28 @@
 export default class Vec2 {
   constructor(public x=0, public y=0) { }
 
+  get elem(){
+    return [this.x, this.y];
+  }
+
+  static copy(v: Vec2) {
+    return new Vec2(v.x, v.y);
+  }
+
+  static dot(lhs: Vec2, rhs: Vec2) {
+    return lhs.x * rhs.x + lhs.y * rhs.y;
+  }
+
   dot(rhs: Vec2) {
     return this.x * rhs.x + this.y * rhs.y;
   }
 
   det(rhs: Vec2) {
     return this.x * rhs.y - this.y * rhs.x;
+  }
+
+  length() {
+    return Math.sqrt(this.x*this.x + this.y*this.y);
   }
 
   add(rhs1: number|Vec2, rhs2: number|undefined = undefined) {
@@ -93,5 +109,12 @@ export default class Vec2 {
     this.x += dv.x;
     this.y += dv.y;
     return this;
+  }
+
+  rotatedBy (a: number): Vec2 {
+    return new Vec2(
+      this.x*Math.cos(a)-this.y*Math.sin(a),
+      this.y*Math.cos(a)+this.x*Math.sin(a),
+    );
   }
 }
