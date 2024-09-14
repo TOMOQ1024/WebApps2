@@ -20,13 +20,13 @@ export default function PixiTemplate() {
     bunny.x = app.screen.width / 2;
     bunny.y = app.screen.height / 2;
 
-    app.stage.addChild(bunny as PIXI.DisplayObject);
+    app.stage.addChild(bunny);
 
     // Listen for animate update
     let t = 0;
-    app.ticker.add((delta) =>
+    app.ticker.add((tck) =>
     {
-        t += delta * 5e-2;
+        t += tck.deltaTime * 5e-2;
         bunny.rotation += Math.sin(t)/4;
     });
 
