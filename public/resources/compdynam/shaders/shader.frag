@@ -75,7 +75,36 @@ vec2 csin(vec2 z) {
 }
 
 vec2 ctan(vec2 z) {
-  return cdiv(csin(z), ccos(z));
+  float cx = cos(z.x);
+  float cy = cosh(z.y);
+  float sx = sin(z.x);
+  float sy = sinh(z.y);
+  return vec2(
+    cx*sx,
+    -cy*sy
+  ) / (cx*cx+sy*sy);
+}
+
+vec2 csec(vec2 z) {
+  float cx = cos(z.x);
+  float cy = cosh(z.y);
+  float sx = sin(z.x);
+  float sy = sinh(z.y);
+  return vec2(
+    cx*cy,
+    sx*sy
+  ) / (cx*cx+sy*sy);
+}
+
+vec2 ccsc(vec2 z) {
+  float cx = cos(z.x);
+  float cy = cosh(z.y);
+  float sx = sin(z.x);
+  float sy = sinh(z.y);
+  return vec2(
+    sx*cy,
+    cx*sy
+  ) / (cx*cx+cy*cy);
 }
 
 vec2 ccosh(vec2 z) {
