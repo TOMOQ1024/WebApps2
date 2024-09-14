@@ -1,7 +1,1 @@
-export enum DISK_STATE {
-  EMPTY,
-  WHITE,
-  BLACK,
-  WTOK,
-  KTOW,
-}
+export type DISK_STATE = "empty" | "white" | "black" | "wtok" | "ktow";

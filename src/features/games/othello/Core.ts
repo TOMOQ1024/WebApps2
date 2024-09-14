@@ -28,6 +28,7 @@ export default class Core {
   mousePos = new Vector2();
   raycaster = new Raycaster();
   keys: { [key: string]: number } = {};
+  player: "white" | "black" = "black";
 
   constructor() {
     this.cvs = document.getElementById("cvs") as HTMLCanvasElement;
