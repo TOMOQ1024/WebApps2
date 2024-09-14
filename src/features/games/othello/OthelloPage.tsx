@@ -1,9 +1,10 @@
-"use client"
-import { useEffect, useState } from "react"
-import CanvasWrapper from "./CanvasWrapper";
-import Core from "../Core";
+"use client";
+import "./app.scss";
+import { useEffect, useState } from "react";
+import CanvasWrapper from "./components/CanvasWrapper";
+import Core from "./Core";
 
-export default function MainWrapper(){
+export default function OthelloPage() {
   const [core, setCore] = useState<Core>();
   useEffect(() => {
     if (!core) {
@@ -17,7 +18,7 @@ export default function MainWrapper(){
     const onMouseDown = () => {
       console.clear();
       // core.diskMgr.roll(1, 4);
-    }
+    };
 
     const onResize = () => {
       const wrapper = cvs.parentElement!;
@@ -28,21 +29,21 @@ export default function MainWrapper(){
       core.camera.updateProjectionMatrix();
       core.renderer.setSize(rect.width, rect.height);
       core.renderer.setPixelRatio(devicePixelRatio);
-    }
+    };
 
     onResize();
 
-    cvs.addEventListener('mousedown', onMouseDown);
-    window.addEventListener('resize', onResize);
+    cvs.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("resize", onResize);
     return () => {
-      cvs.removeEventListener('mousedown', onMouseDown);
-      window.removeEventListener('resize', onResize);
-    }
+      cvs.removeEventListener("mousedown", onMouseDown);
+      window.removeEventListener("resize", onResize);
+    };
   }, [core]);
 
   return (
-    <main id='main-wrapper'>
-      <CanvasWrapper/>
+    <main id="main-wrapper">
+      <CanvasWrapper />
     </main>
-  )
+  );
 }
