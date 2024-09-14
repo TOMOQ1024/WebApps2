@@ -4,6 +4,11 @@ import Header from '@/components/header'
 import { authOptions } from '@/lib/authOptions';
 import { Analytics } from '@vercel/analytics/react';
 import { getServerSession } from 'next-auth/next';
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
+import { FullHeightProvider } from '@/components/FullHeightProvider';
 
 export default async function RootLayout({
   children,
@@ -20,6 +25,7 @@ export default async function RootLayout({
       */}
       <head />
       <body>
+        <FullHeightProvider />
         <NextAuthProvider session={session} >
           <Header/>
           {children}

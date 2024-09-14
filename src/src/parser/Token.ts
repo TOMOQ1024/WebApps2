@@ -1,4 +1,3 @@
-import { FuncName } from "./Func";
 import { VarName } from "./Var";
 
 export enum TokenType {
@@ -33,12 +32,9 @@ export function isTokenType(input: any){
 export class Token {
   constructor(
     public type: TokenType = TokenType.UNK,
-    public value: (number | FuncName | VarName | string) = 0,
+    public value: (number | VarName | string) = 0,
     public raw: string = ''
   ){}
 
   static eol = new Token(TokenType.EOL);
 }
-
-export { FuncName };
-

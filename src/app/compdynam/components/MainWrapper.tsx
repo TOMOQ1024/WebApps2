@@ -1,39 +1,63 @@
 "use client"
 import { Suspense, useEffect, useState } from "react";
-import Vec2 from "@/src/Vec2";
-import CDCore from "../CompDynamCore";
+import Core from "../CompDynamCore";
 import Controls from "./Controls";
-import GraphWrapper from "./GraphWrapper";
 import { useSearchParams } from "next/navigation";
+import preventDefault from "@/src/preventDefault";
+import sleep from "@/src/Sleep";
 
 function _MainWrapper() {
   const searchParams = useSearchParams();
-  const [core, setCore] = useState(new CDCore());
-  useEffect(() => {(async()=>{
+  const [core, setCore] = useState(new Core());
+  const [isFull, setIsFull] = useState(false);
+  useEffect(() => {
     if (searchParams) {
       let v = searchParams.get('nessy');
       if (v !== null) {
         core.nessyMode = true;
       }
     }
-    await core.init();
-    core.beginLoop();
-    
+
+    if (!core.rawShaderData.frag) {
+      core.init();
+    }
+
+    const onResize = async () => {
+      await sleep(100);
+      document.body.style.setProperty('--full-height',`${document.documentElement.clientHeight}px`);
+      await sleep(100);
+      const wr = document.querySelector('#main-wrapper') as HTMLElement;
+      core.quad.width = wr.clientWidth * 4;
+      core.quad.height = wr.clientHeight * 4;
+      console.log(wr.clientHeight);
+      core.app.renderer.resize(wr.clientWidth, wr.clientHeight);
+      // // Resizeイベントの強制発火
+      // const resizeEvent = new Event('resize');
+      // wr.dispatchEvent(resizeEvent);
+    }
+
     const onKeyDown = (e:KeyboardEvent) => {
       // フルスクリーン切り替え
-      if(e.key === 'f' && !e.shiftKey && !e.metaKey){
+      const tagName = (e.target as HTMLElement).tagName;
+      if(e.key === 'f' && !e.shiftKey && !e.metaKey && tagName !== 'INPUT'){
+        const wr = core.app.canvas.parentElement!;
         if (!document.fullscreenElement) {
-          core.glmgr.cvs!.requestFullscreen();
+          setIsFull(true);
+          wr.requestFullscreen();
+          onResize();
         }
         else {
+          setIsFull(false);
           document.exitFullscreen();
+          onResize();
         }
       }
       if(0 && e.key === 'v' && !e.shiftKey && !e.metaKey){
         // 仮
-        const ipt = document.querySelector('#func-input') as HTMLSpanElement;
-
-        const stream = core.glmgr.cvs!.captureStream();
+        const ipt = document.querySelector('#func-input') as HTMLInputElement;
+        console.log(ipt);
+  
+        const stream = core.app.canvas.captureStream();
         const recorder = new MediaRecorder(stream, {
           mimeType: 'video/mp4',
           videoBitsPerSecond: 2500000,
@@ -42,7 +66,7 @@ function _MainWrapper() {
         anchor.innerText = 'download';
         anchor.style.display = 'none';
         ipt.parentNode?.appendChild(anchor);
-
+  
         recorder.ondataavailable = (e) => {
           const videoBlob = new Blob([e.data], {type: e.data.type});
           const blobUrl = window.URL.createObjectURL(videoBlob);
@@ -56,169 +80,51 @@ function _MainWrapper() {
         // const C2 = '-0.2-0.7i';
         // const C2 = '-0.6-0.42i';
         const C2 = '-0.8';
-        ipt.innerHTML = `z^2+mix(${C1},${C2},${0.00})`;
+        ipt.value = `z^2+mix(c,-z,0.00)`;
         ipt.click();
         recorder.start();
-
+  
         let t = 0;
         const itv = setInterval(()=>{
           const T = t*t*(3-2*t);
-
-          ipt.innerHTML = `z^2+mix(${C1},${C2},${T})`;
+  
+          ipt.value = `z^2+mix(c,-z,${T})`;
           ipt.click();
           // ipt.innerHTML = `z^2+mix(c,-0.2-0.7i,${T.toFixed(2)})`;
-          ipt.innerHTML = `z^2+mix(${C1},${C2},${T.toFixed(2)})`;
-
+          ipt.value = `z^2+mix(c,-z,${T.toFixed(2)})`;
+  
           if (1 < t) {
             clearInterval(itv);
             recorder.stop();
           }
-
+  
           t+=0.005;
         }, 100);
       }
     }
-
-    const onWheel = (e:WheelEvent) => {
-      e.preventDefault();
-      // console.log(e);
-      const rect = core.glmgr.cvs!.getBoundingClientRect();
-      // [0,1]正規化した座標
-      const m = Math.min(rect.width, rect.height);
-      const c = new Vec2(
-        (2 * (e.clientX - rect.left) / rect.width - 1) * rect.width / m,
-        (2 * (e.clientY - rect.top) / rect.height - 1) * rect.height / m
-      );
-      const dy = e.deltaY;
-      core.graph.zoom(c, dy);
-
-      core.glmgr.updateGraphUniform();
-
-      core.glmgr.render();
-    }
-
-    const onMouseDown = (e: MouseEvent) => {
-      e.preventDefault();
-      const rect = core.glmgr.cvs!.getBoundingClientRect();
-      const m = Math.min(rect.width, rect.height);
-      core.mMgr.pos = new Vec2(
-        (2 * (e.clientX - rect.left) / rect.width - 1) * rect.width / m,
-        (2 * (e.clientY - rect.top) / rect.height - 1) * rect.height / m
-      );
-      core.mMgr.isDown = true;
-    }
-
-    const onMouseMove = (e: MouseEvent) => {
-      e.preventDefault();
-      const rect = core.glmgr.cvs!.getBoundingClientRect();
-      const m = Math.min(rect.width, rect.height);
-      const newPos = new Vec2(
-        (2 * (e.clientX - rect.left) / rect.width - 1) * rect.width / m,
-        (2 * (e.clientY - rect.top) / rect.height - 1) * rect.height / m
-      );
-      if(core.mMgr.isDown){
-        core.graph.translate(newPos.subed(core.mMgr.pos).negY());
-        core.mMgr.pos = newPos;
-        core.glmgr.updateGraphUniform();
-        core.glmgr.render();
-      }
-    }
-
-    const onMouseUp = (e: MouseEvent) => {
-      e.preventDefault();
-      core.mMgr.isDown = false;
-    }
-
-    const onTouchStart = (e: TouchEvent) => {
-      e.preventDefault();
-      const rect = core.glmgr.cvs!.getBoundingClientRect();
-      const m = Math.min(rect.width, rect.height);
-      const s = e.touches;
-      for(let i=0; i<s.length; i++){
-        core.tMgr.touches[e.touches[i].identifier] =
-          new Vec2(
-            (2 * (s[i].clientX - rect.left) / rect.width - 1) * rect.width / m,
-            (2 * (s[i].clientY - rect.top) / rect.height - 1) * rect.height / m
-          );
-      }
-    }
-
-    const onTouchMove = (e: TouchEvent) => {
-      e.preventDefault();
-      const rect = core.glmgr.cvs!.getBoundingClientRect();
-      const m = Math.min(rect.width, rect.height);
-      const c = e.changedTouches;
-      switch(c.length) {
-        case 0:
-          return;
-        case 1:
-          let newPos = new Vec2(
-            (2 * (c[0].clientX - rect.left) / rect.width - 1) * rect.width / m,
-            (2 * (c[0].clientY - rect.top) / rect.height - 1) * rect.height / m
-          );
-          core.graph.translate(newPos.subed(core.tMgr.touches[c[0].identifier]).negY());
-          core.tMgr.touches[c[0].identifier] = newPos;
-          core.glmgr.updateGraphUniform();
-          core.glmgr.render();
-          break;
-        default:
-          let prevPos0 = Vec2.copy(core.tMgr.touches[c[0].identifier]);
-          let newPos0 = new Vec2(
-            (2 * (c[0].clientX - rect.left) / rect.width - 1) * rect.width / m,
-            (2 * (c[0].clientY - rect.top) / rect.height - 1) * rect.height / m
-          );
-          core.tMgr.touches[c[0].identifier] = newPos0;
-
-          let prevPos1 = Vec2.copy(core.tMgr.touches[c[1].identifier]);
-          let newPos1 = new Vec2(
-            (2 * (c[1].clientX - rect.left) / rect.width - 1) * rect.width / m,
-            (2 * (c[1].clientY - rect.top) / rect.height - 1) * rect.height / m
-          );
-          core.tMgr.touches[c[1].identifier] = newPos1;
-
-          // alert(newPos1.subed(newPos0).length() / prevPos1.subed(prevPos0).length());
-          core.graph.zoom(prevPos0.added(prevPos1).muled(0.5), Math.log(prevPos1.subed(prevPos0).length() / newPos1.subed(newPos0).length())*500);
-          core.glmgr.updateGraphUniform();
-          core.glmgr.render();
-          break;
-      }
-    }
-
-    // const onTouchEnd = (e: TouchEvent) => {
-    //   e.preventDefault();
-    // }
-
-    const onResize = () => {
-      core.resizeCanvas();
-    }
-
+  
+    window.screen.orientation
     document.addEventListener('keydown', onKeyDown);
-    core.glmgr.cvs!.addEventListener('wheel', onWheel, {passive: false});
-    document.addEventListener('mousedown', onMouseDown, {passive: false});
-    document.addEventListener('mousemove', onMouseMove, {passive: false});
-    document.addEventListener('mouseup', onMouseUp, {passive: false});
-    document.addEventListener('touchstart', onTouchStart, {passive: false});
-    document.addEventListener('touchmove', onTouchMove, {passive: false});
-    // document.addEventListener('touchend', onTouchEnd, {passive: false});
-    window.addEventListener('resize', onResize);
+    document.body.addEventListener('resize', onResize);
+    screen.orientation?.addEventListener('change', onResize);
+    document.body.firstChild!.addEventListener('fullscreenchange', onResize);
+    document.addEventListener('wheel', preventDefault, { passive: false });
+    document.addEventListener('contextmenu', preventDefault, { passive: false });
+    // document.addEventListener('touchstart', preventDefault, { passive: false });
+    
     return () => {
-      core.endLoop();
-      console.log('e');
       document.removeEventListener('keydown', onKeyDown);
-      core.glmgr.cvs!.removeEventListener('wheel', onWheel);
-      document.removeEventListener('mousedown', onMouseDown);
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-      document.removeEventListener('touchstart', onTouchStart);
-      document.removeEventListener('touchmove', onTouchMove);
-      // document.removeEventListener('touchend', onTouchEnd);
-      window.removeEventListener('resize', onResize);
+      document.body.removeEventListener('resize', onResize);
+      screen.orientation?.removeEventListener('change', onResize);
+      document.body.firstChild!.removeEventListener('fullscreenchange', onResize);
+      document.removeEventListener('wheel', preventDefault);
+      document.removeEventListener('contextmenu', preventDefault);
+      // document.removeEventListener('touchstart', preventDefault);
     }
-  })();}, [core, searchParams]);
+  }, [core, searchParams]);
   
   return (
-    <main id='main-wrapper'>
-      <GraphWrapper/>
+    <main id='main-wrapper' className={isFull ? 'full' : ''}>
       <Controls core={core}/>
     </main>
   );

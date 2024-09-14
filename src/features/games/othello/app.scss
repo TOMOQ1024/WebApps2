@@ -1,0 +1,25 @@
+#main-wrapper {
+  text-align: center;
+  height: calc(100vh - var(--header-height));
+  position: relative;
+  image-rendering: pixelated;
+  #canvas-wrapper {
+    height: 100%;
+    overflow: hidden;
+    #cvs {
+      width: 100%;
+    }
+  }
+}
+
+.input {
+  background-color: #88668844;
+  border: #072 solid 1px;
+  display: inline-block;
+  border-radius: 5px;
+  margin: 5px;
+  &:focus {
+    outline: 0;
+    border: #2f8 solid 1px;
+  }
+}

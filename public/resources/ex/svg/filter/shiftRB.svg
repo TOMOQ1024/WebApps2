@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="300" height="300">
+  <defs>
+    <filter id="filter">
+      <!-- 1. GとB成分のみを抽出する -->
+      <feComponentTransfer in="SourceGraphic" result="red">
+        <feFuncR type="identity" />
+        <feFuncG type="table" tableValues="0 0" />
+        <feFuncB type="table" tableValues="0 0" />
+        <feFuncA type="identity" />
+      </feComponentTransfer>
+      <feComponentTransfer in="SourceGraphic" result="green">
+        <feFuncR type="table" tableValues="0 0" />
+        <feFuncG type="identity" />
+        <feFuncB type="table" tableValues="0 0" />
+        <feFuncA type="identity" />
+      </feComponentTransfer>
+      <feComponentTransfer in="SourceGraphic" result="blue">
+        <feFuncR type="table" tableValues="0 0" />
+        <feFuncG type="table" tableValues="0 0" />
+        <feFuncB type="identity" />
+        <feFuncA type="identity" />
+      </feComponentTransfer>
+
+      <!-- 2. GとB成分をそれぞれ右にずらす -->
+      <feOffset in="red" dx="-5" dy="0" result="redOffset" />
+      <feOffset in="blue" dx="5" dy="0" result="blueOffset" />
+
+      <!-- 3. R成分とずらしたGとB成分を合成する -->
+      <feBlend in="redOffset" in2="blueOffset" mode="lighten" result="rb" />
+      <feBlend in="green" in2="rb" mode="lighten" />
+    </filter>
+  </defs>
+
+  <g filter="url(#filter)">
+    <rect x="0" y="0" width="300" height="300" fill="white" />
+    <text x="150" y="150" alignment-baseline="central" text-anchor="middle" font-size="large" font-weight="bold">Sample Text</text>
+  </g>
+</svg>

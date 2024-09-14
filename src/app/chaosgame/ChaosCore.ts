@@ -1,4 +1,4 @@
-import GraphMgr from "@/src/GraphMgr";
+import GraphMgr from "@/src/GraphMgrOld";
 import MouseMgr from "@/src/MouseMgr";
 import TouchMgr from "@/src/TouchMgr";
 import Vec3 from "@/src/Vec3";
