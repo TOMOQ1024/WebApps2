@@ -2,7 +2,9 @@ import GithubProvider from "next-auth/providers/github";
 import Credentials from "next-auth/providers/credentials";
 import { createHash } from "crypto";
 import axios, { AxiosResponse } from "axios";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { JWT } from "next-auth/jwt";
+import { headers } from "next/headers";
 
 // https://zenn.dev/okumura_daiki/articles/c9e0065716d862
 

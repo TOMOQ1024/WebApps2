@@ -11,6 +11,7 @@ interface AppData {
     "desc": string;
     "since": string;
     "lastUpdate": string;
+    "path"?: string,
   }
 };
 
@@ -20,6 +21,7 @@ interface AppList {
   pt: boolean,
   ld: number,
   score: number,
+  path?: string,
 }
 
 export default function MainWrapper () {
@@ -46,6 +48,7 @@ export default function MainWrapper () {
         || 0<=_name.indexOf(_pathname),
         ld: Levenshtein(pathname, _name),
         score: 0,
+        path: val.path,
       });
     }).map(v=>{
       return ({
@@ -65,7 +68,7 @@ export default function MainWrapper () {
           sortedApps.map((a,i) => {
             return (
               <div key={i}>
-                <Link href={a.name.replace(/\s/g,'').toLowerCase()}>{a.name}</Link>
+                <Link href={a.path ?? `/${a.name.replace(/\s/g,'').toLowerCase()}`}>{a.name}</Link>
               </div>
             );
           })
