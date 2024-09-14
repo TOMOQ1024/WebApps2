@@ -19,7 +19,7 @@ export default class CCore {
   ctrlAllowed = false;
   matUpdated = true;
   update = Update;
-  interval: NodeJS.Timer|null = null;
+  interval: NodeJS.Timeout|null = null;
   cbmgr = new CubeMgr(this);
   vMatrix: Mat4 = Mat4.Identity;
   pMatrix: Mat4 = Mat4.Identity;

@@ -1,12 +1,22 @@
+import { NextAuthProvider } from '@/components/NextAuthProvider';
 import './globals.scss'
 import Header from '@/components/header'
+import { authOptions } from '@/lib/authOptions';
 import { Analytics } from '@vercel/analytics/react';
+import { getServerSession } from 'next-auth/next';
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
+import { FullHeightProvider } from '@/components/FullHeightProvider';
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const session = await getServerSession(authOptions)
+  
   return (
     <html lang="en">
       {/*
@@ -15,9 +25,12 @@ export default function RootLayout({
       */}
       <head />
       <body>
-        <Header/>
-        {children}
-        <Analytics />
+        <FullHeightProvider />
+        <NextAuthProvider session={session} >
+          <Header/>
+          {children}
+          <Analytics />
+        </NextAuthProvider>
       </body>
     </html>
   )

@@ -2,6 +2,10 @@ import Image from 'next/image'
 import { Inter } from "next/font/google"
 import styles from './page.module.css'
 
+export const metadata = {
+  title: 'copy of Next.js template'
+};
+
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
