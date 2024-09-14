@@ -1,4 +1,4 @@
-import GraphMgr from "@/src/GraphMgr";
+import GraphMgr from "@/src/GraphMgrOld";
 import MouseMgr from "@/src/MouseMgr";
 import TouchMgr from "@/src/TouchMgr";
 import Vec3 from "@/src/Vec3";
@@ -12,7 +12,7 @@ export default class CCore {
   ctx: CanvasRenderingContext2D|null = null;
   seeds: Seed = sNFlake(5);
   p = new Vec3(0, 0, 1);
-  interval: NodeJS.Timer|null = null;
+  interval: NodeJS.Timeout|null = null;
   graph = new GraphMgr();
   tmgr = new TouchMgr();
   mmgr = new MouseMgr();

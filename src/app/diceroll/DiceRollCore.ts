@@ -12,7 +12,7 @@ export default class DRCore {
   cvs: HTMLCanvasElement;
   planeBody = new CANNON.Body();
   planeMesh = new THREE.Mesh();
-  interval: NodeJS.Timer|null = null;
+  interval: NodeJS.Timeout|null = null;
   textureLoader = new THREE.TextureLoader();
   diceMgr = new DiceMgr(this);
 

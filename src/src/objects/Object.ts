@@ -7,4 +7,6 @@ export default class Obj {
   normal: number[] = [];
   texCoord: number[] = [];
   mdlMat: Mat4 = Mat4.Identity;
+
+  constructor (public dim: number = 3) { }
 }

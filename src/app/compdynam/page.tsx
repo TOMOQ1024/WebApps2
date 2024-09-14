@@ -1,11 +1,17 @@
+import dynamic from 'next/dynamic';
 import './app.scss';
-import MainWrapper from './components/MainWrapper';
 
 export const metadata = {
   title: 'CompDynam',
   description: 'WebGLを使ったリアルタイムレンダリングで、複素力学系のアートを楽しもう！'
 }
 
+const MainWrapperNoSSR = dynamic(() => import('./components/MainWrapper'), {
+  ssr: false
+});
+
 export default function Main(){
-  return <MainWrapper/>;
+  return (
+    <MainWrapperNoSSR/>
+  )
 }

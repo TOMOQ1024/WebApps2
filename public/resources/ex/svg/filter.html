@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SVG Filter Animation</title>
+  <style>
+    .filtered {
+      filter: url(#noiseEffect);
+      width: 300px;
+      height: 300px;
+      background-image: url('/resources/compdynam/images/earth.jpg');
+      background-size: cover;
+    }
+  </style>
+</head>
+
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="svgNoise"
+    style="display:none;">
+    <defs>
+      <filter id="noiseEffect">
+        <feTurbulence id="noise" type="fractalNoise" baseFrequency="0.02" numOctaves="1" seed="1" stitchTiles="stitch"
+          result="particle" />
+        <feDisplacementMap id="displace" scale="0" in="SourceGraphic" in2="particle" xChannelSelector="R"
+          yChannelSelector="G">
+          <!-- <animate attributeName="scale" from="0" to="100" dur="3s" fill="freeze" /> -->
+        </feDisplacementMap>
+      </filter>
+    </defs>
+  </svg>
+
+  <div class="filtered"></div>
+
+  
+</body>
+
+</html>

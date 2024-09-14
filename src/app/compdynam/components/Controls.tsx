@@ -1,61 +1,53 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGear, faPencil, faLightbulb, faSliders } from "@fortawesome/free-solid-svg-icons";
-import { useEffect, useState } from "react";
-import ControlsContent from "./ControlsContent";
+import { ChangeEvent, SyntheticEvent, useEffect, useState } from "react";
 import { ControlsTab } from "../Definitions";
-import CDCore from "../CompDynamCore";
+import Core from "../CompDynamCore";
+import { Box, Button, IconButton, Stack, Tab } from "@mui/material";
+import { faGear, faPencil, faLightbulb, faSliders } from "@fortawesome/free-solid-svg-icons";
+import FASvgIcon from "@/components/FASvgIcon";
+import FuncEditor from "./FuncEditor";
+import PresetSelector from "./PresetSelector";
+import Settings from "./Settings";
+import { TabContext, TabList, TabPanel } from "@mui/lab";
 
 export default function Controls({core}: {
-  core: CDCore;
+  core: Core;
 }) {
-  const [configOpened, setControlsOpened] = useState(true);
-  const [configTab, setControlsTab] = useState<ControlsTab>(ControlsTab.EXPRESSION);
+  const [controlsOpened, setControlsOpened] = useState(true);
+  const [controlsTab, setControlsTab] = useState<ControlsTab>(ControlsTab.EXPRESSION);
+  const [error, setError] = useState('');
 
   useEffect(()=>{
-    const cs = document.getElementById('controls');
-    if(!cs){
-      console.error('failed to get controls element');
-      return;
-    }
+    core._setError = setError;
+  }, [core]);
 
-    const antiPropagation = (e: Event) => {
-      e.stopPropagation();
-    }
-
-    cs.addEventListener('keydown', antiPropagation);
-    cs.addEventListener('mousedown', antiPropagation);
-    cs.addEventListener('mousemove', antiPropagation);
-    cs.addEventListener('mouseup', antiPropagation);
-    cs.addEventListener('touchstart', antiPropagation);
-    cs.addEventListener('touchmove', antiPropagation);
-    cs.addEventListener('touchend', antiPropagation);
-
-    return () => {
-      cs.removeEventListener('keydown', antiPropagation);
-      cs.removeEventListener('mousedown', antiPropagation);
-      cs.removeEventListener('mousemove', antiPropagation);
-      cs.removeEventListener('mouseup', antiPropagation);
-      cs.removeEventListener('touchstart', antiPropagation);
-      cs.removeEventListener('touchmove', antiPropagation);
-      cs.removeEventListener('touchend', antiPropagation);
-    }
-  });
+  const handleChange = (e: SyntheticEvent, n: string) => {
+    setControlsTab(+n);
+  }
 
   return (
-    <div id='controls' className={`${configOpened ? 'max' : 'min'} valid`}>
-      <button id='button-settings' className={configTab===ControlsTab.SETTINGS ? 'selected' : ''} aria-label='詳細設定を開く' onClick={_=>setControlsTab(ControlsTab.SETTINGS)}>
-        <FontAwesomeIcon icon={faSliders} size='2x' color={configTab===ControlsTab.SETTINGS ? '#ddd' : '#666'}/>
-      </button>
-      <button id='button-presets' className={configTab===ControlsTab.PRESETS ? 'selected' : ''} aria-label='プリセット選択を開く' onClick={_=>setControlsTab(ControlsTab.PRESETS)}>
-        <FontAwesomeIcon icon={faLightbulb} size='2x' color={configTab===ControlsTab.PRESETS ? '#ddd' : '#666'}/>
-      </button>
-      <button id='button-expression' className={configTab===ControlsTab.EXPRESSION ? 'selected' : ''} aria-label='数式編集を開く' onClick={_=>setControlsTab(ControlsTab.EXPRESSION)}>
-        <FontAwesomeIcon icon={faPencil} size='2x' color={configTab===ControlsTab.EXPRESSION ? '#ddd' : '#666'}/>
-      </button>
-      <button id='button-controls' aria-label='操作メニューの表示を切り替える' onClick={_=>setControlsOpened(c=>!c)}>
-        <FontAwesomeIcon icon={faGear} size='2x' color="#ddd"/>
-      </button>
-      <ControlsContent selected={configTab} core={core}/>
-    </div>
+    <Stack direction='row' className={`controls ${controlsOpened ? 'max' : 'min'} ${error ? 'invalid' : 'valid'}`}>
+      <TabContext value={`${controlsTab}`}>
+        <TabList orientation='vertical' TabIndicatorProps={{
+          style: {
+            left: 4,
+            width: 4,
+            borderRadius: 2,
+          }
+        }} onChange={handleChange} sx={{width:50}}>
+          <Tab sx={{ minWidth:0 }} icon={<FASvgIcon icon={faPencil}/>} value='0' />
+          <Tab sx={{ minWidth:0 }} icon={<FASvgIcon icon={faLightbulb}/>} value='1' />
+          <Tab sx={{ minWidth:0 }} icon={<FASvgIcon icon={faSliders}/>} value='2' />
+        </TabList>
+        {[0,1,2].map(i=>(
+          <TabPanel value={`${i}`} key={i} sx={{padding: 1}}>
+            {[
+              <FuncEditor key={0} core={core}/>,
+              <PresetSelector key={1} core={core}/>,
+              <Settings key={2} core={core}/>,
+            ][i]}
+          </TabPanel>
+        ))}
+      </TabContext>
+    </Stack>
   );
 }

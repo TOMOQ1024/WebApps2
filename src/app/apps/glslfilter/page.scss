@@ -1,0 +1,20 @@
+main {
+  height: var(--main-full-height);
+  overflow: hidden;
+  .split {
+    display: flex;
+    height: 100%;
+    .gutter-horizontal {
+      cursor: col-resize;
+    }
+    &>*:not(.gutter-horizontal) {
+      padding: 2px;
+    }
+    .glsl-editor {
+      height: 100%;
+    }
+    .canvas-wrapper {
+      height: 100%;
+    }
+  }
+}
