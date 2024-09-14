@@ -86,7 +86,7 @@ void main ()
       });
       wr.appendChild(this.app.canvas);
   
-      const texture = await Assets.load('/icon.png') as Texture;
+      const texture = await Assets.load('/ogame.png') as Texture;
       texture.source.scaleMode = 'nearest';
 
       let sp: Sprite;
