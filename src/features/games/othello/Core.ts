@@ -8,8 +8,13 @@ import {
   DirectionalLight,
   MeshLambertMaterial,
   PlaneGeometry,
+  Vector2,
+  GridHelper,
+  Raycaster,
 } from "three";
 import DiskMgr from "./disks/DiskMgr";
+import { OrbitControls } from "three/examples/jsm/Addons";
+import { Disk } from "./disks/Disk";
 
 export default class Core {
   renderer: WebGLRenderer;
@@ -20,12 +25,16 @@ export default class Core {
   interval: NodeJS.Timer | null = null;
   textureLoader = new TextureLoader();
   diskMgr: DiskMgr;
+  mousePos = new Vector2();
+  raycaster = new Raycaster();
 
   constructor() {
     this.cvs = document.getElementById("cvs") as HTMLCanvasElement;
 
     this.scene = new Scene();
     this.diskMgr = new DiskMgr(this);
+
+    this.scene.add(new GridHelper(16, 8));
 
     // this.camera = new THREE.PerspectiveCamera(
     //   75,
@@ -55,6 +64,8 @@ export default class Core {
     this.renderer.setSize(this.cvs.width, this.cvs.height);
     this.renderer.setPixelRatio(devicePixelRatio);
 
+    const control = new OrbitControls(this.camera, this.renderer.domElement);
+
     const ambientLight = new AmbientLight();
     this.scene.add(ambientLight);
     const directionalLight = new DirectionalLight();
@@ -63,11 +74,11 @@ export default class Core {
     this.scene.add(directionalLight);
 
     this.planeMesh = new Mesh(
-      new PlaneGeometry(30, 30),
+      new PlaneGeometry(17, 17),
       new MeshLambertMaterial({ color: "#004400" })
     );
     this.planeMesh.rotateX(-Math.PI / 2);
-    this.planeMesh.translateZ(-10);
+    this.planeMesh.translateZ(-Disk.thickness);
     this.scene.add(this.planeMesh);
   }
 

@@ -15,11 +15,6 @@ export default function OthelloPage() {
 
     core.beginLoop();
 
-    const onMouseDown = () => {
-      console.clear();
-      // core.diskMgr.roll(1, 4);
-    };
-
     const onResize = () => {
       const wrapper = cvs.parentElement!;
       const rect = wrapper.getBoundingClientRect();
@@ -33,17 +28,15 @@ export default function OthelloPage() {
 
     onResize();
 
-    cvs.addEventListener("mousedown", onMouseDown);
     window.addEventListener("resize", onResize);
     return () => {
-      cvs.removeEventListener("mousedown", onMouseDown);
       window.removeEventListener("resize", onResize);
     };
   }, [core]);
 
   return (
     <main id="main-wrapper">
-      <CanvasWrapper />
+      <CanvasWrapper core={core} />
     </main>
   );
 }

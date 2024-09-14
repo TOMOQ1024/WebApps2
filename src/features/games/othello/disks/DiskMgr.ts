@@ -1,9 +1,11 @@
+import { Group } from "three";
 import Core from "../Core";
 import { Disk } from "./Disk";
 
 export default class DiskMgr {
   array: number[][] = [];
   disks: Disk[][] = [];
+  object = new Group();
 
   constructor(public parent: Core) {
     for (let y = 0; y < 8; y++) {
@@ -14,6 +16,7 @@ export default class DiskMgr {
         this.disks[y].push(new Disk(this, x, y));
       }
     }
+    this.parent.scene.add(this.object);
   }
 
   add(x: number, y: number) {
