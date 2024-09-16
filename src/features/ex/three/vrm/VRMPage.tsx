@@ -1,12 +1,13 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
-import Core from "../Core";
+import Core from "./Core";
 import { createVRMAnimationClip } from "@pixiv/three-vrm-animation";
 import { AnimationMixer } from "three";
+import "./app.scss";
 
-export default function MainWrapper() {
-  const [core, setCore] = useState<Core|null>(null);
+export default function VRMPage() {
+  const [core, setCore] = useState<Core | null>(null);
 
   useEffect(() => {
     let newCore: Core;
@@ -26,25 +27,28 @@ export default function MainWrapper() {
           if (core.gltf) {
             core.currentMixer = new AnimationMixer(core.gltf.scene);
             console.log(`vrm: ${core.gltf.userData.vrm}`);
-            const clip = createVRMAnimationClip(core.currentAnimation, core.gltf.userData.vrm);
+            const clip = createVRMAnimationClip(
+              core.currentAnimation,
+              core.gltf.userData.vrm
+            );
             console.log(`play: ${e.key}`);
             core.currentMixer.clipAction(clip).play();
           }
         }
       };
 
-      window.addEventListener('keydown', handleKeyDown);
-      
+      window.addEventListener("keydown", handleKeyDown);
+
       return () => {
-        window.removeEventListener('keydown', handleKeyDown);
+        window.removeEventListener("keydown", handleKeyDown);
         newCore.endLoop();
-      }
+      };
     }
   }, [core]);
 
   return (
-    <main className='main-wrapper'>
-      <canvas id='cvs' width={800} height={800} />
+    <main className="main-wrapper">
+      <canvas id="cvs" width={800} height={800} />
     </main>
   );
 }
