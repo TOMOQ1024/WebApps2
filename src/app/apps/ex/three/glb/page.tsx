@@ -1,11 +1,10 @@
-import MainWrapper from './components/MainWrapper';
-import './app.scss';
+import GLBPage from "@/features/ex/three/glb/GLBPage";
 
 export const metadata = {
-  title: 'three-vrm',
-  description: 'three-vrmの導入実験'
-}
+  title: "GLB",
+  description: "Three.jsを用いたGLB表示",
+};
 
-export default function Main(){
-  return <MainWrapper/>;
+export default function Main() {
+  return <GLBPage />;
 }
