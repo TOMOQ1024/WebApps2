@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import Split from "react-split";
 import GLSLEditor from "./GLSLEditor";
@@ -7,7 +7,7 @@ import Core from "../Core";
 import InteractiveViewport from "@/components/InteractiveViewport";
 
 export default function MainWrapper() {
-  const [core, setCore] = useState<Core|null>(null);
+  const [core, setCore] = useState<Core | null>(null);
 
   useEffect(() => {
     if (!core) {
@@ -18,7 +18,7 @@ export default function MainWrapper() {
   return (
     <main>
       <Split
-        className='split'
+        className="split"
         sizes={[50, 50]}
         minSize={100}
         expandToMin={false}
@@ -28,16 +28,15 @@ export default function MainWrapper() {
         dragInterval={1}
         direction="horizontal"
         cursor="col-resize"
-        onDrag={()=>{
-          const wr = document.querySelector('.canvas-wrapper') as HTMLElement;
+        onDrag={() => {
+          const wr = document.querySelector(".canvas-wrapper") as HTMLElement;
         }}
       >
         <GLSLEditor core={core} />
-        <InteractiveViewport
-          className="canvas-wrapper"
-        >
+        <InteractiveViewport>
+          <div className="canvas-wrapper"></div>
         </InteractiveViewport>
       </Split>
     </main>
-  )
+  );
 }

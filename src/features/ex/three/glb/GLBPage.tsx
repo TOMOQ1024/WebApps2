@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Core from "../Core";
-import { createVRMAnimationClip } from "@pixiv/three-vrm-animation";
-import { AnimationMixer } from "three";
+import Core from "./Core";
+import "./app.scss";
 
-export default function MainWrapper() {
+export default function GLBPage() {
   const [core, setCore] = useState<Core | null>(null);
 
   useEffect(() => {
