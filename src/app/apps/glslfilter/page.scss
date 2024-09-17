@@ -7,7 +7,7 @@ main {
     .gutter-horizontal {
       cursor: col-resize;
     }
-    &>*:not(.gutter-horizontal) {
+    & > *:not(.gutter-horizontal) {
       padding: 2px;
     }
     .glsl-editor {
@@ -15,6 +15,9 @@ main {
     }
     .canvas-wrapper {
       height: 100%;
+      canvas {
+        max-width: 100%;
+      }
     }
   }
 }
