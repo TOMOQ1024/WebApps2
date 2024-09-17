@@ -1,8 +1,15 @@
-import { Application, Assets, Filter, GlProgram, Point, Sprite, Texture } from "pixi.js";
+import {
+  Application,
+  Assets,
+  Filter,
+  GlProgram,
+  Point,
+  Sprite,
+  Texture,
+} from "pixi.js";
 
 export default class Core {
-  vert: string =
-`in vec2 aPosition;
+  vert: string = `in vec2 aPosition;
 out vec2 vPosition;
 out vec2 vTexCoord;
 
@@ -30,9 +37,8 @@ void main(void)
   vPosition = aPosition;
   gl_Position = filterVertexPosition();
   vTexCoord = filterTextureCoord();
-}`
-  _frag: string = 
-`in vec2 vTexCoord;
+}`;
+  _frag: string = `in vec2 vTexCoord;
 in vec2 vPosition;
 out vec4 finalColor;
 
@@ -56,60 +62,62 @@ void main ()
 	finalColor = flgX && flgY ? col0 : col1;
 }
 `;
-  get frag () {
+  get frag() {
     return this._frag;
   }
-  set frag (s: string) {
+  set frag(s: string) {
     this._frag = s;
     this.updateShader();
   }
   app = new Application();
   filter = new Filter({
     glProgram: GlProgram.from({
-        fragment: this.frag,
-        vertex: this.vert,
+      fragment: this.frag,
+      vertex: this.vert,
     }),
     resources: {
-        uniforms: {
-            uTime: { value: 0.0, type: 'f32' },
-            uMouse: { value: new Point(), type: 'vec2<f32>' },
-            uResolution: { value: new Point(), type: 'vec2<f32>' },
-        },
+      uniforms: {
+        uTime: { value: 0.0, type: "f32" },
+        uMouse: { value: new Point(), type: "vec2<f32>" },
+        uResolution: { value: new Point(), type: "vec2<f32>" },
+      },
     },
-});
+  });
 
-  constructor () {
+  constructor() {
     (async () => {
-      const wr = document.querySelector('.canvas-wrapper') as HTMLElement;
+      const wr = document.querySelector(".canvas-wrapper") as HTMLElement;
       await this.app.init({
-        preference: 'webgl',
+        preference: "webgl",
       });
       wr.appendChild(this.app.canvas);
-  
-      const texture = await Assets.load('/ogame.png') as Texture;
-      texture.source.scaleMode = 'nearest';
+
+      const texture = (await Assets.load(
+        "/resources/compdynam/images/earth.jpg"
+      )) as Texture;
+      // const texture = (await Assets.load("/ogame.png")) as Texture;
+      texture.source.scaleMode = "nearest";
 
       let sp: Sprite;
       sp = Sprite.from(texture);
       sp.interactive = true;
-      sp.cursor = 'pointer';
+      sp.cursor = "pointer";
       sp.filters = [this.filter];
       this.app.stage.addChild(sp);
       this.resize(sp.width, sp.height);
 
-      this.app.ticker.add((tck) =>
-      {
-        this.filter.resources.uniforms.uniforms.uTime = performance.now()/1000;
+      this.app.ticker.add((tck) => {
+        this.filter.resources.uniforms.uniforms.uTime =
+          performance.now() / 1000;
       });
 
-      sp.on('pointermove', e =>
-        {
-          this.filter.resources.uniforms.uniforms.uMouse.copyFrom(e.global);
-        });
+      sp.on("pointermove", (e) => {
+        this.filter.resources.uniforms.uniforms.uMouse.copyFrom(e.global);
+      });
     })();
   }
 
-  updateShader () {
+  updateShader() {
     this.filter.glProgram.destroy();
     this.filter.glProgram = GlProgram.from({
       fragment: this.frag,
@@ -117,7 +125,7 @@ void main ()
     });
   }
 
-  resize (w: number, h: number) {
+  resize(w: number, h: number) {
     this.app.renderer.resize(w, h);
     this.filter.resources.uniforms.uniforms.uResolution = new Point(w, h);
   }
