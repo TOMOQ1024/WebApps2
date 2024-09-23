@@ -1,10 +1,16 @@
+import { authOptions } from "@/lib/authOptions";
 import prisma from "@/lib/prisma";
+import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest, res: NextResponse) {
-  const { name, description, path, tags } = await req.json();
-
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      throw new Error("Unauthorized");
+    }
+    const { name, description, path, tags } = await req.json();
+
     // タグがすでに存在するか確認し、なければ作成
     const tagRecords = await Promise.all(
       tags.map(async (tag: string) => {
@@ -32,7 +38,6 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
     return NextResponse.json(newApp, { status: 200 });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Failed to add app" }, { status: 500 });
+    return NextResponse.json({ error }, { status: 500 });
   }
 }
