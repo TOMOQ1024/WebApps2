@@ -90,7 +90,14 @@ export default class Core {
       this.error = "parse failed";
     }
   }
-  renderingMode: RenderingMode = "hsv";
+  private _renderingMode: RenderingMode = "hsv";
+  get renderingMode() {
+    return this._renderingMode;
+  }
+  set renderingMode(r) {
+    this._renderingMode = r;
+    this.updateShader();
+  }
   nessyMode = false;
   pointers: {
     pointerId: number;
