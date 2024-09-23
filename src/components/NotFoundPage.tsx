@@ -23,7 +23,7 @@ interface AppList {
   path?: string;
 }
 
-export default function MainWrapper() {
+export default function NotFoundPage() {
   const pathname = usePathname() ?? "";
   const [apps, setApps] = useState<AppData[]>([]);
   const [sortedApps, setSortedApps] = useState<AppList[]>([]);

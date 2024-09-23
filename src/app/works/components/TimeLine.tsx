@@ -4,7 +4,7 @@ import React from "react";
 import Post from "./Post";
 import useSWR from "swr";
 import axios from "axios";
-import { IPost } from "../../../../types/IPost";
+import { IPost } from "@/types/IPost";
 
 async function fetcher() {
   return (await axios.get("/api/works/get")).data;

@@ -1,10 +1,11 @@
-"use client"
-import { useEffect, useState } from "react"
+"use client";
+import "../app.scss";
+import { useEffect, useState } from "react";
 import CanvasWrapper from "./CanvasWrapper";
 import DRCore from "../DiceRollCore";
 import Controls from "./Controls";
 
-export default function MainWrapper(){
+export default function MainWrapper() {
   const [core, setCore] = useState<DRCore>();
   useEffect(() => {
     if (!core) {
@@ -85,11 +86,10 @@ export default function MainWrapper(){
     // }
     // tick()
 
-
     const onMouseDown = () => {
       console.clear();
       core.diceMgr.roll(1, 4);
-    }
+    };
 
     const onResize = () => {
       const wrapper = cvs.parentElement!;
@@ -100,22 +100,22 @@ export default function MainWrapper(){
       core.camera.updateProjectionMatrix();
       core.renderer.setSize(rect.width, rect.height);
       core.renderer.setPixelRatio(devicePixelRatio);
-    }
+    };
 
     onResize();
 
-    cvs.addEventListener('mousedown', onMouseDown);
-    window.addEventListener('resize', onResize);
+    cvs.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("resize", onResize);
     return () => {
-      cvs.removeEventListener('mousedown', onMouseDown);
-      window.removeEventListener('resize', onResize);
-    }
+      cvs.removeEventListener("mousedown", onMouseDown);
+      window.removeEventListener("resize", onResize);
+    };
   }, [core]);
 
   return (
-    <main id='main-wrapper'>
-      <CanvasWrapper/>
-      <Controls core={core!}/>
+    <main id="main-wrapper">
+      <CanvasWrapper />
+      <Controls core={core!} />
     </main>
-  )
+  );
 }

@@ -1,13 +1,9 @@
-import MainWrapper from "./not-found/MainWrapper";
+import NotFoundPage from "@/components/NotFoundPage";
 
 export const metadata = {
-  title: 'tomoq apps'
+  title: "tomoq apps",
 };
 
 export default function Home() {
-  return (
-    <MainWrapper/>
-  );
+  return <NotFoundPage />;
 }
-
-

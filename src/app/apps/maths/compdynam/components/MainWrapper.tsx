@@ -239,7 +239,7 @@ export default function MainWrapper() {
         document.removeEventListener("contextmenu", preventDefault);
       };
     }
-  }, [core]);
+  }, [core, searchParams, session]);
 
   return (
     <main id="main-wrapper">

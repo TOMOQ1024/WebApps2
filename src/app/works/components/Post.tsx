@@ -2,7 +2,7 @@
 
 import CompDynamCanvas from "@/components/CompDynamCanvas";
 import React from "react";
-import { IPost } from "../../../../types/IPost";
+import { IPost } from "@/types/IPost";
 
 export default function Post({ data }: { data: IPost }) {
   return (
