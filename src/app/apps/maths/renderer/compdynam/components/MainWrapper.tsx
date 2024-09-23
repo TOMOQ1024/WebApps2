@@ -6,6 +6,7 @@ import Controls from "./Controls";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import preventDefault from "@/src/preventDefault";
 
 export default function MainWrapper() {
   const session = useSession();
@@ -223,6 +224,9 @@ export default function MainWrapper() {
         cvs.addEventListener("pointerup", HandlePointerUp, { passive: false });
         cvs.addEventListener("wheel", HandleWheel, { passive: false });
         window.addEventListener("resize", HandleResize);
+        document.addEventListener("contextmenu", preventDefault, {
+          passive: false,
+        });
       })();
       return () => {
         initCore.endLoop();
@@ -232,6 +236,7 @@ export default function MainWrapper() {
         cvs.removeEventListener("pointerup", HandlePointerUp);
         cvs.removeEventListener("wheel", HandleWheel);
         window.removeEventListener("resize", HandleResize);
+        document.removeEventListener("contextmenu", preventDefault);
       };
     }
   }, [core]);
