@@ -98,7 +98,14 @@ export default class Core {
     clientY: number;
   }[] = [];
   controls = true;
-  resolutionFactor = 1;
+  private _resolutionFactor = 1;
+  get resolutionFactor() {
+    return this._resolutionFactor;
+  }
+  set resolutionFactor(r) {
+    this._resolutionFactor = r;
+    this.resizeCanvas();
+  }
 
   constructor(
     public cvs = document.getElementById("cvs") as HTMLCanvasElement
@@ -112,7 +119,7 @@ export default class Core {
       antialias: true,
       alpha: true,
     });
-    this.renderer.setSize(this.cvs.width, this.cvs.height);
+    // this.renderer.setSize(this.cvs.width, this.cvs.height);
     this.renderer.setPixelRatio(devicePixelRatio);
 
     this.nessyTex = this.textureLoader.load(
@@ -162,11 +169,10 @@ export default class Core {
   resizeCanvas() {
     const wrapper = this.cvs.parentElement!;
     const rect = wrapper.getBoundingClientRect();
-    // this.cvs.width = rect.width * this.resolutionFactor;
-    // this.cvs.height = rect.height * this.resolutionFactor;
     this.renderer.setSize(
       rect.width * this.resolutionFactor,
-      rect.height * this.resolutionFactor
+      rect.height * this.resolutionFactor,
+      false
     );
   }
 

@@ -12,9 +12,10 @@
     color: rgb(var(--foreground-rgb-dark));
   }
   // background-color: #fbc;
-  // canvas {
-  // background-color: #cbf;
-  // }
+  canvas {
+    // background-color: #cbf;
+    width: 100%;
+  }
   .controls {
     // font-family: var(--font-mono);
     position: fixed;
