@@ -3,11 +3,7 @@ import { Parse } from "@/src/parser/Main";
 import axios from "axios";
 import { Dispatch, SetStateAction } from "react";
 import {
-  AxesHelper,
-  BoxGeometry,
-  DoubleSide,
   Mesh,
-  MeshBasicMaterial,
   Object3DEventMap,
   OrthographicCamera,
   PlaneGeometry,
@@ -17,7 +13,6 @@ import {
   TextureLoader,
   WebGLRenderer,
 } from "three";
-import { OrbitControls } from "three/examples/jsm/Addons";
 import { RenderingMode } from "./RenderingMode";
 
 export default class Core {
@@ -34,7 +29,6 @@ export default class Core {
     frag: "",
   };
   graph = new GraphMgr();
-  controls: OrbitControls;
   _error = "";
   _setError: Dispatch<SetStateAction<string>> = () => {};
   get error() {
@@ -98,6 +92,12 @@ export default class Core {
   }
   renderingMode: RenderingMode = RenderingMode.HSV;
   nessyMode = false;
+  pointers: {
+    pointerId: number;
+    clientX: number;
+    clientY: number;
+  }[] = [];
+  controls = true;
 
   constructor(
     public cvs = document.getElementById("cvs") as HTMLCanvasElement
@@ -114,9 +114,6 @@ export default class Core {
     this.renderer.setSize(this.cvs.width, this.cvs.height);
     this.renderer.setPixelRatio(devicePixelRatio);
 
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.update();
-
     this.nessyTex = this.textureLoader.load(
       "/resources/compdynam/images/earth.jpg"
     );
@@ -125,12 +122,6 @@ export default class Core {
     this.quad = new Mesh(new PlaneGeometry(2, 2), new RawShaderMaterial());
     this.scene.add(this.camera);
     this.scene.add(this.quad);
-    this.scene.add(
-      new Mesh(new BoxGeometry(0.1, 0.1, 0.1), new MeshBasicMaterial())
-    );
-
-    const axesHelper = new AxesHelper(5);
-    this.scene.add(axesHelper);
   }
 
   async init() {
@@ -145,12 +136,6 @@ export default class Core {
 
     this.quad.material.vertexShader = this.rawShaderData.vert;
     this.updateShader();
-    this.updateUniforms();
-
-    this.beginLoop();
-  }
-
-  updateUniforms() {
     this.quad.material.uniforms = {
       uResolution: {
         value: [this.cvs.width, this.cvs.height],
@@ -166,7 +151,24 @@ export default class Core {
         value: this.nessyTex,
       },
     };
-    this.quad.material.needsUpdate = true;
+    this.quad.material.uniformsNeedUpdate = true;
+
+    this.beginLoop();
+  }
+
+  updateUniforms() {
+    this.quad.material.uniforms.uResolution.value = [
+      this.cvs.width,
+      this.cvs.height,
+    ];
+    this.quad.material.uniforms.uTime.value = performance.now() / 1000;
+    this.quad.material.uniforms.uGraph.value = {
+      origin: this.graph.origin.toArray(),
+      radius: this.graph.radius,
+    };
+    this.quad.material.uniforms.uTexture.value = this.nessyTex;
+
+    this.quad.material.uniformsNeedUpdate = true;
   }
 
   updateShader() {
@@ -201,7 +203,7 @@ export default class Core {
   }
 
   loop() {
-    this.controls.update();
+    this.updateUniforms();
     this.renderer.render(this.scene, this.camera);
   }
 }
