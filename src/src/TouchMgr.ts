@@ -1,7 +1,7 @@
-import Vec2 from "@/src/Vec2";
+import Vec2 from "./Vec2";
 
 export default class TouchMgr {
-  touches: {[id: number]: Vec2} = {};
+  touches: { [id: number]: Vec2 } = {};
 
-  constructor(){}
+  constructor() {}
 }
