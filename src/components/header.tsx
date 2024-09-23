@@ -1,21 +1,21 @@
-'use client';
+"use client";
 import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 
-export default function Header(){
+export default function Header() {
   const { data: session } = useSession();
   const [isDark, setIsDark] = useState(false);
   // const src = session && session.user?.image || '';
 
-  function ToggleTheme(){
-    console.log('toggle theme');
-    setIsDark(d=>!d);
+  function ToggleTheme() {
+    console.log("toggle theme");
+    setIsDark((d) => !d);
   }
 
   return (
     <header>
-      <a href='/' className='title'>
-        JS test chamber
+      <a href="/" className="title">
+        tomoq apps
       </a>
       {/* <input
       type='button'
@@ -40,5 +40,5 @@ export default function Header(){
         )}
       </div>
     </header>
-  )
+  );
 }

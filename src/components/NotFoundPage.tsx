@@ -1,36 +1,25 @@
 "use client";
 import { Levenshtein } from "@/src/Levenshtein";
+import { IApp } from "@/types/IApp";
 import axios from "axios";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-interface AppData {
-  id: number;
-  name: string;
-  description: string;
-  createdAt: string;
-  path: string;
-  tag: string[];
-}
-
 interface AppList {
-  name: string;
-  data: AppData;
+  data: IApp;
   pt: boolean;
   ld: number;
   score: number;
-  path?: string;
 }
 
 export default function NotFoundPage() {
   const pathname = usePathname() ?? "";
-  const [apps, setApps] = useState<AppData[]>([]);
+  const [apps, setApps] = useState<IApp[]>([]);
   const [sortedApps, setSortedApps] = useState<AppList[]>([]);
 
   useEffect(() => {
     axios.get("/api/apps/get").then((res) => {
-      console.log("!");
       setApps(res.data);
     });
   }, []);
@@ -39,15 +28,13 @@ export default function NotFoundPage() {
     setSortedApps(
       apps
         .map((ad) => {
-          const _name = ad.name.replace(/\s/g, "").toLowerCase();
+          const _name = ad.path.replace(/\s/g, "").toLowerCase();
           const _pathname = pathname.replace(/\s|\//g, "").toLowerCase();
           return {
-            name: ad.name,
             data: ad,
             pt: 0 <= _pathname.indexOf(_name) || 0 <= _name.indexOf(_pathname),
             ld: Levenshtein(pathname, _name),
             score: 0,
-            path: ad.path,
           };
         })
         .map((v) => {
@@ -69,11 +56,7 @@ export default function NotFoundPage() {
         {sortedApps.map((a, i) => {
           return (
             <div key={i}>
-              <Link
-                href={a.path ?? `/${a.name.replace(/\s/g, "").toLowerCase()}`}
-              >
-                {a.name}
-              </Link>
+              <Link href={`/apps/${a.data.path}`}>{a.data.name}</Link>
             </div>
           );
         })}

@@ -1,10 +1,10 @@
-import * as THREE from 'three'
-import * as CANNON from 'cannon-es';
+import * as THREE from "three";
+import * as CANNON from "cannon-es";
 import * as THREE_ADDONS from "three/examples/jsm/Addons";
 import { Die } from "./Die";
-import { CollisionFilterGroup } from './CollisionFilterGroup';
-import { dieMaterial } from './DieMaterial';
-import { DieMsg } from './DieMsg';
+import { CollisionFilterGroup } from "./CollisionFilterGroup";
+import { dieMaterial } from "./DieMaterial";
+import { DieMsg } from "./DieMsg";
 
 export class D4 implements Die {
   // textureLoader = new THREE.TextureLoader();
@@ -47,25 +47,25 @@ export class D4 implements Die {
     mass: 1,
     material: dieMaterial,
     collisionFilterGroup: CollisionFilterGroup.DICE_DYNAMIC,
-    collisionFilterMask: CollisionFilterGroup.WALL | CollisionFilterGroup.DICE_DYNAMIC
+    collisionFilterMask:
+      CollisionFilterGroup.WALL | CollisionFilterGroup.DICE_DYNAMIC,
   });
   num = 0;
   isStatic = false;
   isReady = false;
-  
 
-  constructor () {
+  constructor() {
     this.init();
   }
-  
-  async init () {
+
+  async init() {
     const loader = new THREE_ADDONS.GLTFLoader();
-  
-    const gltf = await loader.loadAsync('resources/diceroll/models/d4.glb');
+
+    const gltf = await loader.loadAsync("/resources/diceroll/models/d4.glb");
     const objs = gltf.scene.children;
-    for (let i=0; i<objs.length; i++) {
+    for (let i = 0; i < objs.length; i++) {
       const m = objs[i];
-      if (m.name === 'Dice') {
+      if (m.name === "Dice") {
         this.mesh = m as THREE.Mesh;
         const t = this.mesh.material as THREE.Material;
         t.transparent = true;
@@ -81,23 +81,23 @@ export class D4 implements Die {
     // const {shape, offset, orientation} = result;
     // this.shape = shape;
     this.body.addShape(new CANNON.Box(new CANNON.Vec3(1, 1, 1)));
-    this.body.addShape(new CANNON.Box(new CANNON.Vec3(.1, .1, 2)));
-  
+    this.body.addShape(new CANNON.Box(new CANNON.Vec3(0.1, 0.1, 2)));
+
     this.body.position.y += 10;
     this.body.quaternion.setFromEuler(
-      Math.random()*10,
-      Math.random()*10,
-      Math.random()*10,
+      Math.random() * 10,
+      Math.random() * 10,
+      Math.random() * 10
     );
     this.body.angularVelocity.set(
-      Math.random()*10,
-      Math.random()*10,
-      Math.random()*10,
+      Math.random() * 10,
+      Math.random() * 10,
+      Math.random() * 10
     );
     this.isReady = true;
   }
 
-  update (): DieMsg {
+  update(): DieMsg {
     if (this.body.position.y < 0) {
       return DieMsg.DIE;
     }
@@ -110,16 +110,16 @@ export class D4 implements Die {
         new THREE.Vector3(-1, 0, 0),
         new THREE.Vector3(0, +1, 0),
         new THREE.Vector3(0, -1, 0),
-      ].map(v=>v.applyQuaternion(Q));
+      ].map((v) => v.applyQuaternion(Q));
       let I = 0;
-      for (let i=1; i<4; i++) {
-        if (F[I].y<F[i].y) {
+      for (let i = 1; i < 4; i++) {
+        if (F[I].y < F[i].y) {
           I = i;
         }
       }
-      
-      this.num = [4,1,2,3][I];
-  
+
+      this.num = [4, 1, 2, 3][I];
+
       if (
         this.body.velocity.length() < 5e-1 &&
         this.body.angularVelocity.length() < 1e-2
@@ -129,16 +129,14 @@ export class D4 implements Die {
         const m = this.mesh.material as THREE.Material;
         m.depthTest = false;
       }
-    }
-    else {
+    } else {
       const m = this.mesh.material as THREE.Material;
-      m.opacity *= .9;
+      m.opacity *= 0.9;
 
       if (m.opacity <= 1e-3) {
         return DieMsg.STA;
       }
     }
-
 
     return DieMsg.DYN;
   }
