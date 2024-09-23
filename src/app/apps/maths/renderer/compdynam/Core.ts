@@ -90,7 +90,7 @@ export default class Core {
       this.error = "parse failed";
     }
   }
-  renderingMode: RenderingMode = RenderingMode.HSV;
+  renderingMode: RenderingMode = "hsv";
   nessyMode = false;
   pointers: {
     pointerId: number;
@@ -98,6 +98,7 @@ export default class Core {
     clientY: number;
   }[] = [];
   controls = true;
+  resolutionFactor = 1;
 
   constructor(
     public cvs = document.getElementById("cvs") as HTMLCanvasElement
@@ -134,6 +135,8 @@ export default class Core {
         throw new Error(e);
       });
 
+    this.resizeCanvas();
+
     this.quad.material.vertexShader = this.rawShaderData.vert;
     this.updateShader();
     this.quad.material.uniforms = {
@@ -154,6 +157,17 @@ export default class Core {
     this.quad.material.uniformsNeedUpdate = true;
 
     this.beginLoop();
+  }
+
+  resizeCanvas() {
+    const wrapper = this.cvs.parentElement!;
+    const rect = wrapper.getBoundingClientRect();
+    // this.cvs.width = rect.width * this.resolutionFactor;
+    // this.cvs.height = rect.height * this.resolutionFactor;
+    this.renderer.setSize(
+      rect.width * this.resolutionFactor,
+      rect.height * this.resolutionFactor
+    );
   }
 
   updateUniforms() {
@@ -178,11 +192,11 @@ export default class Core {
       .replace("c/* input z0 here */", `${this.z0}`)
       .replace(
         "/* delete if mode is not grayscale */",
-        this.renderingMode !== RenderingMode.GRAYSCALE ? "//" : ""
+        this.renderingMode !== "grayscale" ? "//" : ""
       )
       .replace(
         "/* delete if mode is not hsv */",
-        this.renderingMode !== RenderingMode.HSV ? "//" : ""
+        this.renderingMode !== "hsv" ? "//" : ""
       )
       .replace(
         "false/* input boolean of nessy here */",

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Core from "../Core";
 import { Vector2 } from "three";
+import Controls from "./Controls";
 
 export default function MainWrapper() {
   const [core, setCore] = useState<Core>();
@@ -11,8 +12,22 @@ export default function MainWrapper() {
       const initCore = new Core();
       setCore(initCore);
 
-      const onResize = () => {
-        console.log("resized");
+      const HandleResize = () => {
+        initCore.resizeCanvas();
+      };
+
+      const HandleWheel = (e: WheelEvent) => {
+        e.preventDefault();
+        if (!initCore.controls) return;
+        const rect = initCore.cvs.getBoundingClientRect();
+        // [0,1]正規化した座標
+        const m = Math.min(rect.width, rect.height);
+        const c = new Vector2(
+          (((2 * (e.clientX - rect.left)) / rect.width - 1) * rect.width) / m,
+          (((2 * (e.clientY - rect.top)) / rect.height - 1) * rect.height) / m
+        );
+        const dy = e.deltaY;
+        initCore.graph.zoom(c.negate(), dy);
       };
 
       const HandlePointerDown = (e: PointerEvent) => {
@@ -104,22 +119,23 @@ export default function MainWrapper() {
           passive: false,
         });
         cvs.addEventListener("pointerup", HandlePointerUp, { passive: false });
-        // document.addEventListener('wheel', HandleWheel, {passive: false});
-        window.addEventListener("resize", onResize);
+        cvs.addEventListener("wheel", HandleWheel, { passive: false });
+        window.addEventListener("resize", HandleResize);
       })();
       return () => {
         initCore.endLoop();
         cvs.removeEventListener("pointerdown", HandlePointerDown);
         cvs.removeEventListener("pointermove", HandlePointerMove);
         cvs.removeEventListener("pointerup", HandlePointerUp);
-        // document.removeEventListener('wheel', HandleWheel);
-        window.removeEventListener("resize", onResize);
+        cvs.removeEventListener("wheel", HandleWheel);
+        window.removeEventListener("resize", HandleResize);
       };
     }
   }, [core]);
 
   return (
     <main id="main-wrapper">
+      <Controls core={core} />
       <canvas id="cvs" width={800} height={600}></canvas>
     </main>
   );

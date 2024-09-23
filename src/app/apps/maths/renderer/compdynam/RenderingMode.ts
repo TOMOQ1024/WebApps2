@@ -1,4 +1,1 @@
-export enum RenderingMode {
-  HSV,
-  GRAYSCALE,
-}
+export type RenderingMode = "hsv" | "grayscale";
