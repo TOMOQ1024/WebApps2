@@ -72,8 +72,8 @@ export default function MainWrapper() {
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
-    // renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setSize(100, 100);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    // renderer.setSize(100, 100);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     document.body.innerHTML = "";
     document.body.appendChild(renderer.domElement);
@@ -105,7 +105,7 @@ export default function MainWrapper() {
     const eyeRotationLimit = THREE.MathUtils.degToRad(30);
 
     const ktx2Loader = new KTX2Loader()
-      .setTranscoderPath("basis/")
+      .setTranscoderPath("/webcam/basis/")
       .detectSupport(renderer);
 
     new GLTFLoader()
