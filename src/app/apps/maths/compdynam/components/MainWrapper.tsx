@@ -16,9 +16,21 @@ export default function MainWrapper() {
 
   useEffect(() => {
     if (searchParams) {
-      let v = searchParams.get("nessy");
-      if (v !== null && core) {
-        core.nessyMode = true;
+      if (core) {
+        let v = searchParams.get("nessy");
+        if (v !== null) core.nessyMode = true;
+        v = searchParams.get("expr");
+        if (v !== null) core.funcexpr = v;
+        v = searchParams.get("z0expr");
+        if (v !== null) core.z0expr = v;
+        v = searchParams.get("origin");
+        if (v !== null) {
+          core.graph.origin.set(
+            ...(v.split(",").map((a) => +a) as [number, number])
+          );
+        }
+        v = searchParams.get("radius");
+        if (v !== null) core.graph.radius = +v;
       }
     }
 

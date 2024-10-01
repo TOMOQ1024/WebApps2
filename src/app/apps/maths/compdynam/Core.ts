@@ -139,7 +139,7 @@ export default class Core {
     this.scene.add(this.quad);
   }
 
-  async init() {
+  async init(beginLoop = true) {
     this.rawShaderData = await axios
       .get("/api/shaders/compdynam")
       .then((res) => {
@@ -170,11 +170,14 @@ export default class Core {
     };
     this.quad.material.uniformsNeedUpdate = true;
 
-    this.beginLoop();
+    if (beginLoop) {
+      this.beginLoop();
+    }
   }
 
   resizeCanvas() {
-    const wrapper = this.cvs.parentElement!;
+    const wrapper = this.cvs.parentElement;
+    if (!wrapper) return;
     const rect = wrapper.getBoundingClientRect();
     this.renderer.setSize(
       rect.width * this.resolutionFactor,
@@ -232,5 +235,9 @@ export default class Core {
   loop() {
     this.updateUniforms();
     this.renderer.render(this.scene, this.camera);
+  }
+
+  export() {
+    return this.cvs.toDataURL();
   }
 }
