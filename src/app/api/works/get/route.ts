@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 
-export async function GET(req: NextRequest, res: NextResponse) {
+export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -18,6 +18,8 @@ export async function GET(req: NextRequest, res: NextResponse) {
           },
         },
       },
+      skip: 0,
+      take: 100,
     });
 
     return NextResponse.json(data);

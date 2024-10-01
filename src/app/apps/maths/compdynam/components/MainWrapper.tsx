@@ -20,9 +20,9 @@ export default function MainWrapper() {
         let v = searchParams.get("nessy");
         if (v !== null) core.nessyMode = true;
         v = searchParams.get("expr");
-        if (v !== null) core.funcexpr = v;
+        if (v !== null) core.funcexpr = decodeURIComponent(v);
         v = searchParams.get("z0expr");
-        if (v !== null) core.z0expr = v;
+        if (v !== null) core.z0expr = decodeURIComponent(v);
         v = searchParams.get("origin");
         if (v !== null) {
           core.graph.origin.set(
@@ -31,19 +31,16 @@ export default function MainWrapper() {
         }
         v = searchParams.get("radius");
         if (v !== null) core.graph.radius = +v;
+        v = searchParams.get("iter");
+        if (v !== null) core.iter = +v;
       }
     }
+  }, [searchParams, core]);
 
+  useEffect(() => {
     if (!core) {
       const initCore = new Core();
       setCore(initCore);
-
-      if (searchParams) {
-        let v = searchParams.get("nessy");
-        if (v !== null) {
-          initCore.nessyMode = true;
-        }
-      }
 
       const HandleResize = () => {
         initCore.resizeCanvas();
@@ -251,7 +248,7 @@ export default function MainWrapper() {
         document.removeEventListener("contextmenu", preventDefault);
       };
     }
-  }, [core, searchParams, session]);
+  }, [core, session]);
 
   return (
     <main id="main-wrapper">

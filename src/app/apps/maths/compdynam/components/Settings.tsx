@@ -7,7 +7,6 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { RenderingMode } from "@/components/CompDynamCanvas/RenderingMode";
 import React from "react";
 import Core from "../Core";
 

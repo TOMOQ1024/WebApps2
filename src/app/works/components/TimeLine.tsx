@@ -12,43 +12,38 @@ async function fetcher() {
 }
 
 export default function TimeLine() {
-  const { data, error, isLoading } = useSWR<IPost[]>("/api/user", fetcher);
+  const { data, error, isLoading } = useSWR<IPost[]>("/api/works", fetcher);
   const [inputData, setInputData] = useState<(IPost & { src: string })[]>([]);
+  const cvs = document.createElement("canvas") as HTMLCanvasElement;
+  cvs.width = 200;
+  cvs.height = 200;
+  const [core, setCore] = useState(new Core(cvs));
 
-  if (typeof document !== "undefined") {
-    const cvs = document.createElement("canvas") as HTMLCanvasElement;
-    cvs.width = 200;
-    cvs.height = 200;
-    const [core, setCore] = useState(new Core(cvs));
+  useEffect(() => {
+    if (!core.rawShaderData.frag) {
+      if (data) {
+        (async () => {
+          core.controls = false;
+          // core.lowFPS = true;
 
-    useEffect(() => {
-      if (!core.rawShaderData.frag) {
-        if (data) {
-          (async () => {
-            core.controls = false;
-            // core.lowFPS = true;
-
-            await core.init(false);
-            setInputData(
-              await Promise.all(
-                data.map(async (d) => {
-                  core.iter = d.iteration;
-                  core.graph.origin.x = d.originX;
-                  core.graph.origin.y = d.originY;
-                  core.graph.radius = d.radius;
-                  core.z0expr = d.z0Expression;
-                  core.funcexpr = d.expression;
-                  core.loop();
-                  const src = core.export();
-                  return { ...d, src };
-                })
-              )
-            );
-          })();
-        }
+          await core.init(false);
+          setInputData(
+            data.map((d) => {
+              core.iter = d.iteration;
+              core.graph.origin.x = d.originX;
+              core.graph.origin.y = d.originY;
+              core.graph.radius = d.radius;
+              core.z0expr = d.z0Expression;
+              core.funcexpr = d.expression;
+              core.loop();
+              const src = core.export();
+              return { ...d, src };
+            })
+          );
+        })();
       }
-    }, [data, core]);
-  }
+    }
+  }, [data, core]);
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error loading posts</div>;
@@ -58,7 +53,7 @@ export default function TimeLine() {
       style={{
         display: "flex",
         flexWrap: "wrap",
-        filter: "grayscale(1)",
+        // filter: "grayscale(1)",
       }}
     >
       {inputData.map((d) => (
