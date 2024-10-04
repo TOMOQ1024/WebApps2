@@ -17,29 +17,33 @@ export default function MainWrapper() {
   useEffect(() => {
     if (searchParams) {
       if (core) {
-        let v = searchParams.get("nessy");
-        if (v !== null) core.nessyMode = true;
-        v = searchParams.get("expr");
-        if (v !== null) core.funcexpr = decodeURIComponent(v);
-        v = searchParams.get("z0expr");
-        if (v !== null) core.z0expr = decodeURIComponent(v);
-        v = searchParams.get("origin");
-        if (v !== null) {
-          core.graph.origin.set(
-            ...(v.split(",").map((a) => +a) as [number, number])
-          );
-        }
-        v = searchParams.get("radius");
-        if (v !== null) core.graph.radius = +v;
-        v = searchParams.get("iter");
-        if (v !== null) core.iter = +v;
+        setTimeout(() => {
+          let v = searchParams.get("nessy");
+          if (v !== null) core.nessyMode = true;
+          v = searchParams.get("expr");
+          if (v !== null) core.funcexpr = decodeURIComponent(v);
+          v = searchParams.get("z0expr");
+          if (v !== null) core.z0expr = decodeURIComponent(v);
+          v = searchParams.get("origin");
+          if (v !== null) {
+            core.graph.origin.set(
+              ...(v.split(",").map((a) => +a) as [number, number])
+            );
+          }
+          v = searchParams.get("radius");
+          if (v !== null) core.graph.radius = +v;
+          v = searchParams.get("iter");
+          if (v !== null) core.iter = +v;
+        }, 1000);
       }
     }
   }, [searchParams, core]);
 
   useEffect(() => {
     if (!core) {
-      const initCore = new Core();
+      const initCore = new Core(
+        document.getElementById("cvs") as HTMLCanvasElement
+      );
       setCore(initCore);
 
       const HandleResize = () => {

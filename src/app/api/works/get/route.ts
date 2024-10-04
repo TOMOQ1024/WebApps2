@@ -5,6 +5,9 @@ import { authOptions } from "@/lib/authOptions";
 
 export async function GET(req: NextRequest) {
   try {
+    const page = +(req.nextUrl.searchParams.get("page") ?? -1);
+    const take = +(req.nextUrl.searchParams.get("take") ?? -1);
+    if (page < 0 || take < 0) throw new Error(`invalid search params`);
     const session = await getServerSession(authOptions);
     if (!session) {
       throw new Error("Unauthorized");
@@ -18,12 +21,13 @@ export async function GET(req: NextRequest) {
           },
         },
       },
-      skip: 0,
-      take: 100,
+      skip: page * take,
+      take: take,
     });
 
     return NextResponse.json(data);
   } catch (error) {
+    console.log(error);
     return NextResponse.json({ error }, { status: 401 });
   }
 }

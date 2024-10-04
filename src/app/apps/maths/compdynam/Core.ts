@@ -16,6 +16,7 @@ import {
 import { RenderingMode } from "./RenderingMode";
 
 export default class Core {
+  cvs: HTMLCanvasElement;
   interval: NodeJS.Timeout | null = null;
   renderer: WebGLRenderer;
   camera: OrthographicCamera;
@@ -37,7 +38,14 @@ export default class Core {
   set error(e) {
     this._setError((this._error = e));
   }
-  iter: number = 100;
+  _iter: number = 100;
+  get iter() {
+    return this._iter;
+  }
+  set iter(s: number) {
+    this._iter = s;
+    this.updateShader();
+  }
   z0: string = "c";
   _z0expr: string = "c";
   _setZ0Expr: Dispatch<SetStateAction<string>> = () => {};
@@ -114,9 +122,14 @@ export default class Core {
     this.resizeCanvas();
   }
 
-  constructor(
-    public cvs = document.getElementById("cvs") as HTMLCanvasElement
-  ) {
+  constructor(cvs: HTMLCanvasElement | undefined = undefined) {
+    if (cvs) {
+      this.cvs = cvs;
+    } else {
+      this.cvs = document.createElement("canvas") as HTMLCanvasElement;
+      this.cvs.width = 200;
+      this.cvs.height = 200;
+    }
     this.scene = new Scene();
     this.camera = new OrthographicCamera();
     this.camera.position.z = 1;
