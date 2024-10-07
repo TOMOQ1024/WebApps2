@@ -13,13 +13,72 @@ datasource db {
   url      = env("POSTGRES_URL")
 }
 
-model post {
-  id          Int     @id @default(autoincrement())
-  expression  String
+model App {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String   @default("")
+  path        String
+  createdAt   DateTime @default(now())
+  tags        AppTag[]
 }
 
-model user {
-  id          Int     @id @default(autoincrement())
-  name        String
-  passhash    String
+model CompDynamPost {
+  id           Int      @id @default(autoincrement())
+  authorId     Int
+  iteration    Int      @default(100)
+  z0Expression String   @default("0")
+  expression   String   @default("z")
+  radius       Float    @default(2)
+  originX      Float    @default(0)
+  originY      Float    @default(0)
+  createdAt    DateTime @default(now())
+
+  // リレーションを定義
+  author User               @relation(fields: [authorId], references: [id])
+  tags   CompDynamPostTag[]
+
+  // インデックスを追加（オプション）
+  @@index([authorId])
+}
+
+model Tag {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  // リレーションを定義
+  compDynamPostTags CompDynamPostTag[]
+  appTags           AppTag[]
+}
+
+model CompDynamPostTag {
+  id              Int @id @default(autoincrement())
+  compDynamPostId Int
+  tagId           Int
+
+  // リレーションを定義
+  compDynamPost CompDynamPost @relation(fields: [compDynamPostId], references: [id])
+  tag           Tag           @relation(fields: [tagId], references: [id])
+
+  @@unique([compDynamPostId, tagId]) // 同じタグが同じ投稿に複数回付かないようにする
+}
+
+model AppTag {
+  id    Int @id @default(autoincrement())
+  appId Int
+  tagId Int
+
+  // リレーションを定義
+  app App @relation(fields: [appId], references: [id])
+  tag Tag @relation(fields: [tagId], references: [id])
+
+  @@unique([appId, tagId]) // 同じタグが同じAppに複数回付かないようにする
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  name     String
+  passhash String
+
+  // リレーションを定義
+  posts CompDynamPost[]
 }

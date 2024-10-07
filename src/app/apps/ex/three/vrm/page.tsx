@@ -1,4 +1,4 @@
-import VRMPage from "@/features/ex/three/vrm/VRMPage";
+import VRMPage from "./VRMPage";
 
 export const metadata = {
   title: "VRMA",

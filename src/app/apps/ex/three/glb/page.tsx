@@ -1,4 +1,4 @@
-import GLBPage from "@/features/ex/three/glb/GLBPage";
+import GLBPage from "./GLBPage";
 
 export const metadata = {
   title: "GLB",
