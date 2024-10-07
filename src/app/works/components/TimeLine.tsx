@@ -70,7 +70,7 @@ export default function TimeLine() {
         setCore(initCore);
       })();
     }
-  }, [data, core]);
+  }, [data, core, isClient]);
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error loading posts</div>;

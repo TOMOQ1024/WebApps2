@@ -1,11 +1,10 @@
-import './app.scss';
-import MainWrapper from './components/MainWrapper';
+import "./app.scss";
+import MainWrapper from "./components/MainWrapper";
 
 export const metadata = {
-  title: 'Untitled',
-  description: 'Untitled game.'
-}
+  title: "Compdynam",
+};
 
-export default function Main(){
-  return <MainWrapper/>;
+export default function Main() {
+  return <MainWrapper />;
 }
