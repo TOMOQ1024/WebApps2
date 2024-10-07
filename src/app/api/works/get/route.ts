@@ -4,9 +4,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 
 export async function GET(req: NextRequest) {
+  const page = +(req.nextUrl.searchParams.get("page") ?? -1);
+  const take = +(req.nextUrl.searchParams.get("take") ?? -1);
   try {
-    const page = +(req.nextUrl.searchParams.get("page") ?? -1);
-    const take = +(req.nextUrl.searchParams.get("take") ?? -1);
     if (page < 0 || take < 0) throw new Error(`invalid search params`);
     const session = await getServerSession(authOptions);
     if (!session) {
