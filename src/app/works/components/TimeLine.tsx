@@ -6,6 +6,9 @@ import axios from "axios";
 import { IPost } from "@/types/IPost";
 import Core from "@/app/apps/maths/compdynam/Core";
 import { useIsClient } from "@/components/IsClientCtx";
+import { useInView } from "react-intersection-observer";
+
+// 無限スクロール: https://zenn.dev/ako/articles/bb781668881960
 
 export default function TimeLine() {
   const isClient = useIsClient();
@@ -18,16 +21,14 @@ export default function TimeLine() {
     async (url: string) => (await axios.get<IPost[]>(url)).data,
     []
   );
-  const { data, size, setSize, error, isLoading } = useSWRInfinite(
-    getKey,
-    fetcher,
-    {
+  const { data, size, setSize, error, isLoading, isValidating } =
+    useSWRInfinite(getKey, fetcher, {
       parallel: true,
+      revalidateOnReconnect: false,
       revalidateIfStale: false, // キャッシュがあっても再検証
       revalidateOnFocus: false, // windowをフォーカスすると再検証
       revalidateFirstPage: false, // 2ページ目以降を読み込むとき毎回1ページ目を再検証
-    }
-  );
+    });
   /*
     ページが最後に到達したかをisReachingEndで定義
   */
@@ -35,6 +36,12 @@ export default function TimeLine() {
   const isEmpty = data?.[0]?.length === 0; // 1ページ目のデータが空
   const isReachingEnd =
     isEmpty || (data && data?.[data?.length - 1]?.length < limit); // 1ページ目のデータが空 or データの最後のデータが1ページあたりの表示数より少ない
+
+  const { ref, inView: isScrollEnd } = useInView();
+
+  if (isScrollEnd && !isValidating && !isReachingEnd) {
+    setSize(size + 1);
+  }
 
   // const [inputData, setInputData] = useState<(IPost & { src: string })[]>([]);
   const [core, setCore] = useState<Core>();
@@ -90,23 +97,10 @@ export default function TimeLine() {
           const src = core.export();
           return <Post key={d.id} data={{ ...d, src }} />;
         })}
-      {!isReachingEnd && (
-        <button
-          style={{
-            width: 200,
-            height: 200,
-            margin: 5,
-            border: "1px solid white",
-            borderRadius: 10,
-            overflow: "hidden",
-          }}
-          onClick={() => {
-            setSize(size + 1);
-          }}
-        >
-          もっと読み込む
-        </button>
-      )}
+      {/* データ取得時は検知の要素を表示しない */}
+      {!isValidating && <div ref={ref} aria-hidden="true" />}
+      {/* データ取得時はローダーを表示する */}
+      {isValidating && <>Loading...</>}
     </div>
   );
 }
