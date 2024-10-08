@@ -1,4 +1,4 @@
-import OthelloPage from "../../../../features/games/othello/OthelloPage";
+import OthelloPage from "./OthelloPage";
 
 export const metadata = {
   title: "🍩thello",
