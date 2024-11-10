@@ -76,15 +76,15 @@ export default function MainWrapper() {
 
         document.addEventListener("keydown", HandleKeyDown);
         window.addEventListener("resize", HandleResize);
-        document.addEventListener("contextmenu", preventDefault, {
-          passive: false,
-        });
+        // document.addEventListener("contextmenu", preventDefault, {
+        //   passive: false,
+        // });
       })();
       return () => {
         initCore.endLoop();
         document.removeEventListener("keydown", HandleKeyDown);
         window.removeEventListener("resize", HandleResize);
-        document.removeEventListener("contextmenu", preventDefault);
+        // document.removeEventListener("contextmenu", preventDefault);
       };
     }
   }, [core, session]);

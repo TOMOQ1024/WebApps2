@@ -48,13 +48,17 @@ class H2T_Labels {
   }
 
   setUniforms() {
-    const t = h2t_generate_uniform(this.A, this.B, this.C);
-    this.parent.quad.material.uniforms.A.value = t.A;
-    this.parent.quad.material.uniforms.C.value = t.C;
-    this.parent.quad.material.uniforms.R.value = t.R;
+    // const t = h2t_generate_uniform(this.A, this.B, this.C);
+    // this.parent.quad.material.uniforms.A.value = t.A;
+    // this.parent.quad.material.uniforms.C.value = t.C;
+    // this.parent.quad.material.uniforms.R.value = t.R;
+    this.parent.quad.material.uniforms.A.value = this.A;
+    this.parent.quad.material.uniforms.B.value = this.B;
+    this.parent.quad.material.uniforms.C.value = this.C;
     this.parent.quad.material.uniformsNeedUpdate = true;
   }
 }
+
 export default class Core {
   cvs: HTMLCanvasElement;
   interval: NodeJS.Timeout | null = null;
@@ -69,7 +73,7 @@ export default class Core {
     vert: "",
     frag: "",
   };
-  _iter: number = 100;
+  _iter: number = 50;
   get iter() {
     return this._iter;
   }
@@ -126,7 +130,7 @@ export default class Core {
     this.quad.material.fragmentShader = this.rawShaderData.frag;
     this.updateShader();
     this.quad.material.needsUpdate = true;
-    const t = h2t_generate_uniform(this.labels.A, this.labels.B, this.labels.C);
+    // const t = h2t_generate_uniform(this.labels.A, this.labels.B, this.labels.C);
     this.quad.material.uniforms = {
       uResolution: {
         value: [this.cvs.width, this.cvs.height],
@@ -135,9 +139,12 @@ export default class Core {
       uTexture: {
         value: this.nessyTex,
       },
-      A: { value: t.A },
-      C: { value: t.C },
-      R: { value: t.R },
+      // A: { value: t.A },
+      // C: { value: t.C },
+      // R: { value: t.R },
+      A: { value: this.labels.A },
+      B: { value: this.labels.B },
+      C: { value: this.labels.C },
     };
     this.quad.material.uniformsNeedUpdate = true;
 

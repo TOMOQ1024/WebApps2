@@ -39,6 +39,9 @@ export function h2t_generate_uniform(A: number, B: number, C: number) {
   };
 }
 
+/**
+ * ℝ²→ℝ の関数 f,g の共通する零点を求める
+ */
 export function h2t_newton_solve2(
   f: (v: Vector2) => number,
   g: (v: Vector2) => number,
@@ -84,6 +87,9 @@ export function h2t_newton_solve2(
   return v1;
 }
 
+/**
+ * ∠pqr の角度が 180º の何分の一の大きさかを返す．
+ */
 export function h2t_get_label(p: Vector2, q: Vector2, r: Vector2) {
   const i1 = h2t_i(p, q);
   const j1 = h2t_j(p, q);
