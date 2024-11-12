@@ -1,4 +1,4 @@
-precision mediump float;
+precision highp float;
 
 varying vec2 vPosition;
 
@@ -8,7 +8,7 @@ uniform vec2 uResolution;
 uniform float A;
 uniform float B;
 uniform float C;
-const int wythoff_index = 2;
+const int wythoff_index = 7;
 #define PI 3.1415926535
 #define EP (1E-4)
 #define DX vec2(EP,0)
@@ -148,9 +148,25 @@ float val2C(vec2 a, vec2 b, vec2 c, float x) {
   return s * s + t * t + u * u;
 }
 
+float val3A(vec2 a, vec2 b, vec2 c, vec2 x) {
+  vec2 p = gMix(a, gMix(b, c, x.x), x.y);
+  float s = gDist(p, hMirror(b, c, p));
+  float t = gDist(p, hMirror(c, a, p));
+  // float u = gDist(p, hMirror(a, b, p));
+  return (s - t) * (s - t);
+}
+
+float val3D(vec2 a, vec2 b, vec2 c, vec2 x) {
+  vec2 p = gMix(a, gMix(b, c, x.x), x.y);
+  // float s = gDist(p, hMirror(b, c, p));
+  float t = gDist(p, hMirror(c, a, p));
+  float u = gDist(p, hMirror(a, b, p));
+  return (t - u) * (t - u);
+}
+
 void main() {
   float f, g, fx, fy, gx, gy, df;
-  vec2 p = vec2(vPosition * uResolution / min(uResolution.x, uResolution.y)) - EP;// 誤差によるガタつきを軽減するため，微小な値を引いている
+  vec2 p = vec2(vPosition * uResolution / min(uResolution.x, uResolution.y)) - vec2(EP, 1.4 * EP);// 誤差によるガタつきを軽減するため，微小な値を引いている
 
   // generate unit triangle
   vec2 x = vec2(1.) - EP * 20.;
@@ -172,13 +188,15 @@ void main() {
   // Beltrami-Klein Model
   // p /= sqrt(1. - dot(p, p)) + 1.;
 
+  // fill outside
   if(length(p) > 1.) {
     gl_FragColor = vec4(0., 0., 0., 1.);
     return;
   }
 
   // mirror
-  vec2 q;
+  float t;
+  vec2 q, dx;
   for(float i = 0.; i < 10./* input iteration limit here */; i++) {
     if(0. > hLine(c, a, p)) {
       p = hMirror(c, a, p);
@@ -237,18 +255,49 @@ void main() {
         else
           gl_FragColor = COL2;
       } else {
-        gl_FragColor = vec4(0.);
+        x = vec2(.5, 2. / 3.);
+        for(int j = 0; j < 50; j++) {
+          f = val3A(a, b, c, x);
+          g = val3D(a, b, c, x);
+          fx = (val3A(a, b, c, x + DX) - f) / EP;
+          fy = (val3A(a, b, c, x + DY) - f) / EP;
+          gx = (val3D(a, b, c, x + DX) - g) / EP;
+          gy = (val3D(a, b, c, x + DY) - g) / EP;
+          t = fx * gy - fy * gx;
+          if(abs(t) < EP) {
+            x += EP;
+            continue;
+          }
+          x -= vec2(gy * f - fy * g, fx * g - gx * f) / t;
+          // if(length(dx) > 1.)
+          //   break;
+          x -= dx;
+        }
+
+        q = gMix(a, gMix(b, c, x.x), x.y);
+        vec2 ma = hMirror(b, c, q);
+        vec2 mb = hMirror(c, a, q);
+        vec2 mc = hMirror(a, b, q);
+        float fa = hLine(q, ma, p);
+        float fb = hLine(q, mb, p);
+        float fc = hLine(q, mc, p);
+        if(fb * hLine(q, mb, a) > 0. && fc * hLine(q, mc, a) > 0.)
+          gl_FragColor = COL0;
+        else if(fc * hLine(q, mc, b) > 0. && fa * hLine(q, ma, b) > 0.)
+          gl_FragColor = COL1;
+        else
+          gl_FragColor = COL2;
       }
       gl_FragColor.a = 1.;
       break;
     }
   }
-  if(abs(hLine(a, b, p)) < .001)
-    gl_FragColor = WHITE;
-  if(abs(hLine(b, c, p)) < .001)
-    gl_FragColor = WHITE;
-  if(abs(hLine(c, a, p)) < .001)
-    gl_FragColor = WHITE;
+  // if(abs(hLine(a, b, p)) < .001)
+  //   gl_FragColor = WHITE;
+  // if(abs(hLine(b, c, p)) < .001)
+  //   gl_FragColor = WHITE;
+  // if(abs(hLine(c, a, p)) < .001)
+  //   gl_FragColor = WHITE;
   // if(distance(p, q) < .01)
   //   gl_FragColor = vec4(0., 0., 0., 1.);
 

@@ -56,6 +56,7 @@ class H2T_Labels {
     this.parent.quad.material.uniforms.B.value = this.B;
     this.parent.quad.material.uniforms.C.value = this.C;
     this.parent.quad.material.uniformsNeedUpdate = true;
+    this.parent.loop();
   }
 }
 
@@ -73,13 +74,14 @@ export default class Core {
     vert: "",
     frag: "",
   };
-  _iter: number = 50;
+  _iter: number = 5;
   get iter() {
     return this._iter;
   }
   set iter(s: number) {
     this._iter = s;
     this.updateShader();
+    this.loop();
   }
   labels = new H2T_Labels(this);
   controls = true;
@@ -148,9 +150,10 @@ export default class Core {
     };
     this.quad.material.uniformsNeedUpdate = true;
 
-    if (beginLoop) {
-      this.beginLoop();
-    }
+    // if (beginLoop) {
+    //   this.beginLoop();
+    // }
+    this.loop();
   }
 
   resizeCanvas() {
@@ -158,6 +161,7 @@ export default class Core {
     if (!wrapper) return;
     const rect = wrapper.getBoundingClientRect();
     this.renderer.setSize(rect.width, rect.height, false);
+    this.loop();
   }
 
   updateShader() {
@@ -182,7 +186,7 @@ export default class Core {
   beginLoop() {
     this.interval = setInterval(() => {
       this.loop();
-    }, 1000 / 60);
+    }, 1000 / 4);
   }
 
   endLoop() {
