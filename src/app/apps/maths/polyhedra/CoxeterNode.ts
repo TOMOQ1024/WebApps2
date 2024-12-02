@@ -135,35 +135,30 @@ export class CoxeterNode3 {
     return n;
   }
 
-  popPolygonA() {
+  popPolygonA(ni: string) {
     const polygon: string[] = [];
     let n: CoxeterNode3 = this,
       m: CoxeterNode3;
-    if (this.coordinate.length % 2) {
-      if (!this.c) return [];
-      for (let i = 0; i < this.ma; i++) {
-        m = n;
-        n = n.c!;
+    for (let i = 0; i < this.ma * 2 + 10; i++) {
+      m = n;
+      const sa = ni[0] === "s" ? (n.coordinate.match(/a/g) ?? []).length : 0;
+      const sb = ni[1] === "s" ? (n.coordinate.match(/b/g) ?? []).length : 0;
+      const sc = ni[2] === "s" ? (n.coordinate.match(/c/g) ?? []).length : 0;
+      const f = (sa + sc + sb) % 2;
+      if (n.coordinate.length % 2) {
+        if (!n.c) return polygon;
+        n = n.c;
+        if (!polygon.length && f) continue;
         m.c = null;
+        if (f) continue;
         if (polygon[polygon.length - 1] !== n.coordinate)
           polygon.push(n.coordinate);
-        m = n;
-        n = n.b!;
+      } else {
+        if (!n.b) return polygon;
+        n = n.b;
+        if (!polygon.length && f) continue;
         m.b = null;
-        if (polygon[polygon.length - 1] !== n.coordinate)
-          polygon.push(n.coordinate);
-      }
-    } else {
-      if (!this.b) return [];
-      for (let i = 0; i < this.ma; i++) {
-        m = n;
-        n = n.b!;
-        m.b = null;
-        if (polygon[polygon.length - 1] !== n.coordinate)
-          polygon.push(n.coordinate);
-        m = n;
-        n = n.c!;
-        m.c = null;
+        if (f) continue;
         if (polygon[polygon.length - 1] !== n.coordinate)
           polygon.push(n.coordinate);
       }
@@ -171,35 +166,30 @@ export class CoxeterNode3 {
     return polygon;
   }
 
-  popPolygonB() {
+  popPolygonB(ni: string) {
     const polygon: string[] = [];
     let n: CoxeterNode3 = this,
       m: CoxeterNode3;
-    if (this.coordinate.length % 2) {
-      if (!this.a) return [];
-      for (let i = 0; i < this.mb; i++) {
-        m = n;
-        n = n.a!;
+    for (let i = 0; i < this.mb * 2 + 10; i++) {
+      m = n;
+      const sa = ni[0] === "s" ? (n.coordinate.match(/a/g) ?? []).length : 0;
+      const sb = ni[1] === "s" ? (n.coordinate.match(/b/g) ?? []).length : 0;
+      const sc = ni[2] === "s" ? (n.coordinate.match(/c/g) ?? []).length : 0;
+      const f = (sa + sc + sb) % 2;
+      if (n.coordinate.length % 2) {
+        if (!n.a) return polygon;
+        n = n.a;
+        if (!polygon.length && f) continue;
         m.a = null;
+        if (f) continue;
         if (polygon[polygon.length - 1] !== n.coordinate)
           polygon.push(n.coordinate);
-        m = n;
-        n = n.c!;
+      } else {
+        if (!n.c) return polygon;
+        n = n.c;
+        if (!polygon.length && f) continue;
         m.c = null;
-        if (polygon[polygon.length - 1] !== n.coordinate)
-          polygon.push(n.coordinate);
-      }
-    } else {
-      if (!this.c) return [];
-      for (let i = 0; i < this.mb; i++) {
-        m = n;
-        n = n.c!;
-        m.c = null;
-        if (polygon[polygon.length - 1] !== n.coordinate)
-          polygon.push(n.coordinate);
-        m = n;
-        n = n.a!;
-        m.a = null;
+        if (f) continue;
         if (polygon[polygon.length - 1] !== n.coordinate)
           polygon.push(n.coordinate);
       }
@@ -207,35 +197,30 @@ export class CoxeterNode3 {
     return polygon;
   }
 
-  popPolygonC() {
+  popPolygonC(ni: string) {
     const polygon: string[] = [];
     let n: CoxeterNode3 = this,
       m: CoxeterNode3;
-    if (this.coordinate.length % 2) {
-      if (!this.b) return [];
-      for (let i = 0; i < this.mc; i++) {
-        m = n;
-        n = n.b!;
+    for (let i = 0; i < this.mc * 2 + 10; i++) {
+      m = n;
+      const sa = ni[0] === "s" ? (n.coordinate.match(/a/g) ?? []).length : 0;
+      const sb = ni[1] === "s" ? (n.coordinate.match(/b/g) ?? []).length : 0;
+      const sc = ni[2] === "s" ? (n.coordinate.match(/c/g) ?? []).length : 0;
+      const f = (sa + sc + sb) % 2;
+      if (n.coordinate.length % 2) {
+        if (!n.b) return polygon;
+        n = n.b;
+        if (!polygon.length && f) continue;
         m.b = null;
+        if (f) continue;
         if (polygon[polygon.length - 1] !== n.coordinate)
           polygon.push(n.coordinate);
-        m = n;
-        n = n.a!;
+      } else {
+        if (!n.a) return polygon;
+        n = n.a;
+        if (!polygon.length && f) continue;
         m.a = null;
-        if (polygon[polygon.length - 1] !== n.coordinate)
-          polygon.push(n.coordinate);
-      }
-    } else {
-      if (!this.a) return [];
-      for (let i = 0; i < this.mc; i++) {
-        m = n;
-        n = n.a!;
-        m.a = null;
-        if (polygon[polygon.length - 1] !== n.coordinate)
-          polygon.push(n.coordinate);
-        m = n;
-        n = n.b!;
-        m.b = null;
+        if (f) continue;
         if (polygon[polygon.length - 1] !== n.coordinate)
           polygon.push(n.coordinate);
       }

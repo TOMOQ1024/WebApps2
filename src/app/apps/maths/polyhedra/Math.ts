@@ -184,7 +184,7 @@ export class GyrovectorSpace2 {
       const p = this.distance(Q, R);
       const q = this.distance(R, P);
       const r = this.distance(P, Q);
-      const s = 0.2 * (p + q + r);
+      const s = (p + q + r) / 2;
       return Math.sqrt(s * (s - p) * (s - q) * (s - r));
     }
     return (
@@ -196,7 +196,7 @@ export class GyrovectorSpace2 {
     );
   }
 
-  idodynam(P: Vector2, Q: Vector2, R: Vector2) {
+  isodynam(P: Vector2, Q: Vector2, R: Vector2) {
     let pp = this.distance(Q, R);
     let qq = this.distance(R, P);
     let rr = this.distance(P, Q);

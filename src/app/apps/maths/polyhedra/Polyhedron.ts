@@ -55,7 +55,11 @@ export function CreatePolyhedron(
 
   const coordinates = [""];
   graph.isSolved(undefined, coordinates);
+  const nodes = graph.nodes(coordinates);
   console.log(coordinates);
+
+  const positions: Vector2[] = []; // ジャイロベクトル平面上の頂点座標
+  const polygons: number[][] = []; // 多角形
 
   // 重複した頂点の抽出
   const identicalIndices: number[][] = [];
@@ -72,27 +76,9 @@ export function CreatePolyhedron(
   // console.log(identicalIndices);
 
   // 単位領域内の頂点定義
-  let Q0: Vector2;
-  if (ni === "xxx") {
-    Q0 = g.incenter(A, B, C);
-  } else if (ni === "oxx") {
-    Q0 = g.v_2v1e(C, A, c, a / 2);
-  } else if (ni === "xox") {
-    Q0 = g.v_2v1e(A, B, a, b / 2);
-  } else if (ni === "xxo") {
-    Q0 = g.v_2v1e(B, C, b, c / 2);
-  } else if (ni === "oox") {
-    Q0 = C.clone();
-  } else if (ni === "oxo") {
-    Q0 = B.clone();
-  } else if (ni === "xoo") {
-    Q0 = A.clone();
-  } else {
-    Q0 = new Vector2(0.1, 0.1);
-  }
+  let Q0 = getInitPoint(g, A, B, C, a, b, c, ni);
 
   // 頂点座標の生成(gyrovector)
-  const positions: Vector2[] = []; // ジャイロベクトル平面上の頂点座標
   for (let i = 0; i < identicalIndices.length; i++) {
     let Q = Q0;
     const coordinate = coordinates[identicalIndices[i][0]];
@@ -109,32 +95,56 @@ export function CreatePolyhedron(
   }
   // console.log(positions);
 
+  // snubによる面の追加
+  const indicesToDelete: number[] = [];
+  if (ni.match("s")) {
+    for (let i = 0; i < identicalIndices.length; i++) {
+      const ii = identicalIndices[i];
+      const n = nodes[ii[0]];
+      const co = n.coordinate;
+      const sa = ni[0] === "s" ? (co.match(/a/g) ?? []).length : 0;
+      const sb = ni[1] === "s" ? (co.match(/b/g) ?? []).length : 0;
+      const sc = ni[2] === "s" ? (co.match(/c/g) ?? []).length : 0;
+      if ((sa + sc + sb) % 2) continue;
+      indicesToDelete.push(i);
+      polygons.push([
+        coordinates.indexOf(n.a!.coordinate),
+        coordinates.indexOf(n.b!.coordinate),
+        coordinates.indexOf(n.c!.coordinate),
+      ]);
+    }
+  }
+
   // 多角形リストの作成(graphの破壊)
-  const nodes = graph.nodes(coordinates);
-  const polygons: number[][] = [];
   for (let i = 0; i < coordinates.length; i++) {
-    polygons.push(nodes[i].popPolygonA().map((co) => coordinates.indexOf(co)));
-    polygons.push(nodes[i].popPolygonB().map((co) => coordinates.indexOf(co)));
-    polygons.push(nodes[i].popPolygonC().map((co) => coordinates.indexOf(co)));
+    polygons.push(
+      nodes[i].popPolygonA(ni).map((co) => coordinates.indexOf(co))
+    );
+    polygons.push(
+      nodes[i].popPolygonB(ni).map((co) => coordinates.indexOf(co))
+    );
+    polygons.push(
+      nodes[i].popPolygonC(ni).map((co) => coordinates.indexOf(co))
+    );
   }
 
   // 重複した頂点の結合
+  arrangePolygons(polygons, identicalIndices);
+
+  // snubによる頂点の削除
+  for (let i = identicalIndices.length - 1; i >= 0; i--) {
+    if (indicesToDelete.indexOf(i) >= 0) {
+      positions.splice(i, 1);
+      identicalIndices.splice(i, 1);
+    }
+  }
   for (let i = 0; i < polygons.length; i++) {
     const p = polygons[i];
     for (let j = 0; j < p.length; j++) {
-      p[j] = identicalIndices.findIndex((ii) => ii.indexOf(p[j]) >= 0);
-    }
-    for (let j = 0; j < p.length; j++) {
-      if (p[j] === p[(j + 1) % p.length]) {
-        p.splice(j, 1);
-        j--;
-      }
-    }
-    if (p.length <= 2) {
-      polygons.splice(i, 1);
-      i--;
+      p[j] -= indicesToDelete.filter((d) => d <= p[j]).length;
     }
   }
+
   console.log(polygons);
 
   // 三角形リストの作成
@@ -170,4 +180,61 @@ export function CreatePolyhedron(
   geometry.setAttribute("position", new BufferAttribute(vertices, 3));
   geometry.setIndex(new BufferAttribute(indices, 1));
   return geometry;
+}
+
+function getInitPoint(
+  g: GyrovectorSpace2,
+  A: Vector2,
+  B: Vector2,
+  C: Vector2,
+  a: number,
+  b: number,
+  c: number,
+  ni: string
+) {
+  let Q0: Vector2;
+  if (ni === "xxx") Q0 = g.incenter(A, B, C);
+  else if (ni === "oxx") Q0 = g.v_2v1e(C, A, c, a / 2);
+  else if (ni === "xox") Q0 = g.v_2v1e(A, B, a, b / 2);
+  else if (ni === "xxo") Q0 = g.v_2v1e(B, C, b, c / 2);
+  else if (ni === "oox") Q0 = C.clone();
+  else if (ni === "oxo") Q0 = B.clone();
+  else if (ni === "xoo") Q0 = A.clone();
+  else if (ni === "xxs") Q0 = g.incenter(A, B, C);
+  else if (ni === "xsx") Q0 = g.incenter(A, B, C);
+  else if (ni === "sxx") Q0 = g.incenter(A, B, C);
+  else if (ni === "xss") Q0 = g.incenter(A, B, C);
+  else if (ni === "sxs") Q0 = g.incenter(A, B, C);
+  else if (ni === "ssx") Q0 = g.incenter(A, B, C);
+  else if (ni === "oos") Q0 = C.clone();
+  else if (ni === "oso") Q0 = B.clone();
+  else if (ni === "soo") Q0 = A.clone();
+  else if (ni === "oss") Q0 = g.v_oss(A, B, C);
+  else if (ni === "sos") Q0 = g.v_oss(B, C, A);
+  else if (ni === "sso") Q0 = g.v_oss(C, A, B);
+  else if (ni === "sss") Q0 = g.mean3(A, B, C);
+  else Q0 = g.incenter(A, B, C);
+
+  return Q0;
+}
+
+// 面の配列を整える
+function arrangePolygons(polygons: number[][], identicalIndices: number[][]) {
+  for (let i = 0; i < polygons.length; i++) {
+    const p = polygons[i];
+    // 不要な点の削除
+    for (let j = 0; j < p.length; j++) {
+      p[j] = identicalIndices.findIndex((ii) => ii.indexOf(p[j]) >= 0);
+    }
+    // 不要な辺の削除
+    for (let j = 0; j < p.length; j++) {
+      if (p[j] === p[(j + 1) % p.length]) {
+        p.splice(j--, 1);
+      }
+    }
+    // 不要な面の削除
+    if (p.length <= 2) {
+      polygons.splice(i--, 1);
+    }
+  }
 }

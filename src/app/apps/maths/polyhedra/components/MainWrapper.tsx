@@ -77,10 +77,12 @@ export default function MainWrapper() {
         }
 
         if (e.key === "p" && !e.shiftKey && !e.metaKey && tagName !== "INPUT") {
-          const g = CreatePolyhedron(5, 3, 2, "xxx", false)!;
-          initCore.scene.add(
-            new Mesh(g?.scale(0.2, 0.2, 0.2), new MeshLambertMaterial())
+          const g = CreatePolyhedron(2, 2, 5, "sss", false)!.scale(
+            0.2,
+            0.2,
+            0.2
           );
+          initCore.scene.add(new Mesh(g, new MeshLambertMaterial()));
           const edges = new EdgesGeometry(g);
           const line = new LineSegments(
             edges,
