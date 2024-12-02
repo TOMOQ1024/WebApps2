@@ -43,19 +43,33 @@ export function CreatePolyhedron(
   const graph = new CoxeterNode3(ma, mb, mc);
   graph.build();
 
-  console.log(graph);
-  // console.log(graph.isSolved(50, searchedNodes));
-  // console.log(searchedNodes.length);
-  // searchedNodes[0] = "1";
+  // console.log(graph);
+  // console.log(graph.isSolved(50, coordinates));
+  // console.log(coordinates.length);
+  // coordinates[0] = "1";
   // console.log(
-  //   searchedNodes.reduce((p, s, i) => {
+  //   coordinates.reduce((p, s, i) => {
   //     return p.padEnd(5) + s.padEnd(5) + ((i + 1) % 4 ? "" : "\n");
   //   })
   // );
 
-  const searchedNodes = [""];
-  graph.isSolved(undefined, searchedNodes);
-  console.log(searchedNodes);
+  const coordinates = [""];
+  graph.isSolved(undefined, coordinates);
+  console.log(coordinates);
+
+  // 重複した頂点の抽出
+  const identicalIndices: number[][] = [];
+  for (let i = 0; i < coordinates.length; i++) {
+    if (identicalIndices.flat().indexOf(i) < 0) {
+      identicalIndices.push(
+        graph
+          .getNodeAt(coordinates[i])!
+          .getIdenticalNodes(ni)
+          .map((v) => coordinates.indexOf(v))
+      );
+    }
+  }
+  // console.log(identicalIndices);
 
   // 単位領域内の頂点定義
   let Q0: Vector2;
@@ -79,14 +93,15 @@ export function CreatePolyhedron(
 
   // 頂点座標の生成(gyrovector)
   const positions: Vector2[] = []; // ジャイロベクトル平面上の頂点座標
-  for (let i = 0; i < searchedNodes.length; i++) {
+  for (let i = 0; i < identicalIndices.length; i++) {
     let Q = Q0;
-    for (let j = searchedNodes[i].length - 1; j >= 0; j--) {
-      if (searchedNodes[i][j] === "a") {
+    const coordinate = coordinates[identicalIndices[i][0]];
+    for (let j = coordinate.length - 1; j >= 0; j--) {
+      if (coordinate[j] === "a") {
         Q = g.reflect(Q, B, C);
-      } else if (searchedNodes[i][j] === "b") {
+      } else if (coordinate[j] === "b") {
         Q = g.reflect(Q, C, A);
-      } else if (searchedNodes[i][j] === "c") {
+      } else if (coordinate[j] === "c") {
         Q = g.reflect(Q, A, B);
       }
     }
@@ -94,26 +109,38 @@ export function CreatePolyhedron(
   }
   // console.log(positions);
 
-  // 多角形リストの作成
-  const nodes = graph.nodes(searchedNodes);
+  // 多角形リストの作成(graphの破壊)
+  const nodes = graph.nodes(coordinates);
   const polygons: number[][] = [];
-  for (let i = 0; i < searchedNodes.length; i++) {
-    let polygon: number[];
-    let n = nodes[i];
-    polygon = n.popPolygonA().map((c) => searchedNodes.indexOf(c));
-    if (polygon.length) polygons.push(polygon);
-    polygon = n.popPolygonB().map((c) => searchedNodes.indexOf(c));
-    if (polygon.length) polygons.push(polygon);
-    polygon = n.popPolygonC().map((c) => searchedNodes.indexOf(c));
-    if (polygon.length) polygons.push(polygon);
+  for (let i = 0; i < coordinates.length; i++) {
+    polygons.push(nodes[i].popPolygonA().map((co) => coordinates.indexOf(co)));
+    polygons.push(nodes[i].popPolygonB().map((co) => coordinates.indexOf(co)));
+    polygons.push(nodes[i].popPolygonC().map((co) => coordinates.indexOf(co)));
   }
 
+  // 重複した頂点の結合
+  for (let i = 0; i < polygons.length; i++) {
+    const p = polygons[i];
+    for (let j = 0; j < p.length; j++) {
+      p[j] = identicalIndices.findIndex((ii) => ii.indexOf(p[j]) >= 0);
+    }
+    for (let j = 0; j < p.length; j++) {
+      if (p[j] === p[(j + 1) % p.length]) {
+        p.splice(j, 1);
+        j--;
+      }
+    }
+    if (p.length <= 2) {
+      polygons.splice(i, 1);
+      i--;
+    }
+  }
   console.log(polygons);
 
   // 三角形リストの作成
   const order: number[] = [];
   for (let i = 0; i < polygons.length; i++) {
-    let p = polygons[i];
+    const p = polygons[i];
     for (let j = 0; j < p.length - 2; j++) {
       const L = (Math.floor(j / 2) + 1) % p.length;
       const H = (p.length - Math.ceil(j / 2)) % p.length;

@@ -24,12 +24,12 @@ export class CoxeterNode3 {
   }
 
   root() {
-    return this.getNodeWhere(this.coordinate.split("").reverse().join(""))!;
+    return this.getNodeAt(this.coordinate.split("").reverse().join(""))!;
   }
 
   nodes(searchedNodes: string[] = [""]) {
     if (!searchedNodes.length) this.isSolved(undefined, searchedNodes);
-    return searchedNodes.map((p) => this.getNodeWhere(p)!);
+    return searchedNodes.map((p) => this.getNodeAt(p)!);
   }
 
   clone() {
@@ -42,17 +42,17 @@ export class CoxeterNode3 {
       nodes.push(new CoxeterNode3(this.ma, this.mb, this.mc, searchedNodes[i]));
     }
     for (let i = 0; i < searchedNodes.length; i++) {
-      const t = root.getNodeWhere(searchedNodes[i])!;
+      const t = root.getNodeAt(searchedNodes[i])!;
       const n = nodes[i];
-      n.a = nodes[searchedNodes.indexOf(t.getNodeWhere("a")!.coordinate)];
-      n.b = nodes[searchedNodes.indexOf(t.getNodeWhere("b")!.coordinate)];
-      n.c = nodes[searchedNodes.indexOf(t.getNodeWhere("c")!.coordinate)];
+      n.a = nodes[searchedNodes.indexOf(t.getNodeAt("a")!.coordinate)];
+      n.b = nodes[searchedNodes.indexOf(t.getNodeAt("b")!.coordinate)];
+      n.c = nodes[searchedNodes.indexOf(t.getNodeAt("c")!.coordinate)];
       nodes.push(n);
     }
     return nodes[0];
   }
 
-  getNodeWhere(path: string) {
+  getNodeAt(path: string) {
     let n: CoxeterNode3 | null = this;
     for (let i = 0; i < path.length && n; i++) {
       if (path[i] === "a") n = n.a;
@@ -66,12 +66,12 @@ export class CoxeterNode3 {
   addIfNotExistA() {
     if (this.a) return null;
     let t: CoxeterNode3 | null;
-    if ((t = this.getNodeWhere("ca".repeat(this.mb).slice(0, -1)))) {
+    if ((t = this.getNodeAt("ca".repeat(this.mb).slice(0, -1)))) {
       this.a = t;
       t.a = this;
       return null;
     }
-    if ((t = this.getNodeWhere("ba".repeat(this.mc).slice(0, -1)))) {
+    if ((t = this.getNodeAt("ba".repeat(this.mc).slice(0, -1)))) {
       this.a = t;
       t.a = this;
       return null;
@@ -90,12 +90,12 @@ export class CoxeterNode3 {
   addIfNotExistB() {
     if (this.b) return null;
     let t: CoxeterNode3 | null;
-    if ((t = this.getNodeWhere("ab".repeat(this.mc).slice(0, -1)))) {
+    if ((t = this.getNodeAt("ab".repeat(this.mc).slice(0, -1)))) {
       this.b = t;
       t.b = this;
       return null;
     }
-    if ((t = this.getNodeWhere("cb".repeat(this.ma).slice(0, -1)))) {
+    if ((t = this.getNodeAt("cb".repeat(this.ma).slice(0, -1)))) {
       this.b = t;
       t.b = this;
       return null;
@@ -114,12 +114,12 @@ export class CoxeterNode3 {
   addIfNotExistC() {
     if (this.c) return null;
     let t: CoxeterNode3 | null;
-    if ((t = this.getNodeWhere("bc".repeat(this.ma).slice(0, -1)))) {
+    if ((t = this.getNodeAt("bc".repeat(this.ma).slice(0, -1)))) {
       this.c = t;
       t.c = this;
       return null;
     }
-    if ((t = this.getNodeWhere("ac".repeat(this.mb).slice(0, -1)))) {
+    if ((t = this.getNodeAt("ac".repeat(this.mb).slice(0, -1)))) {
       this.c = t;
       t.c = this;
       return null;
@@ -265,5 +265,21 @@ export class CoxeterNode3 {
       if (!this.c.isSolved(maxDepth - 1, searchedNodes)) return false;
     }
     return true;
+  }
+
+  getIdenticalNodes(ni: string, identicalNodes = [this.coordinate]) {
+    if (ni[0] === "o" && identicalNodes.indexOf(this.a!.coordinate) < 0) {
+      identicalNodes.push(this.a!.coordinate);
+      this.a!.getIdenticalNodes(ni, identicalNodes);
+    }
+    if (ni[1] === "o" && identicalNodes.indexOf(this.b!.coordinate) < 0) {
+      identicalNodes.push(this.b!.coordinate);
+      this.b!.getIdenticalNodes(ni, identicalNodes);
+    }
+    if (ni[2] === "o" && identicalNodes.indexOf(this.c!.coordinate) < 0) {
+      identicalNodes.push(this.c!.coordinate);
+      this.c!.getIdenticalNodes(ni, identicalNodes);
+    }
+    return identicalNodes;
   }
 }
