@@ -16,7 +16,7 @@ import {
 import DiskMgr from "./disks/DiskMgr";
 import { OrbitControls } from "three/examples/jsm/Addons";
 import { Disk } from "./disks/Disk";
-import { IsIn } from "@/src/misc/maths/IsIn";
+import { IsIn } from "@/src/maths/IsIn";
 import CursorMgr from "./cursors/CursorMgr";
 
 export default class Core {

@@ -1,5 +1,5 @@
 import { Vector2 } from "three";
-import { clamp } from "three/src/math/MathUtils";
+import { clamp } from "three/src/math/MathUtils.js";
 
 export class GyrovectorSpace2 {
   curvature = 1;

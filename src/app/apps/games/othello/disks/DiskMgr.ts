@@ -1,7 +1,7 @@
 import { Group } from "three";
 import Core from "../Core";
 import { Disk } from "./Disk";
-import { IsIn } from "@/src/misc/maths/IsIn";
+import { IsIn } from "@/src/maths/IsIn";
 
 export default class DiskMgr {
   disks: Disk[][] = [];
