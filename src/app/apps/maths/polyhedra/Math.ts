@@ -1,4 +1,5 @@
 import { Vector2 } from "three";
+import { clamp } from "three/src/math/MathUtils";
 
 export class GyrovectorSpace2 {
   curvature = 1;
@@ -24,7 +25,8 @@ export class GyrovectorSpace2 {
 
   asin(x: number) {
     if (this.curvature < 0) return this.radius * Math.asinh(x / this.radius);
-    if (this.curvature > 0) return this.radius * Math.asin(x / this.radius);
+    if (this.curvature > 0)
+      return this.radius * Math.asin(clamp(x / this.radius, -1, 1));
     return x;
   }
 
@@ -58,6 +60,10 @@ export class GyrovectorSpace2 {
 
   sub(P: Vector2, Q: Vector2) {
     return this.add(Q.clone().negate(), P);
+  }
+
+  length(P: Vector2) {
+    return 2 * this.atan(P.length());
   }
 
   distance(P: Vector2, Q: Vector2) {
@@ -117,8 +123,7 @@ export class GyrovectorSpace2 {
   }
 
   reflect(V: Vector2, P: Vector2, Q: Vector2) {
-    if (Number.isNaN(this.line(V, P, Q)) || Math.abs(this.line(V, P, Q)) < 0.1)
-      return V;
+    if (Math.abs(this.line(V, P, Q)) < 1e-9) return V;
     const R = this.rotateFrom(V, P, 2 * this.angle3(V, P, Q));
     if (Number.isNaN(R.x)) {
       console.log(
@@ -241,19 +246,27 @@ export class GyrovectorSpace2 {
     );
   }
 
-  mean3(P: Vector2, Q: Vector2, R: Vector2) {
-    const lp = 2 / (1 + this.curvature * P.lengthSq());
-    const lq = 2 / (1 + this.curvature * Q.lengthSq());
-    const lr = 2 / (1 + this.curvature * R.lengthSq());
-    const m = lp - 1 + (lq - 1) + (lr - 1);
-    return this.mul(
-      0.5,
-      P.clone()
-        .multiplyScalar(lp)
-        .add(Q.clone().multiplyScalar(lq))
-        .add(R.clone().multiplyScalar(lr))
-        .divideScalar(m)
-    );
+  antipode(P: Vector2) {
+    // return P.clone()
+    //   .negate()
+    //   .multiplyScalar(
+    //     (1 + this.curvature * P.lengthSq()) /
+    //       (2 * this.curvature * P.lengthSq())
+    //   );
+    return this.mul(this.length(P) - Math.PI * this.radius, this.normalize(P));
+  }
+
+  mean(...P: Vector2[]) {
+    const l = P.map((p) => 2 / (1 + this.curvature * p.lengthSq()));
+    const m = l.reduce((a, b) => a + b) - l.length;
+    const V = new Vector2(0, 0);
+    for (let i = 0; i < P.length; i++) {
+      V.add(P[i].clone().multiplyScalar(l[i]));
+    }
+    const A = this.mul(0.5, V.divideScalar(m));
+    if (this.curvature <= 0) return A;
+    const B = this.antipode(A);
+    return this.distance(P[0], A) < this.distance(P[0], B) ? A : B;
   }
 }
 

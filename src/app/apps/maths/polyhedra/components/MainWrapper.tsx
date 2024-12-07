@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import Controls from "./Controls";
 import { CreatePolyhedron } from "../Polyhedron";
 import {
+  AxesHelper,
   EdgesGeometry,
   LineBasicMaterial,
   LineSegments,
@@ -77,18 +78,43 @@ export default function MainWrapper() {
         }
 
         if (e.key === "p" && !e.shiftKey && !e.metaKey && tagName !== "INPUT") {
-          const g = CreatePolyhedron(2, 2, 5, "sss", false)!.scale(
+          // 3,3,2,xxo,false
+          // 4,3,2,xoo
+          // initCore.scene.add(new AxesHelper());
+          const [ma, mb, mc, ni] = [3, 5, 2, "sss"];
+          const g0 = CreatePolyhedron(ma, mb, mc, ni, !true)!.scale(
             0.2,
             0.2,
             0.2
           );
-          initCore.scene.add(new Mesh(g, new MeshLambertMaterial()));
-          const edges = new EdgesGeometry(g);
-          const line = new LineSegments(
-            edges,
-            new LineBasicMaterial({ color: 0xffffff })
+          initCore.scene.add(
+            new LineSegments(
+              new EdgesGeometry(g0),
+              new LineBasicMaterial({ color: 0x00ffff })
+            )
           );
-          initCore.scene.add(line);
+
+          const g = CreatePolyhedron(ma, mb, mc, ni, true)!.scale(
+            0.2,
+            0.2,
+            0.2
+          );
+          initCore.scene.add(
+            new Mesh(
+              g,
+              new MeshLambertMaterial({
+                color: 0,
+                opacity: 0.9,
+                transparent: true,
+              })
+            )
+          );
+          initCore.scene.add(
+            new LineSegments(
+              new EdgesGeometry(g),
+              new LineBasicMaterial({ color: 0xffff00 })
+            )
+          );
         }
       };
 

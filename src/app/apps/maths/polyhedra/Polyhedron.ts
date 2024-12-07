@@ -39,6 +39,9 @@ export function CreatePolyhedron(
   const B = g.mul(AB, new Vector2(g.tan(0.5), 0));
   const C = g.mul(CA, g.normalize(new Vector2(Math.cos(a), Math.sin(a))));
 
+  // console.log(A, B, C);
+  // console.log(g.line(g.v_2v1e(B, C, b, c / 2), A, B));
+
   // 群構造の構築
   const graph = new CoxeterNode3(ma, mb, mc);
   graph.build();
@@ -93,7 +96,7 @@ export function CreatePolyhedron(
     }
     positions.push(Q);
   }
-  // console.log(positions);
+  console.log(positions);
 
   // snubによる面の追加
   const indicesToDelete: number[] = [];
@@ -147,6 +150,47 @@ export function CreatePolyhedron(
 
   console.log(polygons);
 
+  if (dual) {
+    const newPositions: Vector2[] = [];
+    const newPolygons: number[][] = [];
+    for (let i = 0; i < polygons.length; i++) {
+      newPositions.push(g.mean(...polygons[i].map((p) => positions[p])));
+    }
+    for (let i = 0; i < positions.length; i++) {
+      const newPolygon: number[] = [];
+      for (let j = 0; j < polygons.length; j++) {
+        if (polygons[j].indexOf(i) >= 0) {
+          newPolygon.push(j);
+        }
+      }
+      newPolygons.push([]);
+      let p = 0;
+      while (true) {
+        if (p < 0) break;
+        newPolygons[i].push(newPolygon[p]);
+        let neighbor =
+          polygons[newPolygon[p]][
+            (polygons[newPolygon[p]].indexOf(i) -
+              1 +
+              polygons[newPolygon[p]].length) %
+              polygons[newPolygon[p]].length
+          ];
+        p = newPolygon.findIndex(
+          (n) =>
+            newPolygons[i].indexOf(n) < 0 && polygons[n].indexOf(neighbor) >= 0
+        );
+      }
+    }
+    console.log(newPolygons);
+
+    positions.splice(0, positions.length);
+    positions.push(...newPositions);
+    polygons.splice(0, polygons.length);
+    polygons.push(...newPolygons);
+  }
+
+  console.log(polygons);
+
   // 三角形リストの作成
   const order: number[] = [];
   for (let i = 0; i < polygons.length; i++) {
@@ -174,6 +218,8 @@ export function CreatePolyhedron(
       .flat()
   );
   const indices = new Uint16Array(order);
+
+  console.log(vertices);
 
   const geometry = new BufferGeometry();
   geometry.setAttribute("normal", new BufferAttribute(vertices, 3));
@@ -212,7 +258,7 @@ function getInitPoint(
   else if (ni === "oss") Q0 = g.v_oss(A, B, C);
   else if (ni === "sos") Q0 = g.v_oss(B, C, A);
   else if (ni === "sso") Q0 = g.v_oss(C, A, B);
-  else if (ni === "sss") Q0 = g.mean3(A, B, C);
+  else if (ni === "sss") Q0 = g.mean(A, B, C);
   else Q0 = g.incenter(A, B, C);
 
   return Q0;

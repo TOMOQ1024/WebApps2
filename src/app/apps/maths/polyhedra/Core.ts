@@ -111,7 +111,6 @@ export default class Core {
     // this.renderer.setSize(this.cvs.width, this.cvs.height);
     this.renderer.setPixelRatio(devicePixelRatio);
     this.ctrls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.scene.add(new AxesHelper());
     const light = new DirectionalLight(0xffffff, 0.5);
     light.position.set(1, 2, 3).normalize();
     this.scene.add(light);
