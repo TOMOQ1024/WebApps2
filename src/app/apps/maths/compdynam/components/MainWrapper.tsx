@@ -13,6 +13,7 @@ export default function MainWrapper() {
   const searchParams = useSearchParams();
   const [core, setCore] = useState<Core>();
   const [isFull, setIsFull] = useState(false);
+  const [hideControls, setHideControls] = useState(false);
 
   useEffect(() => {
     if (searchParams) {
@@ -64,6 +65,13 @@ export default function MainWrapper() {
             document.exitFullscreen();
             HandleResize();
           }
+        }
+        if (e.key === "p" && !e.shiftKey && !e.metaKey && tagName !== "INPUT") {
+          const c = document.querySelector(".controls") as HTMLElement;
+          setHideControls((a) => {
+            c.style.visibility = a ? "hidden" : "visible";
+            return !a;
+          });
         }
         if (session && e.key === ";" && !e.shiftKey && !e.metaKey) {
           const data = {
@@ -252,7 +260,7 @@ export default function MainWrapper() {
         document.removeEventListener("contextmenu", preventDefault);
       };
     }
-  }, [core, session]);
+  }, [core, session, hideControls]);
 
   return (
     <main id="main-wrapper">
