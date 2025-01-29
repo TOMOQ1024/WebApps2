@@ -26,7 +26,7 @@ export default class Core {
     vert: "",
     frag: "",
   };
-  _iter: number = 10;
+  _iter: number = 30;
   get iter() {
     return this._iter;
   }
@@ -34,9 +34,10 @@ export default class Core {
     this._iter = s;
     this.updateShader();
   }
-  ma = 2;
+  ma = 3;
   mb = 3;
-  mc = 6;
+  mc = 5;
+  rd = 1;
 
   loopFlag = false;
 
@@ -103,10 +104,14 @@ export default class Core {
       uTexture: {
         value: this.videoTex,
       },
+      rd: {
+        value: this.rd,
+      },
     };
     for (let u in t) {
       this.quad.material.uniforms[u] = { value: t[u] };
     }
+
     this.quad.material.uniformsNeedUpdate = true;
 
     if (beginLoop) {
@@ -137,7 +142,7 @@ export default class Core {
       this.cvs.height,
     ];
     this.quad.material.uniforms.uTime.value = performance.now() / 1000;
-    // this.quad.material.uniforms.uTexture.value = this.videoTex;
+    this.quad.material.uniforms.rd.value = this.rd;
 
     const t = generateUniform(this.ma, this.mb, this.mc);
     for (let u in t) {

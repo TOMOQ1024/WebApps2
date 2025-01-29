@@ -10,6 +10,7 @@ import FASvgIcon from "@/components/FASvgIcon";
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import Core from "../Core";
 import LabelEditor from "./LabelEditor";
+import Settings from "./Settings";
 
 enum ControlsTab {
   EXPRESSION,
@@ -58,20 +59,25 @@ export default function Controls({ core }: { core: Core | undefined }) {
             icon={<FASvgIcon icon={faPencil} />}
             value="0"
           />
+          <Tab
+            sx={{ minWidth: 0 }}
+            icon={<FASvgIcon icon={faSliders} />}
+            value="1"
+          />
           {/* <Tab
             sx={{ minWidth: 0 }}
             icon={<FASvgIcon icon={faLightbulb} />}
             value="1"
-          />
-          <Tab
-            sx={{ minWidth: 0 }}
-            icon={<FASvgIcon icon={faSliders} />}
-            value="2"
           /> */}
         </TabList>
         {[0, 1, 2].map((i) => (
           <TabPanel value={`${i}`} key={i} sx={{ padding: 1 }}>
-            {[<LabelEditor key={0} core={core} />][i]}
+            {
+              [
+                <LabelEditor key={0} core={core} />,
+                <Settings key={1} core={core} />,
+              ][i]
+            }
           </TabPanel>
         ))}
       </TabContext>

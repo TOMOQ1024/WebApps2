@@ -12,13 +12,13 @@ uniform float mb;
 uniform float mc;
 uniform float cv;
 uniform float cr;
+uniform float rd;
 
 // uniform vec2 uMouse;
 
 #define WHITE vec4(1., 1., 1., 1.)
 #define BLACK vec4(0., 0., 0., 1.)
 #define LW .01
-#define RD 1.
 
 #define STEREO_PROJ !true
 #define DRAW_MIRRORS true
@@ -259,8 +259,8 @@ vec2 g_mean3(vec2 P, vec2 Q, vec2 R) {
 
 void main() {
   gl_FragColor = WHITE;
-  // vec2 P = RD * mat2(1., 0., 0., -1.) * (vPosition * 2. - 1.);
-  vec2 P = RD * vPosition * uResolution / min(uResolution.x, uResolution.y);
+  // vec2 P = rd * mat2(1., 0., 0., -1.) * (vPosition * 2. - 1.);
+  vec2 P = rd * vPosition * uResolution / min(uResolution.x, uResolution.y);
 
   float a = PI / ma;
   float b = PI / mb;
@@ -293,12 +293,12 @@ void main() {
   }
 
   // 鏡面の描画
-  // if(DRAW_MIRRORS && (LW / 8. > g_segment(P, B, C) ||
-  //   LW / 8. > g_segment(P, C, A) ||
-  //   LW / 8. > g_segment(P, A, B))) {
-  //   gl_FragColor = GREEN;
-  //   return;
-  // }
+  if(DRAW_MIRRORS && (LW / 8. > g_segment(P, B, C) ||
+    LW / 8. > g_segment(P, C, A) ||
+    LW / 8. > g_segment(P, A, B))) {
+    gl_FragColor = vec4(0., 1., 0., 1.);
+    return;
+  }
 
   gl_FragColor = texture2D(uTexture, (P + 1.) / 2.);
 }
