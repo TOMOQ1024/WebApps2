@@ -89,7 +89,7 @@ export default function MainWrapper() {
     const scene = new THREE.Scene();
     scene.scale.x = -1;
 
-    const environment = new RoomEnvironment(renderer);
+    const environment = new RoomEnvironment();
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
 
     scene.background = new THREE.Color(0x666666);
@@ -140,7 +140,7 @@ export default function MainWrapper() {
           head.morphTargetDictionary!
         )) {
           gui
-            .add(influences, value.toString(), 0, 1, 0.01)
+            .add(influences, value, 0, 1, 0.01)
             .name(key.replace("blendShape1.", ""))
             .listen(influences ? true : false);
         }

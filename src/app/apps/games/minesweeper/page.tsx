@@ -1,16 +1,10 @@
-import dynamic from "next/dynamic";
-import './app.scss';
+import "./app.scss";
+import MainWrapper from "./components/MainWrapper";
 
 export const metadata = {
-  title: 'Minesweeper'
+  title: "Minesweeper",
 };
 
-const MainWrapperNoSSR = dynamic(() => import('./components/MainWrapper'), {
-  ssr: false
-});
-
-export default function Main(){
-  return (
-    <MainWrapperNoSSR/>
-  )
+export default function Main() {
+  return <MainWrapper />;
 }

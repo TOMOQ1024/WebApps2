@@ -7,7 +7,7 @@ type Data = {
   frag: string;
 };
 
-export function GET(req: NextRequest, res: NextResponse<Data>) {
+export function GET(req: NextRequest) {
   const vertPath = path.resolve(
     "./public",
     "resources",
