@@ -2,6 +2,7 @@
   height: calc(var(--full-height) - var(--header-height));
   position: relative;
   image-rendering: pixelated;
+  background-color: #fbc;
   &.full {
     height: var(--full-height);
   }
@@ -11,8 +12,7 @@
   * {
     color: rgb(var(--foreground-rgb-dark));
   }
-  background-color: #fbc;
-  canvas{
+  canvas {
     background-color: #cbf;
   }
   .controls {
@@ -23,7 +23,7 @@
     border-radius: 5px;
     background-color: #00000099;
     backdrop-filter: blur(10px);
-    transition: .3s;
+    transition: 0.3s;
     &.valid {
       box-shadow: #038 0px 0px 50px 20px inset;
       border: 0.6px solid #cdf;
@@ -45,8 +45,8 @@
     }
     .controls-content {
       height: 300%;
-      &>* {
-        height: calc(100%/3);
+      & > * {
+        height: calc(100% / 3);
       }
     }
   }
