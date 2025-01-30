@@ -1,5 +1,6 @@
 "use client";
 import { signOut, useSession } from "next-auth/react";
+import Link from "next/link";
 import { useState } from "react";
 
 export default function Header() {
@@ -14,9 +15,9 @@ export default function Header() {
 
   return (
     <header>
-      <a href="/" className="title">
+      <Link href="/" className="title">
         tomoq apps
-      </a>
+      </Link>
       {/* <input
       type='button'
       value='TOGGLE THEME(does not work)'

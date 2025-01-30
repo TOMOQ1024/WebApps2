@@ -1,19 +1,19 @@
 import { ReactElement, ReactNode, cloneElement } from "react";
 
-export default function SvgFilter ({ src, children }: {
+export default function SvgFilter({
+  src,
+  children,
+}: {
   src: string;
   children: ReactNode;
 }) {
-  const filteredChildren = cloneElement(children as ReactElement, {
+  const ch = children as ReactElement<any>;
+  const filteredChildren = cloneElement(ch, {
     style: {
-      ...(children as ReactElement).props.style,
+      ...ch.props.style,
       filter: `url(${src})`,
     },
-    className: `${(children as ReactElement).props.className || ''}`
+    className: `${ch.props.className || ""}`,
   });
-  return (
-    <>
-      {filteredChildren}
-    </>
-  )
+  return <>{filteredChildren}</>;
 }

@@ -1,12 +1,13 @@
-import dynamic from 'next/dynamic';
+"use client";
+import dynamic from "next/dynamic";
 
-const PixiTemplateNoSSR = dynamic(() => import('./PixiTemplate'), {
-  ssr: false
+const PixiTemplateNoSSR = dynamic(() => import("./PixiTemplate"), {
+  ssr: false,
 });
 
 export default function MainWrapper() {
   return (
-    <main id='main-wrapper'>
+    <main id="main-wrapper">
       <PixiTemplateNoSSR />
     </main>
   );

@@ -2,7 +2,6 @@
   height: calc(var(--full-height) - var(--header-height));
   position: relative;
   image-rendering: pixelated;
-  background-color: #fbc;
   &.full {
     height: var(--full-height);
   }
@@ -12,8 +11,10 @@
   * {
     color: rgb(var(--foreground-rgb-dark));
   }
+  // background-color: #fbc;
   canvas {
-    background-color: #cbf;
+    // background-color: #cbf;
+    width: 100%;
   }
   .controls {
     // font-family: var(--font-mono);
@@ -38,7 +39,7 @@
     }
     &.max {
       width: 400px;
-      height: 160px;
+      height: 170px;
       // & {
       //   rotate: 210deg;
       // }

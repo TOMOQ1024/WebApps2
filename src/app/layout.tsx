@@ -3,6 +3,7 @@ import "./globals.scss";
 import Header from "@/components/header";
 import { authOptions } from "@/lib/authOptions";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { getServerSession } from "next-auth/next";
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
@@ -34,6 +35,7 @@ export default async function RootLayout({
           </IsClientCtxProvider>
         </NextAuthProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

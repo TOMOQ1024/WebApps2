@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/authOptions";
 import { getServerSession } from "next-auth";
 import { CompDynamPost } from "@prisma/client";
 
-export async function POST(req: NextRequest, res: NextResponse) {
+export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {

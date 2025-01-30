@@ -24,17 +24,16 @@ uniform vec2 uResolution;
 #define COL_D vec4(1., 1., .7, 1.)
 #define COL_E vec4(.7, 1., 1., 1.)
 #define LW .02
-#define RD 10.
-#define MI 50.
+#define RD 5.
+#define MI 30.
 
-#define GNOMONIC_PROJ !true
 #define STEREO_PROJ !true
 #define DRAW_MIRRORS !true
 #define DUAL !true
-#define CN  111
+#define CN  1
 
-#define ma 3.
-#define mb 5.
+#define ma 5.
+#define mb 3.
 #define mc 2.
 #define cv (sign(mb*mc+mc*ma+ma*mb-ma*mb*mc))
 #define cr 1.
@@ -262,11 +261,6 @@ void main() {
   finalColor = WHITE;
   vec2 P = RD * mat2(1.f, 0.f, 0.f, -1.f) * (vPosition * 2.f - 1.f);
 
-  // gnomonic projection
-  if(GNOMONIC_PROJ) {
-    P /= 1.f + sqrt(1.f + cv * dot(P, P));
-  }
-
   float a = PI / ma;
   float b = PI / mb;
   float c = PI / mc;
@@ -312,9 +306,9 @@ void main() {
   //   return;
   // }
 
-  if(cv < 0.f && length(P) > 1.f) {
-    return;
-  }
+  // if(cv < 0. && length(P) > 1.) {
+  //   return;
+  // }
 
   float i, ia, ib, ic;
   for(float _i = 0.f; _i < MI; _i++) {

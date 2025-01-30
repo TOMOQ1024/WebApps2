@@ -2,7 +2,7 @@ import "./app.scss";
 import MainWrapper from "./components/MainWrapper";
 
 export const metadata = {
-  title: "Minesweeper",
+  title: "Polyhedra",
 };
 
 export default function Main() {

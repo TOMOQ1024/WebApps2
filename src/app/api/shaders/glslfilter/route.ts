@@ -6,7 +6,7 @@ type Data = {
   frag: string;
 };
 
-export function GET(req: NextRequest, res: NextResponse) {
+export function GET(req: NextRequest) {
   const name = req.nextUrl.searchParams.get("name");
   if (name == null) {
     return NextResponse.json(

@@ -12,16 +12,14 @@ export function GET(req: NextRequest) {
     "./public",
     "resources",
     "maths",
-    "renderer",
-    "compdynam",
+    "r2tiling",
     "shader.vert"
   );
   const fragPath = path.resolve(
     "./public",
     "resources",
     "maths",
-    "renderer",
-    "compdynam",
+    "r2tiling",
     "shader.frag"
   );
   const vertBuf = fs.readFileSync(vertPath);

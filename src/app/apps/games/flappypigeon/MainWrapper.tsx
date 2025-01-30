@@ -7,7 +7,7 @@ import Update from "./Update";
 import { useSearchParams } from "next/navigation";
 import { Params } from "./Params";
 
-function _MainWrapper() {
+function MainWrapper_() {
   const searchParams = useSearchParams();
   if (searchParams) Params.get((name: string) => searchParams.get(name));
 
@@ -72,7 +72,7 @@ function _MainWrapper() {
 export default function MainWrapper() {
   return (
     <Suspense>
-      <_MainWrapper />
+      <MainWrapper_ />
     </Suspense>
   );
 }
