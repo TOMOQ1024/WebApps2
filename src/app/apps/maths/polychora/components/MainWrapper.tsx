@@ -82,36 +82,51 @@ export default function MainWrapper() {
           // 3,3,2,xxo,false
           // 4,3,2,xoo
           // initCore.scene.add(new AxesHelper());
-          const [ma, mb, mc, ni] = [3, 5, 2, "sss"];
-          const g0 = CreatePolychora(ma, mb, mc, ni, !true)!.scale(
-            0.2,
-            0.2,
-            0.2
-          );
-          initCore.scene.add(
-            new LineSegments(
-              new EdgesGeometry(g0),
-              new LineBasicMaterial({ color: 0x00ffff })
-            )
-          );
+          const labels = {
+            ab: 5,
+            bc: 3,
+            cd: 3,
+            da: 2,
+            ac: 2,
+            bd: 2,
+          };
+          const ni = {
+            a: "x",
+            b: "x",
+            c: "x",
+            d: "x",
+          };
+          (async () => {
+            const g0 = (await CreatePolychora(labels, ni, !true))!.scale(
+              0.2,
+              0.2,
+              0.2
+            );
+            initCore.scene.add(
+              new LineSegments(
+                new EdgesGeometry(g0),
+                new LineBasicMaterial({ color: 0x00ffff })
+              )
+            );
 
-          const g = CreatePolychora(ma, mb, mc, ni, true)!.scale(0.2, 0.2, 0.2);
-          initCore.scene.add(
-            new Mesh(
-              g,
-              new MeshLambertMaterial({
-                color: 0,
-                opacity: 0.9,
-                transparent: true,
-              })
-            )
-          );
-          initCore.scene.add(
-            new LineSegments(
-              new EdgesGeometry(g),
-              new LineBasicMaterial({ color: 0xffff00 })
-            )
-          );
+            // const g = CreatePolychora(labels, ni, true)!.scale(0.2, 0.2, 0.2);
+            // initCore.scene.add(
+            //   new Mesh(
+            //     g,
+            //     new MeshLambertMaterial({
+            //       color: 0,
+            //       opacity: 0.9,
+            //       transparent: true,
+            //     })
+            //   )
+            // );
+            // initCore.scene.add(
+            //   new LineSegments(
+            //     new EdgesGeometry(g),
+            //     new LineBasicMaterial({ color: 0xffff00 })
+            //   )
+            // );
+          })();
         }
       };
 

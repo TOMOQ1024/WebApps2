@@ -17,19 +17,17 @@ import { CoxeterNode } from "@/src/maths/CoxeterNode";
  * @example
  * CreatePolyhedron(4,3,2,0,1,0) -> Cube
  */
-export function CreatePolychora(
-  ma: number,
-  mb: number,
-  mc: number,
-  ni: string,
+export async function CreatePolychora(
+  labels: { [genPair: string]: number },
+  ni: { [gen: string]: string },
   dual: boolean
 ) {
   const g = new GyrovectorSpace2();
   g.curvature = 1;
   g.radius = 1;
-  const a = Math.PI / ma;
-  const b = Math.PI / mb;
-  const c = Math.PI / mc;
+  const a = Math.PI / labels.bc;
+  const b = Math.PI / labels.ca;
+  const c = Math.PI / labels.ab;
   const BC = g.acos(
     (Math.cos(a) + Math.cos(b) * Math.cos(c)) / (Math.sin(b) * Math.sin(c))
   );
@@ -43,23 +41,38 @@ export function CreatePolychora(
   // console.log(g.line(g.v_2v1e(B, C, b, c / 2), A, B));
 
   // 群構造の構築
-  const graph = new CoxeterNode(ma, mb, mc);
-  graph.build();
-
-  // console.log(graph);
-  // console.log(graph.isSolved(50, coordinates));
-  // console.log(coordinates.length);
-  // coordinates[0] = "1";
-  // console.log(
-  //   coordinates.reduce((p, s, i) => {
-  //     return p.padEnd(5) + s.padEnd(5) + ((i + 1) % 4 ? "" : "\n");
-  //   })
-  // );
+  const graph = new CoxeterNode(labels);
+  await graph.build();
 
   const coordinates = [""];
-  graph.isSolved(undefined, coordinates);
+  // graph.isSolved(undefined, coordinates);
+  // console.log(coordinates);
+
+  console.log(graph);
+  console.log(graph.isSolved(undefined, coordinates) ? "solved" : "unsolved");
+  console.log(`Elements: ${coordinates.length}`);
+  coordinates[0] = "1";
+  const pad =
+    coordinates.reduce((p, s) => (p.length > s.length ? p : s)).length + 1;
+  console.log(
+    coordinates.reduce((p, s, i) => {
+      return p.padEnd(pad) + s.padEnd(pad) + ((i + 1) % 8 ? "" : "\n");
+    })
+  );
+  coordinates[0] = "";
   const nodes = graph.nodes(coordinates);
-  console.log(coordinates);
+
+  const tmpGeometry = new BufferGeometry();
+  tmpGeometry.setAttribute(
+    "position",
+    new BufferAttribute(new Float32Array([]), 3)
+  );
+  tmpGeometry.setAttribute(
+    "normal",
+    new BufferAttribute(new Float32Array([]), 3)
+  );
+  tmpGeometry.setIndex(new BufferAttribute(new Uint16Array([]), 1));
+  return tmpGeometry;
 
   const positions: Vector2[] = []; // ジャイロベクトル平面上の頂点座標
   const polygons: number[][] = []; // 多角形
@@ -100,7 +113,7 @@ export function CreatePolychora(
 
   // snubによる面の追加
   const indicesToDelete: number[] = [];
-  if (ni.match("s")) {
+  if (Object.values(ni).indexOf("s") >= 0) {
     for (let i = 0; i < identicalIndices.length; i++) {
       const ii = identicalIndices[i];
       const n = nodes[ii[0]];
@@ -111,9 +124,9 @@ export function CreatePolychora(
       if ((sa + sc + sb) % 2) continue;
       indicesToDelete.push(i);
       polygons.push([
-        coordinates.indexOf(n.a!.coordinate),
-        coordinates.indexOf(n.b!.coordinate),
-        coordinates.indexOf(n.c!.coordinate),
+        coordinates.indexOf(n.siblings.a!.coordinate),
+        coordinates.indexOf(n.siblings.b!.coordinate),
+        coordinates.indexOf(n.siblings.c!.coordinate),
       ]);
     }
   }
@@ -121,13 +134,7 @@ export function CreatePolychora(
   // 多角形リストの作成(graphの破壊)
   for (let i = 0; i < coordinates.length; i++) {
     polygons.push(
-      nodes[i].popPolygonA(ni).map((co) => coordinates.indexOf(co))
-    );
-    polygons.push(
-      nodes[i].popPolygonB(ni).map((co) => coordinates.indexOf(co))
-    );
-    polygons.push(
-      nodes[i].popPolygonC(ni).map((co) => coordinates.indexOf(co))
+      nodes[i].popPolygons(ni).map((co) => coordinates.indexOf(co))
     );
   }
 
@@ -236,30 +243,10 @@ function getInitPoint(
   a: number,
   b: number,
   c: number,
-  ni: string
+  ni: { [gen: string]: string }
 ) {
   let Q0: Vector2;
-  if (ni === "xxx") Q0 = g.incenter(A, B, C);
-  else if (ni === "oxx") Q0 = g.v_2v1e(C, A, c, a / 2);
-  else if (ni === "xox") Q0 = g.v_2v1e(A, B, a, b / 2);
-  else if (ni === "xxo") Q0 = g.v_2v1e(B, C, b, c / 2);
-  else if (ni === "oox") Q0 = C.clone();
-  else if (ni === "oxo") Q0 = B.clone();
-  else if (ni === "xoo") Q0 = A.clone();
-  else if (ni === "xxs") Q0 = g.incenter(A, B, C);
-  else if (ni === "xsx") Q0 = g.incenter(A, B, C);
-  else if (ni === "sxx") Q0 = g.incenter(A, B, C);
-  else if (ni === "xss") Q0 = g.incenter(A, B, C);
-  else if (ni === "sxs") Q0 = g.incenter(A, B, C);
-  else if (ni === "ssx") Q0 = g.incenter(A, B, C);
-  else if (ni === "oos") Q0 = C.clone();
-  else if (ni === "oso") Q0 = B.clone();
-  else if (ni === "soo") Q0 = A.clone();
-  else if (ni === "oss") Q0 = g.v_oss(A, B, C);
-  else if (ni === "sos") Q0 = g.v_oss(B, C, A);
-  else if (ni === "sso") Q0 = g.v_oss(C, A, B);
-  else if (ni === "sss") Q0 = g.mean(A, B, C);
-  else Q0 = g.incenter(A, B, C);
+  return g.incenter(A, B, C);
 
   return Q0;
 }
