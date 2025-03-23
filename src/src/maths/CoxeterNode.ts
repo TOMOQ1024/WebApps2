@@ -28,7 +28,7 @@ export class CoxeterNode {
       nodesToSearch.shift();
       nodesToSearch = nodesToSearch.filter((v) => v);
       if (count++ % 1000 === 0) {
-        console.log(nodesToSearch.length);
+        console.log(`Nodes to search: ${nodesToSearch.length} nodes`);
         await sleep(0);
       }
     }
@@ -39,26 +39,27 @@ export class CoxeterNode {
     return this.getNodeAt(this.coordinate.split("").reverse().join(""))!;
   }
 
-  nodes(searchedNodes: string[] = [""]) {
-    if (!searchedNodes.length) this.isSolved(undefined, searchedNodes);
-    return searchedNodes.map((p) => this.getNodeAt(p)!);
+  nodes(searchedNodes = new Set([""])) {
+    if (!searchedNodes.size) this.isSolved(undefined, searchedNodes);
+    return Array.from(searchedNodes).map((p) => this.getNodeAt(p)!);
   }
 
   clone() {
-    const searchedNodes = [""];
+    const searchedNodes = new Set([""]);
     if (!this.isSolved(undefined, searchedNodes)) return null;
 
     const nodes: CoxeterNode[] = [];
     const root = this.root();
-    for (let i = 0; i < searchedNodes.length; i++) {
-      nodes.push(new CoxeterNode(this.labels, searchedNodes[i]));
+    for (const sn in searchedNodes) {
+      nodes.push(new CoxeterNode(this.labels, sn));
     }
-    for (let i = 0; i < searchedNodes.length; i++) {
-      const t = root.getNodeAt(searchedNodes[i])!;
-      const n = nodes[i];
+    for (const sn in searchedNodes) {
+      const t = root.getNodeAt(sn)!;
+      const n = nodes.find((v) => v.coordinate === sn)!;
       for (const gen in this.siblings) {
-        n.siblings[gen] =
-          nodes[searchedNodes.indexOf(t.getNodeAt(gen)!.coordinate)];
+        n.siblings[gen] = nodes.find(
+          (v) => v.coordinate === t.getNodeAt(gen)!.coordinate
+        )!;
       }
       nodes.push(n);
     }
@@ -147,27 +148,33 @@ export class CoxeterNode {
     return polygon;
   }
 
-  isSolved(maxDepth: number = 5000, searchedNodes: string[] = [""]) {
-    // console.log(`current at: ${this.coordinate}`);
-    if (maxDepth === 0) {
-      return true;
-    }
-    if (
-      Object.keys(this.siblings)
-        .map((gen) => this.siblings[gen])
-        .filter((n) => !n).length
-    )
-      return false;
-    for (const gen in this.siblings) {
-      const sibCoord = this.siblings[gen]!.coordinate;
-      if (searchedNodes.indexOf(sibCoord) < 0) {
-        searchedNodes.push(sibCoord);
-        if (!this.siblings[gen]!.isSolved(maxDepth - 1, searchedNodes))
-          return false;
+  isSolved(maxDepth: number = 100000, visitedNodes = new Set<string>([""])) {
+    let stack: { node: CoxeterNode; depth: number }[] = [
+      { node: this, depth: maxDepth },
+    ];
+
+    while (stack.length > 0) {
+      const { node, depth } = stack.pop()!;
+      if (depth === 0) {
+        return true;
+      }
+
+      if (Object.keys(node.siblings).some((gen) => !node.siblings[gen])) {
+        return false;
+      }
+
+      for (const gen in node.siblings) {
+        const sib = node.siblings[gen]!;
+        if (!visitedNodes.has(sib.coordinate)) {
+          visitedNodes.add(sib.coordinate);
+          stack.push({ node: sib, depth: depth - 1 });
+        }
       }
     }
+
     return true;
   }
+
   getIdenticalNodes(
     ni: { [gen: string]: string },
     identicalNodes = [this.coordinate]
