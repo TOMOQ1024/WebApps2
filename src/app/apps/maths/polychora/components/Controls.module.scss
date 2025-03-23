@@ -1,0 +1,38 @@
+.wrapper {
+  display: inline-block;
+  position: absolute;
+  left: 20px;
+  bottom: 20px;
+  // 既存のスタイル
+}
+
+.matrixContainer {
+  display: flex;
+  align-items: center;
+}
+
+.bracket {
+  font-size: 2em;
+  margin: 0 10px;
+  transform: scaleY(3.5);
+}
+
+.matrix {
+  border-collapse: collapse;
+  width: auto;
+}
+
+.matrix td {
+  border: 1px solid #000;
+  width: 30px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.upperTriangular {
+  color: white;
+}
+
+.lowerTriangular {
+  color: rebeccapurple;
+}

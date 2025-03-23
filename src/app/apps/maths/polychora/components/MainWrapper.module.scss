@@ -1,0 +1,15 @@
+.main {
+  height: calc(var(--full-height) - var(--header-height));
+  position: relative;
+  image-rendering: pixelated;
+  color: rgb(var(--foreground-rgb-dark));
+  &.full {
+    height: var(--full-height);
+  }
+  *:has(&) {
+    overflow: hidden;
+  }
+  canvas {
+    width: 100%;
+  }
+}

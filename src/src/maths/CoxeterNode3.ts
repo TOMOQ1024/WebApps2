@@ -1,7 +1,7 @@
-export class CoxeterNode {
-  a: CoxeterNode | null = null;
-  b: CoxeterNode | null = null;
-  c: CoxeterNode | null = null;
+export class CoxeterNode3 {
+  a: CoxeterNode3 | null = null;
+  b: CoxeterNode3 | null = null;
+  c: CoxeterNode3 | null = null;
 
   constructor(
     public ma: number,
@@ -11,7 +11,7 @@ export class CoxeterNode {
   ) {}
 
   build() {
-    let nodesToSearch: (CoxeterNode | null)[] = [this];
+    let nodesToSearch: (CoxeterNode3 | null)[] = [this];
     while (!this.isSolved()) {
       // console.log(graph);
       nodesToSearch.push(nodesToSearch[0]!.addIfNotExistA());
@@ -36,10 +36,10 @@ export class CoxeterNode {
     const searchedNodes = [""];
     if (!this.isSolved(undefined, searchedNodes)) return null;
 
-    const nodes: CoxeterNode[] = [];
+    const nodes: CoxeterNode3[] = [];
     const root = this.root();
     for (let i = 0; i < searchedNodes.length; i++) {
-      nodes.push(new CoxeterNode(this.ma, this.mb, this.mc, searchedNodes[i]));
+      nodes.push(new CoxeterNode3(this.ma, this.mb, this.mc, searchedNodes[i]));
     }
     for (let i = 0; i < searchedNodes.length; i++) {
       const t = root.getNodeAt(searchedNodes[i])!;
@@ -53,7 +53,7 @@ export class CoxeterNode {
   }
 
   getNodeAt(path: string) {
-    let n: CoxeterNode | null = this;
+    let n: CoxeterNode3 | null = this;
     for (let i = 0; i < path.length && n; i++) {
       if (path[i] === "a") n = n.a;
       else if (path[i] === "b") n = n.b;
@@ -65,7 +65,7 @@ export class CoxeterNode {
 
   addIfNotExistA() {
     if (this.a) return null;
-    let t: CoxeterNode | null;
+    let t: CoxeterNode3 | null;
     if ((t = this.getNodeAt("ca".repeat(this.mb).slice(0, -1)))) {
       this.a = t;
       t.a = this;
@@ -76,7 +76,12 @@ export class CoxeterNode {
       t.a = this;
       return null;
     }
-    const n = new CoxeterNode(this.ma, this.mb, this.mc, `${this.coordinate}a`);
+    const n = new CoxeterNode3(
+      this.ma,
+      this.mb,
+      this.mc,
+      `${this.coordinate}a`
+    );
     this.a = n;
     n.a = this;
     return n;
@@ -84,7 +89,7 @@ export class CoxeterNode {
 
   addIfNotExistB() {
     if (this.b) return null;
-    let t: CoxeterNode | null;
+    let t: CoxeterNode3 | null;
     if ((t = this.getNodeAt("ab".repeat(this.mc).slice(0, -1)))) {
       this.b = t;
       t.b = this;
@@ -95,7 +100,12 @@ export class CoxeterNode {
       t.b = this;
       return null;
     }
-    const n = new CoxeterNode(this.ma, this.mb, this.mc, `${this.coordinate}b`);
+    const n = new CoxeterNode3(
+      this.ma,
+      this.mb,
+      this.mc,
+      `${this.coordinate}b`
+    );
     this.b = n;
     n.b = this;
     return n;
@@ -103,7 +113,7 @@ export class CoxeterNode {
 
   addIfNotExistC() {
     if (this.c) return null;
-    let t: CoxeterNode | null;
+    let t: CoxeterNode3 | null;
     if ((t = this.getNodeAt("bc".repeat(this.ma).slice(0, -1)))) {
       this.c = t;
       t.c = this;
@@ -114,7 +124,12 @@ export class CoxeterNode {
       t.c = this;
       return null;
     }
-    const n = new CoxeterNode(this.ma, this.mb, this.mc, `${this.coordinate}c`);
+    const n = new CoxeterNode3(
+      this.ma,
+      this.mb,
+      this.mc,
+      `${this.coordinate}c`
+    );
     this.c = n;
     n.c = this;
     return n;
@@ -122,8 +137,8 @@ export class CoxeterNode {
 
   popPolygonA(ni: string) {
     const polygon: string[] = [];
-    let n: CoxeterNode = this,
-      m: CoxeterNode;
+    let n: CoxeterNode3 = this,
+      m: CoxeterNode3;
     for (let i = 0; i < this.ma * 2 + 10; i++) {
       m = n;
       const sa = ni[0] === "s" ? (n.coordinate.match(/a/g) ?? []).length : 0;
@@ -153,8 +168,8 @@ export class CoxeterNode {
 
   popPolygonB(ni: string) {
     const polygon: string[] = [];
-    let n: CoxeterNode = this,
-      m: CoxeterNode;
+    let n: CoxeterNode3 = this,
+      m: CoxeterNode3;
     for (let i = 0; i < this.mb * 2 + 10; i++) {
       m = n;
       const sa = ni[0] === "s" ? (n.coordinate.match(/a/g) ?? []).length : 0;
@@ -184,8 +199,8 @@ export class CoxeterNode {
 
   popPolygonC(ni: string) {
     const polygon: string[] = [];
-    let n: CoxeterNode = this,
-      m: CoxeterNode;
+    let n: CoxeterNode3 = this,
+      m: CoxeterNode3;
     for (let i = 0; i < this.mc * 2 + 10; i++) {
       m = n;
       const sa = ni[0] === "s" ? (n.coordinate.match(/a/g) ?? []).length : 0;

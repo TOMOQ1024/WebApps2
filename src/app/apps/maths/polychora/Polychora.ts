@@ -6,7 +6,7 @@ import {
   Vector3Tuple,
 } from "three";
 import { GyrovectorSpace2 } from "@/src/maths/GyrovectorSpace2";
-import { CoxeterNode3 } from "@/src/maths/CoxeterNode3";
+import { CoxeterNode } from "@/src/maths/CoxeterNode";
 
 /**
  * 多面体のモデルを生成する．
@@ -17,7 +17,7 @@ import { CoxeterNode3 } from "@/src/maths/CoxeterNode3";
  * @example
  * CreatePolyhedron(4,3,2,0,1,0) -> Cube
  */
-export function CreatePolyhedron(
+export function CreatePolychora(
   ma: number,
   mb: number,
   mc: number,
@@ -43,7 +43,7 @@ export function CreatePolyhedron(
   // console.log(g.line(g.v_2v1e(B, C, b, c / 2), A, B));
 
   // 群構造の構築
-  const graph = new CoxeterNode3(ma, mb, mc);
+  const graph = new CoxeterNode(ma, mb, mc);
   graph.build();
 
   // console.log(graph);
