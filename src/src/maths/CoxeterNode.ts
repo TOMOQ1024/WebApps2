@@ -103,10 +103,20 @@ export class CoxeterNode {
   }
 
   popPolygons(ni: { [gen: string]: string }) {
-    const polygons: string[] = [];
+    const polygons: string[][] = [];
     for (const genPair in this.labels) {
       const polygon = this.popPolygon(genPair, ni);
-      if (polygon.length) polygons.push(...polygon);
+      if (polygon.length % 2) {
+        console.error(
+          `Invalid polygon: [${polygon.join(",")}] at ${genPair} of ${
+            this.coordinate
+          }`
+        );
+        console.error(this);
+        return [];
+      }
+
+      if (polygon.length) polygons.push(polygon);
     }
     return polygons;
   }
@@ -122,28 +132,18 @@ export class CoxeterNode {
       for (const gen in this.siblings) {
         s[gen] =
           ni[gen] === "s"
-            ? (n.coordinate.match(new RegExp(gen, "g")) ?? []).length
+            ? n.coordinate.split("").filter((v) => v === gen).length
             : 0;
         f += s[gen];
       }
       f %= 2;
-      if (n.coordinate.length % 2) {
-        if (!n.siblings[genPair[0]]) return polygon;
-        n = n.siblings[genPair[0]]!;
-        if (!polygon.length && f) continue;
-        m.siblings[genPair[0]] = null;
-        if (f) continue;
-        if (polygon[polygon.length - 1] !== n.coordinate)
-          polygon.push(n.coordinate);
-      } else {
-        if (!n.siblings[genPair[1]]) return polygon;
-        n = n.siblings[genPair[1]]!;
-        if (!polygon.length && f) continue;
-        m.siblings[genPair[1]] = null;
-        if (f) continue;
-        if (polygon[polygon.length - 1] !== n.coordinate)
-          polygon.push(n.coordinate);
-      }
+      const j = n.coordinate.length % 2;
+      const sib = genPair[j];
+      if (!n.siblings[sib]) return polygon;
+      n = n.siblings[sib];
+      if (!polygon.length && f) continue;
+      if (f) continue;
+      if (polygon.indexOf(n.coordinate) < 0) polygon.push(n.coordinate);
     }
     return polygon;
   }

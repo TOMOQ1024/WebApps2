@@ -55,7 +55,7 @@ export default class Core {
     this.scene.add(this.camera);
   }
 
-  async init(beginLoop = true) {
+  init(beginLoop = true) {
     this.resizeCanvas();
 
     if (beginLoop) {
@@ -85,17 +85,20 @@ export default class Core {
   }
 
   beginLoop() {
+    console.log("begin loop");
     this.interval = setInterval(() => {
       this.loop();
     }, 1000 / 20);
   }
 
   endLoop() {
+    console.log("end loop");
     if (!this.interval) return;
     clearInterval(this.interval);
   }
 
   loop() {
+    // console.log("loop");
     if (this.renderer) this.renderer.render(this.scene, this.camera);
   }
 
