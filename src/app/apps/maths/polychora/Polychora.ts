@@ -40,11 +40,11 @@ export async function CreatePolychora(
     Array.from(coordinates).reduce((p, s) => (p.length > s.length ? p : s))
       .length + 1;
   const col = Math.ceil(Math.sqrt((2 * coordinates.size) / pad)) + 1;
-  console.log(
-    Array.from(coordinates).reduce((p, s, i) => {
-      return p.padEnd(pad) + s.padEnd(pad) + ((i + 1) % col ? "" : "\n");
-    })
-  );
+  // console.log(
+  //   Array.from(coordinates).reduce((p, s, i) => {
+  //     return p.padEnd(pad) + s.padEnd(pad) + ((i + 1) % col ? "" : "\n");
+  //   })
+  // );
   coordinates.delete("1");
   coordinates.add("");
 
@@ -59,9 +59,9 @@ export async function CreatePolychora(
       identicalCoordinates.push(graph.getNodeAt(c)!.getIdenticalNodes(ni));
     }
   });
-  console.log(
-    `Identical coordinates: ${identicalCoordinates.map((c) => c || "1")}`
-  );
+  // console.log(
+  //   `Identical coordinates: ${identicalCoordinates.map((c) => c || "1")}`
+  // );
 
   // 初期頂点座標の生成
   const g = new GyrovectorSpace3();
@@ -77,11 +77,11 @@ export async function CreatePolychora(
   for (let i = 0; i < identicalCoordinates.length; i++) {
     let Q = Q0;
     const coordinate = identicalCoordinates[i][0];
-    console.log(`Coordinate: ${coordinate}`);
+    // console.log(`Coordinate: ${coordinate}`);
     // for (let j = 0; j < coordinate.length; j++) {
     for (let j = coordinate.length - 1; j >= 0; j--) {
-      console.log(coordinate[j]);
-      console.log(Q);
+      // console.log(coordinate[j]);
+      // console.log(Q);
       if (coordinate[j] === "a") {
         Q = g.reflect(Q, pointB, pointC, pointD);
       } else if (coordinate[j] === "b") {
@@ -91,7 +91,7 @@ export async function CreatePolychora(
       } else if (coordinate[j] === "d") {
         Q = g.reflect(Q, pointA, pointB, pointC);
       }
-      console.log(Q);
+      // console.log(Q);
     }
     positions.push(Q);
   }
@@ -136,11 +136,11 @@ export async function CreatePolychora(
   console.log(`Vertices: ${positions.length}`);
   console.log(`Faces: ${polygons.length}`);
   console.log(CountMap(polygons.map((p) => p.length)));
-  console.log(
-    `Polygons:\n${polygons
-      .map((p) => `(${p.length}) ${p.map((c) => c || "1").join(",")}`)
-      .join("\n")}`
-  );
+  // console.log(
+  //   `Polygons:\n${polygons
+  //     .map((p) => `(${p.length}) ${p.map((c) => c || "1").join(",")}`)
+  //     .join("\n")}`
+  // );
 
   // #region snubによる頂点の削除
   // // snubによる頂点の削除
@@ -239,16 +239,16 @@ export async function CreatePolychora(
     triangles.map((c) => vertexCoordinates.indexOf(c))
   );
 
-  console.log(
-    `Vertices(${positions.length}):\n${positions
-      .map((p) =>
-        p
-          .toArray()
-          .map((v) => v.toFixed(3).padStart(7))
-          .join(",")
-      )
-      .join("\n")}`
-  );
+  // console.log(
+  //   `Vertices(${positions.length}):\n${positions
+  //     .map((p) =>
+  //       p
+  //         .toArray()
+  //         .map((v) => v.toFixed(3).padStart(7))
+  //         .join(",")
+  //     )
+  //     .join("\n")}`
+  // );
   // console.log(
   //   `Indices(${indices.length / 3}):${order
   //     .map((c) =>
@@ -284,8 +284,10 @@ function CreatePoints(
   labels: { [genPair: string]: number },
   g: GyrovectorSpace3
 ) {
+  // point A
   const pointA = new Vector3(0, 0, 0);
-  // const pointA = new Vector3(-1e-16, -1e-16, -1e-16);
+
+  // hyperplane B,C,D
   const angleCD = Math.PI - Math.PI / labels.cd;
   const angleDB = Math.PI - Math.PI / labels.bd;
   const angleBC = Math.PI - Math.PI / labels.bc;
@@ -300,6 +302,8 @@ function CreatePoints(
     )
   );
   // console.log(planeB, planeC, planeD);
+
+  // hyperplane A
   const angleAB = Math.PI - Math.PI / labels.ab;
   const angleAC = Math.PI - Math.PI / labels.ac;
   const angleAD = Math.PI - Math.PI / labels.ad;
@@ -309,59 +313,47 @@ function CreatePoints(
     Math.cos(angleAD)
   ).applyMatrix3(
     new Matrix3(
-      planeB.x,
-      planeC.x,
-      planeD.x,
-      planeB.y,
-      planeC.y,
-      planeD.y,
-      planeB.z,
-      planeC.z,
-      planeD.z
-    )
-      // .transpose()
-      .invert()
+      ...planeB.toArray(),
+      ...planeC.toArray(),
+      ...planeD.toArray()
+    ).invert()
   );
-  const pointB = planeC.clone().cross(planeD);
-  const pointC = planeD.clone().cross(planeB);
-  const pointD = planeB.clone().cross(planeC);
-  // const sphereRadiusA = (sphereCenterA.dot(pointB) - Math.sqrt((sphereCenterA.dot(pointB)) ** 2 - (sphereCenterA.lengthSq() - 1) * pointB.lengthSq())) / (sphereCenterA.lengthSq() - 1);
-  // sphereCenterA.multiplyScalar(sphereRadiusA);
-  const projectedCenterAD = sphereCenterA.clone().projectOnPlane(planeD);
-  const angleA_DAB = pointB.angleTo(projectedCenterAD);
+  const sphereRadiusA = 1 / Math.sqrt(1 - sphereCenterA.lengthSq());
+  sphereCenterA.multiplyScalar(sphereRadiusA);
+
+  // point B
+  const pointB = planeC.clone().cross(planeD).normalize();
   pointB.multiplyScalar(
-    // g.tan(0.5) *
-    1 *
-      (projectedCenterAD.length() * Math.cos(angleA_DAB) +
-        Math.sqrt(
-          projectedCenterAD.lengthSq() * Math.cos(angleA_DAB) ** 2 +
-            projectedCenterAD.lengthSq() +
-            1
-        ))
+    pointB.dot(sphereCenterA) +
+      Math.sqrt(
+        pointB.dot(sphereCenterA) ** 2 -
+          sphereCenterA.lengthSq() +
+          sphereRadiusA * sphereRadiusA
+      )
   );
-  const angleA_DAC = pointC.angleTo(projectedCenterAD);
+
+  // point C
+  const pointC = planeD.clone().cross(planeB).normalize();
   pointC.multiplyScalar(
-    // g.tan(0.5) *
-    1 *
-      (projectedCenterAD.length() * Math.cos(angleA_DAC) +
-        Math.sqrt(
-          projectedCenterAD.lengthSq() * Math.cos(angleA_DAC) ** 2 +
-            projectedCenterAD.lengthSq() +
-            1
-        ))
+    pointC.dot(sphereCenterA) +
+      Math.sqrt(
+        pointC.dot(sphereCenterA) ** 2 -
+          sphereCenterA.lengthSq() +
+          sphereRadiusA * sphereRadiusA
+      )
   );
-  const projectedCenterAC = sphereCenterA.clone().projectOnPlane(planeC);
-  const angleA_CAD = pointD.angleTo(projectedCenterAC);
+
+  // point D
+  const pointD = planeB.clone().cross(planeC).normalize();
   pointD.multiplyScalar(
-    // g.tan(0.5) *
-    1 *
-      (projectedCenterAC.length() * Math.cos(angleA_CAD) +
-        Math.sqrt(
-          projectedCenterAC.lengthSq() * Math.cos(angleA_CAD) ** 2 +
-            projectedCenterAC.lengthSq() +
-            1
-        ))
+    pointD.dot(sphereCenterA) +
+      Math.sqrt(
+        pointD.dot(sphereCenterA) ** 2 -
+          sphereCenterA.lengthSq() +
+          sphereRadiusA * sphereRadiusA
+      )
   );
+
   return {
     pointA,
     pointB,

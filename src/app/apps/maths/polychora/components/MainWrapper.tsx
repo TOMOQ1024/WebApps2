@@ -165,9 +165,9 @@ const HandleKeyDown = (
     // core.scene.add(new AxesHelper());
     const labels = {
       ab: 2,
-      bc: 2,
+      bc: 3,
       cd: 2,
-      da: 2,
+      da: 8,
       ac: 2,
       bd: 2,
     };

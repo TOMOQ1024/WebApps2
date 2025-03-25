@@ -112,7 +112,7 @@ export class GyrovectorSpace3 {
     const k = m.determinant();
 
     if (k === 0) {
-      console.log("k=0");
+      // console.log("k=0");
       const N = Q.clone().sub(P).cross(R.clone().sub(P)).normalize();
       const D = V.clone().sub(P);
       // return V+2*dot(D,N)*N;
@@ -168,19 +168,9 @@ export class GyrovectorSpace3 {
   //   );
   // }
 
-  // incenter(P: Vector3, Q: Vector3, R: Vector3) {
-  //   const QR = this.distance(Q, R);
-  //   const RP = this.distance(R, P);
-  //   const PQ = this.distance(P, Q);
-  //   const RD = this.atan(
-  //     this.sin((RP + PQ - QR) / 2) * Math.tan(0.5 * this.angle3(R, P, Q))
-  //   );
-  //   const N = this.normalize(this.sub(Q, P));
-  //   return this.add(
-  //     this.add(P, this.mul((RP + PQ - QR) / 2, N)),
-  //     this.mul(RD, this.normal(N))
-  //   );
-  // }
+  incenter3(P: Vector3, Q: Vector3, R: Vector3) {
+    //
+  }
 
   // v_2v1e(P: Vector3, Q: Vector3, p: number, q: number) {
   //   const l = this.distance(P, Q);
