@@ -49,7 +49,7 @@ export async function CreatePolychora(
   coordinates.add("");
 
   const nodes = graph.nodes(coordinates); // グラフの頂点配列
-  const positions: Vector3[] = []; // ジャイロベクトル平面上の頂点座標
+  const positions: { [key: string]: Vector3 } = {}; // ジャイロベクトル平面上の頂点座標
   const polygons: string[][] = []; // 多角形
 
   // 重複した頂点の抽出
@@ -72,6 +72,7 @@ export async function CreatePolychora(
 
   // 単位領域内の頂点定義
   let Q0 = GetInitPoint(pointA, pointB, pointC, pointD, labels, ni, g);
+  console.log(Q0);
 
   // 頂点座標の生成(gyrovector)
   for (let i = 0; i < identicalCoordinates.length; i++) {
@@ -79,6 +80,7 @@ export async function CreatePolychora(
     const coordinate = identicalCoordinates[i][0];
     // console.log(`Coordinate: ${coordinate}`);
     // let prevQ = Q;
+    // for (let j = 0; j < coordinate.length; j++) {
     for (let j = coordinate.length - 1; j >= 0; j--) {
       // console.log(coordinate[j]);
       // prevQ = Q;
@@ -86,16 +88,16 @@ export async function CreatePolychora(
       if (coordinate[j] === "a") {
         Q = g.reflect(Q, pointB, pointC, pointD);
       } else if (coordinate[j] === "b") {
-        Q = g.reflect(Q, pointC, pointD, pointA);
+        Q = g.reflect(Q, pointA, pointD, pointC);
       } else if (coordinate[j] === "c") {
-        Q = g.reflect(Q, pointB, pointD, pointA);
+        Q = g.reflect(Q, pointD, pointA, pointB);
       } else if (coordinate[j] === "d") {
-        Q = g.reflect(Q, pointA, pointB, pointC);
+        Q = g.reflect(Q, pointC, pointB, pointA);
       }
       // console.log(g.distance(Q, prevQ));
       // console.log(Q);
     }
-    positions.push(Q);
+    positions[coordinate] = Q;
   }
 
   // #region snubによる面の追加
@@ -135,7 +137,7 @@ export async function CreatePolychora(
   // 重複した頂点の結合
   // console.log("ArrangePolygons");
   ArrangePolygons(polygons, identicalCoordinates);
-  console.log(`Vertices: ${positions.length}`);
+  console.log(`Vertices: ${Object.keys(positions).length}`);
   console.log(`Faces: ${polygons.length}`);
   console.log(CountMap(polygons.map((p) => p.length)));
   // console.log(
@@ -206,80 +208,51 @@ export async function CreatePolychora(
 
   // console.log(polygons);
 
-  // // 三角形リストの作成
-  const triangles: string[] = [];
+  const triangles: number[] = []; // 三角形リスト
+  const vertices: number[] = []; // 頂点座標
+  const uvs: number[] = []; // UV座標
+  const UV_DIV = 10; // [0,1]^2 を分割する数値
+  let indexOffset = 0;
   for (let i = 0; i < polygons.length; i++) {
     const p = polygons[i];
     for (let j = 0; j < p.length - 2; j++) {
       const L = (Math.floor(j / 2) + 1) % p.length;
       const H = (p.length - Math.ceil(j / 2)) % p.length;
       triangles.push(
-        p[H],
-        p[j % 2 ? L + 1 : (H + p.length - 1) % p.length],
-        p[L]
+        indexOffset + H,
+        indexOffset + (j % 2 ? L + 1 : (H + p.length - 1) % p.length),
+        indexOffset + L
+      );
+      // triangles.push(
+      //   indexOffset + L,
+      //   indexOffset + (j % 2 ? L + 1 : (H + p.length - 1) % p.length),
+      //   indexOffset + H
+      // );
+    }
+    for (let j = 0; j < p.length; j++) {
+      vertices.push(...positions[p[j]].toArray());
+      uvs.push(
+        (Math.cos((j * 2 * Math.PI) / p.length) / 2 +
+          0.5 +
+          (p.length % UV_DIV)) /
+          UV_DIV,
+        (Math.sin((j * 2 * Math.PI) / p.length) / 2 +
+          0.5 +
+          Math.floor(p.length / UV_DIV)) /
+          UV_DIV
       );
     }
+    indexOffset += p.length;
   }
 
-  // console.log(`Order:\n${triangles.join(",")}`);
-
-  const vertices = new Float32Array(
-    positions
-      // .map((p) => {
-      //   const l = p.length();
-      //   const t = p
-      //     .clone()
-      //     .multiplyScalar(1 / (l * l + 1))
-      //     .toArray();
-      //   return new Vector4(t[0], t[1], t[2], (l * l) / (l * l + 1) - 0.5);
-      // })
-      .map((p) => p.toArray())
-      .flat()
-  );
-  const vertexCoordinates = Array.from(identicalCoordinates.map((c) => c[0])); //.sort();
-  const indices = new Uint16Array(
-    triangles.map((c) => vertexCoordinates.indexOf(c))
-  );
-
-  // console.log(
-  //   `Vertices(${positions.length}):\n${positions
-  //     .map((p) =>
-  //       p
-  //         .toArray()
-  //         .map((v) => v.toFixed(3).padStart(7))
-  //         .join(",")
-  //     )
-  //     .join("\n")}`
-  // );
-  // console.log(
-  //   `Indices(${indices.length / 3}):${triangles
-  //     .map((c) =>
-  //       // sortedCoordinates.indexOf(c).toString().padStart(3)
-  //       (c || "1").padStart(6)
-  //     )
-  //     .join(",")
-  //     .split(/(\s*[^,]+,\s*[^,]+,\s*[^,]+)/)
-  //     .filter((v) => v !== ",")
-  //     .join("\n")}`
-  // );
-
   const geometry = new BufferGeometry();
-  // geometry.setAttribute("normal", new BufferAttribute(vertices, 3));
-  geometry.setAttribute("position", new BufferAttribute(vertices, 3));
-  geometry.setIndex(new BufferAttribute(indices, 1));
+  geometry.setAttribute(
+    "position",
+    new BufferAttribute(new Float32Array(vertices), 3)
+  );
+  geometry.setAttribute("uv", new BufferAttribute(new Float32Array(uvs), 2));
+  geometry.setIndex(triangles);
   return geometry;
-
-  // const tmpGeometry = new BufferGeometry();
-  // tmpGeometry.setAttribute(
-  //   "position",
-  //   new BufferAttribute(new Float32Array([]), 3)
-  // );
-  // tmpGeometry.setAttribute(
-  //   "normal",
-  //   new BufferAttribute(new Float32Array([]), 3)
-  // );
-  // tmpGeometry.setIndex(new BufferAttribute(new Uint16Array([]), 1));
-  // return tmpGeometry;
 }
 
 function CreatePoints(

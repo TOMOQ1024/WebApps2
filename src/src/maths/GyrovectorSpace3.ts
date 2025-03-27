@@ -139,13 +139,15 @@ export class GyrovectorSpace3 {
 
   hyperplane(P: Vector3, Q: Vector3, R: Vector3) {
     const m = new Matrix3(...P.toArray(), ...Q.toArray(), ...R.toArray());
-    return {
-      i: new Vector3(P.dot(P), Q.dot(Q), R.dot(R))
-        .multiplyScalar(this.curvature)
-        .subScalar(1)
-        .applyMatrix3(m.adjugate()),
-      k: m.determinant(),
-    };
+    const det = m.determinant();
+
+    const i = new Vector3(
+      P.lengthSq() * this.curvature - 1,
+      Q.lengthSq() * this.curvature - 1,
+      R.lengthSq() * this.curvature - 1
+    ).applyMatrix3(m.adjugate());
+
+    return { i, k: det };
   }
 
   invertHyperplane(h: Hyperplane3) {

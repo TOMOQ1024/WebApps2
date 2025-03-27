@@ -1,8 +1,13 @@
 import axios from "axios";
 import {
   AmbientLight,
+  AxesHelper,
+  BufferGeometry,
   DirectionalLight,
+  DoubleSide,
+  Mesh,
   OrthographicCamera,
+  RawShaderMaterial,
   Scene,
   TextureLoader,
   WebGLRenderer,
@@ -26,6 +31,95 @@ export default class Core {
     "23": 1,
   };
   ctrls: OrbitControls;
+  geometry: BufferGeometry | null = null;
+  mesh: Mesh | null = null;
+  material = new RawShaderMaterial({
+    transparent: true,
+    side: DoubleSide,
+    depthWrite: false,
+    depthTest: false,
+    uniforms: {
+      time: { value: 0 },
+    },
+    vertexShader: `
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
+
+attribute vec3 position;
+attribute vec2 uv;
+uniform float time;
+
+varying vec2 vUv;
+
+#define cv 1.0
+
+float tanh(float x) {
+  return (exp(x) - exp(-x)) / (exp(x) + exp(-x));
+}
+
+float atanh(float x) {
+  return 0.5 * log((1.0 + x) / (1.0 - x));
+}
+
+float g_tan(float x) {
+  if (cv < 0.0) return tanh(x);
+  if (cv > 0.0) return tan(x);
+  return x;
+}
+
+float g_atan(float x) {
+  if (cv < 0.0) return atanh(x);
+  if (cv > 0.0) return atan(x);
+  return x;
+}
+
+vec3 g_add(vec3 p, vec3 q) {
+  float a = (1.0 - 2.0 * cv * dot(p, q) - cv * dot(q, q));
+  float b = (1.0 + cv * dot(p, p));
+  vec3 A = p * a;
+  vec3 B = q * b;
+  float d = 1.0 - 2.0 * cv * dot(p, q) + cv * cv * dot(p, p) * dot(q, q);
+  return (A + B) / d;
+}
+
+vec3 g_sub(vec3 p, vec3 q) {
+  return g_add(-q, p);
+}
+
+vec3 g_mul(float r, vec3 p) {
+  if (r == 0.0 || length(p) == 0.0) return vec3(0.0);
+  return normalize(p) * g_tan(r * g_atan(length(p)));
+}
+
+void main() {
+  vec3 origin = g_mul(time, vec3(1.,0.,0.));
+  vec3 S = g_sub(position, origin);
+  float l = 1.;
+  vec3 P = S*l/(dot(S,S)*(l-1.)+l);
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(P.xyz, 1.0);
+  vUv = uv;
+}
+                `,
+    fragmentShader: `
+precision highp float;
+
+varying vec2 vUv;
+
+#define PI 3.14159265358979323846
+
+void main() {
+  const float div = 10.;
+  vec2 uv = vUv;
+  float p = floor(uv.x * div) + floor(uv.y * div)*div;
+  vec2 v = mod(uv*div, 1.) * 2. - 1.;
+
+  float a = atan(v.y, v.x);
+  float r = cos(PI/p) / cos(2./p*asin(cos(p/2.*a)));
+  float col = pow(1. - abs(length(v) - r), 70.);
+  gl_FragColor = vec4(col);
+}
+                  `,
+  });
 
   constructor(cvs: HTMLCanvasElement | undefined = undefined) {
     if (cvs) {
@@ -51,6 +145,7 @@ export default class Core {
     light.position.set(1, 2, 3).normalize();
     this.scene.add(light);
     this.scene.add(new AmbientLight(0xffffff, 0.3));
+    this.scene.add(new AxesHelper(10));
 
     this.scene.add(this.camera);
   }
@@ -74,12 +169,13 @@ export default class Core {
     this.renderer.setSize(rect.width, rect.height, false);
     const width = rect.width; // またはcanvas.width
     const height = rect.height; // またはcanvas.height
-    this.camera.left = width / -200;
-    this.camera.right = width / 200;
-    this.camera.top = height / 200;
-    this.camera.bottom = height / -200;
-    this.camera.near = -100;
-    this.camera.far = 100;
+    const angle = 800;
+    this.camera.left = width / -2 / angle;
+    this.camera.right = width / 2 / angle;
+    this.camera.top = height / 2 / angle;
+    this.camera.bottom = height / -2 / angle;
+    this.camera.near = -angle;
+    this.camera.far = angle;
     this.camera.updateProjectionMatrix();
     this.loop();
   }
@@ -100,13 +196,17 @@ export default class Core {
   loop() {
     // console.log("loop");
     if (this.renderer) this.renderer.render(this.scene, this.camera);
+    this.material.uniforms.time.value += 0.01;
   }
 
   export() {
     return this.cvs.toDataURL();
   }
 
-  createPolychora() {
-    //
+  setPolychoron(g: BufferGeometry) {
+    if (this.mesh) this.scene.remove(this.mesh);
+    this.geometry = g;
+    this.mesh = new Mesh(g, this.material);
+    this.scene.add(this.mesh);
   }
 }

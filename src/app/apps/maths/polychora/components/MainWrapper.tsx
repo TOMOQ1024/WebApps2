@@ -4,18 +4,7 @@ import Core from "../Core";
 import { useSession } from "next-auth/react";
 import Controls from "./Controls";
 import { CreatePolychora } from "../Polychora";
-import {
-  AxesHelper,
-  BoxGeometry,
-  DoubleSide,
-  EdgesGeometry,
-  LineBasicMaterial,
-  LineSegments,
-  Mesh,
-  MeshLambertMaterial,
-  RawShaderMaterial,
-  Vector3,
-} from "three";
+import { DoubleSide, Mesh, RawShaderMaterial, Vector3 } from "three";
 import style from "./MainWrapper.module.scss";
 import { GyrovectorSpace3 } from "@/src/maths/GyrovectorSpace3";
 
@@ -164,8 +153,8 @@ const HandleKeyDown = (
     // 4,3,2,xoo
     // core.scene.add(new AxesHelper());
     const labels = {
-      ab: 5,
-      bc: 3,
+      ab: 2,
+      bc: 2,
       cd: 2,
       da: 2,
       ac: 2,
@@ -183,42 +172,14 @@ const HandleKeyDown = (
         0.2,
         0.2
       );
-      core.scene.add(
-        new LineSegments(
-          new EdgesGeometry(g0),
-          new LineBasicMaterial({ side: DoubleSide })
-        )
-      );
-      return;
-      core.scene.add(
-        new Mesh(
-          g0,
-          new RawShaderMaterial({
-            vertexShader: `
-uniform mat4 modelViewMatrix;
-uniform mat4 projectionMatrix;
-
-attribute vec3 position;
-
-void main() {
-  vec4 N = vec4(0,0,0,1);
-  vec3 S = position;
-  float l = 2.;
-  vec3 P = S*l/(dot(S,S)*(l-1.)+l);
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(P.xyz, 1.0);
-}
-                `,
-            fragmentShader: `
-precision highp float;
-
-void main() {
-  gl_FragColor = vec4(0., 1., 0., 1.);
-}
-                  `,
-            side: DoubleSide,
-          })
-        )
-      );
+      // core.scene.add(
+      //   new LineSegments(
+      //     new EdgesGeometry(g0),
+      //     new LineBasicMaterial({ side: DoubleSide })
+      //   )
+      // );
+      // return;
+      core.setPolychoron(g0);
 
       // core.scene.add(
       //   new Mesh(
