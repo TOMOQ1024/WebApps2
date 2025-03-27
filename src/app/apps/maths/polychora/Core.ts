@@ -78,7 +78,7 @@ export default class Core {
     this.camera.right = width / 200;
     this.camera.top = height / 200;
     this.camera.bottom = height / -200;
-    this.camera.near = 0;
+    this.camera.near = -100;
     this.camera.far = 100;
     this.camera.updateProjectionMatrix();
     this.loop();

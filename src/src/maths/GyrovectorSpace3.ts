@@ -1,6 +1,37 @@
 import { Matrix3, Vector3 } from "three";
 import { clamp } from "three/src/math/MathUtils.js";
 
+declare module "three" {
+  interface Matrix3 {
+    adjugate(): Matrix3;
+  }
+}
+
+// Matrix3の拡張
+(Matrix3.prototype as any).adjugate = function () {
+  const a = this.elements;
+  const result = new Matrix3();
+  const r = result.elements;
+
+  // 余因子行列の計算
+  r[0] = a[4] * a[8] - a[5] * a[7];
+  r[1] = -(a[1] * a[8] - a[2] * a[7]);
+  r[2] = a[1] * a[5] - a[2] * a[4];
+  r[3] = -(a[3] * a[8] - a[5] * a[6]);
+  r[4] = a[0] * a[8] - a[2] * a[6];
+  r[5] = -(a[0] * a[5] - a[2] * a[3]);
+  r[6] = a[3] * a[7] - a[4] * a[6];
+  r[7] = -(a[0] * a[7] - a[1] * a[6]);
+  r[8] = a[0] * a[4] - a[1] * a[3];
+
+  return result;
+};
+
+export interface Hyperplane3 {
+  i: Vector3;
+  k: number;
+}
+
 export class GyrovectorSpace3 {
   curvature = 1;
   radius = 1;
@@ -85,91 +116,118 @@ export class GyrovectorSpace3 {
     return P.clone().normalize().multiplyScalar(this.tan(0.5));
   }
 
-  lineN(V: Vector3, P: Vector3, Q: Vector3) {
-    const D = this.sub(V, P);
-    return this.asin(
-      (2 * this.dot(D, Q)) / (1 + this.curvature * D.lengthSq()) / Q.length()
-    );
-  }
-
-  line(V: Vector3, P: Vector3, Q: Vector3) {
-    if (P.distanceToSquared(Q) < 1e-6) return 9999 * V.distanceTo(P);
-    return this.lineN(V, P, this.normal(this.sub(Q, P)));
-  }
-
   reflect(V: Vector3, P: Vector3, Q: Vector3, R: Vector3) {
-    const m = new Matrix3(
-      P.x,
-      Q.x,
-      R.x,
-      P.y,
-      Q.y,
-      R.y,
-      P.z,
-      Q.z,
-      R.z
-    ).transpose();
-    const k = m.determinant();
+    const { i, k } = this.hyperplane(P, Q, R);
+    const v = V.clone();
+    const vDotI = v.dot(i);
+    const vLengthSq = v.lengthSq();
+    const iLengthSq = i.lengthSq();
 
-    if (k === 0) {
-      // console.log("k=0");
-      const N = Q.clone().sub(P).cross(R.clone().sub(P)).normalize();
-      const D = V.clone().sub(P);
-      // return V+2*dot(D,N)*N;
-      return V.clone().addScaledVector(N, -2 * D.dot(N));
-    } else {
-      const c = new Vector3(P.dot(P), Q.dot(Q), R.dot(R))
+    const numerator = v
+      .clone()
+      .multiplyScalar(4 * k * k + iLengthSq)
+      .sub(i.clone().multiplyScalar(2 * (vDotI - k * vLengthSq + k)));
+
+    const denominator = v
+      .clone()
+      .multiplyScalar(2 * k)
+      .sub(i)
+      .lengthSq();
+
+    return numerator.divideScalar(denominator);
+  }
+
+  hyperplane(P: Vector3, Q: Vector3, R: Vector3) {
+    const m = new Matrix3(...P.toArray(), ...Q.toArray(), ...R.toArray());
+    return {
+      i: new Vector3(P.dot(P), Q.dot(Q), R.dot(R))
         .multiplyScalar(this.curvature)
         .subScalar(1)
-        .applyMatrix3(m.invert().multiplyScalar(k));
-      const d = new Vector3().addScaledVector(V, 2 * k * this.curvature).sub(c);
-      return new Vector3()
-        .add(c)
-        .addScaledVector(
-          d,
-          (4 * k * k * this.curvature + c.lengthSq()) / d.lengthSq()
-        )
-        .divideScalar(2 * k * this.curvature);
+        .applyMatrix3(m.adjugate()),
+      k: m.determinant(),
+    };
+  }
+
+  invertHyperplane(h: Hyperplane3) {
+    return { i: h.i.clone().negate(), k: -h.k };
+  }
+
+  midHyperplane(h1: Hyperplane3, h2: Hyperplane3) {
+    const ra = Math.sqrt(h2.i.lengthSq() + 4 * h2.k * h2.k);
+    const rb = Math.sqrt(h1.i.lengthSq() + 4 * h1.k * h1.k);
+
+    const i = h1.i
+      .clone()
+      .multiplyScalar(ra)
+      .add(h2.i.clone().multiplyScalar(rb));
+    const k = h1.k * ra + h2.k * rb;
+
+    return { i, k };
+  }
+
+  // get one of two intersection points of three hyperplanes
+  intersectionPoint(h1: Hyperplane3, h2: Hyperplane3, h3: Hyperplane3) {
+    // T_{AB}=k_{B}i_{A}-k_{A}i_{B} の計算
+    const TAB = h2.i
+      .clone()
+      .multiplyScalar(h1.k)
+      .sub(h1.i.clone().multiplyScalar(h2.k));
+    const TBC = h3.i
+      .clone()
+      .multiplyScalar(h2.k)
+      .sub(h2.i.clone().multiplyScalar(h3.k));
+    const TCA = h1.i
+      .clone()
+      .multiplyScalar(h3.k)
+      .sub(h3.i.clone().multiplyScalar(h1.k));
+
+    // ゼロベクトルでない2つを選ぶ
+    let T1 = TAB;
+    let T2 = TBC;
+    let hB = h2;
+
+    if (TAB.lengthSq() < 1e-10) {
+      T1 = TBC;
+      T2 = TCA;
+      hB = h3;
+    } else if (TBC.lengthSq() < 1e-10) {
+      T1 = TCA;
+      T2 = TAB;
+      hB = h1;
     }
-    // vec2 g_reflectE(vec2 v, vec2 p, vec2 q) {
-    //   mat2 m = transpose(mat2(p, q));
-    //   float k = determinant(m);
-    //   // vec3 c = adjoint(m) * (vec3(dot(p, p), dot(q, q), dot(r, r)) - 1.f / cv);
-    //   vec2 c = inverse(m) * k * (vec2(dot(p, p), dot(q, q)) * cv - 1.f);
 
-    //   if(k == 0.f) {
-    //     return v;
-    //   } else {
-    //     vec2 d = 2.f * k * cv * v - c;
-    //     return (c + (4.f * k * k * cv + dot(c, c)) / dot(d, d) * d) / 2.f / k / cv;
-    //   }
-    // }
-  }
-
-  segment(V: Vector3, P: Vector3, Q: Vector3) {
-    if (P.distanceToSquared(Q) < 1e-6) return 9999 * V.distanceTo(P);
-    const Tp = this.normal(this.sub(Q, P));
-    const Tq = this.normal(this.sub(P, Q));
-    return Math.max(
-      Math.abs(this.line(V, P, Q)),
-      Math.max(
-        this.line(V, P, this.add(P, Tp)),
-        this.line(V, Q, this.add(Q, Tq))
-      )
+    // T_{x},T_{y},T_{z}の計算
+    const T = new Vector3(
+      T1.y * T2.z - T1.z * T2.y,
+      T1.z * T2.x - T1.x * T2.z,
+      T1.x * T2.y - T1.y * T2.x
     );
+
+    // 分母の計算
+    const denominator = 2 * hB.k * T.lengthSq();
+
+    // 分子の計算
+    const dotTiB = T.dot(hB.i);
+    const numerator =
+      dotTiB + Math.sqrt(dotTiB * dotTiB + 4 * hB.k * hB.k * T.lengthSq());
+
+    return T.multiplyScalar(numerator / denominator);
   }
 
-  // inradius(P: Vector3, Q: Vector3, R: Vector3) {
-  //   const QR = this.distance(Q, R);
-  //   const RP = this.distance(R, P);
-  //   const PQ = this.distance(P, Q);
-  //   return this.atan(
-  //     this.sin((RP + PQ - QR) / 2) * Math.tan(0.5 * this.angle3(R, P, Q))
-  //   );
-  // }
+  // 四面体の内心
+  incenter4(P: Vector3, Q: Vector3, R: Vector3, S: Vector3) {
+    const Hp = this.hyperplane(Q, R, S);
+    const Hq = this.hyperplane(P, S, R);
+    const Hr = this.hyperplane(S, P, Q);
+    const Hs = this.hyperplane(R, Q, P);
 
-  incenter3(P: Vector3, Q: Vector3, R: Vector3) {
-    //
+    const Mpq = this.midHyperplane(Hp, this.invertHyperplane(Hq));
+    const Mpr = this.midHyperplane(Hp, this.invertHyperplane(Hr));
+    const Mps = this.midHyperplane(Hp, this.invertHyperplane(Hs));
+
+    const intersection = this.intersectionPoint(Mpq, Mpr, Mps);
+
+    return intersection;
   }
 
   // v_2v1e(P: Vector3, Q: Vector3, p: number, q: number) {
@@ -250,13 +308,8 @@ export class GyrovectorSpace3 {
   // }
 
   antipode(P: Vector3) {
-    // return P.clone()
-    //   .negate()
-    //   .multiplyScalar(
-    //     (1 + this.curvature * P.lengthSq()) /
-    //       (2 * this.curvature * P.lengthSq())
-    //   );
-    return this.mul(this.length(P) - Math.PI * this.radius, this.normalize(P));
+    // \frac{-C}{\left|C\right|^{2}}
+    return P.clone().negate().divideScalar(P.lengthSq());
   }
 
   mean(...P: Vector3[]) {

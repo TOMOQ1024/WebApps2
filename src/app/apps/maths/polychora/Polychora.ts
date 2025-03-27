@@ -78,10 +78,11 @@ export async function CreatePolychora(
     let Q = Q0;
     const coordinate = identicalCoordinates[i][0];
     // console.log(`Coordinate: ${coordinate}`);
-    // for (let j = 0; j < coordinate.length; j++) {
+    // let prevQ = Q;
     for (let j = coordinate.length - 1; j >= 0; j--) {
       // console.log(coordinate[j]);
-      // console.log(Q);
+      // prevQ = Q;
+      // console.log(prevQ);
       if (coordinate[j] === "a") {
         Q = g.reflect(Q, pointB, pointC, pointD);
       } else if (coordinate[j] === "b") {
@@ -91,6 +92,7 @@ export async function CreatePolychora(
       } else if (coordinate[j] === "d") {
         Q = g.reflect(Q, pointA, pointB, pointC);
       }
+      // console.log(g.distance(Q, prevQ));
       // console.log(Q);
     }
     positions.push(Q);
@@ -250,7 +252,7 @@ export async function CreatePolychora(
   //     .join("\n")}`
   // );
   // console.log(
-  //   `Indices(${indices.length / 3}):${order
+  //   `Indices(${indices.length / 3}):${triangles
   //     .map((c) =>
   //       // sortedCoordinates.indexOf(c).toString().padStart(3)
   //       (c || "1").padStart(6)
@@ -371,7 +373,10 @@ function GetInitPoint(
   ni: { [gen: string]: string },
   g: GyrovectorSpace3
 ) {
-  return g.mean(pointA, pointB, pointC, pointD);
+  // xxxx
+  return g.incenter4(pointA, pointB, pointC, pointD);
+
+  // return g.mean(pointA, pointB, pointC, pointD);
 }
 
 // 面の重複を削除

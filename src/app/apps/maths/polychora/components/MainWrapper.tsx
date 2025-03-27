@@ -164,10 +164,10 @@ const HandleKeyDown = (
     // 4,3,2,xoo
     // core.scene.add(new AxesHelper());
     const labels = {
-      ab: 2,
+      ab: 5,
       bc: 3,
       cd: 2,
-      da: 8,
+      da: 2,
       ac: 2,
       bd: 2,
     };
