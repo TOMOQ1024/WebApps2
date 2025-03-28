@@ -152,8 +152,8 @@ const HandleKeyDown = (
     // 3,3,2,xxo,false
     // 4,3,2,xoo
     const labels = {
-      ab: 5,
-      bc: 2,
+      ab: 3,
+      bc: 4,
       cd: 3,
       da: 2,
       ac: 2,

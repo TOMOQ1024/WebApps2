@@ -91,7 +91,7 @@ vec3 g_mul(float r, vec3 p) {
 
 void main() {
   // vec3 origin = vec3(0.,0.,0.);
-  vec3 origin = g_mul(time, vec3(1.,0.,0.));
+  vec3 origin = g_mul(time*.1, vec3(1.,0.,0.));
   vec3 S = g_add(origin, position);
   float l = 1.;
   vec3 P = S*l/(dot(S,S)*(l-1.)+l);
@@ -155,7 +155,7 @@ void main() {
     if (beginLoop) {
       this.beginLoop();
     } else {
-      this.loop();
+      this.loop(0);
     }
   }
 
@@ -176,13 +176,13 @@ void main() {
     this.camera.near = -angle;
     this.camera.far = angle;
     this.camera.updateProjectionMatrix();
-    this.loop();
+    this.loop(0);
   }
 
   beginLoop() {
     console.log("begin loop");
     this.interval = setInterval(() => {
-      this.loop();
+      this.loop(1 / 20);
     }, 1000 / 20);
   }
 
@@ -192,10 +192,10 @@ void main() {
     clearInterval(this.interval);
   }
 
-  loop() {
+  loop(deltaTime: number) {
     // console.log("loop");
     if (this.renderer) this.renderer.render(this.scene, this.camera);
-    this.material.uniforms.time.value += 0.01;
+    this.material.uniforms.time.value += deltaTime;
   }
 
   export() {
