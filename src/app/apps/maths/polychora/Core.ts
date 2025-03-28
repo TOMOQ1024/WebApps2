@@ -53,6 +53,7 @@ varying vec2 vUv;
 
 #define cv 1.0
 
+// #region gyrovector functions
 float tanh(float x) {
   return (exp(x) - exp(-x)) / (exp(x) + exp(-x));
 }
@@ -74,12 +75,8 @@ float g_atan(float x) {
 }
 
 vec3 g_add(vec3 p, vec3 q) {
-  float a = (1.0 - 2.0 * cv * dot(p, q) - cv * dot(q, q));
-  float b = (1.0 + cv * dot(p, p));
-  vec3 A = p * a;
-  vec3 B = q * b;
-  float d = 1.0 - 2.0 * cv * dot(p, q) + cv * cv * dot(p, p) * dot(q, q);
-  return (A + B) / d;
+  float k = cv;
+  return ((1. - 2. * k * dot(p, q) - k * dot(q, q)) * p + (1. + k * dot(p, p)) * q) / (1. - 2. * k * dot(p, q) + k * k * dot(p, p) * dot(q, q));
 }
 
 vec3 g_sub(vec3 p, vec3 q) {
@@ -90,10 +87,12 @@ vec3 g_mul(float r, vec3 p) {
   if (r == 0.0 || length(p) == 0.0) return vec3(0.0);
   return normalize(p) * g_tan(r * g_atan(length(p)));
 }
+// #endregion
 
 void main() {
+  // vec3 origin = vec3(0.,0.,0.);
   vec3 origin = g_mul(time, vec3(1.,0.,0.));
-  vec3 S = g_sub(position, origin);
+  vec3 S = g_add(origin, position);
   float l = 1.;
   vec3 P = S*l/(dot(S,S)*(l-1.)+l);
   gl_Position = projectionMatrix * modelViewMatrix * vec4(P.xyz, 1.0);
@@ -145,7 +144,7 @@ void main() {
     light.position.set(1, 2, 3).normalize();
     this.scene.add(light);
     this.scene.add(new AmbientLight(0xffffff, 0.3));
-    this.scene.add(new AxesHelper(10));
+    // this.scene.add(new AxesHelper(10));
 
     this.scene.add(this.camera);
   }
@@ -169,7 +168,7 @@ void main() {
     this.renderer.setSize(rect.width, rect.height, false);
     const width = rect.width; // またはcanvas.width
     const height = rect.height; // またはcanvas.height
-    const angle = 800;
+    const angle = 100;
     this.camera.left = width / -2 / angle;
     this.camera.right = width / 2 / angle;
     this.camera.top = height / 2 / angle;

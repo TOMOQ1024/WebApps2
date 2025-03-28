@@ -184,19 +184,24 @@ export class GyrovectorSpace3 {
       .sub(h3.i.clone().multiplyScalar(h1.k));
 
     // ゼロベクトルでない2つを選ぶ
-    let T1 = TAB;
-    let T2 = TBC;
-    let hB = h2;
-
-    if (TAB.lengthSq() < 1e-10) {
-      T1 = TBC;
-      T2 = TCA;
-      hB = h3;
-    } else if (TBC.lengthSq() < 1e-10) {
-      T1 = TCA;
-      T2 = TAB;
-      hB = h1;
+    const arr = [TAB, TBC, TCA].map((v) => v.normalize());
+    if (Math.abs(h1.k) < 1e-10) arr.push(h1.i.normalize());
+    if (Math.abs(h2.k) < 1e-10) arr.push(h2.i.normalize());
+    if (Math.abs(h3.k) < 1e-10) arr.push(h3.i.normalize());
+    let [T1, T2] = arr.toSorted((a, b) => b.lengthSq() - a.lengthSq());
+    if (T1.lengthSq() < 1e-10) {
+      throw new Error("Invalid hyperplanes");
     }
+    if (T2.lengthSq() < 1e-10) {
+      T2 = [h1.i, h2.i, h3.i].toSorted(
+        (a, b) => b.lengthSq() - a.lengthSq()
+      )[0];
+    }
+
+    let hP: Hyperplane3;
+    if (Math.abs(h1.k) > 1e-10) hP = h1;
+    else if (Math.abs(h2.k) > 1e-10) hP = h2;
+    else hP = h3;
 
     // T_{x},T_{y},T_{z}の計算
     const T = new Vector3(
@@ -206,12 +211,12 @@ export class GyrovectorSpace3 {
     );
 
     // 分母の計算
-    const denominator = 2 * hB.k * T.lengthSq();
+    const denominator = 2 * hP.k * T.lengthSq();
 
     // 分子の計算
-    const dotTiB = T.dot(hB.i);
+    const dotTiB = T.dot(hP.i);
     const numerator =
-      dotTiB + Math.sqrt(dotTiB * dotTiB + 4 * hB.k * hB.k * T.lengthSq());
+      dotTiB + Math.sqrt(dotTiB * dotTiB + 4 * hP.k * hP.k * T.lengthSq());
 
     return T.multiplyScalar(numerator / denominator);
   }
@@ -223,6 +228,9 @@ export class GyrovectorSpace3 {
     const Hr = this.hyperplane(S, P, Q);
     const Hs = this.hyperplane(R, Q, P);
 
+    // const Mpq = this.midHyperplane(Hp, Hq);
+    // const Mpr = this.midHyperplane(Hp, Hr);
+    // const Mps = this.midHyperplane(Hp, Hs);
     const Mpq = this.midHyperplane(Hp, this.invertHyperplane(Hq));
     const Mpr = this.midHyperplane(Hp, this.invertHyperplane(Hr));
     const Mps = this.midHyperplane(Hp, this.invertHyperplane(Hs));

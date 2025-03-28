@@ -151,11 +151,10 @@ const HandleKeyDown = (
   if (e.key === "p" && !e.shiftKey && !e.metaKey && tagName !== "INPUT") {
     // 3,3,2,xxo,false
     // 4,3,2,xoo
-    // core.scene.add(new AxesHelper());
     const labels = {
-      ab: 2,
+      ab: 5,
       bc: 2,
-      cd: 2,
+      cd: 3,
       da: 2,
       ac: 2,
       bd: 2,
@@ -167,44 +166,8 @@ const HandleKeyDown = (
       d: "x",
     };
     (async () => {
-      const g0 = (await CreatePolychora(labels, ni, !true))!.scale(
-        0.2,
-        0.2,
-        0.2
-      );
-      // core.scene.add(
-      //   new LineSegments(
-      //     new EdgesGeometry(g0),
-      //     new LineBasicMaterial({ side: DoubleSide })
-      //   )
-      // );
-      // return;
+      const g0 = (await CreatePolychora(labels, ni, !true))!;
       core.setPolychoron(g0);
-
-      // core.scene.add(
-      //   new Mesh(
-      //     new BoxGeometry(1, 1, 1),
-      //     new MeshLambertMaterial({ color: 0xff0000 })
-      //   )
-      // );
-
-      // const g = CreatePolychora(labels, ni, true)!.scale(0.2, 0.2, 0.2);
-      // core.scene.add(
-      //   new Mesh(
-      //     g,
-      //     new MeshLambertMaterial({
-      //       color: 0,
-      //       opacity: 0.9,
-      //       transparent: true,
-      //     })
-      //   )
-      // );
-      // core.scene.add(
-      //   new LineSegments(
-      //     new EdgesGeometry(g),
-      //     new LineBasicMaterial({ color: 0xffff00 })
-      //   )
-      // );
     })();
   }
 };

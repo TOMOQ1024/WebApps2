@@ -100,6 +100,8 @@ export async function CreatePolychora(
     positions[coordinate] = Q;
   }
 
+  console.log(positions);
+
   // #region snubによる面の追加
   // // snubによる面の追加
   // const indicesToDelete: number[] = [];
@@ -231,14 +233,10 @@ export async function CreatePolychora(
     }
     for (let j = 0; j < p.length; j++) {
       vertices.push(...positions[p[j]].toArray());
+      let n = p.length >= 100 ? 0 : p.length;
       uvs.push(
-        (Math.cos((j * 2 * Math.PI) / p.length) / 2 +
-          0.5 +
-          (p.length % UV_DIV)) /
-          UV_DIV,
-        (Math.sin((j * 2 * Math.PI) / p.length) / 2 +
-          0.5 +
-          Math.floor(p.length / UV_DIV)) /
+        (Math.cos((j * 2 * Math.PI) / n) / 2 + 0.5 + (n % UV_DIV)) / UV_DIV,
+        (Math.sin((j * 2 * Math.PI) / n) / 2 + 0.5 + Math.floor(n / UV_DIV)) /
           UV_DIV
       );
     }
@@ -331,9 +329,9 @@ function CreatePoints(
 
   return {
     pointA,
-    pointB,
-    pointC,
-    pointD,
+    pointB: pointB.lengthSq() > 1 ? g.antipode(pointB) : pointB,
+    pointC: pointC.lengthSq() > 1 ? g.antipode(pointC) : pointC,
+    pointD: pointD.lengthSq() > 1 ? g.antipode(pointD) : pointD,
   };
 }
 
