@@ -152,12 +152,10 @@ const HandleKeyDown = (
     core.downloadGLB();
   }
   if (e.key === "p" && !e.shiftKey && !e.metaKey && tagName !== "INPUT") {
-    // 3,3,2,xxo,false
-    // 4,3,2,xoo
     const labels = {
-      ab: 3,
-      bc: 4,
-      cd: 3,
+      ab: 6,
+      bc: 2,
+      cd: 6,
       da: 2,
       ac: 2,
       bd: 2,

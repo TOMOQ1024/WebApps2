@@ -6,7 +6,7 @@ import {
   Vector4,
 } from "three";
 import { CoxeterNode } from "@/src/maths/CoxeterNode";
-import { GyrovectorSpace3 } from "@/src/maths/GyrovectorSpace3";
+import { MobiusGyrovectorSphericalSpace3 } from "@/src/maths/MobiusGyrovectorSphericalSpace3";
 import { CountMap } from "@/src/CountMap";
 
 /**
@@ -64,9 +64,7 @@ export async function CreatePolychora(
   // );
 
   // 初期頂点座標の生成
-  const g = new GyrovectorSpace3();
-  g.curvature = 1;
-  g.radius = 1;
+  const g = new MobiusGyrovectorSphericalSpace3();
   const { pointA, pointB, pointC, pointD } = CreatePoints(labels, g);
   console.log(pointA, pointB, pointC, pointD);
 
@@ -255,7 +253,7 @@ export async function CreatePolychora(
 
 function CreatePoints(
   labels: { [genPair: string]: number },
-  g: GyrovectorSpace3
+  g: MobiusGyrovectorSphericalSpace3
 ) {
   // point A
   const pointA = new Vector3(0, 0, 0);
@@ -342,8 +340,19 @@ function GetInitPoint(
   pointD: Vector3,
   labels: { [genPair: string]: number },
   ni: { [gen: string]: string },
-  g: GyrovectorSpace3
+  g: MobiusGyrovectorSphericalSpace3
 ) {
+  const planeA = g.hyperplane(pointB, pointC, pointD);
+  const planeB = g.hyperplane(pointA, pointD, pointC);
+  const planeC = g.hyperplane(pointD, pointA, pointB);
+  const planeD = g.hyperplane(pointC, pointB, pointA);
+  const planeMAB = g.midHyperplane(planeA, g.invertHyperplane(planeB));
+  const planeMAC = g.midHyperplane(planeA, g.invertHyperplane(planeC));
+  const planeMAD = g.midHyperplane(planeA, g.invertHyperplane(planeD));
+  const planeMBC = g.midHyperplane(planeB, g.invertHyperplane(planeC));
+  const planeMBD = g.midHyperplane(planeB, g.invertHyperplane(planeD));
+  const planeMCD = g.midHyperplane(planeC, g.invertHyperplane(planeD));
+
   switch (`${ni.a}${ni.b}${ni.c}${ni.d}`) {
     case "xxxx":
       return g.incenter4(pointA, pointB, pointC, pointD);
@@ -358,31 +367,26 @@ function GetInitPoint(
       return pointD;
 
     case "xxoo":
-      return g.reflect(
-        g.incenter4(pointA, pointB, pointC, pointD),
-        pointB,
-        pointC,
-        pointD
-      );
+      return g.intersectionPoint(planeC, planeD, planeMAB);
     case "xoxo":
-      return g.incenter4(pointA, pointB, pointC, pointD);
+      return g.intersectionPoint(planeB, planeD, planeMAC);
     case "xoox":
-      return g.incenter4(pointA, pointB, pointC, pointD);
+      return g.intersectionPoint(planeB, planeC, planeMAD);
     case "oxxo":
-      return g.incenter4(pointA, pointB, pointC, pointD);
+      return g.intersectionPoint(planeA, planeD, planeMBC);
     case "oxox":
-      return g.incenter4(pointA, pointB, pointC, pointD);
+      return g.intersectionPoint(planeA, planeC, planeMBD);
     case "ooxx":
-      return g.incenter4(pointA, pointB, pointC, pointD);
+      return g.intersectionPoint(planeA, planeB, planeMCD);
 
     case "oxxx":
-      return g.incenter4(pointA, pointB, pointC, pointD);
+      return g.intersectionPoint(planeA, planeMBC, planeMCD);
     case "xoxx":
-      return g.incenter4(pointA, pointB, pointC, pointD);
+      return g.intersectionPoint(planeB, planeMAD, planeMCD);
     case "xxox":
-      return g.incenter4(pointA, pointB, pointC, pointD);
+      return g.intersectionPoint(planeC, planeMAD, planeMAB);
     case "xxxo":
-      return g.incenter4(pointA, pointB, pointC, pointD);
+      return g.intersectionPoint(planeD, planeMAC, planeMAB);
 
     default:
       return g.mean(pointA, pointB, pointC, pointD);
