@@ -3,6 +3,8 @@ import sleep from "../Sleep";
 export class CoxeterNode {
   siblings: { [gen: string]: CoxeterNode | null } = {};
 
+  readonly MAX_NODES = 10000;
+
   constructor(
     public labels: { [genPair: string]: number },
     public coordinate: string = ""
@@ -18,18 +20,21 @@ export class CoxeterNode {
   }
 
   async build() {
-    let nodesToSearch: (CoxeterNode | null)[] = [this];
+    let nodesToSearch: CoxeterNode[] = [this];
     let count = 0;
-    while (!this.isSolved()) {
-      // console.log(graph);
+    let n: CoxeterNode | null;
+    while (nodesToSearch.length > 0) {
       for (const gen in this.siblings) {
-        nodesToSearch.push(nodesToSearch[0]!.addSiblingIfNotExist(gen));
+        n = nodesToSearch[0]!.addSiblingIfNotExist(gen);
+        if (n) nodesToSearch.push(n);
       }
       nodesToSearch.shift();
-      nodesToSearch = nodesToSearch.filter((v) => v);
       if (count++ % 1000 === 0) {
         console.log(`Nodes to search: ${nodesToSearch.length} nodes`);
         await sleep(0);
+      }
+      if (nodesToSearch.length > this.MAX_NODES) {
+        throw new Error("Too many nodes to search");
       }
     }
     return this;
@@ -39,9 +44,23 @@ export class CoxeterNode {
     return this.getNodeAt(this.coordinate.split("").reverse().join(""))!;
   }
 
-  nodes(searchedNodes = new Set([""])) {
-    if (!searchedNodes.size) this.isSolved(undefined, searchedNodes);
-    return Array.from(searchedNodes).map((p) => this.getNodeAt(p)!);
+  nodes() {
+    const searchedNodes: { [coordinate: string]: CoxeterNode } = {};
+    const nodesToSearch: CoxeterNode[] = [this];
+
+    while (nodesToSearch.length > 0) {
+      const currentNode = nodesToSearch.shift()!;
+
+      for (const gen in currentNode.siblings) {
+        const sibling = currentNode.siblings[gen];
+        if (sibling && !searchedNodes[sibling.coordinate]) {
+          searchedNodes[sibling.coordinate] = sibling;
+          nodesToSearch.push(sibling);
+        }
+      }
+    }
+
+    return searchedNodes;
   }
 
   clone() {

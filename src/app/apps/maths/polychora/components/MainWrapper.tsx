@@ -153,9 +153,9 @@ const HandleKeyDown = (
   }
   if (e.key === "p" && !e.shiftKey && !e.metaKey && tagName !== "INPUT") {
     const labels = {
-      ab: 6,
-      bc: 2,
-      cd: 6,
+      ab: 5,
+      bc: 3,
+      cd: 3,
       da: 2,
       ac: 2,
       bd: 2,

@@ -27,76 +27,33 @@ export async function CreatePolychora(
   const graph = new CoxeterNode(labels);
   await graph.build();
 
-  const coordinates = new Set([""]);
-  // graph.isSolved(undefined, coordinates);
-  // console.log(coordinates);
-
   console.log(graph);
-  console.log(graph.isSolved(undefined, coordinates) ? "solved" : "unsolved");
-  console.log(`Elements: ${coordinates.size}`);
-  coordinates.delete("");
-  coordinates.add("1");
-  const pad =
-    Array.from(coordinates).reduce((p, s) => (p.length > s.length ? p : s))
-      .length + 1;
-  const col = Math.ceil(Math.sqrt((2 * coordinates.size) / pad)) + 1;
+  console.log(graph.isSolved(undefined) ? "solved" : "unsolved");
+  const nodes = graph.nodes(); // グラフの頂点配列
+  console.log(`Elements: ${nodes.length}`);
+  // coordinates.delete("");
+  // coordinates.add("1");
+  // const pad =
+  //   Array.from(coordinates).reduce((p, s) => (p.length > s.length ? p : s))
+  //     .length + 1;
+  // const col = Math.ceil(Math.sqrt((2 * coordinates.size) / pad)) + 1;
   // console.log(
   //   Array.from(coordinates).reduce((p, s, i) => {
   //     return p.padEnd(pad) + s.padEnd(pad) + ((i + 1) % col ? "" : "\n");
   //   })
   // );
-  coordinates.delete("1");
-  coordinates.add("");
+  // coordinates.delete("1");
+  // coordinates.add("");
 
-  const nodes = graph.nodes(coordinates); // グラフの頂点配列
-  const positions: { [key: string]: Vector3 } = {}; // ジャイロベクトル平面上の頂点座標
   const polygons: string[][] = []; // 多角形
 
-  // 重複した頂点の抽出
-  const identicalCoordinates: string[][] = [];
-  coordinates.forEach((c) => {
-    if (identicalCoordinates.flat().indexOf(c) < 0) {
-      identicalCoordinates.push(graph.getNodeAt(c)!.getIdenticalNodes(ni));
-    }
-  });
+  console.log("get identical coordinates");
+  const identicalCoordinates = GetIdenticalCoordinates(nodes, ni); // 重複した頂点の抽出
   // console.log(
   //   `Identical coordinates: ${identicalCoordinates.map((c) => c || "1")}`
   // );
 
-  // 初期頂点座標の生成
-  const g = new MobiusGyrovectorSphericalSpace3();
-  const { pointA, pointB, pointC, pointD } = CreatePoints(labels, g);
-  console.log(pointA, pointB, pointC, pointD);
-
-  // 単位領域内の頂点定義
-  let Q0 = GetInitPoint(pointA, pointB, pointC, pointD, labels, ni, g);
-  console.log(Q0);
-
-  // 頂点座標の生成(gyrovector)
-  for (let i = 0; i < identicalCoordinates.length; i++) {
-    let Q = Q0;
-    const coordinate = identicalCoordinates[i][0];
-    // console.log(`Coordinate: ${coordinate}`);
-    // let prevQ = Q;
-    // for (let j = 0; j < coordinate.length; j++) {
-    for (let j = coordinate.length - 1; j >= 0; j--) {
-      // console.log(coordinate[j]);
-      // prevQ = Q;
-      // console.log(prevQ);
-      if (coordinate[j] === "a") {
-        Q = g.reflect(Q, pointB, pointC, pointD);
-      } else if (coordinate[j] === "b") {
-        Q = g.reflect(Q, pointA, pointD, pointC);
-      } else if (coordinate[j] === "c") {
-        Q = g.reflect(Q, pointD, pointA, pointB);
-      } else if (coordinate[j] === "d") {
-        Q = g.reflect(Q, pointC, pointB, pointA);
-      }
-      // console.log(g.distance(Q, prevQ));
-      // console.log(Q);
-    }
-    positions[coordinate] = Q;
-  }
+  const positions = GetPositions(identicalCoordinates, labels, ni); // ジャイロベクトル平面上の頂点座標
 
   console.log(positions);
 
@@ -123,19 +80,20 @@ export async function CreatePolychora(
   // #endregion
 
   // 多角形リストの作成(graphの破壊)
-  coordinates.forEach((c) => {
-    polygons.push(...nodes.find((n) => n.coordinate === c)!.popPolygons(ni));
-  });
+  console.log("Creating Polygons");
+  for (const n of Object.values(nodes)) {
+    polygons.push(...n.popPolygons(ni));
+  }
   // console.log(`Polygons: ${polygons.length}`);
   // console.log(polygons.map((p) => p.length).toSorted());
 
   // 重複した面の削除
-  // console.log("DedupePolygons");
+  console.log("Deduplicating Polygons");
   DedupePolygons(polygons);
   // console.log(`Polygons: ${polygons.length}`);
 
   // 重複した頂点の結合
-  // console.log("ArrangePolygons");
+  console.log("Arranging Polygons");
   ArrangePolygons(polygons, identicalCoordinates);
   console.log(`Vertices: ${Object.keys(positions).length}`);
   console.log(`Faces: ${polygons.length}`);
@@ -251,7 +209,7 @@ export async function CreatePolychora(
   return geometry;
 }
 
-function CreatePoints(
+function GetFundamentalDomain(
   labels: { [genPair: string]: number },
   g: MobiusGyrovectorSphericalSpace3
 ) {
@@ -333,6 +291,21 @@ function CreatePoints(
   };
 }
 
+function GetIdenticalCoordinates(
+  nodes: { [key: string]: CoxeterNode },
+  ni: { [gen: string]: string }
+) {
+  const identicalCoordinates: string[][] = [nodes[""]!.getIdenticalNodes(ni)];
+  const searchedCoordinates = new Set<string>();
+
+  Object.keys(nodes).forEach((c) => {
+    if (searchedCoordinates.has(c)) return;
+    identicalCoordinates.push(nodes[c].getIdenticalNodes(ni));
+    searchedCoordinates.add(c);
+  });
+  return identicalCoordinates;
+}
+
 function GetInitPoint(
   pointA: Vector3,
   pointB: Vector3,
@@ -391,6 +364,47 @@ function GetInitPoint(
     default:
       return g.mean(pointA, pointB, pointC, pointD);
   }
+}
+
+function GetPositions(
+  identicalCoordinates: string[][],
+  labels: { [genPair: string]: number },
+  ni: { [gen: string]: string }
+) {
+  const positions: { [key: string]: Vector3 } = {};
+
+  // 初期頂点座標の生成
+  const g = new MobiusGyrovectorSphericalSpace3();
+  const { pointA, pointB, pointC, pointD } = GetFundamentalDomain(labels, g);
+  console.log(pointA, pointB, pointC, pointD);
+
+  // 単位領域内の頂点定義
+  let Q0 = GetInitPoint(pointA, pointB, pointC, pointD, labels, ni, g);
+  console.log(Q0);
+
+  // 頂点座標の生成(gyrovector)
+  for (let i = 0; i < identicalCoordinates.length; i++) {
+    let Q = Q0;
+    const coordinate = identicalCoordinates[i][0];
+    for (let j = coordinate.length - 1; j >= 0; j--) {
+      if (positions[coordinate.slice(j)]) {
+        Q = positions[coordinate.slice(j)]!;
+        continue;
+      }
+      if (coordinate[j] === "a") {
+        Q = g.reflect(Q, pointB, pointC, pointD);
+      } else if (coordinate[j] === "b") {
+        Q = g.reflect(Q, pointA, pointD, pointC);
+      } else if (coordinate[j] === "c") {
+        Q = g.reflect(Q, pointD, pointA, pointB);
+      } else if (coordinate[j] === "d") {
+        Q = g.reflect(Q, pointC, pointB, pointA);
+      }
+      positions[coordinate.slice(j)] = Q;
+    }
+    positions[coordinate] = Q;
+  }
+  return positions;
 }
 
 // 面の重複を削除
