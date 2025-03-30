@@ -408,9 +408,22 @@ function CreatePolygons(
   ni: { [gen: string]: string }
 ) {
   const polygons: string[][] = [];
+  const processedNodes = new Set<string>();
+
+  // 各ノードを一度だけ処理
   for (const n of Object.values(nodes)) {
-    polygons.push(...n.popPolygons(ni));
+    if (processedNodes.has(n.coordinate)) continue;
+    processedNodes.add(n.coordinate);
+
+    // 各生成子ペアに対して面を生成
+    for (const genPair in n.labels) {
+      const polygon = n.popPolygon(genPair, ni);
+      if (polygon.length > 0) {
+        polygons.push(polygon);
+      }
+    }
   }
+
   return polygons;
 }
 

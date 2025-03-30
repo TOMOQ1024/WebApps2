@@ -122,39 +122,47 @@ export class CoxeterNode {
   }
 
   popPolygons(ni: { [gen: string]: string }) {
-    const polygons: string[][] = [];
-    for (const genPair in this.labels) {
-      const polygon = this.popPolygon(genPair, ni);
-
-      if (polygon.length) polygons.push(polygon);
-    }
-    return polygons;
+    return Object.keys(this.labels)
+      .map((genPair) => this.popPolygon(genPair, ni))
+      .filter((polygon) => polygon.length > 0);
   }
 
   popPolygon(genPair: string, ni: { [gen: string]: string }) {
     const polygon: string[] = [];
-    let n: CoxeterNode = this,
-      m: CoxeterNode;
-    for (let i = 0; i < this.labels[genPair] * 2 + 10; i++) {
-      m = n;
-      const s: { [gen: string]: number } = {};
-      let f = 0;
-      for (const gen in this.siblings) {
-        s[gen] =
-          ni[gen] === "s"
-            ? n.coordinate.split("").filter((v) => v === gen).length
-            : 0;
-        f += s[gen];
+    let currentNode: CoxeterNode = this;
+    const maxIterations = this.labels[genPair] * 2 + 10;
+
+    // 生成元ごとのsフラグをキャッシュ
+    const isSnubGen = Object.fromEntries(
+      Object.keys(this.siblings).map((gen) => [gen, ni[gen] === "s"])
+    );
+
+    for (let i = 0; i < maxIterations; i++) {
+      let snubFlag = 0;
+      if (Object.values(isSnubGen).some((flag) => flag)) {
+        const coord = currentNode.coordinate;
+        for (const [gen, isSnub] of Object.entries(isSnubGen)) {
+          if (isSnub) {
+            snubFlag += (coord.match(new RegExp(gen, "g")) || []).length;
+          }
+        }
+        snubFlag %= 2;
       }
-      f %= 2;
-      const j = n.coordinate.length % 2;
-      const sib = genPair[j];
-      if (!n.siblings[sib]) return polygon;
-      n = n.siblings[sib];
-      if (!polygon.length && f) continue;
-      if (f) continue;
-      if (polygon.indexOf(n.coordinate) < 0) polygon.push(n.coordinate);
+
+      const sib = genPair[currentNode.coordinate.length % 2];
+      if (!currentNode.siblings[sib]) return polygon;
+
+      currentNode = currentNode.siblings[sib];
+
+      // snubフラグに基づく処理
+      if (snubFlag && (!polygon.length || true)) continue;
+
+      // 重複チェックと追加
+      if (!polygon.includes(currentNode.coordinate)) {
+        polygon.push(currentNode.coordinate);
+      }
     }
+
     return polygon;
   }
 
