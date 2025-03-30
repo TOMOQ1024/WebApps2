@@ -125,15 +125,6 @@ export class CoxeterNode {
     const polygons: string[][] = [];
     for (const genPair in this.labels) {
       const polygon = this.popPolygon(genPair, ni);
-      if (polygon.length % 2) {
-        console.error(
-          `Invalid polygon: [${polygon.join(",")}] at ${genPair} of ${
-            this.coordinate
-          }`
-        );
-        console.error(this);
-        return [];
-      }
 
       if (polygon.length) polygons.push(polygon);
     }

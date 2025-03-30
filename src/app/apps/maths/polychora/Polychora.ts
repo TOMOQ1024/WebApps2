@@ -45,8 +45,6 @@ export async function CreatePolychora(
   // coordinates.delete("1");
   // coordinates.add("");
 
-  const polygons: string[][] = []; // 多角形
-
   console.log("get identical coordinates");
   const identicalCoordinates = GetIdenticalCoordinates(nodes, ni); // 重複した頂点の抽出
   // console.log(
@@ -81,9 +79,7 @@ export async function CreatePolychora(
 
   // 多角形リストの作成(graphの破壊)
   console.log("Creating Polygons");
-  for (const n of Object.values(nodes)) {
-    polygons.push(...n.popPolygons(ni));
-  }
+  const polygons = CreatePolygons(nodes, ni); // 多角形
   // console.log(`Polygons: ${polygons.length}`);
   // console.log(polygons.map((p) => p.length).toSorted());
 
@@ -407,26 +403,48 @@ function GetPositions(
   return positions;
 }
 
+function CreatePolygons(
+  nodes: { [key: string]: CoxeterNode },
+  ni: { [gen: string]: string }
+) {
+  const polygons: string[][] = [];
+  for (const n of Object.values(nodes)) {
+    polygons.push(...n.popPolygons(ni));
+  }
+  return polygons;
+}
+
 // 面の重複を削除
 function DedupePolygons(polygons: string[][]) {
-  const uniquePolygons = new Set<string>();
+  const uniquePolygons = new Map<string, string[]>();
 
-  polygons.forEach((polygon) => {
-    const rotations = [];
-    for (let i = 0; i < polygon.length; i++) {
-      rotations.push(polygon.slice(i).concat(polygon.slice(0, i)).join(","));
-      rotations.push(
-        polygon.slice(i).concat(polygon.slice(0, i)).reverse().join(",")
-      );
+  for (const polygon of polygons) {
+    // 最小の頂点を見つける
+    let minVertex = polygon[0];
+    let minIndex = 0;
+    for (let i = 1; i < polygon.length; i++) {
+      if (polygon[i] < minVertex) {
+        minVertex = polygon[i];
+        minIndex = i;
+      }
     }
-    const minRotation = rotations.sort()[0];
-    uniquePolygons.add(minRotation);
-  });
 
+    // 最小頂点から始まる2つの回転を生成
+    const rotated = polygon.slice(minIndex).concat(polygon.slice(0, minIndex));
+    const reversed = [...rotated].reverse();
+
+    // 辞書順で小さい方をキーとして使用
+    const key =
+      rotated.join(",") < reversed.join(",")
+        ? rotated.join(",")
+        : reversed.join(",");
+
+    uniquePolygons.set(key, rotated);
+  }
+
+  // 結果を元の配列に書き戻し
   polygons.length = 0;
-  uniquePolygons.forEach((polygon) => {
-    polygons.push(polygon.split(","));
-  });
+  polygons.push(...Array.from(uniquePolygons.values()));
 }
 
 // 頂点の結合と不要な面の削除
@@ -434,21 +452,36 @@ function ArrangePolygons(
   polygons: string[][],
   identicalCoordinates: string[][]
 ) {
-  for (let i = 0; i < polygons.length; i++) {
-    const p = polygons[i];
-    // 不要な点の削除
-    for (let j = 0; j < p.length; j++) {
-      p[j] = identicalCoordinates.find((ii) => ii.indexOf(p[j]) >= 0)![0];
+  // 頂点のマッピングを事前に作成
+  const vertexMap = new Map<string, string>();
+  for (const group of identicalCoordinates) {
+    const target = group[0];
+    for (const vertex of group) {
+      vertexMap.set(vertex, target);
     }
-    // 不要な辺の削除
+  }
+
+  // 多角形を処理
+  for (let i = polygons.length - 1; i >= 0; i--) {
+    const p = polygons[i];
+
+    // 不要な点の削除 - マップを使用して高速化
     for (let j = 0; j < p.length; j++) {
-      if (p[j] === p[(j + 1) % p.length]) {
-        p.splice(j--, 1);
+      p[j] = vertexMap.get(p[j])!;
+    }
+
+    // 不要な辺の削除 - 配列の再割り当てを減らす
+    let writeIndex = 0;
+    for (let j = 0; j < p.length; j++) {
+      if (p[j] !== p[(j + 1) % p.length]) {
+        p[writeIndex++] = p[j];
       }
     }
+    p.length = writeIndex;
+
     // 不要な面の削除
     if (p.length <= 2) {
-      polygons.splice(i--, 1);
+      polygons.splice(i, 1);
     }
   }
 }
