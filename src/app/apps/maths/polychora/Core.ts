@@ -2,17 +2,26 @@ import axios from "axios";
 import {
   AmbientLight,
   AxesHelper,
+  BoxGeometry,
   BufferGeometry,
   DirectionalLight,
   DoubleSide,
+  EdgesGeometry,
+  LineBasicMaterial,
+  LineSegments,
   Mesh,
+  MeshBasicMaterial,
   OrthographicCamera,
   RawShaderMaterial,
   Scene,
   TextureLoader,
   WebGLRenderer,
 } from "three";
-import { OrbitControls } from "three/examples/jsm/Addons";
+import {
+  GLTFExporter,
+  LineMaterial,
+  OrbitControls,
+} from "three/examples/jsm/Addons";
 
 export default class Core {
   cvs: HTMLCanvasElement;
@@ -32,7 +41,7 @@ export default class Core {
   };
   ctrls: OrbitControls;
   geometry: BufferGeometry | null = null;
-  mesh: Mesh | null = null;
+  mesh: LineSegments | Mesh | null = null;
   material = new RawShaderMaterial({
     transparent: true,
     side: DoubleSide,
@@ -91,7 +100,7 @@ vec3 g_mul(float r, vec3 p) {
 
 void main() {
   // vec3 origin = vec3(0.,0.,0.);
-  vec3 origin = g_mul(time*.1, vec3(1.,0.,0.));
+  vec3 origin = g_mul(time, vec3(.1,0.,0.));
   vec3 S = g_add(origin, position);
   float l = 1.;
   vec3 P = S*l/(dot(S,S)*(l-1.)+l);
@@ -198,14 +207,46 @@ void main() {
     this.material.uniforms.time.value += deltaTime;
   }
 
-  export() {
-    return this.cvs.toDataURL();
+  // メッシュをglbとしてエクスポート
+  downloadGLB() {
+    if (!this.mesh) return;
+    const exporter = new GLTFExporter();
+    const scene = new Scene();
+    const mesh = this.mesh.clone();
+    mesh.material = new MeshBasicMaterial({ color: 0xffffff });
+    scene.add(mesh);
+    exporter.parse(
+      scene,
+      (gltf: ArrayBuffer | { [key: string]: unknown }) => {
+        if (gltf instanceof ArrayBuffer) {
+          const blob = new Blob([gltf], { type: "model/gltf-binary" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "model.glb";
+          a.click();
+          URL.revokeObjectURL(url);
+        } else {
+          console.error(
+            "GLBのエクスポートに失敗しました: 不正なデータ形式です"
+          );
+        }
+      },
+      (error: ErrorEvent) => {
+        console.error("GLBのエクスポートに失敗しました:", error.message);
+      },
+      { binary: true }
+    );
   }
 
   setPolychoron(g: BufferGeometry) {
     if (this.mesh) this.scene.remove(this.mesh);
     this.geometry = g;
     this.mesh = new Mesh(g, this.material);
+    // this.mesh = new LineSegments(
+    //   new EdgesGeometry(g),
+    //   new LineBasicMaterial({ color: 0xffffff, linewidth: 1 })
+    // );
     this.scene.add(this.mesh);
   }
 }

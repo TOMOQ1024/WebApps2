@@ -148,6 +148,9 @@ const HandleKeyDown = (
       )
     );
   }
+  if (e.key === "e" && !e.shiftKey && !e.metaKey && tagName !== "INPUT") {
+    core.downloadGLB();
+  }
   if (e.key === "p" && !e.shiftKey && !e.metaKey && tagName !== "INPUT") {
     // 3,3,2,xxo,false
     // 4,3,2,xoo

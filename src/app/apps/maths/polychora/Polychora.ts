@@ -344,10 +344,49 @@ function GetInitPoint(
   ni: { [gen: string]: string },
   g: GyrovectorSpace3
 ) {
-  // xxxx
-  return g.incenter4(pointA, pointB, pointC, pointD);
+  switch (`${ni.a}${ni.b}${ni.c}${ni.d}`) {
+    case "xxxx":
+      return g.incenter4(pointA, pointB, pointC, pointD);
 
-  // return g.mean(pointA, pointB, pointC, pointD);
+    case "xooo":
+      return pointA;
+    case "oxoo":
+      return pointB;
+    case "ooxo":
+      return pointC;
+    case "ooox":
+      return pointD;
+
+    case "xxoo":
+      return g.reflect(
+        g.incenter4(pointA, pointB, pointC, pointD),
+        pointB,
+        pointC,
+        pointD
+      );
+    case "xoxo":
+      return g.incenter4(pointA, pointB, pointC, pointD);
+    case "xoox":
+      return g.incenter4(pointA, pointB, pointC, pointD);
+    case "oxxo":
+      return g.incenter4(pointA, pointB, pointC, pointD);
+    case "oxox":
+      return g.incenter4(pointA, pointB, pointC, pointD);
+    case "ooxx":
+      return g.incenter4(pointA, pointB, pointC, pointD);
+
+    case "oxxx":
+      return g.incenter4(pointA, pointB, pointC, pointD);
+    case "xoxx":
+      return g.incenter4(pointA, pointB, pointC, pointD);
+    case "xxox":
+      return g.incenter4(pointA, pointB, pointC, pointD);
+    case "xxxo":
+      return g.incenter4(pointA, pointB, pointC, pointD);
+
+    default:
+      return g.mean(pointA, pointB, pointC, pointD);
+  }
 }
 
 // 面の重複を削除
