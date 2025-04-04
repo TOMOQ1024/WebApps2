@@ -127,49 +127,40 @@ export class CoxeterNode {
     const subpolytopes: { [genCombination: string]: CoxeterNode[][] } = {};
     const nodes = this.nodes();
     const genCombinations = this.getGenCombinations(d);
+    const visitedNodes = new Set<string>();
 
-    // // 生成元ごとのsフラグをキャッシュ
-    // const isSnubGen = Object.fromEntries(
-    //   Object.keys(this.siblings).map((gen) => [gen, this.ni[gen] === "s"])
-    // );
-
+    // 生成元の組み合わせごとに処理
     for (const genCombination of genCombinations) {
-      const unvisitedNodes: { [coordinate: string]: CoxeterNode } = {
-        ...nodes,
-      };
-      subpolytopes[genCombination.join("")] = [];
+      const key = genCombination.join("");
+      subpolytopes[key] = [];
+      visitedNodes.clear();
 
-      while (Object.keys(unvisitedNodes).length > 0) {
-        const n = unvisitedNodes[Object.keys(unvisitedNodes)[0]]!;
-        const nodesToSearch: CoxeterNode[] = [n];
-        const subpolytope: CoxeterNode[] = [n];
-        delete unvisitedNodes[n.coordinate];
+      // 各ノードを起点として深さ優先探索
+      for (const node of Object.values(nodes)) {
+        if (visitedNodes.has(node.coordinate)) continue;
 
-        while (nodesToSearch.length > 0) {
-          const currentNode = nodesToSearch.shift()!;
-          // TODO: snub
-          // let snubFlag = 0;
-          // if (Object.values(isSnubGen).some((flag) => flag)) {
-          //   const coord = currentNode.coordinate;
-          //   for (const [gen, isSnub] of Object.entries(isSnubGen)) {
-          //     if (isSnub) {
-          //       snubFlag += (coord.match(new RegExp(gen, "g")) || []).length;
-          //     }
-          //   }
-          //   snubFlag %= 2;
-          // }
+        const subpolytope: CoxeterNode[] = [];
+        const stack: CoxeterNode[] = [node];
 
+        while (stack.length > 0) {
+          const currentNode = stack.pop()!;
+          if (visitedNodes.has(currentNode.coordinate)) continue;
+
+          visitedNodes.add(currentNode.coordinate);
+          subpolytope.push(currentNode);
+
+          // 生成元の組み合わせに基づいて隣接ノードを探索
           for (const gen of genCombination) {
-            const nextNode = currentNode.siblings[gen]!;
-            if (nextNode && subpolytope.indexOf(nextNode) < 0) {
-              nodesToSearch.push(nextNode);
-              delete unvisitedNodes[nextNode.coordinate];
-              // if (snubFlag && !subpolytope.length) continue;
-              subpolytope.push(nextNode);
+            const nextNode = currentNode.siblings[gen];
+            if (nextNode && !visitedNodes.has(nextNode.coordinate)) {
+              stack.push(nextNode);
             }
           }
         }
-        subpolytopes[genCombination.join("")].push(subpolytope);
+
+        if (subpolytope.length > 0) {
+          subpolytopes[key].push(subpolytope);
+        }
       }
     }
 
