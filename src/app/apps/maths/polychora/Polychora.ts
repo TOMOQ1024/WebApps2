@@ -24,7 +24,7 @@ export async function CreatePolychora(
   dual: boolean
 ) {
   // 群構造の構築
-  const graph = new CoxeterNode(labels);
+  const graph = new CoxeterNode(labels, ni);
   await graph.build();
 
   console.log(graph);
@@ -46,7 +46,7 @@ export async function CreatePolychora(
   // coordinates.add("");
 
   console.log("get identical coordinates");
-  const identicalCoordinates = GetIdenticalCoordinates(nodes, ni); // 重複した頂点の抽出
+  const identicalCoordinates = GetIdenticalCoordinates(nodes); // 重複した頂点の抽出
   // console.log(
   //   `Identical coordinates: ${identicalCoordinates.map((c) => c || "1")}`
   // );
@@ -79,9 +79,28 @@ export async function CreatePolychora(
 
   // 多角形リストの作成(graphの破壊)
   console.log("Creating Polygons");
-  const polygons = CreatePolygons(nodes, ni); // 多角形
+  const subpolytopes2 = graph.getSubpolytopes(2);
+  const polygons = Object.values(subpolytopes2)
+    .flat()
+    .map((p) => p.map((n) => n.coordinate)); // 多角形
   // console.log(`Polygons: ${polygons.length}`);
   // console.log(polygons.map((p) => p.length).toSorted());
+
+  console.log("Creating Subpolytopes");
+  console.log(
+    Object.fromEntries(
+      Object.entries(graph.getSubpolytopes(3)).map(([k, v]) => {
+        return [`${k}(${v[0].length} vertices)`, v.length];
+      })
+    )
+  );
+  console.log(
+    Object.fromEntries(
+      Object.entries(graph.getSubpolytopes(2)).map(([k, v]) => {
+        return [`${k}(${v[0].length} vertices)`, v.length];
+      })
+    )
+  );
 
   // 重複した面の削除
   console.log("Deduplicating Polygons");
@@ -287,16 +306,13 @@ function GetFundamentalDomain(
   };
 }
 
-function GetIdenticalCoordinates(
-  nodes: { [key: string]: CoxeterNode },
-  ni: { [gen: string]: string }
-) {
-  const identicalCoordinates: string[][] = [nodes[""]!.getIdenticalNodes(ni)];
+function GetIdenticalCoordinates(nodes: { [key: string]: CoxeterNode }) {
+  const identicalCoordinates: string[][] = [nodes[""]!.getIdenticalNodes()];
   const searchedCoordinates = new Set<string>();
 
   Object.keys(nodes).forEach((c) => {
     if (searchedCoordinates.has(c)) return;
-    identicalCoordinates.push(nodes[c].getIdenticalNodes(ni));
+    identicalCoordinates.push(nodes[c].getIdenticalNodes());
     searchedCoordinates.add(c);
   });
   return identicalCoordinates;
@@ -401,30 +417,6 @@ function GetPositions(
     positions[coordinate] = Q;
   }
   return positions;
-}
-
-function CreatePolygons(
-  nodes: { [key: string]: CoxeterNode },
-  ni: { [gen: string]: string }
-) {
-  const polygons: string[][] = [];
-  const processedNodes = new Set<string>();
-
-  // 各ノードを一度だけ処理
-  for (const n of Object.values(nodes)) {
-    if (processedNodes.has(n.coordinate)) continue;
-    processedNodes.add(n.coordinate);
-
-    // 各生成子ペアに対して面を生成
-    for (const genPair in n.labels) {
-      const polygon = n.popPolygon(genPair, ni);
-      if (polygon.length > 0) {
-        polygons.push(polygon);
-      }
-    }
-  }
-
-  return polygons;
 }
 
 // 面の重複を削除
