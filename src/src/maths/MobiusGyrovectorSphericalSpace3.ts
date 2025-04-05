@@ -102,7 +102,9 @@ export class MobiusGyrovectorSphericalSpace3 {
       R.lengthSq() * this.curvature - 1
     ).applyMatrix3(m.adjugate());
 
-    return { i, k: det };
+    return i.lengthSq() > 1e-10
+      ? { i: i.clone().divideScalar(i.length()), k: det / i.length() }
+      : { i: new Vector3(0, 0, 0), k: 1 };
   }
 
   invertHyperplane(h: Hyperplane3) {
@@ -143,14 +145,17 @@ export class MobiusGyrovectorSphericalSpace3 {
     if (Math.abs(h1.k) < 1e-10) arr.push(h1.i.normalize());
     if (Math.abs(h2.k) < 1e-10) arr.push(h2.i.normalize());
     if (Math.abs(h3.k) < 1e-10) arr.push(h3.i.normalize());
-    let [T1, T2] = arr.toSorted((a, b) => b.lengthSq() - a.lengthSq());
-    if (T1.lengthSq() < 1e-10) {
+    arr.sort((a, b) => a.lengthSq() - b.lengthSq());
+    let [T1, T2] = [arr.pop()!, arr.pop()!];
+    // T1,T2が一次従属の間，T2をarrから選び出す
+    try {
+      while (T1.clone().cross(T2).lengthSq() < 1e-10) {
+        T2 = arr.pop()!;
+      }
+    } catch (e) {
+      console.log(T1, T2, arr);
+      console.log(e);
       throw new Error("Invalid hyperplanes");
-    }
-    if (T2.lengthSq() < 1e-10) {
-      T2 = [h1.i, h2.i, h3.i].toSorted(
-        (a, b) => b.lengthSq() - a.lengthSq()
-      )[0];
     }
 
     let hP: Hyperplane3;

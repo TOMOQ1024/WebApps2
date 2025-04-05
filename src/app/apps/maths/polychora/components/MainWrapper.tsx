@@ -121,7 +121,7 @@ const HandleKeyDown = (
   }
   if (e.key === "p" && !e.shiftKey && !e.metaKey && tagName !== "INPUT") {
     const labels = {
-      ab: 5,
+      ab: 3,
       bc: 3,
       cd: 3,
       da: 2,
@@ -131,8 +131,8 @@ const HandleKeyDown = (
     const ni = {
       a: "x",
       b: "x",
-      c: "x",
-      d: "x",
+      c: "o",
+      d: "o",
     };
     (async () => {
       const g0 = (await CreatePolychora(labels, ni, !true))!;
