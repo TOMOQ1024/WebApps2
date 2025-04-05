@@ -11,6 +11,7 @@ import {
   LineSegments,
   Mesh,
   MeshBasicMaterial,
+  MeshLambertMaterial,
   OrthographicCamera,
   RawShaderMaterial,
   Scene,
@@ -43,10 +44,7 @@ export default class Core {
   geometry: BufferGeometry | null = null;
   mesh: LineSegments | Mesh | null = null;
   material = new RawShaderMaterial({
-    transparent: true,
     side: DoubleSide,
-    depthWrite: false,
-    depthTest: false,
     uniforms: {
       time: { value: 0 },
     },
@@ -56,9 +54,11 @@ uniform mat4 projectionMatrix;
 
 attribute vec3 position;
 attribute vec2 uv;
+attribute float color;
 uniform float time;
 
 varying vec2 vUv;
+varying float vColor;
 
 #define cv 1.0
 
@@ -100,31 +100,25 @@ vec3 g_mul(float r, vec3 p) {
 
 void main() {
   // vec3 origin = vec3(0.,0.,0.);
-  vec3 origin = g_mul(time, vec3(.1,0.,0.));
+  vec3 origin = g_mul(time, vec3(0.,0.,.1));
   vec3 S = g_add(origin, position);
   float l = 1.;
   vec3 P = S*l/(dot(S,S)*(l-1.)+l);
   gl_Position = projectionMatrix * modelViewMatrix * vec4(P.xyz, 1.0);
   vUv = uv;
+  vColor = color;
 }
                 `,
     fragmentShader: `
 precision highp float;
 
 varying vec2 vUv;
-
+varying float vColor;
 #define PI 3.14159265358979323846
 
 void main() {
-  const float div = 10.;
-  vec2 uv = vUv;
-  float p = floor(uv.x * div) + floor(uv.y * div)*div;
-  vec2 v = mod(uv*div, 1.) * 2. - 1.;
-
-  float a = atan(v.y, v.x);
-  float r = cos(PI/p) / cos(2./p*asin(cos(p/2.*a)));
-  float col = pow(1. - abs(length(v) - r), 70.);
-  gl_FragColor = vec4(col);
+  float c = 1.-(vColor*2.-1.)*(vColor*2.-1.);
+  gl_FragColor = vec4(vec3(.7,1.,1.)*c, 1.);
 }
                   `,
   });
@@ -189,14 +183,12 @@ void main() {
   }
 
   beginLoop() {
-    console.log("begin loop");
     this.interval = setInterval(() => {
       this.loop(1 / 20);
     }, 1000 / 20);
   }
 
   endLoop() {
-    console.log("end loop");
     if (!this.interval) return;
     clearInterval(this.interval);
   }
@@ -243,6 +235,11 @@ void main() {
     if (this.mesh) this.scene.remove(this.mesh);
     this.geometry = g;
     this.mesh = new Mesh(g, this.material);
+    // g.computeVertexNormals();
+    // this.mesh = new Mesh(
+    //   g,
+    //   new MeshLambertMaterial({ color: 0xffffff, side: DoubleSide })
+    // );
     // this.mesh = new LineSegments(
     //   new EdgesGeometry(g),
     //   new LineBasicMaterial({ color: 0xffffff, linewidth: 1 })

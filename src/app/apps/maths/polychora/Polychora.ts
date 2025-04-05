@@ -25,10 +25,10 @@ export async function CreatePolychora(
 ) {
   // 群構造の構築
   const graph = new CoxeterNode(labels, ni);
+  console.log("Building graph");
   await graph.build();
-
-  console.log(graph);
   console.log(graph.isSolved(undefined) ? "solved" : "unsolved");
+  console.log(graph);
   const nodes = graph.nodes(); // グラフの頂点配列
   console.log(`Elements: ${Object.keys(nodes).length}`);
   // coordinates.delete("");
@@ -45,7 +45,7 @@ export async function CreatePolychora(
   // coordinates.delete("1");
   // coordinates.add("");
 
-  console.log("get identical coordinates");
+  console.log("Getting identical coordinates");
   const identicalCoordinates = GetIdenticalCoordinates(nodes); // 重複した頂点の抽出
   // console.log(identicalCoordinates);
 
@@ -76,7 +76,7 @@ export async function CreatePolychora(
   // #endregion
 
   // 多角形リストの作成(graphの破壊)
-  console.log("Creating Polygons");
+  console.log("Creating polygons");
   const subpolytopes2 = graph.getSubpolytopes(2);
   const polygons = Object.values(subpolytopes2)
     .flat()
@@ -85,7 +85,7 @@ export async function CreatePolychora(
   // console.log(polygons.map((p) => p.length).toSorted());
 
   // 重複した頂点の結合
-  console.log("Arranging Polygons");
+  console.log("Arranging polygons");
   ArrangePolygons(polygons, identicalCoordinates);
   // console.log(
   //   `Polygons:\n${polygons
@@ -94,7 +94,7 @@ export async function CreatePolychora(
   // );
 
   // 重複した面の削除
-  console.log("Deduplicating Polygons");
+  console.log("Deduplicating polygons");
   DedupePolygons(polygons);
   // console.log(
   //   `Polygons:\n${polygons
@@ -169,46 +169,17 @@ export async function CreatePolychora(
 
   // console.log(polygons);
 
-  const triangles: number[] = []; // 三角形リスト
-  const vertices: number[] = []; // 頂点座標
-  const uvs: number[] = []; // UV座標
-  const UV_DIV = 10; // [0,1]^2 を分割する数値
-  let indexOffset = 0;
-  for (let i = 0; i < polygons.length; i++) {
-    const p = polygons[i];
-    for (let j = 0; j < p.length - 2; j++) {
-      const L = (Math.floor(j / 2) + 1) % p.length;
-      const H = (p.length - Math.ceil(j / 2)) % p.length;
-      triangles.push(
-        indexOffset + H,
-        indexOffset + (j % 2 ? L + 1 : (H + p.length - 1) % p.length),
-        indexOffset + L
-      );
-      // triangles.push(
-      //   indexOffset + L,
-      //   indexOffset + (j % 2 ? L + 1 : (H + p.length - 1) % p.length),
-      //   indexOffset + H
-      // );
-    }
-    for (let j = 0; j < p.length; j++) {
-      vertices.push(...positions[p[j]].toArray());
-      let n = p.length >= 100 ? 0 : p.length;
-      uvs.push(
-        (Math.cos((j * 2 * Math.PI) / n) / 2 + 0.5 + (n % UV_DIV)) / UV_DIV,
-        (Math.sin((j * 2 * Math.PI) / n) / 2 + 0.5 + Math.floor(n / UV_DIV)) /
-          UV_DIV
-      );
-    }
-    indexOffset += p.length;
-  }
-
-  const geometry = new BufferGeometry();
-  geometry.setAttribute(
-    "position",
-    new BufferAttribute(new Float32Array(vertices), 3)
+  const { indices, ...attributes } = CreateAttributes(
+    positions,
+    polygons,
+    "frame"
   );
-  geometry.setAttribute("uv", new BufferAttribute(new Float32Array(uvs), 2));
-  geometry.setIndex(triangles);
+  const geometry = new BufferGeometry();
+  geometry.setIndex(indices);
+
+  for (const [key, value] of Object.entries(attributes)) {
+    geometry.setAttribute(key, value);
+  }
   return geometry;
 }
 
@@ -332,6 +303,7 @@ function GetInitPoint(
 
   switch (`${ni.a}${ni.b}${ni.c}${ni.d}`) {
     case "xxxx":
+      console.log(g.incenter4(pointA, pointB, pointC, pointD));
       return g.incenter4(pointA, pointB, pointC, pointD);
 
     case "xooo":
@@ -381,10 +353,8 @@ function GetPositions(
   const g = new MobiusGyrovectorSphericalSpace3();
   const { pointA, pointB, pointC, pointD } = GetFundamentalDomain(labels, g);
   console.log(pointA, pointB, pointC, pointD);
-
   // 単位領域内の頂点定義
   let Q0 = GetInitPoint(pointA, pointB, pointC, pointD, labels, ni, g);
-  console.log(Q0);
 
   // 頂点座標の生成(gyrovector)
   for (let i = 0; i < identicalCoordinates.length; i++) {
@@ -481,6 +451,87 @@ function ArrangePolygons(
     // 不要な面の削除
     if (p.length <= 2) {
       polygons.splice(i, 1);
+    }
+  }
+}
+
+function CreateAttributes(
+  positions: { [key: string]: Vector3 },
+  polygons: string[][],
+  mode: "transparent" | "frame"
+) {
+  switch (mode) {
+    case "transparent": {
+      // 面全体を半透明で描画する
+      const indices: number[] = []; // 三角形リスト
+      const vertices: number[] = []; // 頂点座標
+      const uvs: number[] = []; // UV座標
+      const UV_DIV = 10; // [0,1]^2 を分割する数値
+      let indexOffset = 0;
+      for (let i = 0; i < polygons.length; i++) {
+        const p = polygons[i];
+        for (let j = 0; j < p.length - 2; j++) {
+          const L = (Math.floor(j / 2) + 1) % p.length;
+          const H = (p.length - Math.ceil(j / 2)) % p.length;
+          indices.push(
+            indexOffset + H,
+            indexOffset + (j % 2 ? L + 1 : (H + p.length - 1) % p.length),
+            indexOffset + L
+          );
+        }
+        for (let j = 0; j < p.length; j++) {
+          vertices.push(...positions[p[j]].toArray());
+          let n = p.length >= 100 ? 0 : p.length;
+          uvs.push(
+            (Math.cos((j * 2 * Math.PI) / n) / 2 + 0.5 + (n % UV_DIV)) / UV_DIV,
+            (Math.sin((j * 2 * Math.PI) / n) / 2 +
+              0.5 +
+              Math.floor(n / UV_DIV)) /
+              UV_DIV
+          );
+        }
+        indexOffset += p.length;
+      }
+      return {
+        position: new BufferAttribute(new Float32Array(vertices), 3),
+        uv: new BufferAttribute(new Float32Array(uvs), 2),
+        indices: new BufferAttribute(new Uint32Array(indices), 1),
+      };
+    }
+    case "frame": {
+      // 辺のみを不透明で描画する
+      const indices: number[] = []; // 三角形リスト
+      const vertices: number[] = []; // 頂点座標
+      const colors: number[] = []; // 頂点色
+      let indexOffset = 0;
+      const g = new MobiusGyrovectorSphericalSpace3();
+      for (let i = 0; i < polygons.length; i++) {
+        const p = polygons[i];
+        const M = g.mean(...p.map((c) => positions[c]));
+        for (let j = 0; j < p.length; j++) {
+          const k = (j + 1) % p.length;
+          indices.push(
+            indexOffset + j,
+            indexOffset + k,
+            indexOffset + k + p.length,
+            indexOffset + j,
+            indexOffset + k + p.length,
+            indexOffset + j + p.length
+          );
+          vertices.push(...positions[p[j]].toArray());
+          colors.push(1);
+        }
+        for (let j = 0; j < p.length; j++) {
+          vertices.push(...g.mix(positions[p[j]], M, 0.03).toArray());
+          colors.push(0.1);
+        }
+        indexOffset += p.length * 2;
+      }
+      return {
+        position: new BufferAttribute(new Float32Array(vertices), 3),
+        color: new BufferAttribute(new Float32Array(colors), 1),
+        indices: new BufferAttribute(new Uint32Array(indices), 1),
+      };
     }
   }
 }

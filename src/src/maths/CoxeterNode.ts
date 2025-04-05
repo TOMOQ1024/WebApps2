@@ -22,7 +22,6 @@ export class CoxeterNode {
 
   async build() {
     let nodesToSearch: CoxeterNode[] = [this];
-    let count = 0;
     let n: CoxeterNode | null;
     while (nodesToSearch.length > 0) {
       for (const gen in this.siblings) {
@@ -30,10 +29,6 @@ export class CoxeterNode {
         if (n) nodesToSearch.push(n);
       }
       nodesToSearch.shift();
-      if (count++ % 1000 === 0) {
-        console.log(`Nodes to search: ${nodesToSearch.length} nodes`);
-        await sleep(0);
-      }
       if (nodesToSearch.length > this.MAX_NODES) {
         throw new Error("Too many nodes to search");
       }

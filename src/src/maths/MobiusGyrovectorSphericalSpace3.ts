@@ -71,6 +71,10 @@ export class MobiusGyrovectorSphericalSpace3 {
     return P.clone().normalize().multiplyScalar(Math.tan(0.5));
   }
 
+  mix(P: Vector3, Q: Vector3, t: number) {
+    return this.add(P, this.mul(t, this.sub(Q, P)));
+  }
+
   reflect(V: Vector3, P: Vector3, Q: Vector3, R: Vector3) {
     const { i, k } = this.hyperplane(P, Q, R);
     const v = V.clone();
@@ -243,8 +247,10 @@ export class MobiusGyrovectorSphericalSpace3 {
     for (let i = 0; i < P.length; i++) {
       V.add(P[i].clone().multiplyScalar(l[i]));
     }
-    const A = this.mul(0.5, V.divideScalar(m));
-    if (this.curvature <= 0) return A;
+    const A = this.mul(
+      0.5,
+      V.divideScalar(Math.abs(m) < 1e-20 ? 1e-20 * (Math.sign(m) || 1) : m)
+    );
     const B = this.antipode(A);
     return this.distance(P[0], A) < this.distance(P[0], B) ? A : B;
   }
