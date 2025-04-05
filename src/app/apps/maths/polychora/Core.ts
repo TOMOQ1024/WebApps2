@@ -54,11 +54,11 @@ uniform mat4 projectionMatrix;
 
 attribute vec3 position;
 attribute vec2 uv;
-attribute float color;
+attribute vec4 color;
 uniform float time;
 
 varying vec2 vUv;
-varying float vColor;
+varying vec4 vColor;
 
 #define cv 1.0
 
@@ -113,12 +113,12 @@ void main() {
 precision highp float;
 
 varying vec2 vUv;
-varying float vColor;
+varying vec4 vColor;
 #define PI 3.14159265358979323846
 
 void main() {
-  float c = 1.-(vColor*2.-1.)*(vColor*2.-1.);
-  gl_FragColor = vec4(vec3(.7,1.,1.)*c, 1.);
+  vec4 c = pow(vColor, vec4(3.));
+  gl_FragColor = vec4(c.rgb, 1.);
 }
                   `,
   });

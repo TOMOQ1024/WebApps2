@@ -1,6 +1,7 @@
 import {
   BufferAttribute,
   BufferGeometry,
+  Color,
   Matrix3,
   Vector3,
   Vector4,
@@ -78,9 +79,15 @@ export async function CreatePolychora(
   // 多角形リストの作成(graphの破壊)
   console.log("Creating polygons");
   const subpolytopes2 = graph.getSubpolytopes(2);
-  const polygons = Object.values(subpolytopes2)
-    .flat()
-    .map((p) => p.map((n) => n.coordinate)); // 多角形
+  const polygons: { coordinates: string[]; gens: string }[] = [];
+  for (const [gens, faces] of Object.entries(subpolytopes2)) {
+    for (const face of faces) {
+      polygons.push({
+        coordinates: face.map((n) => n.coordinate),
+        gens: gens,
+      });
+    }
+  }
   // console.log(`Polygons: ${polygons.length}`);
   // console.log(polygons.map((p) => p.length).toSorted());
 
@@ -105,7 +112,7 @@ export async function CreatePolychora(
 
   console.log(`Vertices: ${identicalCoordinates.length}`);
   console.log(`Faces: ${polygons.length}`);
-  console.log(CountMap(polygons.map((p) => p.length)));
+  console.log(CountMap(polygons.map((p) => p.coordinates.length)));
 
   // #region snubによる頂点の削除
   // // snubによる頂点の削除
@@ -382,23 +389,28 @@ function GetPositions(
 }
 
 // 面の重複を削除
-function DedupePolygons(polygons: string[][]) {
-  const uniquePolygons = new Map<string, string[]>();
+function DedupePolygons(polygons: { coordinates: string[]; gens: string }[]) {
+  const uniquePolygons = new Map<
+    string,
+    { coordinates: string[]; gens: string }
+  >();
 
   for (const polygon of polygons) {
     // 最小の頂点を見つける
-    let minVertex = polygon[0];
+    let minVertex = polygon.coordinates[0];
     let minIndex = 0;
-    for (let i = 1; i < polygon.length; i++) {
-      if (polygon[i] < minVertex) {
-        minVertex = polygon[i];
+    for (let i = 1; i < polygon.coordinates.length; i++) {
+      if (polygon.coordinates[i] < minVertex) {
+        minVertex = polygon.coordinates[i];
         minIndex = i;
       }
     }
 
     // 最小頂点から始まる2つの回転を生成
-    const rotated = polygon.slice(minIndex).concat(polygon.slice(0, minIndex));
-    const reversed = [polygon[minIndex]].concat(
+    const rotated = polygon.coordinates
+      .slice(minIndex)
+      .concat(polygon.coordinates.slice(0, minIndex));
+    const reversed = [polygon.coordinates[minIndex]].concat(
       [...rotated].reverse().slice(0, -1)
     );
 
@@ -408,7 +420,7 @@ function DedupePolygons(polygons: string[][]) {
         ? rotated.join(",")
         : reversed.join(",");
 
-    uniquePolygons.set(key, rotated);
+    uniquePolygons.set(key, { coordinates: rotated, gens: polygon.gens });
   }
 
   // 結果を元の配列に書き戻し
@@ -418,7 +430,7 @@ function DedupePolygons(polygons: string[][]) {
 
 // 頂点の結合と不要な面の削除
 function ArrangePolygons(
-  polygons: string[][],
+  polygons: { coordinates: string[]; gens: string }[],
   identicalCoordinates: string[][]
 ) {
   // 頂点のマッピングを事前に作成
@@ -435,21 +447,21 @@ function ArrangePolygons(
     const p = polygons[i];
 
     // 不要な点の削除 - マップを使用して高速化
-    for (let j = 0; j < p.length; j++) {
-      p[j] = vertexMap.get(p[j])!;
+    for (let j = 0; j < p.coordinates.length; j++) {
+      p.coordinates[j] = vertexMap.get(p.coordinates[j])!;
     }
 
     // 不要な辺の削除 - 配列の再割り当てを減らす
     let writeIndex = 0;
-    for (let j = 0; j < p.length; j++) {
-      if (p[j] !== p[(j + 1) % p.length]) {
-        p[writeIndex++] = p[j];
+    for (let j = 0; j < p.coordinates.length; j++) {
+      if (p.coordinates[j] !== p.coordinates[(j + 1) % p.coordinates.length]) {
+        p.coordinates[writeIndex++] = p.coordinates[j];
       }
     }
-    p.length = writeIndex;
+    p.coordinates.length = writeIndex;
 
     // 不要な面の削除
-    if (p.length <= 2) {
+    if (p.coordinates.length <= 2) {
       polygons.splice(i, 1);
     }
   }
@@ -457,7 +469,7 @@ function ArrangePolygons(
 
 function CreateAttributes(
   positions: { [key: string]: Vector3 },
-  polygons: string[][],
+  polygons: { coordinates: string[]; gens: string }[],
   mode: "transparent" | "frame"
 ) {
   switch (mode) {
@@ -470,18 +482,22 @@ function CreateAttributes(
       let indexOffset = 0;
       for (let i = 0; i < polygons.length; i++) {
         const p = polygons[i];
-        for (let j = 0; j < p.length - 2; j++) {
-          const L = (Math.floor(j / 2) + 1) % p.length;
-          const H = (p.length - Math.ceil(j / 2)) % p.length;
+        for (let j = 0; j < p.coordinates.length - 2; j++) {
+          const L = (Math.floor(j / 2) + 1) % p.coordinates.length;
+          const H =
+            (p.coordinates.length - Math.ceil(j / 2)) % p.coordinates.length;
           indices.push(
             indexOffset + H,
-            indexOffset + (j % 2 ? L + 1 : (H + p.length - 1) % p.length),
+            indexOffset +
+              (j % 2
+                ? L + 1
+                : (H + p.coordinates.length - 1) % p.coordinates.length),
             indexOffset + L
           );
         }
-        for (let j = 0; j < p.length; j++) {
-          vertices.push(...positions[p[j]].toArray());
-          let n = p.length >= 100 ? 0 : p.length;
+        for (let j = 0; j < p.coordinates.length; j++) {
+          vertices.push(...positions[p.coordinates[j]].toArray());
+          let n = p.coordinates.length >= 100 ? 0 : p.coordinates.length;
           uvs.push(
             (Math.cos((j * 2 * Math.PI) / n) / 2 + 0.5 + (n % UV_DIV)) / UV_DIV,
             (Math.sin((j * 2 * Math.PI) / n) / 2 +
@@ -490,7 +506,7 @@ function CreateAttributes(
               UV_DIV
           );
         }
-        indexOffset += p.length;
+        indexOffset += p.coordinates.length;
       }
       return {
         position: new BufferAttribute(new Float32Array(vertices), 3),
@@ -500,13 +516,28 @@ function CreateAttributes(
     }
     case "frame": {
       // 辺のみを不透明で描画する
+      const COLORS = {
+        ab: [1, 1, 0.9],
+        ba: [1, 1, 0.9],
+        bc: [1, 0.9, 1],
+        cb: [1, 0.9, 1],
+        cd: [0.9, 1, 1],
+        dc: [0.9, 1, 1],
+        da: [0.95, 0.95, 1],
+        ad: [0.95, 0.95, 1],
+        ac: [0.95, 1, 0.95],
+        ca: [0.95, 1, 0.95],
+        bd: [1, 0.95, 0.95],
+        db: [1, 0.95, 0.95],
+      } as { [key: string]: [number, number, number] };
       const indices: number[] = []; // 三角形リスト
       const vertices: number[] = []; // 頂点座標
       const colors: number[] = []; // 頂点色
       let indexOffset = 0;
       const g = new MobiusGyrovectorSphericalSpace3();
       for (let i = 0; i < polygons.length; i++) {
-        const p = polygons[i];
+        const c = COLORS[polygons[i].gens];
+        const p = polygons[i].coordinates;
         const M = g.mean(...p.map((c) => positions[c]));
         for (let j = 0; j < p.length; j++) {
           const k = (j + 1) % p.length;
@@ -519,17 +550,17 @@ function CreateAttributes(
             indexOffset + j + p.length
           );
           vertices.push(...positions[p[j]].toArray());
-          colors.push(1);
+          colors.push(...c.map((c) => c * 0.1), 1);
         }
         for (let j = 0; j < p.length; j++) {
-          vertices.push(...g.mix(positions[p[j]], M, 0.03).toArray());
-          colors.push(0.1);
+          vertices.push(...g.mix(positions[p[j]], M, 0.1).toArray());
+          colors.push(...c, 1);
         }
         indexOffset += p.length * 2;
       }
       return {
         position: new BufferAttribute(new Float32Array(vertices), 3),
-        color: new BufferAttribute(new Float32Array(colors), 1),
+        color: new BufferAttribute(new Float32Array(colors), 4),
         indices: new BufferAttribute(new Uint32Array(indices), 1),
       };
     }

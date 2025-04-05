@@ -123,7 +123,7 @@ const HandleKeyDown = (
     const labels = {
       ab: 3,
       bc: 3,
-      cd: 5,
+      cd: 3,
       da: 2,
       ac: 2,
       bd: 2,
