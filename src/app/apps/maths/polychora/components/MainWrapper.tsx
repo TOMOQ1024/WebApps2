@@ -13,38 +13,6 @@ export default function MainWrapper() {
   const [core, setCore] = useState<Core>();
   const [isFull, setIsFull] = useState(false);
 
-  // const tab: {
-  //   [key: string]: {
-  //     A: number;
-  //     C: [number, number];
-  //     R: number;
-  //   };
-  // } = {};
-  // const L = 20;
-  // for (let A = 2; A <= L; A++) {
-  //   for (let B = A; B <= L; B++) {
-  //     for (let C = B; C <= L; C++) {
-  //       if ((B * C + C * A + A * B) / A / B / C >= 1) continue;
-  //       console.log(A, B, C);
-  //       const v = h2t_solve(A, B, C);
-  //       const p = new Vector2(v.x, 0);
-  //       const q = new Vector2(
-  //         Math.cos(Math.PI / A),
-  //         Math.sin(Math.PI / A)
-  //       ).multiplyScalar(v.y);
-  //       const i = h2t_i(p, q);
-  //       const j = h2t_j(p, q);
-  //       const k = h2t_k(p, q);
-  //       tab[`${A} ${B} ${C}`] = {
-  //         A,
-  //         C: new Vector2(i, j).divideScalar(2 * k).toArray(),
-  //         R: Math.sqrt((i * i + j * j) / (4 * k * k) - 1),
-  //       };
-  //     }
-  //   }
-  // }
-  // console.log(tab);
-
   useEffect(() => {
     console.log("aa");
     if (!core) {

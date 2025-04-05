@@ -30,7 +30,7 @@ export async function CreatePolychora(
   console.log(graph);
   console.log(graph.isSolved(undefined) ? "solved" : "unsolved");
   const nodes = graph.nodes(); // グラフの頂点配列
-  console.log(`Elements: ${nodes.length}`);
+  console.log(`Elements: ${Object.keys(nodes).length}`);
   // coordinates.delete("");
   // coordinates.add("1");
   // const pad =
@@ -47,13 +47,11 @@ export async function CreatePolychora(
 
   console.log("get identical coordinates");
   const identicalCoordinates = GetIdenticalCoordinates(nodes); // 重複した頂点の抽出
-  // console.log(
-  //   `Identical coordinates: ${identicalCoordinates.map((c) => c || "1")}`
-  // );
+  // console.log(identicalCoordinates);
 
   const positions = GetPositions(identicalCoordinates, labels, ni); // ジャイロベクトル平面上の頂点座標
 
-  console.log(positions);
+  // console.log(positions);
 
   // #region snubによる面の追加
   // // snubによる面の追加
@@ -86,38 +84,28 @@ export async function CreatePolychora(
   // console.log(`Polygons: ${polygons.length}`);
   // console.log(polygons.map((p) => p.length).toSorted());
 
-  console.log("Creating Subpolytopes");
-  console.log(
-    Object.fromEntries(
-      Object.entries(graph.getSubpolytopes(3)).map(([k, v]) => {
-        return [`${k}(${v[0].length} vertices)`, v.length];
-      })
-    )
-  );
-  console.log(
-    Object.fromEntries(
-      Object.entries(graph.getSubpolytopes(2)).map(([k, v]) => {
-        return [`${k}(${v[0].length} vertices)`, v.length];
-      })
-    )
-  );
-
-  // 重複した面の削除
-  console.log("Deduplicating Polygons");
-  DedupePolygons(polygons);
-  // console.log(`Polygons: ${polygons.length}`);
-
   // 重複した頂点の結合
   console.log("Arranging Polygons");
   ArrangePolygons(polygons, identicalCoordinates);
-  console.log(`Vertices: ${Object.keys(positions).length}`);
-  console.log(`Faces: ${polygons.length}`);
-  console.log(CountMap(polygons.map((p) => p.length)));
   // console.log(
   //   `Polygons:\n${polygons
   //     .map((p) => `(${p.length}) ${p.map((c) => c || "1").join(",")}`)
   //     .join("\n")}`
   // );
+
+  // 重複した面の削除
+  console.log("Deduplicating Polygons");
+  DedupePolygons(polygons);
+  // console.log(
+  //   `Polygons:\n${polygons
+  //     .map((p) => `(${p.length}) ${p.map((c) => c || "1").join(",")}`)
+  //     .join("\n")}`
+  // );
+  // console.log(`Polygons: ${polygons.length}`);
+
+  console.log(`Vertices: ${identicalCoordinates.length}`);
+  console.log(`Faces: ${polygons.length}`);
+  console.log(CountMap(polygons.map((p) => p.length)));
 
   // #region snubによる頂点の削除
   // // snubによる頂点の削除
@@ -307,13 +295,17 @@ function GetFundamentalDomain(
 }
 
 function GetIdenticalCoordinates(nodes: { [key: string]: CoxeterNode }) {
-  const identicalCoordinates: string[][] = [nodes[""]!.getIdenticalNodes()];
+  const identicalCoordinates: string[][] = [];
   const searchedCoordinates = new Set<string>();
+  let n: string[];
 
   Object.keys(nodes).forEach((c) => {
     if (searchedCoordinates.has(c)) return;
-    identicalCoordinates.push(nodes[c].getIdenticalNodes());
-    searchedCoordinates.add(c);
+    n = nodes[c].getIdenticalNodes();
+    identicalCoordinates.push(n);
+    for (const i of n) {
+      searchedCoordinates.add(i);
+    }
   });
   return identicalCoordinates;
 }
@@ -436,7 +428,9 @@ function DedupePolygons(polygons: string[][]) {
 
     // 最小頂点から始まる2つの回転を生成
     const rotated = polygon.slice(minIndex).concat(polygon.slice(0, minIndex));
-    const reversed = [...rotated].reverse();
+    const reversed = [polygon[minIndex]].concat(
+      [...rotated].reverse().slice(0, -1)
+    );
 
     // 辞書順で小さい方をキーとして使用
     const key =
