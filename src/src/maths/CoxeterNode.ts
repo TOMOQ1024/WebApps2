@@ -1,24 +1,37 @@
-export class CoxeterNode3 {
-  a: CoxeterNode3 | null = null;
-  b: CoxeterNode3 | null = null;
-  c: CoxeterNode3 | null = null;
+import sleep from "../Sleep";
+
+export class CoxeterNode {
+  siblings: { [gen: string]: CoxeterNode | null } = {};
+
+  readonly MAX_NODES = 10000;
 
   constructor(
-    public ma: number,
-    public mb: number,
-    public mc: number,
+    public labels: { [genPair: string]: [number, number] },
+    public ni: { [gen: string]: string },
     public coordinate: string = ""
-  ) {}
+  ) {
+    for (const genPair in labels) {
+      for (let i = 0; i < genPair.length; i++) {
+        this.siblings[genPair[i]] = null;
+      }
+    }
+    for (const genPair in labels) {
+      labels[genPair.split("").reverse().join("")] = labels[genPair];
+    }
+  }
 
-  build() {
-    let nodesToSearch: (CoxeterNode3 | null)[] = [this];
-    while (!this.isSolved()) {
-      // console.log(graph);
-      nodesToSearch.push(nodesToSearch[0]!.addIfNotExistA());
-      nodesToSearch.push(nodesToSearch[0]!.addIfNotExistB());
-      nodesToSearch.push(nodesToSearch[0]!.addIfNotExistC());
+  async build() {
+    let nodesToSearch: CoxeterNode[] = [this];
+    let n: CoxeterNode | null;
+    while (nodesToSearch.length > 0) {
+      for (const gen in this.siblings) {
+        n = nodesToSearch[0]!.addSiblingIfNotExist(gen);
+        if (n) nodesToSearch.push(n);
+      }
       nodesToSearch.shift();
-      nodesToSearch = nodesToSearch.filter((v) => v);
+      if (nodesToSearch.length > this.MAX_NODES) {
+        throw new Error("Too many nodes to search");
+      }
     }
     return this;
   }
@@ -27,243 +40,232 @@ export class CoxeterNode3 {
     return this.getNodeAt(this.coordinate.split("").reverse().join(""))!;
   }
 
-  nodes(searchedNodes: string[] = [""]) {
-    if (!searchedNodes.length) this.isSolved(undefined, searchedNodes);
-    return searchedNodes.map((p) => this.getNodeAt(p)!);
+  nodes() {
+    const searchedNodes: { [coordinate: string]: CoxeterNode } = {};
+    const nodesToSearch: CoxeterNode[] = [this];
+
+    while (nodesToSearch.length > 0) {
+      const currentNode = nodesToSearch.shift()!;
+
+      for (const gen in currentNode.siblings) {
+        const sibling = currentNode.siblings[gen];
+        if (sibling && !searchedNodes[sibling.coordinate]) {
+          searchedNodes[sibling.coordinate] = sibling;
+          nodesToSearch.push(sibling);
+        }
+      }
+    }
+
+    return searchedNodes;
   }
 
   clone() {
-    const searchedNodes = [""];
+    const searchedNodes = new Set([""]);
     if (!this.isSolved(undefined, searchedNodes)) return null;
 
-    const nodes: CoxeterNode3[] = [];
+    const nodes: CoxeterNode[] = [];
     const root = this.root();
-    for (let i = 0; i < searchedNodes.length; i++) {
-      nodes.push(new CoxeterNode3(this.ma, this.mb, this.mc, searchedNodes[i]));
+    for (const sn in searchedNodes) {
+      nodes.push(new CoxeterNode(this.labels, this.ni, sn));
     }
-    for (let i = 0; i < searchedNodes.length; i++) {
-      const t = root.getNodeAt(searchedNodes[i])!;
-      const n = nodes[i];
-      n.a = nodes[searchedNodes.indexOf(t.getNodeAt("a")!.coordinate)];
-      n.b = nodes[searchedNodes.indexOf(t.getNodeAt("b")!.coordinate)];
-      n.c = nodes[searchedNodes.indexOf(t.getNodeAt("c")!.coordinate)];
+    for (const sn in searchedNodes) {
+      const t = root.getNodeAt(sn)!;
+      const n = nodes.find((v) => v.coordinate === sn)!;
+      for (const gen in this.siblings) {
+        n.siblings[gen] = nodes.find(
+          (v) => v.coordinate === t.getNodeAt(gen)!.coordinate
+        )!;
+      }
       nodes.push(n);
     }
     return nodes[0];
   }
 
   getNodeAt(path: string) {
-    let n: CoxeterNode3 | null = this;
+    let n: CoxeterNode | null = this;
     for (let i = 0; i < path.length && n; i++) {
-      if (path[i] === "a") n = n.a;
-      else if (path[i] === "b") n = n.b;
-      else if (path[i] === "c") n = n.c;
-      else return null;
+      let flag = false;
+      for (const gen in this.siblings) {
+        if (path[i] === gen) {
+          n = n!.siblings[gen];
+          flag = true;
+        }
+      }
+      if (!flag) return null;
     }
     return n;
   }
 
-  addIfNotExistA() {
-    if (this.a) return null;
-    let t: CoxeterNode3 | null;
-    if ((t = this.getNodeAt("ca".repeat(this.mb).slice(0, -1)))) {
-      this.a = t;
-      t.a = this;
-      return null;
-    }
-    if ((t = this.getNodeAt("ba".repeat(this.mc).slice(0, -1)))) {
-      this.a = t;
-      t.a = this;
-      return null;
-    }
-    const n = new CoxeterNode3(
-      this.ma,
-      this.mb,
-      this.mc,
-      `${this.coordinate}a`
-    );
-    this.a = n;
-    n.a = this;
-    return n;
-  }
-
-  addIfNotExistB() {
-    if (this.b) return null;
-    let t: CoxeterNode3 | null;
-    if ((t = this.getNodeAt("ab".repeat(this.mc).slice(0, -1)))) {
-      this.b = t;
-      t.b = this;
-      return null;
-    }
-    if ((t = this.getNodeAt("cb".repeat(this.ma).slice(0, -1)))) {
-      this.b = t;
-      t.b = this;
-      return null;
-    }
-    const n = new CoxeterNode3(
-      this.ma,
-      this.mb,
-      this.mc,
-      `${this.coordinate}b`
-    );
-    this.b = n;
-    n.b = this;
-    return n;
-  }
-
-  addIfNotExistC() {
-    if (this.c) return null;
-    let t: CoxeterNode3 | null;
-    if ((t = this.getNodeAt("bc".repeat(this.ma).slice(0, -1)))) {
-      this.c = t;
-      t.c = this;
-      return null;
-    }
-    if ((t = this.getNodeAt("ac".repeat(this.mb).slice(0, -1)))) {
-      this.c = t;
-      t.c = this;
-      return null;
-    }
-    const n = new CoxeterNode3(
-      this.ma,
-      this.mb,
-      this.mc,
-      `${this.coordinate}c`
-    );
-    this.c = n;
-    n.c = this;
-    return n;
-  }
-
-  popPolygonA(ni: string) {
-    const polygon: string[] = [];
-    let n: CoxeterNode3 = this,
-      m: CoxeterNode3;
-    for (let i = 0; i < this.ma * 2 + 10; i++) {
-      m = n;
-      const sa = ni[0] === "s" ? (n.coordinate.match(/a/g) ?? []).length : 0;
-      const sb = ni[1] === "s" ? (n.coordinate.match(/b/g) ?? []).length : 0;
-      const sc = ni[2] === "s" ? (n.coordinate.match(/c/g) ?? []).length : 0;
-      const f = (sa + sc + sb) % 2;
-      if (n.coordinate.length % 2) {
-        if (!n.c) return polygon;
-        n = n.c;
-        if (!polygon.length && f) continue;
-        m.c = null;
-        if (f) continue;
-        if (polygon[polygon.length - 1] !== n.coordinate)
-          polygon.push(n.coordinate);
-      } else {
-        if (!n.b) return polygon;
-        n = n.b;
-        if (!polygon.length && f) continue;
-        m.b = null;
-        if (f) continue;
-        if (polygon[polygon.length - 1] !== n.coordinate)
-          polygon.push(n.coordinate);
+  addSiblingIfNotExist(gen: string) {
+    if (this.siblings[gen]) return null;
+    let t: CoxeterNode | null;
+    for (const gen2 in this.siblings) {
+      if (gen2 === gen) continue;
+      if (
+        (t = this.getNodeAt(
+          `${gen2}${gen}`.repeat(this.labels[`${gen2}${gen}`][0]).slice(0, -1)
+        ))
+      ) {
+        this.siblings[gen] = t;
+        t.siblings[gen] = this;
+        return null;
       }
     }
-    return polygon;
+    const n = new CoxeterNode(this.labels, this.ni, `${this.coordinate}${gen}`);
+    this.siblings[gen] = n;
+    n.siblings[gen] = this;
+    return n;
   }
 
-  popPolygonB(ni: string) {
-    const polygon: string[] = [];
-    let n: CoxeterNode3 = this,
-      m: CoxeterNode3;
-    for (let i = 0; i < this.mb * 2 + 10; i++) {
-      m = n;
-      const sa = ni[0] === "s" ? (n.coordinate.match(/a/g) ?? []).length : 0;
-      const sb = ni[1] === "s" ? (n.coordinate.match(/b/g) ?? []).length : 0;
-      const sc = ni[2] === "s" ? (n.coordinate.match(/c/g) ?? []).length : 0;
-      const f = (sa + sc + sb) % 2;
-      if (n.coordinate.length % 2) {
-        if (!n.a) return polygon;
-        n = n.a;
-        if (!polygon.length && f) continue;
-        m.a = null;
-        if (f) continue;
-        if (polygon[polygon.length - 1] !== n.coordinate)
-          polygon.push(n.coordinate);
-      } else {
-        if (!n.c) return polygon;
-        n = n.c;
-        if (!polygon.length && f) continue;
-        m.c = null;
-        if (f) continue;
-        if (polygon[polygon.length - 1] !== n.coordinate)
-          polygon.push(n.coordinate);
+  // 低次元構成要素配列の生成
+  getSubpolytopes(d: number) {
+    const subpolytopes: { [genCombination: string]: CoxeterNode[][] } = {};
+    const nodes = this.nodes();
+    const genCombinations = this.getGenCombinations(d);
+    const visitedNodes = new Set<string>();
+
+    // 生成元の組み合わせごとに処理
+    for (const genCombination of genCombinations) {
+      const key = genCombination.join("");
+      subpolytopes[key] = [];
+      visitedNodes.clear();
+
+      // 各ノードを起点として深さ優先探索
+      for (const node of Object.values(nodes)) {
+        if (visitedNodes.has(node.coordinate)) continue;
+
+        const subpolytope: CoxeterNode[] = [];
+        const stack: CoxeterNode[] = [node];
+
+        while (stack.length > 0) {
+          const currentNode = stack.pop()!;
+          if (visitedNodes.has(currentNode.coordinate)) continue;
+
+          visitedNodes.add(currentNode.coordinate);
+          subpolytope.push(currentNode);
+
+          // 生成元の組み合わせに基づいて隣接ノードを探索
+          for (const gen of genCombination) {
+            const nextNode = currentNode.siblings[gen];
+            if (nextNode && !visitedNodes.has(nextNode.coordinate)) {
+              stack.push(nextNode);
+            }
+          }
+        }
+
+        if (subpolytope.length > 0) {
+          subpolytopes[key].push(subpolytope);
+        }
       }
     }
-    return polygon;
+
+    return subpolytopes;
   }
 
-  popPolygonC(ni: string) {
-    const polygon: string[] = [];
-    let n: CoxeterNode3 = this,
-      m: CoxeterNode3;
-    for (let i = 0; i < this.mc * 2 + 10; i++) {
-      m = n;
-      const sa = ni[0] === "s" ? (n.coordinate.match(/a/g) ?? []).length : 0;
-      const sb = ni[1] === "s" ? (n.coordinate.match(/b/g) ?? []).length : 0;
-      const sc = ni[2] === "s" ? (n.coordinate.match(/c/g) ?? []).length : 0;
-      const f = (sa + sc + sb) % 2;
-      if (n.coordinate.length % 2) {
-        if (!n.b) return polygon;
-        n = n.b;
-        if (!polygon.length && f) continue;
-        m.b = null;
-        if (f) continue;
-        if (polygon[polygon.length - 1] !== n.coordinate)
-          polygon.push(n.coordinate);
-      } else {
-        if (!n.a) return polygon;
-        n = n.a;
-        if (!polygon.length && f) continue;
-        m.a = null;
-        if (f) continue;
-        if (polygon[polygon.length - 1] !== n.coordinate)
-          polygon.push(n.coordinate);
+  getGenCombinations(d: number) {
+    const result: string[][] = [];
+    const gens = Object.keys(this.siblings);
+    const stack: { path: string[]; start: number }[] = [];
+
+    stack.push({ path: [], start: 0 });
+
+    while (stack.length > 0) {
+      const { path, start } = stack.pop()!;
+
+      if (path.length === d) {
+        result.push(path);
+        continue;
+      }
+
+      for (let i = gens.length - 1; i >= start; i--) {
+        stack.push({ path: [...path, gens[i]], start: i + 1 });
       }
     }
-    return polygon;
+
+    return result;
   }
 
-  isSolved(maxDepth: number = 1000, searchedNodes: string[] = [""]) {
-    // console.log(`current at: ${this.coordinate}`);
-    if (maxDepth === 0) {
-      return true;
+  // popPolygons() {
+  //   return Object.keys(this.labels)
+  //     .map((genPair) => this.popPolygon(genPair))
+  //     .filter((polygon) => polygon.length > 0);
+  // }
+
+  // popPolygon(genPair: string) {
+  //   const polygon: string[] = [];
+  //   let currentNode: CoxeterNode = this;
+  //   const maxIterations = this.labels[genPair] * 2 + 10;
+
+  //   // 生成元ごとのsフラグをキャッシュ
+  //   const isSnubGen = Object.fromEntries(
+  //     Object.keys(this.siblings).map((gen) => [gen, this.ni[gen] === "s"])
+  //   );
+
+  //   for (let i = 0; i < maxIterations; i++) {
+  //     let snubFlag = 0;
+  //     if (Object.values(isSnubGen).some((flag) => flag)) {
+  //       const coord = currentNode.coordinate;
+  //       for (const [gen, isSnub] of Object.entries(isSnubGen)) {
+  //         if (isSnub) {
+  //           snubFlag += (coord.match(new RegExp(gen, "g")) || []).length;
+  //         }
+  //       }
+  //       snubFlag %= 2;
+  //     }
+
+  //     const sib = genPair[currentNode.coordinate.length % 2];
+  //     if (!currentNode.siblings[sib]) return polygon;
+
+  //     currentNode = currentNode.siblings[sib];
+
+  //     // snubフラグに基づく処理
+  //     if (snubFlag && !polygon.length) continue;
+
+  //     // 重複チェックと追加
+  //     if (!polygon.includes(currentNode.coordinate)) {
+  //       polygon.push(currentNode.coordinate);
+  //     }
+  //   }
+
+  //   return polygon;
+  // }
+
+  isSolved(maxDepth: number = 100000, visitedNodes = new Set<string>([""])) {
+    let stack: { node: CoxeterNode; depth: number }[] = [
+      { node: this, depth: maxDepth },
+    ];
+
+    while (stack.length > 0) {
+      const { node, depth } = stack.pop()!;
+      if (depth === 0) {
+        return true;
+      }
+
+      if (Object.keys(node.siblings).some((gen) => !node.siblings[gen])) {
+        return false;
+      }
+
+      for (const gen in node.siblings) {
+        const sib = node.siblings[gen]!;
+        if (!visitedNodes.has(sib.coordinate)) {
+          visitedNodes.add(sib.coordinate);
+          stack.push({ node: sib, depth: depth - 1 });
+        }
+      }
     }
-    if (!this.a || !this.b || !this.c) return false;
-    const A = this.a.coordinate;
-    const B = this.b.coordinate;
-    const C = this.c.coordinate;
-    if (searchedNodes.findIndex((c) => c === A) < 0) {
-      searchedNodes.push(A);
-      if (!this.a.isSolved(maxDepth - 1, searchedNodes)) return false;
-    }
-    if (searchedNodes.findIndex((c) => c === B) < 0) {
-      searchedNodes.push(B);
-      if (!this.b.isSolved(maxDepth - 1, searchedNodes)) return false;
-    }
-    if (searchedNodes.findIndex((c) => c === C) < 0) {
-      searchedNodes.push(C);
-      if (!this.c.isSolved(maxDepth - 1, searchedNodes)) return false;
-    }
+
     return true;
   }
 
-  getIdenticalNodes(ni: string, identicalNodes = [this.coordinate]) {
-    if (ni[0] === "o" && identicalNodes.indexOf(this.a!.coordinate) < 0) {
-      identicalNodes.push(this.a!.coordinate);
-      this.a!.getIdenticalNodes(ni, identicalNodes);
-    }
-    if (ni[1] === "o" && identicalNodes.indexOf(this.b!.coordinate) < 0) {
-      identicalNodes.push(this.b!.coordinate);
-      this.b!.getIdenticalNodes(ni, identicalNodes);
-    }
-    if (ni[2] === "o" && identicalNodes.indexOf(this.c!.coordinate) < 0) {
-      identicalNodes.push(this.c!.coordinate);
-      this.c!.getIdenticalNodes(ni, identicalNodes);
+  getIdenticalNodes(identicalNodes = [this.coordinate]) {
+    for (const gen in this.siblings) {
+      if (
+        this.ni[gen] === "o" &&
+        identicalNodes.indexOf(this.siblings[gen]!.coordinate) < 0
+      ) {
+        identicalNodes.push(this.siblings[gen]!.coordinate);
+        this.siblings[gen]!.getIdenticalNodes(identicalNodes);
+      }
     }
     return identicalNodes;
   }

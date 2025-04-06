@@ -1,22 +1,21 @@
 type Data = {
   vert: string;
   frag: string;
-}
+};
 
 export default async function CreateModule(device: GPUDevice) {
   try {
-    let response = await fetch('/api/gasket-shaders');
+    let response = await fetch("/api/shaders/gasket");
     const data: Data = await response.json();
 
     return device.createShaderModule({
-      label: 'gasket shaders',
+      label: "gasket shaders",
       code: `
         ${data.vert}
         ${data.frag}
       `,
     });
-  }
-  catch (e){
+  } catch (e) {
     console.error(e);
     return null;
   }

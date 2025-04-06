@@ -6,7 +6,7 @@ import {
   Vector3Tuple,
 } from "three";
 import { GyrovectorSpace2 } from "@/src/maths/GyrovectorSpace2";
-import { CoxeterNode3 } from "@/src/maths/CoxeterNode";
+import { CoxeterNode3 } from "@/src/maths/CoxeterNode3";
 
 /**
  * 多面体のモデルを生成する．

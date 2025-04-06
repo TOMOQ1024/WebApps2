@@ -1,0 +1,82 @@
+.wrapper {
+  display: inline-block;
+  position: absolute;
+  left: 20px;
+  bottom: 20px;
+  background-color: #00000088;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ffffff44;
+  width: 240px;
+  height: 240px;
+}
+
+.matrixContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bracket {
+  font-size: 2em;
+  margin: 0 10px;
+  transform: translateY(-10px) scaleY(4.5);
+}
+
+.matrix {
+  border-collapse: collapse;
+  width: auto;
+}
+
+.matrix td {
+  border: 1px solid #ffffff44;
+  width: 30px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.upperTriangular {
+  color: white;
+}
+
+.lowerTriangular {
+  color: rebeccapurple;
+}
+
+.input {
+  background-color: transparent;
+  border: none;
+  outline: none;
+  text-align: center;
+  width: 30px;
+  height: 30px;
+  &.invalid {
+    background-color: #ff000044;
+  }
+  &:hover {
+    background-color: #ffffff44;
+  }
+}
+
+.error {
+  margin-top: 10px;
+  height: 40px;
+  color: #cfc;
+  background-color: #00440044;
+  font-size: 0.8em;
+  &.active {
+    color: #fcc;
+    background-color: #44000044;
+  }
+}
+
+.nodeMarks {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nodeMark {
+  width: 30px;
+  text-align: center;
+}
