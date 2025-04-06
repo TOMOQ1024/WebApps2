@@ -20,7 +20,7 @@ import { CountMap } from "@/src/CountMap";
  * CreatePolyhedron(4,3,2,0,1,0) -> Cube
  */
 export async function CreatePolychora(
-  labels: { [genPair: string]: number },
+  labels: { [genPair: string]: [number, number] },
   ni: { [gen: string]: string },
   dual: boolean
 ) {
@@ -191,16 +191,16 @@ export async function CreatePolychora(
 }
 
 function GetFundamentalDomain(
-  labels: { [genPair: string]: number },
+  labels: { [genPair: string]: [number, number] },
   g: MobiusGyrovectorSphericalSpace3
 ) {
   // point A
   const pointA = new Vector3(0, 0, 0);
 
   // hyperplane B,C,D
-  const angleCD = Math.PI - Math.PI / labels.cd;
-  const angleDB = Math.PI - Math.PI / labels.bd;
-  const angleBC = Math.PI - Math.PI / labels.bc;
+  const angleCD = Math.PI - (Math.PI / labels.cd[0]) * labels.cd[1];
+  const angleDB = Math.PI - (Math.PI / labels.bd[0]) * labels.bd[1];
+  const angleBC = Math.PI - (Math.PI / labels.bc[0]) * labels.bc[1];
   const planeB = new Vector3(1, 0, 0);
   const planeC = new Vector3(Math.cos(angleBC), Math.sin(angleBC), 0);
   const planeD = new Vector3(Math.cos(angleDB), 0, Math.sin(angleDB));
@@ -214,9 +214,9 @@ function GetFundamentalDomain(
   // console.log(planeB, planeC, planeD);
 
   // hyperplane A
-  const angleAB = Math.PI - Math.PI / labels.ab;
-  const angleAC = Math.PI - Math.PI / labels.ac;
-  const angleAD = Math.PI - Math.PI / labels.ad;
+  const angleAB = Math.PI - (Math.PI / labels.ab[0]) * labels.ab[1];
+  const angleAC = Math.PI - (Math.PI / labels.ac[0]) * labels.ac[1];
+  const angleAD = Math.PI - (Math.PI / labels.ad[0]) * labels.ad[1];
   const sphereCenterA = new Vector3(
     Math.cos(angleAB),
     Math.cos(angleAC),
@@ -293,7 +293,7 @@ function GetInitPoint(
   pointB: Vector3,
   pointC: Vector3,
   pointD: Vector3,
-  labels: { [genPair: string]: number },
+  labels: { [genPair: string]: [number, number] },
   ni: { [gen: string]: string },
   g: MobiusGyrovectorSphericalSpace3
 ) {
@@ -351,7 +351,7 @@ function GetInitPoint(
 
 function GetPositions(
   identicalCoordinates: string[][],
-  labels: { [genPair: string]: number },
+  labels: { [genPair: string]: [number, number] },
   ni: { [gen: string]: string }
 ) {
   const positions: { [key: string]: Vector3 } = {};
@@ -553,7 +553,7 @@ function CreateAttributes(
           colors.push(...c.map((c) => c * 0.1), 1);
         }
         for (let j = 0; j < p.length; j++) {
-          vertices.push(...g.mix(positions[p[j]], M, 0.1).toArray());
+          vertices.push(...g.mix(positions[p[j]], M, 0.03).toArray());
           colors.push(...c, 1);
         }
         indexOffset += p.length * 2;

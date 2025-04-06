@@ -6,7 +6,7 @@ export class CoxeterNode {
   readonly MAX_NODES = 10000;
 
   constructor(
-    public labels: { [genPair: string]: number },
+    public labels: { [genPair: string]: [number, number] },
     public ni: { [gen: string]: string },
     public coordinate: string = ""
   ) {
@@ -103,7 +103,7 @@ export class CoxeterNode {
       if (gen2 === gen) continue;
       if (
         (t = this.getNodeAt(
-          `${gen2}${gen}`.repeat(this.labels[`${gen2}${gen}`]).slice(0, -1)
+          `${gen2}${gen}`.repeat(this.labels[`${gen2}${gen}`][0]).slice(0, -1)
         ))
       ) {
         this.siblings[gen] = t;

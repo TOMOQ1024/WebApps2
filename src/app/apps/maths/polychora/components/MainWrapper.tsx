@@ -121,18 +121,18 @@ const HandleKeyDown = (
   }
   if (e.key === "p" && !e.shiftKey && !e.metaKey && tagName !== "INPUT") {
     const labels = {
-      ab: 3,
-      bc: 3,
-      cd: 3,
-      da: 2,
-      ac: 2,
-      bd: 2,
-    };
+      ab: [2, 1],
+      bc: [5, 1],
+      cd: [2, 1],
+      da: [5, 1],
+      ac: [2, 1],
+      bd: [2, 1],
+    } as { [genPair: string]: [number, number] };
     const ni = {
       a: "x",
-      b: "x",
+      b: "o",
       c: "x",
-      d: "x",
+      d: "o",
     };
     (async () => {
       const g0 = (await CreatePolychora(labels, ni, !true))!;
