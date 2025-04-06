@@ -23,6 +23,7 @@ import {
   LineMaterial,
   OrbitControls,
 } from "three/examples/jsm/Addons";
+import { CreatePolychora } from "./Polychora";
 
 export default class Core {
   cvs: HTMLCanvasElement;
@@ -33,12 +34,24 @@ export default class Core {
   textureLoader = new TextureLoader();
   depthLimit: number = 1;
   labels = {
-    "01": 1,
-    "02": 1,
-    "03": 1,
-    "12": 1,
-    "13": 1,
-    "23": 1,
+    ab: [2, 1],
+    ba: [2, 1],
+    bc: [4, 1],
+    cb: [4, 1],
+    cd: [3, 1],
+    dc: [3, 1],
+    ad: [3, 1],
+    da: [3, 1],
+    ac: [2, 1],
+    ca: [2, 1],
+    bd: [2, 1],
+    db: [2, 1],
+  } as { [genPair: string]: [number, number] };
+  nodeMarks = {
+    a: "o",
+    b: "x",
+    c: "o",
+    d: "o",
   };
   ctrls: OrbitControls;
   geometry: BufferGeometry | null = null;
@@ -183,6 +196,7 @@ void main() {
   }
 
   beginLoop() {
+    this.setPolychoron();
     this.interval = setInterval(() => {
       this.loop(1 / 20);
     }, 1000 / 20);
@@ -231,10 +245,11 @@ void main() {
     );
   }
 
-  setPolychoron(g: BufferGeometry) {
+  async setPolychoron() {
+    const g0 = (await CreatePolychora(this.labels, this.nodeMarks, !true))!;
     if (this.mesh) this.scene.remove(this.mesh);
-    this.geometry = g;
-    this.mesh = new Mesh(g, this.material);
+    this.geometry = g0;
+    this.mesh = new Mesh(g0, this.material);
     // g.computeVertexNormals();
     // this.mesh = new Mesh(
     //   g,
