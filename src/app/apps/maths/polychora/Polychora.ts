@@ -539,6 +539,10 @@ function CreateAttributes(
         const c = COLORS[polygons[i].gens];
         const p = polygons[i].coordinates;
         const M = g.mean(...p.map((c) => positions[c]));
+        // const M = p
+        //   .map((c) => positions[c])
+        //   .reduce((a, b) => a.add(b), new Vector3())
+        //   .divideScalar(p.length);
         for (let j = 0; j < p.length; j++) {
           const k = (j + 1) % p.length;
           indices.push(
@@ -550,11 +554,11 @@ function CreateAttributes(
             indexOffset + j + p.length
           );
           vertices.push(...positions[p[j]].toArray());
-          colors.push(...c.map((c) => c * 0.1), 1);
+          colors.push(...c.map((c) => 1).map((c) => c * 0.1), 1);
         }
         for (let j = 0; j < p.length; j++) {
-          vertices.push(...g.mix(positions[p[j]], M, 0.03).toArray());
-          colors.push(...c, 1);
+          vertices.push(...g.mix(positions[p[j]], M, 0.1).toArray());
+          colors.push(...c.map((c) => 1), 1);
         }
         indexOffset += p.length * 2;
       }

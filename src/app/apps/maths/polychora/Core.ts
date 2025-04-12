@@ -52,10 +52,11 @@ export default class Core {
     b: "x",
     c: "o",
     d: "o",
-  };
+  } as { [nodeKey: string]: string };
   ctrls: OrbitControls;
   geometry: BufferGeometry | null = null;
   mesh: LineSegments | Mesh | null = null;
+  buildTime: number = 0;
   material = new RawShaderMaterial({
     side: DoubleSide,
     uniforms: {
@@ -72,7 +73,7 @@ uniform float time;
 
 varying vec2 vUv;
 varying vec4 vColor;
-
+varying vec3 vDepth;
 #define cv 1.0
 
 // #region gyrovector functions
@@ -112,11 +113,12 @@ vec3 g_mul(float r, vec3 p) {
 // #endregion
 
 void main() {
-  // vec3 origin = vec3(0.,0.,0.);
-  vec3 origin = g_mul(time, vec3(0.,0.,.1));
+  vec3 origin = vec3(0.,0.,0.);
+  // vec3 origin = g_mul(time, vec3(0.,0.,.1));
   vec3 S = g_add(origin, position);
   float l = 1.;
   vec3 P = S*l/(dot(S,S)*(l-1.)+l);
+  vDepth = -(modelViewMatrix * vec4(P.xyz, 1.)).xyz;
   gl_Position = projectionMatrix * modelViewMatrix * vec4(P.xyz, 1.0);
   vUv = uv;
   vColor = color;
@@ -127,11 +129,13 @@ precision highp float;
 
 varying vec2 vUv;
 varying vec4 vColor;
+varying vec3 vDepth;
 #define PI 3.14159265358979323846
 
 void main() {
   vec4 c = pow(vColor, vec4(3.));
-  gl_FragColor = vec4(c.rgb, 1.);
+  float depth = exp(-vDepth.z*.5);
+  gl_FragColor = vec4(c.rgb, depth);
 }
                   `,
   });
@@ -246,7 +250,12 @@ void main() {
   }
 
   async setPolychoron() {
+    console.clear();
+    const startTime = performance.now();
     const g0 = (await CreatePolychora(this.labels, this.nodeMarks, !true))!;
+    const endTime = performance.now();
+    const buildTime = endTime - startTime;
+    this.buildTime = buildTime;
     if (this.mesh) this.scene.remove(this.mesh);
     this.geometry = g0;
     this.mesh = new Mesh(g0, this.material);
