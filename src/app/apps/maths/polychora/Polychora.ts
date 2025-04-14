@@ -1,11 +1,4 @@
-import {
-  BufferAttribute,
-  BufferGeometry,
-  Color,
-  Matrix3,
-  Vector3,
-  Vector4,
-} from "three";
+import { BufferAttribute, BufferGeometry, Matrix3, Vector3 } from "three";
 import { CoxeterNode } from "@/src/maths/CoxeterNode";
 import { MobiusGyrovectorSphericalSpace3 } from "@/src/maths/MobiusGyrovectorSphericalSpace3";
 import { CountMap } from "@/src/CountMap";
@@ -13,58 +6,48 @@ import { CountMap } from "@/src/CountMap";
 /**
  * 多面体のモデルを生成する．
  * @param mx ノード間ラベル
- * @param ni ノードの種類 (o|x|s){3}
+ * @param nodeMarks ノードの種類 (o|x|s){3}
  * @param dual 双対
  *
  * @example
  * CreatePolyhedron(4,3,2,0,1,0) -> Cube
  */
-export async function CreatePolychora(
+export function CreatePolychoron(
   labels: { [genPair: string]: [number, number] },
-  ni: { [gen: string]: string },
+  nodeMarks: { [gen: string]: string },
   dual: boolean
 ) {
   // 群構造の構築
-  const graph = new CoxeterNode(labels, ni);
+  const graph = new CoxeterNode({
+    labels,
+    nodeMarks,
+  });
   console.log("Building graph");
-  await graph.build();
+  graph.build();
   console.log(graph.isSolved(undefined) ? "solved" : "unsolved");
   console.log(graph);
   const nodes = graph.nodes(); // グラフの頂点配列
   console.log(`Elements: ${Object.keys(nodes).length}`);
-  // coordinates.delete("");
-  // coordinates.add("1");
-  // const pad =
-  //   Array.from(coordinates).reduce((p, s) => (p.length > s.length ? p : s))
-  //     .length + 1;
-  // const col = Math.ceil(Math.sqrt((2 * coordinates.size) / pad)) + 1;
-  // console.log(
-  //   Array.from(coordinates).reduce((p, s, i) => {
-  //     return p.padEnd(pad) + s.padEnd(pad) + ((i + 1) % col ? "" : "\n");
-  //   })
-  // );
-  // coordinates.delete("1");
-  // coordinates.add("");
 
   console.log("Getting identical coordinates");
   const identicalCoordinates = GetIdenticalCoordinates(nodes); // 重複した頂点の抽出
   // console.log(identicalCoordinates);
 
-  const positions = GetPositions(identicalCoordinates, labels, ni); // ジャイロベクトル平面上の頂点座標
+  const positions = GetPositions(identicalCoordinates, labels, nodeMarks); // ジャイロベクトル平面上の頂点座標
 
   // console.log(positions);
 
   // #region snubによる面の追加
   // // snubによる面の追加
   // const indicesToDelete: number[] = [];
-  // if (Object.values(ni).indexOf("s") >= 0) {
+  // if (Object.values(nodeMarks).indexOf("s") >= 0) {
   //   for (let i = 0; i < identicalIndices.length; i++) {
   //     const ii = identicalIndices[i];
   //     const n = nodes[ii[0]];
   //     const co = n.coordinate;
-  //     const sa = ni[0] === "s" ? (co.match(/a/g) ?? []).length : 0;
-  //     const sb = ni[1] === "s" ? (co.match(/b/g) ?? []).length : 0;
-  //     const sc = ni[2] === "s" ? (co.match(/c/g) ?? []).length : 0;
+  //     const sa = nodeMarks[0] === "s" ? (co.match(/a/g) ?? []).length : 0;
+  //     const sb = nodeMarks[1] === "s" ? (co.match(/b/g) ?? []).length : 0;
+  //     const sc = nodeMarks[2] === "s" ? (co.match(/c/g) ?? []).length : 0;
   //     if ((sa + sc + sb) % 2) continue;
   //     indicesToDelete.push(i);
   //     polygons.push([
@@ -94,87 +77,16 @@ export async function CreatePolychora(
   // 重複した頂点の結合
   console.log("Arranging polygons");
   ArrangePolygons(polygons, identicalCoordinates);
-  // console.log(
-  //   `Polygons:\n${polygons
-  //     .map((p) => `(${p.length}) ${p.map((c) => c || "1").join(",")}`)
-  //     .join("\n")}`
-  // );
 
   // 重複した面の削除
   console.log("Deduplicating polygons");
+  console.log(polygons.length);
   DedupePolygons(polygons);
-  // console.log(
-  //   `Polygons:\n${polygons
-  //     .map((p) => `(${p.length}) ${p.map((c) => c || "1").join(",")}`)
-  //     .join("\n")}`
-  // );
-  // console.log(`Polygons: ${polygons.length}`);
+  console.log(polygons.length);
 
   console.log(`Vertices: ${identicalCoordinates.length}`);
   console.log(`Faces: ${polygons.length}`);
   console.log(CountMap(polygons.map((p) => p.coordinates.length)));
-
-  // #region snubによる頂点の削除
-  // // snubによる頂点の削除
-  // for (let i = identicalIndices.length - 1; i >= 0; i--) {
-  //   if (indicesToDelete.indexOf(i) >= 0) {
-  //     positions.splice(i, 1);
-  //     identicalIndices.splice(i, 1);
-  //   }
-  // }
-  // for (let i = 0; i < polygons.length; i++) {
-  //   const p = polygons[i];
-  //   for (let j = 0; j < p.length; j++) {
-  //     p[j] -= indicesToDelete.filter((d) => d <= p[j]).length;
-  //   }
-  // }
-  // #endregion
-
-  // console.log(polygons);
-
-  // #region 双対の場合
-  // 双対の場合
-  // if (dual) {
-  //   const newPositions: Vector2[] = [];
-  //   const newPolygons: number[][] = [];
-  //   for (let i = 0; i < polygons.length; i++) {
-  //     newPositions.push(g.mean(...polygons[i].map((p) => positions[p])));
-  //   }
-  //   for (let i = 0; i < positions.length; i++) {
-  //     const newPolygon: number[] = [];
-  //     for (let j = 0; j < polygons.length; j++) {
-  //       if (polygons[j].indexOf(i) >= 0) {
-  //         newPolygon.push(j);
-  //       }
-  //     }
-  //     newPolygons.push([]);
-  //     let p = 0;
-  //     while (true) {
-  //       if (p < 0) break;
-  //       newPolygons[i].push(newPolygon[p]);
-  //       let neighbor =
-  //         polygons[newPolygon[p]][
-  //           (polygons[newPolygon[p]].indexOf(i) -
-  //             1 +
-  //             polygons[newPolygon[p]].length) %
-  //             polygons[newPolygon[p]].length
-  //         ];
-  //       p = newPolygon.findIndex(
-  //         (n) =>
-  //           newPolygons[i].indexOf(n) < 0 && polygons[n].indexOf(neighbor) >= 0
-  //       );
-  //     }
-  //   }
-  //   console.log(newPolygons);
-
-  //   positions.splice(0, positions.length);
-  //   positions.push(...newPositions);
-  //   polygons.splice(0, polygons.length);
-  //   polygons.push(...newPolygons);
-  // }
-  // #endregion
-
-  // console.log(polygons);
 
   const { indices, ...attributes } = CreateAttributes(
     positions,

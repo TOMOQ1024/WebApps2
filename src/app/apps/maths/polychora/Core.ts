@@ -23,7 +23,7 @@ import {
   LineMaterial,
   OrbitControls,
 } from "three/examples/jsm/Addons";
-import { CreatePolychora } from "./Polychora";
+import { CreatePolychoron } from "./Polychora";
 
 export default class Core {
   cvs: HTMLCanvasElement;
@@ -252,7 +252,7 @@ void main() {
   async setPolychoron() {
     console.clear();
     const startTime = performance.now();
-    const g0 = (await CreatePolychora(this.labels, this.nodeMarks, !true))!;
+    const g0 = (await CreatePolychoron(this.labels, this.nodeMarks, !true))!;
     const endTime = performance.now();
     const buildTime = endTime - startTime;
     this.buildTime = buildTime;

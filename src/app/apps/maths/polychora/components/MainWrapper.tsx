@@ -3,8 +3,7 @@ import { useEffect, useState } from "react";
 import Core from "../Core";
 import { useSession } from "next-auth/react";
 import Controls from "./Controls";
-import { CreatePolychora } from "../Polychora";
-import { DoubleSide, Mesh, RawShaderMaterial, Vector3 } from "three";
+import { Vector3 } from "three";
 import style from "./MainWrapper.module.scss";
 import { GyrovectorSpace3 } from "@/src/maths/GyrovectorSpace3";
 

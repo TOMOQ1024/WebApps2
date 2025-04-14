@@ -1,4 +1,7 @@
-import sleep from "../Sleep";
+export interface CoxeterDynkinDiagram {
+  labels: { [genPair: string]: [number, number] };
+  nodeMarks: { [gen: string]: string };
+}
 
 export class CoxeterNode {
   siblings: { [gen: string]: CoxeterNode | null } = {};
@@ -6,21 +9,21 @@ export class CoxeterNode {
   readonly MAX_NODES = 10000;
 
   constructor(
-    public labels: { [genPair: string]: [number, number] },
-    public ni: { [gen: string]: string },
+    public diagram: CoxeterDynkinDiagram,
     public coordinate: string = ""
   ) {
-    for (const genPair in labels) {
+    for (const genPair in this.diagram.labels) {
       for (let i = 0; i < genPair.length; i++) {
         this.siblings[genPair[i]] = null;
       }
     }
-    for (const genPair in labels) {
-      labels[genPair.split("").reverse().join("")] = labels[genPair];
+    for (const genPair in this.diagram.labels) {
+      this.diagram.labels[genPair.split("").reverse().join("")] =
+        this.diagram.labels[genPair];
     }
   }
 
-  async build() {
+  build() {
     let nodesToSearch: CoxeterNode[] = [this];
     let n: CoxeterNode | null;
     while (nodesToSearch.length > 0) {
@@ -66,7 +69,7 @@ export class CoxeterNode {
     const nodes: CoxeterNode[] = [];
     const root = this.root();
     for (const sn in searchedNodes) {
-      nodes.push(new CoxeterNode(this.labels, this.ni, sn));
+      nodes.push(new CoxeterNode(this.diagram, sn));
     }
     for (const sn in searchedNodes) {
       const t = root.getNodeAt(sn)!;
@@ -103,7 +106,9 @@ export class CoxeterNode {
       if (gen2 === gen) continue;
       if (
         (t = this.getNodeAt(
-          `${gen2}${gen}`.repeat(this.labels[`${gen2}${gen}`][0]).slice(0, -1)
+          `${gen2}${gen}`
+            .repeat(this.diagram.labels[`${gen2}${gen}`][0])
+            .slice(0, -1)
         ))
       ) {
         this.siblings[gen] = t;
@@ -111,7 +116,7 @@ export class CoxeterNode {
         return null;
       }
     }
-    const n = new CoxeterNode(this.labels, this.ni, `${this.coordinate}${gen}`);
+    const n = new CoxeterNode(this.diagram, `${this.coordinate}${gen}`);
     this.siblings[gen] = n;
     n.siblings[gen] = this;
     return n;
@@ -198,7 +203,7 @@ export class CoxeterNode {
 
   //   // 生成元ごとのsフラグをキャッシュ
   //   const isSnubGen = Object.fromEntries(
-  //     Object.keys(this.siblings).map((gen) => [gen, this.ni[gen] === "s"])
+  //     Object.keys(this.siblings).map((gen) => [gen, this.nodeMarks[gen] === "s"])
   //   );
 
   //   for (let i = 0; i < maxIterations; i++) {
@@ -260,7 +265,7 @@ export class CoxeterNode {
   getIdenticalNodes(identicalNodes = [this.coordinate]) {
     for (const gen in this.siblings) {
       if (
-        this.ni[gen] === "o" &&
+        this.diagram.nodeMarks[gen] === "o" &&
         identicalNodes.indexOf(this.siblings[gen]!.coordinate) < 0
       ) {
         identicalNodes.push(this.siblings[gen]!.coordinate);
