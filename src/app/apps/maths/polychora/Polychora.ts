@@ -382,7 +382,7 @@ function ArrangePolygons(
 function CreateAttributes(
   positions: { [key: string]: Vector3 },
   polygons: { coordinates: string[]; gens: string }[],
-  mode: "transparent" | "frame"
+  mode: "transparent" | "frame" | "solidframe"
 ) {
   switch (mode) {
     case "transparent": {
@@ -479,6 +479,33 @@ function CreateAttributes(
         color: new BufferAttribute(new Float32Array(colors), 4),
         indices: new BufferAttribute(new Uint32Array(indices), 1),
       };
+    }
+    case "solidframe": {
+      // 頂点座標と頂点・面マップの生成
+      // for face in polychoron
+      //   M = g.mean(...face)
+      //   for vertex in face
+      //     map.set([vertex, face], vertices.length/3)
+      //     vertices.push(...g.mix(vertex, M, 0.1).toArray())
+
+      // 三角形リストの生成
+      // for cell in polychoron
+      //   for edge in cell
+      //     [s,e] = edgeの始点と終点
+      //     [l,r] = edgeで隣接する2つの面// これをどうやって取得するか？
+      //     indices.push(
+      //       map.get([s, l]),
+      //       map.get([s, r]),
+      //       map.get([e, l]),
+      //       map.get([s, r]),
+      //       map.get([e, r]),
+      //       map.get([e, l]),
+      //     )
+      return {
+        position: new BufferAttribute(new Float32Array([]), 3),
+        color: new BufferAttribute(new Float32Array([]), 4),
+        indices: new BufferAttribute(new Uint32Array([]), 1),
+      }
     }
   }
 }
