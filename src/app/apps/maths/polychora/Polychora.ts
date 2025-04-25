@@ -29,11 +29,11 @@ export function CreatePolychoron(
   const nodes = graph.nodes(); // グラフの頂点配列
   console.log(`Elements: ${Object.keys(nodes).length}`);
 
-  console.log("Getting identical coordinates");
-  const identicalCoordinates = GetIdenticalCoordinates(nodes); // 重複した頂点の抽出
-  // console.log(identicalCoordinates);
+  console.log("Getting representative nodes");
+  const representativeNodes = GetRepresentativeNodes(nodes);
+  // console.log(representativeNodes);
 
-  const positions = GetPositions(identicalCoordinates, labels, nodeMarks); // ジャイロベクトル平面上の頂点座標
+  const positions = GetPositions(representativeNodes, labels, nodeMarks); // ジャイロベクトル平面上の頂点座標
 
   // console.log(positions);
 
@@ -75,16 +75,17 @@ export function CreatePolychoron(
   // console.log(polygons.map((p) => p.length).toSorted());
 
   // 重複した頂点の結合
+  console.log(polygons.length);
   console.log("Arranging polygons");
-  ArrangePolygons(polygons, identicalCoordinates);
+  ArrangePolygons(polygons, nodes);
 
   // 重複した面の削除
-  console.log("Deduplicating polygons");
   console.log(polygons.length);
+  console.log("Deduplicating polygons");
   DedupePolygons(polygons);
   console.log(polygons.length);
 
-  console.log(`Vertices: ${identicalCoordinates.length}`);
+  console.log(`Vertices: ${representativeNodes.size}`);
   console.log(`Faces: ${polygons.length}`);
   console.log(CountMap(polygons.map((p) => p.coordinates.length)));
 
@@ -184,20 +185,15 @@ function GetFundamentalDomain(
   };
 }
 
-function GetIdenticalCoordinates(nodes: { [key: string]: CoxeterNode }) {
-  const identicalCoordinates: string[][] = [];
-  const searchedCoordinates = new Set<string>();
-  let n: string[];
+function GetRepresentativeNodes(nodes: { [key: string]: CoxeterNode }) {
+  const representativeNodes: Set<CoxeterNode> = new Set();
+  let n: CoxeterNode;
 
   Object.keys(nodes).forEach((c) => {
-    if (searchedCoordinates.has(c)) return;
-    n = nodes[c].getIdenticalNodes();
-    identicalCoordinates.push(n);
-    for (const i of n) {
-      searchedCoordinates.add(i);
-    }
+    n = nodes[c].identicalNode;
+    representativeNodes.add(n);
   });
-  return identicalCoordinates;
+  return representativeNodes;
 }
 
 function GetInitPoint(
@@ -262,7 +258,7 @@ function GetInitPoint(
 }
 
 function GetPositions(
-  identicalCoordinates: string[][],
+  representativeNodes: Set<CoxeterNode>,
   labels: { [genPair: string]: [number, number] },
   ni: { [gen: string]: string }
 ) {
@@ -276,9 +272,9 @@ function GetPositions(
   let Q0 = GetInitPoint(pointA, pointB, pointC, pointD, labels, ni, g);
 
   // 頂点座標の生成(gyrovector)
-  for (let i = 0; i < identicalCoordinates.length; i++) {
+  for (const node of representativeNodes) {
     let Q = Q0;
-    const coordinate = identicalCoordinates[i][0];
+    const coordinate = node.coordinate;
     for (let j = coordinate.length - 1; j >= 0; j--) {
       if (positions[coordinate.slice(j)]) {
         Q = positions[coordinate.slice(j)]!;
@@ -343,24 +339,15 @@ function DedupePolygons(polygons: { coordinates: string[]; gens: string }[]) {
 // 頂点の結合と不要な面の削除
 function ArrangePolygons(
   polygons: { coordinates: string[]; gens: string }[],
-  identicalCoordinates: string[][]
+  nodes: { [key: string]: CoxeterNode }
 ) {
-  // 頂点のマッピングを事前に作成
-  const vertexMap = new Map<string, string>();
-  for (const group of identicalCoordinates) {
-    const target = group[0];
-    for (const vertex of group) {
-      vertexMap.set(vertex, target);
-    }
-  }
-
   // 多角形を処理
   for (let i = polygons.length - 1; i >= 0; i--) {
     const p = polygons[i];
 
     // 不要な点の削除 - マップを使用して高速化
     for (let j = 0; j < p.coordinates.length; j++) {
-      p.coordinates[j] = vertexMap.get(p.coordinates[j])!;
+      p.coordinates[j] = nodes[p.coordinates[j]].identicalNode.coordinate;
     }
 
     // 不要な辺の削除 - 配列の再割り当てを減らす
@@ -505,7 +492,7 @@ function CreateAttributes(
         position: new BufferAttribute(new Float32Array([]), 3),
         color: new BufferAttribute(new Float32Array([]), 4),
         indices: new BufferAttribute(new Uint32Array([]), 1),
-      }
+      };
     }
   }
 }

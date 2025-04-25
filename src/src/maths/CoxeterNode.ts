@@ -5,12 +5,14 @@ export interface CoxeterDynkinDiagram {
 
 export class CoxeterNode {
   siblings: { [gen: string]: CoxeterNode | null } = {};
+  identicalNode: CoxeterNode = this;
 
   readonly MAX_NODES = 10000;
 
   constructor(
     public diagram: CoxeterDynkinDiagram,
-    public coordinate: string = ""
+    public coordinate: string = "",
+    public root: CoxeterNode = this
   ) {
     for (const genPair in this.diagram.labels) {
       for (let i = 0; i < genPair.length; i++) {
@@ -39,10 +41,6 @@ export class CoxeterNode {
     return this;
   }
 
-  root() {
-    return this.getNodeAt(this.coordinate.split("").reverse().join(""))!;
-  }
-
   nodes() {
     const searchedNodes: { [coordinate: string]: CoxeterNode } = {};
     const nodesToSearch: CoxeterNode[] = [this];
@@ -67,7 +65,7 @@ export class CoxeterNode {
     if (!this.isSolved(undefined, searchedNodes)) return null;
 
     const nodes: CoxeterNode[] = [];
-    const root = this.root();
+    const root = this.root;
     for (const sn in searchedNodes) {
       nodes.push(new CoxeterNode(this.diagram, sn));
     }
@@ -113,10 +111,20 @@ export class CoxeterNode {
       ) {
         this.siblings[gen] = t;
         t.siblings[gen] = this;
+        if (this.diagram.nodeMarks[gen] === "o") {
+          t.identicalNode = this.identicalNode;
+        }
         return null;
       }
     }
-    const n = new CoxeterNode(this.diagram, `${this.coordinate}${gen}`);
+    const n = new CoxeterNode(
+      this.diagram,
+      `${this.coordinate}${gen}`,
+      this.root
+    );
+    if (this.diagram.nodeMarks[gen] === "o") {
+      n.identicalNode = this.identicalNode;
+    }
     this.siblings[gen] = n;
     n.siblings[gen] = this;
     return n;
@@ -190,51 +198,6 @@ export class CoxeterNode {
     return result;
   }
 
-  // popPolygons() {
-  //   return Object.keys(this.labels)
-  //     .map((genPair) => this.popPolygon(genPair))
-  //     .filter((polygon) => polygon.length > 0);
-  // }
-
-  // popPolygon(genPair: string) {
-  //   const polygon: string[] = [];
-  //   let currentNode: CoxeterNode = this;
-  //   const maxIterations = this.labels[genPair] * 2 + 10;
-
-  //   // 生成元ごとのsフラグをキャッシュ
-  //   const isSnubGen = Object.fromEntries(
-  //     Object.keys(this.siblings).map((gen) => [gen, this.nodeMarks[gen] === "s"])
-  //   );
-
-  //   for (let i = 0; i < maxIterations; i++) {
-  //     let snubFlag = 0;
-  //     if (Object.values(isSnubGen).some((flag) => flag)) {
-  //       const coord = currentNode.coordinate;
-  //       for (const [gen, isSnub] of Object.entries(isSnubGen)) {
-  //         if (isSnub) {
-  //           snubFlag += (coord.match(new RegExp(gen, "g")) || []).length;
-  //         }
-  //       }
-  //       snubFlag %= 2;
-  //     }
-
-  //     const sib = genPair[currentNode.coordinate.length % 2];
-  //     if (!currentNode.siblings[sib]) return polygon;
-
-  //     currentNode = currentNode.siblings[sib];
-
-  //     // snubフラグに基づく処理
-  //     if (snubFlag && !polygon.length) continue;
-
-  //     // 重複チェックと追加
-  //     if (!polygon.includes(currentNode.coordinate)) {
-  //       polygon.push(currentNode.coordinate);
-  //     }
-  //   }
-
-  //   return polygon;
-  // }
-
   isSolved(maxDepth: number = 100000, visitedNodes = new Set<string>([""])) {
     let stack: { node: CoxeterNode; depth: number }[] = [
       { node: this, depth: maxDepth },
@@ -260,18 +223,5 @@ export class CoxeterNode {
     }
 
     return true;
-  }
-
-  getIdenticalNodes(identicalNodes = [this.coordinate]) {
-    for (const gen in this.siblings) {
-      if (
-        this.diagram.nodeMarks[gen] === "o" &&
-        identicalNodes.indexOf(this.siblings[gen]!.coordinate) < 0
-      ) {
-        identicalNodes.push(this.siblings[gen]!.coordinate);
-        this.siblings[gen]!.getIdenticalNodes(identicalNodes);
-      }
-    }
-    return identicalNodes;
   }
 }
