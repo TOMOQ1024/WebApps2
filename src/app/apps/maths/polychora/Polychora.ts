@@ -74,11 +74,6 @@ export function CreatePolychoron(
   // console.log(`Polygons: ${polygons.length}`);
   // console.log(polygons.map((p) => p.length).toSorted());
 
-  // 重複した頂点の結合
-  console.log(polygons.length);
-  console.log("Arranging polygons");
-  ArrangePolygons(polygons, nodes);
-
   // 重複した面の削除
   console.log(polygons.length);
   console.log("Deduplicating polygons");
@@ -334,36 +329,6 @@ function DedupePolygons(polygons: { coordinates: string[]; gens: string }[]) {
   // 結果を元の配列に書き戻し
   polygons.length = 0;
   polygons.push(...Array.from(uniquePolygons.values()));
-}
-
-// 頂点の結合と不要な面の削除
-function ArrangePolygons(
-  polygons: { coordinates: string[]; gens: string }[],
-  nodes: { [key: string]: CoxeterNode }
-) {
-  // 多角形を処理
-  for (let i = polygons.length - 1; i >= 0; i--) {
-    const p = polygons[i];
-
-    // 不要な点の削除 - マップを使用して高速化
-    for (let j = 0; j < p.coordinates.length; j++) {
-      p.coordinates[j] = nodes[p.coordinates[j]].identicalNode.coordinate;
-    }
-
-    // 不要な辺の削除 - 配列の再割り当てを減らす
-    let writeIndex = 0;
-    for (let j = 0; j < p.coordinates.length; j++) {
-      if (p.coordinates[j] !== p.coordinates[(j + 1) % p.coordinates.length]) {
-        p.coordinates[writeIndex++] = p.coordinates[j];
-      }
-    }
-    p.coordinates.length = writeIndex;
-
-    // 不要な面の削除
-    if (p.coordinates.length <= 2) {
-      polygons.splice(i, 1);
-    }
-  }
 }
 
 function CreateAttributes(

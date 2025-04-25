@@ -155,7 +155,7 @@ export class CoxeterNode {
           if (visitedNodes.has(currentNode.coordinate)) continue;
 
           visitedNodes.add(currentNode.coordinate);
-          subpolytope.push(currentNode);
+          subpolytope.push(currentNode.identicalNode);
 
           // 生成元の組み合わせに基づいて隣接ノードを探索
           for (const gen of genCombination) {
@@ -166,7 +166,15 @@ export class CoxeterNode {
           }
         }
 
-        if (subpolytope.length > 0) {
+        let writeIndex = 0;
+        for (let j = 0; j < subpolytope.length; j++) {
+          if (subpolytope[j] !== subpolytope[(j + 1) % subpolytope.length]) {
+            subpolytope[writeIndex++] = subpolytope[j];
+          }
+        }
+        subpolytope.length = writeIndex;
+
+        if (subpolytope.length > d) {
           subpolytopes[key].push(subpolytope);
         }
       }
