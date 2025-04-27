@@ -1,5 +1,5 @@
 import { BufferAttribute, BufferGeometry, Matrix3, Vector3 } from "three";
-import { CoxeterNode } from "@/src/maths/CoxeterNode";
+import { CoxeterDynkinDiagram, CoxeterNode } from "@/src/maths/CoxeterNode";
 import { MobiusGyrovectorSphericalSpace3 } from "@/src/maths/MobiusGyrovectorSphericalSpace3";
 import { CountMap } from "@/src/CountMap";
 import { Polytope } from "@/src/maths/Polytope";
@@ -19,10 +19,7 @@ export function CreatePolychoron(
   dual: boolean
 ) {
   // 群構造の構築
-  const graph = new CoxeterNode({
-    labels,
-    nodeMarks,
-  });
+  const graph = new CoxeterNode(new CoxeterDynkinDiagram(labels, nodeMarks));
   console.log("Building graph");
   graph.build();
   console.log(graph.isSolved(undefined) ? "solved" : "unsolved");
@@ -67,7 +64,7 @@ export function CreatePolychoron(
     [...polytope.children.values()]
       .filter((c) => c.visibility)
       .map((c) => [
-        c.gens.join(""),
+        c.diagram.gens.join(""),
         c.nodes.size,
         ...[...c.nodes.values()].map((n) => n.coordinate),
       ])

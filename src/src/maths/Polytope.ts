@@ -9,7 +9,6 @@ export class Polytope {
 
   // CoxeterNodeから多面体構造を構築する
   constructor(
-    public gens: string[],
     public diagram: CoxeterDynkinDiagram,
     public parent: Set<Polytope> = new Set()
   ) {}
@@ -20,15 +19,18 @@ export class Polytope {
   }
 
   build() {
-    if (this.gens.length < 1) return;
+    if (this.diagram.gens.length < 1) return;
     const root = this.nodes.values().next().value;
     if (!root) return;
 
-    const nodes = Object.values(root.nodes(this.gens));
+    const nodes = Object.values(root.nodes(this.diagram.gens));
     const visitedNodes = new Set<CoxeterNode>();
 
     // 生成元の組み合わせごとに処理
-    const genCombinations = getCombinations(this.gens, this.gens.length - 1);
+    const genCombinations = getCombinations(
+      this.diagram.gens,
+      this.diagram.gens.length - 1
+    );
     for (const genCombination of genCombinations) {
       visitedNodes.clear();
 
@@ -37,8 +39,7 @@ export class Polytope {
         if (visitedNodes.has(node)) continue;
 
         let subpolytope = new Polytope(
-          genCombination,
-          this.diagram,
+          this.diagram.withNodes(genCombination),
           new Set([this])
         );
         const stack: CoxeterNode[] = [node];
@@ -50,7 +51,7 @@ export class Polytope {
           visitedNodes.add(currentNode);
           subpolytope.nodes.add(currentNode.identicalNode);
           const alternateSubpolytope = currentNode.polytopes.find(
-            (p) => p.gens.join("") === genCombination.join("")
+            (p) => p.diagram.gens.join("") === genCombination.join("")
           );
           if (alternateSubpolytope) {
             alternateSubpolytope.nodes = subpolytope.nodes;
@@ -69,22 +70,12 @@ export class Polytope {
           }
         }
 
-        let volumeless = false;
-        for (const gen of genCombination) {
-          if (this.diagram.nodeMarks[gen] === "o") {
-            let f = true;
-            for (const gen2 of genCombination) {
-              if (gen === gen2) continue;
-              const label = this.diagram.labels[`${gen}${gen2}`];
-              if (label[0] / label[1] !== 2) {
-                f = false;
-              }
-            }
-            if (f) volumeless = true;
-          }
-        }
+        let volumeless = subpolytope.diagram.isVolumeless();
 
-        if (subpolytope.nodes.size <= this.gens.length - 1 || volumeless) {
+        if (
+          // subpolytope.nodes.size <= this.diagram.gens.length - 1 ||
+          volumeless
+        ) {
           subpolytope.visibility = false;
         } else if (
           [...this.children.values()].findIndex(
