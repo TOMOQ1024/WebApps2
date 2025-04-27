@@ -3,28 +3,28 @@ import { CoxeterDynkinDiagram, CoxeterNode } from "./CoxeterNode";
 
 export class Polytope {
   nodes: Set<CoxeterNode> = new Set();
-  siblings: Polytope[] = [];
-  children: Polytope[] = [];
+  siblings: Set<Polytope> = new Set();
+  children: Set<Polytope> = new Set();
   visibility: boolean = true;
 
   // CoxeterNodeから多面体構造を構築する
   constructor(
     public gens: string[],
     public diagram: CoxeterDynkinDiagram,
-    public parent: Polytope[] = []
+    public parent: Set<Polytope> = new Set()
   ) {}
 
   addChild(child: Polytope) {
-    this.children.push(child);
-    child.parent.push(this);
+    this.children.add(child);
+    child.parent.add(this);
   }
 
   build() {
-    if (this.gens.length <= 1) return;
+    if (this.gens.length < 1) return;
     const root = this.nodes.values().next().value;
     if (!root) return;
 
-    const nodes = Object.values(root.nodes());
+    const nodes = Object.values(root.nodes(this.gens));
     const visitedNodes = new Set<CoxeterNode>();
 
     // 生成元の組み合わせごとに処理
@@ -36,10 +36,14 @@ export class Polytope {
       for (const node of nodes) {
         if (visitedNodes.has(node)) continue;
 
-        let subpolytope = new Polytope(genCombination, this.diagram, [this]);
+        let subpolytope = new Polytope(
+          genCombination,
+          this.diagram,
+          new Set([this])
+        );
         const stack: CoxeterNode[] = [node];
 
-        let flag = false;
+        let alternated = false;
         while (stack.length > 0) {
           const currentNode = stack.pop()!;
 
@@ -51,8 +55,7 @@ export class Polytope {
           if (alternateSubpolytope) {
             alternateSubpolytope.nodes = subpolytope.nodes;
             subpolytope = alternateSubpolytope;
-            alternateSubpolytope.parent.push(this);
-            flag = true;
+            alternated = true;
           } else {
             currentNode.polytopes.push(subpolytope);
           }
@@ -66,26 +69,25 @@ export class Polytope {
           }
         }
 
-        if (!flag) {
-          for (const gen of genCombination) {
-            if (this.diagram.nodeMarks[gen] === "o") {
-              let f = true;
-              for (const gen2 of genCombination) {
-                if (gen === gen2) continue;
-                const label = this.diagram.labels[`${gen}${gen2}`];
-                if (label[0] / label[1] !== 2) {
-                  f = false;
-                }
+        let volumeless = false;
+        for (const gen of genCombination) {
+          if (this.diagram.nodeMarks[gen] === "o") {
+            let f = true;
+            for (const gen2 of genCombination) {
+              if (gen === gen2) continue;
+              const label = this.diagram.labels[`${gen}${gen2}`];
+              if (label[0] / label[1] !== 2) {
+                f = false;
               }
-              if (f) flag = true;
             }
+            if (f) volumeless = true;
           }
         }
 
-        if (subpolytope.nodes.size <= this.gens.length - 1 || flag) {
+        if (subpolytope.nodes.size <= this.gens.length - 1 || volumeless) {
           subpolytope.visibility = false;
         } else if (
-          this.children.findIndex(
+          [...this.children.values()].findIndex(
             (c) => c.nodes.symmetricDifference(subpolytope.nodes).size === 0
           ) === -1
         ) {

@@ -64,7 +64,7 @@ export function CreatePolychoron(
   const polytope = graph.buildPolytope();
   console.log(polytope);
   console.log(
-    polytope.children
+    [...polytope.children.values()]
       .filter((c) => c.visibility)
       .map((c) => [
         c.gens.join(""),

@@ -45,14 +45,14 @@ export class CoxeterNode {
     return this;
   }
 
-  nodes() {
+  nodes(gens: string[] = Object.keys(this.siblings)) {
     const searchedNodes: { [coordinate: string]: CoxeterNode } = {};
     const nodesToSearch: CoxeterNode[] = [this];
 
     while (nodesToSearch.length > 0) {
       const currentNode = nodesToSearch.shift()!;
 
-      for (const gen in currentNode.siblings) {
+      for (const gen of gens) {
         const sibling = currentNode.siblings[gen];
         if (sibling && !searchedNodes[sibling.coordinate]) {
           searchedNodes[sibling.coordinate] = sibling;
