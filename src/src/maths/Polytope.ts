@@ -1,24 +1,33 @@
 import { getCombinations } from "./CombinationUtils";
-import { CoxeterNode } from "./CoxeterNode";
+import { CoxeterDynkinDiagram, CoxeterNode } from "./CoxeterNode";
 
 export class Polytope {
-  nodes: CoxeterNode[] = [];
-  siblings: { gens: string[]; polytope: Polytope }[] = [];
-  children: { gens: string[]; polytope: Polytope }[] = [];
+  nodes: Set<CoxeterNode> = new Set();
+  siblings: Polytope[] = [];
+  children: Polytope[] = [];
+  visibility: boolean = true;
 
   // CoxeterNodeから多面体構造を構築する
-  constructor(public gens: string[], public parent: Polytope | null = null) {}
+  constructor(
+    public gens: string[],
+    public diagram: CoxeterDynkinDiagram,
+    public parent: Polytope | null = null
+  ) {}
 
-  addChild(gens: string[], child: Polytope = new Polytope(gens, this)) {
-    this.children.push({ gens, polytope: child });
+  addChild(
+    gens: string[],
+    child: Polytope = new Polytope(gens, this.diagram, this)
+  ) {
+    this.children.push(child);
     child.parent = this;
   }
 
   build() {
-    if (!this.nodes.length) return;
-    this.nodes[0].polytopes[this.gens.join("")] = this;
+    const root = this.nodes.values().next().value;
+    if (!root) return;
+    root.polytopes.push(this);
 
-    const nodes = this.nodes[0].nodes();
+    const nodes = Object.values(root.nodes());
     const visitedNodes = new Set<CoxeterNode>();
 
     // 生成元の組み合わせごとに処理
@@ -27,19 +36,18 @@ export class Polytope {
       visitedNodes.clear();
 
       // 各ノードを起点として深さ優先探索
-      for (const node of Object.values(nodes)) {
+      for (const node of nodes) {
         if (visitedNodes.has(node)) continue;
 
-        const subpolytope = new Polytope(genCombination, this);
+        const subpolytope = new Polytope(genCombination, this.diagram, this);
         const stack: CoxeterNode[] = [node];
 
         while (stack.length > 0) {
           const currentNode = stack.pop()!;
-          if (visitedNodes.has(currentNode)) continue;
 
           visitedNodes.add(currentNode);
-          subpolytope.nodes.push(currentNode.identicalNode);
-          currentNode.polytopes[genCombination.join("")] = subpolytope;
+          subpolytope.nodes.add(currentNode.identicalNode);
+          currentNode.polytopes.push(subpolytope);
 
           // 生成元の組み合わせに基づいて隣接ノードを探索
           for (const gen of genCombination) {
@@ -50,19 +58,29 @@ export class Polytope {
           }
         }
 
-        let writeIndex = 0;
-        for (let j = 0; j < subpolytope.nodes.length; j++) {
-          if (
-            subpolytope.nodes[j] !==
-            subpolytope.nodes[(j + 1) % subpolytope.nodes.length]
-          ) {
-            subpolytope.nodes[writeIndex++] = subpolytope.nodes[j];
+        let flag = false;
+        for (const gen of genCombination) {
+          if (this.diagram.nodeMarks[gen] === "o") {
+            let f = true;
+            for (const gen2 of genCombination) {
+              if (gen === gen2) continue;
+              const label = this.diagram.labels[`${gen}${gen2}`];
+              if (label[0] / label[1] !== 2) {
+                f = false;
+              }
+            }
+            if (f) flag = true;
           }
         }
-        subpolytope.nodes.length = writeIndex;
 
-        if (subpolytope.nodes.length > this.gens.length - 1) {
-          this.children.push({ gens: genCombination, polytope: subpolytope });
+        if (subpolytope.nodes.size <= this.gens.length - 1 || flag) {
+          subpolytope.visibility = false;
+        } else if (
+          this.children.findIndex(
+            (c) => c.nodes.symmetricDifference(subpolytope.nodes).size === 0
+          ) === -1
+        ) {
+          this.children.push(subpolytope);
         }
       }
     }

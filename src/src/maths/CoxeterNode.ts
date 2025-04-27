@@ -8,7 +8,7 @@ export interface CoxeterDynkinDiagram {
 
 export class CoxeterNode {
   siblings: { [gen: string]: CoxeterNode | null } = {};
-  polytopes: { [gens: string]: Polytope } = {};
+  polytopes: Polytope[] = [];
   identicalNode: CoxeterNode = this;
 
   readonly MAX_NODES = 10000;
@@ -136,11 +136,10 @@ export class CoxeterNode {
 
   buildPolytope() {
     const gens = Object.keys(this.siblings);
-    const polytope = new Polytope(gens);
-    polytope.nodes = Object.values(this.nodes());
-    const gensStr = gens.join("");
+    const polytope = new Polytope(gens, this.diagram);
+    polytope.nodes = new Set(Object.values(this.nodes()));
     for (const node of polytope.nodes) {
-      node.polytopes[gensStr] = polytope;
+      node.polytopes.push(polytope);
     }
     polytope.build();
     return polytope;

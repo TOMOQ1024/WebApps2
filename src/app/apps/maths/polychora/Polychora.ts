@@ -31,7 +31,7 @@ export function CreatePolychoron(
 
   console.log("Getting representative nodes");
   const representativeNodes = GetRepresentativeNodes(nodes);
-  // console.log(representativeNodes);
+  console.log(representativeNodes);
 
   const positions = GetPositions(representativeNodes, labels, nodeMarks); // ジャイロベクトル平面上の頂点座標
 
@@ -62,6 +62,15 @@ export function CreatePolychoron(
   // 多角形リストの作成
   const polytope = graph.buildPolytope();
   console.log(polytope);
+  console.log(
+    polytope.children
+      .filter((c) => c.visibility)
+      .map((c) => [
+        c.gens.join(""),
+        c.nodes.size,
+        ...[...c.nodes.values()].map((n) => n.coordinate),
+      ])
+  );
   console.log("Creating polygons");
   const subpolytopes2 = graph.getSubpolytopes(2);
   const polygons: { coordinates: string[]; gens: string }[] = [];
