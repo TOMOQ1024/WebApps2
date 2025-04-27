@@ -1,3 +1,6 @@
+import { getCombinations } from "./CombinationUtils";
+import { Polytope } from "./Polytope";
+
 export interface CoxeterDynkinDiagram {
   labels: { [genPair: string]: [number, number] };
   nodeMarks: { [gen: string]: string };
@@ -5,6 +8,7 @@ export interface CoxeterDynkinDiagram {
 
 export class CoxeterNode {
   siblings: { [gen: string]: CoxeterNode | null } = {};
+  polytopes: { [gens: string]: Polytope } = {};
   identicalNode: CoxeterNode = this;
 
   readonly MAX_NODES = 10000;
@@ -130,11 +134,23 @@ export class CoxeterNode {
     return n;
   }
 
+  buildPolytope() {
+    const gens = Object.keys(this.siblings);
+    const polytope = new Polytope(gens);
+    polytope.nodes = Object.values(this.nodes());
+    const gensStr = gens.join("");
+    for (const node of polytope.nodes) {
+      node.polytopes[gensStr] = polytope;
+    }
+    polytope.build();
+    return polytope;
+  }
+
   // 低次元構成要素配列の生成
   getSubpolytopes(d: number) {
     const subpolytopes: { [genCombination: string]: CoxeterNode[][] } = {};
     const nodes = this.nodes();
-    const genCombinations = this.getGenCombinations(d);
+    const genCombinations = getCombinations(Object.keys(this.siblings), d);
     const visitedNodes = new Set<string>();
 
     // 生成元の組み合わせごとに処理
@@ -181,29 +197,6 @@ export class CoxeterNode {
     }
 
     return subpolytopes;
-  }
-
-  getGenCombinations(d: number) {
-    const result: string[][] = [];
-    const gens = Object.keys(this.siblings);
-    const stack: { path: string[]; start: number }[] = [];
-
-    stack.push({ path: [], start: 0 });
-
-    while (stack.length > 0) {
-      const { path, start } = stack.pop()!;
-
-      if (path.length === d) {
-        result.push(path);
-        continue;
-      }
-
-      for (let i = gens.length - 1; i >= start; i--) {
-        stack.push({ path: [...path, gens[i]], start: i + 1 });
-      }
-    }
-
-    return result;
   }
 
   isSolved(maxDepth: number = 100000, visitedNodes = new Set<string>([""])) {

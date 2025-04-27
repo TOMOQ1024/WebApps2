@@ -59,7 +59,9 @@ export function CreatePolychoron(
   // }
   // #endregion
 
-  // 多角形リストの作成(graphの破壊)
+  // 多角形リストの作成
+  const polytope = graph.buildPolytope();
+  console.log(polytope);
   console.log("Creating polygons");
   const subpolytopes2 = graph.getSubpolytopes(2);
   const polygons: { coordinates: string[]; gens: string }[] = [];
