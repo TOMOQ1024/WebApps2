@@ -2,6 +2,7 @@ import { BufferAttribute, BufferGeometry, Matrix3, Vector3 } from "three";
 import { CoxeterNode } from "@/src/maths/CoxeterNode";
 import { MobiusGyrovectorSphericalSpace3 } from "@/src/maths/MobiusGyrovectorSphericalSpace3";
 import { CountMap } from "@/src/CountMap";
+import { Polytope } from "@/src/maths/Polytope";
 
 /**
  * 多面体のモデルを生成する．
@@ -71,6 +72,13 @@ export function CreatePolychoron(
         ...[...c.nodes.values()].map((n) => n.coordinate),
       ])
   );
+  const tobePolygons: Set<Polytope> = new Set();
+  polytope.children.forEach((child) => {
+    child.children.forEach((c) => {
+      tobePolygons.add(c);
+    });
+  });
+  console.log(tobePolygons);
   console.log("Creating polygons");
   const subpolytopes2 = graph.getSubpolytopes(2);
   const polygons: { coordinates: string[]; gens: string }[] = [];

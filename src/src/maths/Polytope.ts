@@ -11,21 +11,18 @@ export class Polytope {
   constructor(
     public gens: string[],
     public diagram: CoxeterDynkinDiagram,
-    public parent: Polytope | null = null
+    public parent: Polytope[] = []
   ) {}
 
-  addChild(
-    gens: string[],
-    child: Polytope = new Polytope(gens, this.diagram, this)
-  ) {
+  addChild(child: Polytope) {
     this.children.push(child);
-    child.parent = this;
+    child.parent.push(this);
   }
 
   build() {
+    if (this.gens.length <= 1) return;
     const root = this.nodes.values().next().value;
     if (!root) return;
-    root.polytopes.push(this);
 
     const nodes = Object.values(root.nodes());
     const visitedNodes = new Set<CoxeterNode>();
@@ -39,15 +36,26 @@ export class Polytope {
       for (const node of nodes) {
         if (visitedNodes.has(node)) continue;
 
-        const subpolytope = new Polytope(genCombination, this.diagram, this);
+        let subpolytope = new Polytope(genCombination, this.diagram, [this]);
         const stack: CoxeterNode[] = [node];
 
+        let flag = false;
         while (stack.length > 0) {
           const currentNode = stack.pop()!;
 
           visitedNodes.add(currentNode);
           subpolytope.nodes.add(currentNode.identicalNode);
-          currentNode.polytopes.push(subpolytope);
+          const alternateSubpolytope = currentNode.polytopes.find(
+            (p) => p.gens.join("") === genCombination.join("")
+          );
+          if (alternateSubpolytope) {
+            alternateSubpolytope.nodes = subpolytope.nodes;
+            subpolytope = alternateSubpolytope;
+            alternateSubpolytope.parent.push(this);
+            flag = true;
+          } else {
+            currentNode.polytopes.push(subpolytope);
+          }
 
           // 生成元の組み合わせに基づいて隣接ノードを探索
           for (const gen of genCombination) {
@@ -58,18 +66,19 @@ export class Polytope {
           }
         }
 
-        let flag = false;
-        for (const gen of genCombination) {
-          if (this.diagram.nodeMarks[gen] === "o") {
-            let f = true;
-            for (const gen2 of genCombination) {
-              if (gen === gen2) continue;
-              const label = this.diagram.labels[`${gen}${gen2}`];
-              if (label[0] / label[1] !== 2) {
-                f = false;
+        if (!flag) {
+          for (const gen of genCombination) {
+            if (this.diagram.nodeMarks[gen] === "o") {
+              let f = true;
+              for (const gen2 of genCombination) {
+                if (gen === gen2) continue;
+                const label = this.diagram.labels[`${gen}${gen2}`];
+                if (label[0] / label[1] !== 2) {
+                  f = false;
+                }
               }
+              if (f) flag = true;
             }
-            if (f) flag = true;
           }
         }
 
@@ -80,9 +89,12 @@ export class Polytope {
             (c) => c.nodes.symmetricDifference(subpolytope.nodes).size === 0
           ) === -1
         ) {
-          this.children.push(subpolytope);
+          this.addChild(subpolytope);
         }
       }
     }
+    this.children.forEach((child) => {
+      child.build();
+    });
   }
 }
