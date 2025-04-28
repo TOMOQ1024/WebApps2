@@ -61,15 +61,6 @@ export function CreatePolychoron(
   // 多角形リストの作成
   const polytope = graph.buildPolytope();
   console.log(polytope);
-  console.log(
-    [...polytope.children.values()]
-      .filter((c) => c.visibility)
-      .map((c) => [
-        c.diagram.gens.join(""),
-        c.nodes.size,
-        ...[...c.nodes.values()].map((n) => n.coordinate),
-      ])
-  );
   const tobePolygons: Set<Polytope> = new Set();
   polytope.children.forEach((child) => {
     child.children.forEach((c) => {

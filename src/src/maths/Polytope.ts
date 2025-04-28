@@ -1,11 +1,13 @@
-import { getCombinations } from "./CombinationUtils";
 import { CoxeterDynkinDiagram } from "./CoxeterDynkinDiagram";
 import { CoxeterNode } from "./CoxeterNode";
 
 export class Polytope {
   nodes: Set<CoxeterNode> = new Set();
   representativeNodes: Set<CoxeterNode> = new Set();
-  siblings: Set<Polytope> = new Set();
+  siblings: {
+    joint: Polytope;
+    sibling: Polytope;
+  }[] = [];
   children: Set<Polytope> = new Set();
   visibility: boolean = true;
 
@@ -18,6 +20,11 @@ export class Polytope {
   addChild(child: Polytope) {
     this.children.add(child);
     child.parent.add(this);
+  }
+
+  addSibling(sibling: Polytope, joint: Polytope) {
+    this.siblings.push({ joint, sibling });
+    sibling.siblings.push({ joint, sibling: this });
   }
 
   build() {
@@ -88,6 +95,13 @@ export class Polytope {
           this.addChild(subpolytope);
           subpolytope.build();
         }
+      }
+    }
+
+    for (const child of this.children) {
+      for (const sibling of child.parent) {
+        if (sibling === this) continue;
+        this.addSibling(sibling, child);
       }
     }
   }
