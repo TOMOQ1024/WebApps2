@@ -74,6 +74,7 @@ export class Polytope {
         );
 
         if (alternativeSubpolytope) {
+          subpolytope.visibility = false;
           subpolytope = alternativeSubpolytope;
           if (subpolytope.diagram.gens.length > diagram.gens.length) {
             subpolytope.diagram = diagram;

@@ -59,50 +59,25 @@ export function CreatePolychoron(
   // #endregion
 
   // 多角形リストの作成
+  console.log("Building polytope");
   const polytope = graph.buildPolytope();
   console.log(polytope);
-  const tobePolygons: Set<Polytope> = new Set();
-  polytope.children.forEach((child) => {
-    child.children.forEach((c) => {
-      tobePolygons.add(c);
-    });
-  });
-  console.log(
-    [...tobePolygons.values()].map((c) =>
-      [...c.representativeNodes.values()].map((n) => n.coordinate)
-    )
-  );
   console.log("Creating polygons");
-  const subpolytopes2 = graph.getSubpolytopes(2);
-  const polygons: { coordinates: string[]; gens: string }[] = [];
-  for (const [gens, faces] of Object.entries(subpolytopes2)) {
-    for (const face of faces) {
-      polygons.push({
-        coordinates: face.map((n) => n.coordinate),
-        gens: gens,
-      });
+  const polygons: Set<Polytope> = new Set();
+  for (const coordinate in nodes) {
+    const node = nodes[coordinate];
+    for (const polytope of node.polytopes) {
+      if (polytope.diagram.getDimension() === 2 && polytope.visibility) {
+        polygons.add(polytope);
+      }
     }
   }
-  // console.log(`Polygons: ${polygons.length}`);
-  // console.log(polygons.map((p) => p.length).toSorted());
 
-  // 重複した面の削除
-  console.log(polygons.length);
-  console.log("Deduplicating polygons");
-  DedupePolygons(polygons);
-  console.log(polygons.length);
-
-  console.log(`Vertices: ${representativeNodes.size}`);
-  console.log(`Faces: ${polygons.length}`);
-  console.log(CountMap(polygons.map((p) => p.coordinates.length)));
-
-  polygons.length = 0;
-  tobePolygons.forEach((c) => {
-    polygons.push({
-      coordinates: [...c.representativeNodes.values()].map((n) => n.coordinate),
-      gens: c.diagram.gens.join(""),
-    });
-  });
+  console.log(`Dim 0 Elements: ${representativeNodes.size}`);
+  console.log(`Faces: ${polygons.size}`);
+  console.log(
+    CountMap([...polygons.values()].map((p) => p.representativeNodes.size))
+  );
 
   const { indices, ...attributes } = CreateAttributes(
     positions,
@@ -353,7 +328,7 @@ function DedupePolygons(polygons: { coordinates: string[]; gens: string }[]) {
 
 function CreateAttributes(
   positions: { [key: string]: Vector3 },
-  polygons: { coordinates: string[]; gens: string }[],
+  polygons: Set<Polytope>,
   mode: "transparent" | "frame" | "solidframe"
 ) {
   switch (mode) {
@@ -364,24 +339,31 @@ function CreateAttributes(
       const uvs: number[] = []; // UV座標
       const UV_DIV = 10; // [0,1]^2 を分割する数値
       let indexOffset = 0;
-      for (let i = 0; i < polygons.length; i++) {
-        const p = polygons[i];
-        for (let j = 0; j < p.coordinates.length - 2; j++) {
-          const L = (Math.floor(j / 2) + 1) % p.coordinates.length;
+      for (let polygon of polygons) {
+        const p = polygon;
+        for (let j = 0; j < p.representativeNodes.size - 2; j++) {
+          const L = (Math.floor(j / 2) + 1) % p.representativeNodes.size;
           const H =
-            (p.coordinates.length - Math.ceil(j / 2)) % p.coordinates.length;
+            (p.representativeNodes.size - Math.ceil(j / 2)) %
+            p.representativeNodes.size;
           indices.push(
             indexOffset + H,
             indexOffset +
               (j % 2
                 ? L + 1
-                : (H + p.coordinates.length - 1) % p.coordinates.length),
+                : (H + p.representativeNodes.size - 1) %
+                  p.representativeNodes.size),
             indexOffset + L
           );
         }
-        for (let j = 0; j < p.coordinates.length; j++) {
-          vertices.push(...positions[p.coordinates[j]].toArray());
-          let n = p.coordinates.length >= 100 ? 0 : p.coordinates.length;
+        for (let j = 0; j < p.representativeNodes.size; j++) {
+          vertices.push(
+            ...positions[
+              [...p.representativeNodes.values()][j].coordinate
+            ].toArray()
+          );
+          let n =
+            p.representativeNodes.size >= 100 ? 0 : p.representativeNodes.size;
           uvs.push(
             (Math.cos((j * 2 * Math.PI) / n) / 2 + 0.5 + (n % UV_DIV)) / UV_DIV,
             (Math.sin((j * 2 * Math.PI) / n) / 2 +
@@ -390,7 +372,7 @@ function CreateAttributes(
               UV_DIV
           );
         }
-        indexOffset += p.coordinates.length;
+        indexOffset += p.representativeNodes.size;
       }
       return {
         position: new BufferAttribute(new Float32Array(vertices), 3),
@@ -419,10 +401,10 @@ function CreateAttributes(
       const colors: number[] = []; // 頂点色
       let indexOffset = 0;
       const g = new MobiusGyrovectorSphericalSpace3();
-      for (let i = 0; i < polygons.length; i++) {
-        const c = COLORS[polygons[i].gens];
-        const p = polygons[i].coordinates;
-        const M = g.mean(...p.map((c) => positions[c]));
+      for (let polygon of polygons) {
+        const c = COLORS[polygon.diagram.gens.join("")];
+        const p = [...polygon.representativeNodes.values()];
+        const M = g.mean(...p.map((c) => positions[c.coordinate]));
         // const M = p
         //   .map((c) => positions[c])
         //   .reduce((a, b) => a.add(b), new Vector3())
@@ -437,11 +419,11 @@ function CreateAttributes(
             indexOffset + k + p.length,
             indexOffset + j + p.length
           );
-          vertices.push(...positions[p[j]].toArray());
+          vertices.push(...positions[p[j].coordinate].toArray());
           colors.push(...c.map((c) => 1).map((c) => c * 0.1), 1);
         }
         for (let j = 0; j < p.length; j++) {
-          vertices.push(...g.mix(positions[p[j]], M, 0.1).toArray());
+          vertices.push(...g.mix(positions[p[j].coordinate], M, 0.1).toArray());
           colors.push(...c.map((c) => 1), 1);
         }
         indexOffset += p.length * 2;

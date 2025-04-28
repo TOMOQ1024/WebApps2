@@ -142,59 +142,6 @@ export class CoxeterNode {
     return polytope;
   }
 
-  // 低次元構成要素配列の生成
-  getSubpolytopes(d: number) {
-    const subpolytopes: { [genCombination: string]: CoxeterNode[][] } = {};
-    const nodes = this.nodes();
-    const genCombinations = getCombinations(Object.keys(this.siblings), d);
-    const visitedNodes = new Set<string>();
-
-    // 生成元の組み合わせごとに処理
-    for (const genCombination of genCombinations) {
-      const key = genCombination.join("");
-      subpolytopes[key] = [];
-      visitedNodes.clear();
-
-      // 各ノードを起点として深さ優先探索
-      for (const node of Object.values(nodes)) {
-        if (visitedNodes.has(node.coordinate)) continue;
-
-        const subpolytope: CoxeterNode[] = [];
-        const stack: CoxeterNode[] = [node];
-
-        while (stack.length > 0) {
-          const currentNode = stack.pop()!;
-          if (visitedNodes.has(currentNode.coordinate)) continue;
-
-          visitedNodes.add(currentNode.coordinate);
-          subpolytope.push(currentNode.identicalNode);
-
-          // 生成元の組み合わせに基づいて隣接ノードを探索
-          for (const gen of genCombination) {
-            const nextNode = currentNode.siblings[gen];
-            if (nextNode && !visitedNodes.has(nextNode.coordinate)) {
-              stack.push(nextNode);
-            }
-          }
-        }
-
-        let writeIndex = 0;
-        for (let j = 0; j < subpolytope.length; j++) {
-          if (subpolytope[j] !== subpolytope[(j + 1) % subpolytope.length]) {
-            subpolytope[writeIndex++] = subpolytope[j];
-          }
-        }
-        subpolytope.length = writeIndex;
-
-        if (subpolytope.length > d) {
-          subpolytopes[key].push(subpolytope);
-        }
-      }
-    }
-
-    return subpolytopes;
-  }
-
   isSolved(maxDepth: number = 100000, visitedNodes = new Set<string>([""])) {
     let stack: { node: CoxeterNode; depth: number }[] = [
       { node: this, depth: maxDepth },
