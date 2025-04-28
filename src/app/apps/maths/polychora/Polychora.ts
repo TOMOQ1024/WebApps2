@@ -373,15 +373,31 @@ function GetPositions(
 }
 
 function CreateAttributes(
-  positions: { [key: string]: Vector3 },
+  positionMap: { [key: string]: Vector3 },
   polytope: Polytope,
   mode: "transparent" | "frame" | "solidframe"
 ) {
+  // const polyhedrons: Set<Polytope> = new Set();
   const polygons: Set<Polytope> = new Set();
+  // const edges: Set<Polytope> = new Set();
+  // const vertices: Set<Polytope> = new Set();
   for (const node of polytope.nodes) {
     for (const polytope of node.polytopes) {
-      if (polytope.diagram.getDimension() === 2 && polytope.visibility) {
-        polygons.add(polytope);
+      switch (polytope.diagram.getDimension()) {
+        case 0:
+          // if (polytope.visibility) vertices.add(polytope);
+          break;
+        case 1:
+          // if (polytope.visibility) edges.add(polytope);
+          break;
+        case 2:
+          if (polytope.visibility) polygons.add(polytope);
+          break;
+        case 3:
+          // if (polytope.visibility) polyhedrons.add(polytope);
+          break;
+        default:
+          break;
       }
     }
   }
@@ -412,7 +428,7 @@ function CreateAttributes(
         }
         for (let j = 0; j < p.representativeNodes.size; j++) {
           vertices.push(
-            ...positions[
+            ...positionMap[
               [...p.representativeNodes.values()][j].coordinate
             ].toArray()
           );
@@ -458,7 +474,7 @@ function CreateAttributes(
         const c = COLORS[polygon.diagram.gens.join("")];
         const p = [...polygon.representativeNodes.values()];
         const M = MobiusGyrovectorSphericalSpace3.mean(
-          ...p.map((c) => positions[c.coordinate])
+          ...p.map((c) => positionMap[c.coordinate])
         );
         // const M = p
         //   .map((c) => positions[c])
@@ -474,13 +490,13 @@ function CreateAttributes(
             indexOffset + k + p.length,
             indexOffset + j + p.length
           );
-          vertices.push(...positions[p[j].coordinate].toArray());
+          vertices.push(...positionMap[p[j].coordinate].toArray());
           colors.push(...c.map((c) => 1).map((c) => c * 0.1), 1);
         }
         for (let j = 0; j < p.length; j++) {
           vertices.push(
             ...MobiusGyrovectorSphericalSpace3.mix(
-              positions[p[j].coordinate],
+              positionMap[p[j].coordinate],
               M,
               0.1
             ).toArray()
@@ -497,35 +513,35 @@ function CreateAttributes(
     }
     case "solidframe": {
       const COLORS = {
-        ab: [1, 1, 0.9],
-        ba: [1, 1, 0.9],
-        bc: [1, 0.9, 1],
-        cb: [1, 0.9, 1],
-        cd: [0.9, 1, 1],
-        dc: [0.9, 1, 1],
-        da: [0.95, 0.95, 1],
-        ad: [0.95, 0.95, 1],
-        ac: [0.95, 1, 0.95],
-        ca: [0.95, 1, 0.95],
-        bd: [1, 0.95, 0.95],
-        db: [1, 0.95, 0.95],
+        ab: [1, 1, 0.8],
+        ba: [1, 1, 0.8],
+        bc: [1, 0.8, 1],
+        cb: [1, 0.8, 1],
+        cd: [0.8, 1, 1],
+        dc: [0.8, 1, 1],
+        da: [0.8, 0.8, 1],
+        ad: [0.8, 0.8, 1],
+        ac: [0.8, 1, 0.8],
+        ca: [0.8, 1, 0.8],
+        bd: [1, 0.8, 0.8],
+        db: [1, 0.8, 0.8],
       } as { [key: string]: [number, number, number] };
       const indexMap: Map<Polytope, Map<CoxeterNode, number>> = new Map();
       const indices: number[] = []; // 三角形リスト
-      const vertices: number[] = []; // 頂点座標
+      const positions: number[] = []; // 頂点座標
       const colors: number[] = []; // 頂点色
 
       for (const polygon of polygons) {
         indexMap.set(polygon, new Map());
         const M = MobiusGyrovectorSphericalSpace3.mean(
           ...[...polygon.representativeNodes.values()].map(
-            (n) => positions[n.coordinate]
+            (n) => positionMap[n.coordinate]
           )
         );
         for (const node of polygon.representativeNodes) {
-          const vertex = positions[node.coordinate];
-          indexMap.get(polygon)!.set(node, vertices.length / 3);
-          vertices.push(
+          const vertex = positionMap[node.coordinate];
+          indexMap.get(polygon)!.set(node, positions.length / 3);
+          positions.push(
             ...MobiusGyrovectorSphericalSpace3.mix(vertex, M, 0.1).toArray()
           );
           colors.push(
@@ -536,10 +552,11 @@ function CreateAttributes(
       }
 
       const searchedEdges: Map<Polytope, Set<Polytope>> = new Map();
+      const searchedVertices: Map<Polytope, Set<Polytope>> = new Map();
       for (const polyhedron of polytope.children) {
         searchedEdges.set(polyhedron, new Set());
         for (const polygon of polyhedron.children) {
-          for (const { joint: edge, sibling } of polygon.siblings) {
+          for (const [sibling, edge] of polygon.siblings) {
             if (searchedEdges.get(polyhedron)!.has(edge)) continue;
             if (
               sibling.representativeNodes.difference(
@@ -561,26 +578,75 @@ function CreateAttributes(
             );
           }
         }
-        const searchedVertices = new Set<Polytope>();
-        for (const polygon of polygons) {
-          //
+      }
+      for (const polyhedron of polytope.children) {
+        searchedVertices.set(polyhedron, new Set());
+        for (const polygon of polyhedron.children) {
+          for (const edge of polygon.children) {
+            for (const vertex of edge.children) {
+              if (searchedVertices.get(polyhedron)!.has(vertex)) continue;
+              if (
+                vertex.representativeNodes.difference(
+                  polyhedron.representativeNodes
+                ).size > 0
+              ) {
+                continue;
+              }
+              searchedVertices.get(polyhedron)!.add(vertex);
+              let e: Polytope | undefined = undefined;
+              let f: Polytope | undefined = polygon;
+              const edges = new Set<Polytope>([]);
+              const faces = new Set<Polytope>([]);
+              if (f.visibility) faces.add(f);
+              let valid = true;
+              while (1) {
+                [f, e] =
+                  [...f.siblings].find(
+                    ([, joint]) =>
+                      !edges.has(joint) &&
+                      joint.children.has(vertex) &&
+                      joint.representativeNodes.difference(
+                        polyhedron.representativeNodes
+                      ).size === 0
+                  ) ?? [];
+                if (!e || !f) {
+                  valid = false;
+                  console.log("invalid", vertex, edges, faces);
+                  break;
+                }
+                if (faces.has(f)) {
+                  valid = true;
+                  console.log("valid", vertex, edges, faces);
+                  break;
+                }
+                if (f.visibility) faces.add(f);
+                edges.add(e);
+              }
+              const p: number[] = [];
+              faces.forEach((f) => {
+                p.push(
+                  indexMap
+                    .get(f)!
+                    .get(vertex.representativeNodes.values().next().value!)!
+                );
+              });
+              if (valid) {
+                for (let j = 0; j < p.length - 2; j++) {
+                  const L = (Math.floor(j / 2) + 1) % p.length;
+                  const H = (p.length - Math.ceil(j / 2)) % p.length;
+                  indices.push(
+                    p[H],
+                    p[j % 2 ? L + 1 : (H + p.length - 1) % p.length],
+                    p[L]
+                  );
+                }
+              }
+            }
+          }
         }
       }
-      // 三角形リストの生成
-      // for cell in polychoron
-      //   for edge in cell
-      //     [s,e] = edgeの始点と終点
-      //     [l,r] = edgeで隣接する2つの面// これをどうやって取得するか？
-      //     indices.push(
-      //       map.get([s, l]),
-      //       map.get([s, r]),
-      //       map.get([e, l]),
-      //       map.get([s, r]),
-      //       map.get([e, r]),
-      //       map.get([e, l]),
-      //     )
       return {
-        position: new BufferAttribute(new Float32Array(vertices), 3),
+        position: new BufferAttribute(new Float32Array(positions), 3),
         color: new BufferAttribute(new Float32Array(colors), 4),
         indices: new BufferAttribute(new Uint32Array(indices), 1),
       };

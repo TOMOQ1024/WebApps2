@@ -48,7 +48,7 @@ export class CoxeterDynkinDiagram {
   isVolumeless() {
     // ノードの集合を取得
     const nodes = Object.keys(this.nodeMarks);
-    if (nodes.length === 0) return true;
+    if (nodes.length === 0) return false;
 
     // 連結成分を格納する配列
     const components: string[][] = [];

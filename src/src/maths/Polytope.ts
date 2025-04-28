@@ -4,10 +4,7 @@ import { CoxeterNode } from "./CoxeterNode";
 export class Polytope {
   nodes: Set<CoxeterNode> = new Set();
   representativeNodes: Set<CoxeterNode> = new Set();
-  siblings: {
-    joint: Polytope;
-    sibling: Polytope;
-  }[] = [];
+  siblings: Map<Polytope, Polytope> = new Map(); // sibling, joint
   children: Set<Polytope> = new Set();
   visibility: boolean = true;
 
@@ -23,8 +20,8 @@ export class Polytope {
   }
 
   addSibling(sibling: Polytope, joint: Polytope) {
-    this.siblings.push({ joint, sibling });
-    sibling.siblings.push({ joint, sibling: this });
+    this.siblings.set(sibling, joint);
+    sibling.siblings.set(this, joint);
   }
 
   build() {

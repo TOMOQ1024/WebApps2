@@ -136,8 +136,16 @@ float tanh(float x) {
   return (exp(x) - exp(-x)) / (exp(x) + exp(-x));
 }
 
+vec4 tanh(vec4 x) {
+  return (exp(x) - exp(-x)) / (exp(x) + exp(-x));
+}
+
 void main() {
-  vec4 c = pow(vColor, vec4(3.));
+  vec4 t = vColor-.9;
+  // float r = min(abs(t.x), min(abs(t.y), abs(t.z)));
+  // vec4 c = mix(vec4(0.), .9 + .1 * sign(t), r/.1);
+  vec4 c = .9 + .1 * tanh(30.*t);
+  // vec4 c = pow(vColor, vec4(3.));
   float d = tanh(vDepth.z);
   float alpha = (3.-d)/4.;
   gl_FragColor = vec4(c.rgb*alpha, alpha);
