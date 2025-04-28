@@ -10,12 +10,12 @@ export class CoxeterDynkinDiagram {
     this.gens = Object.keys(nodeMarks);
   }
 
-  withNodes(nodes: string[]) {
+  withGens(gens: string[]) {
     const newNodeMarks: { [gen: string]: string } = {};
     const newLabels: { [genPair: string]: [number, number] } = {};
 
     // 指定されたノードのマークだけを含める
-    for (const node of nodes) {
+    for (const node of gens) {
       if (this.nodeMarks[node]) {
         newNodeMarks[node] = this.nodeMarks[node];
       }
@@ -23,7 +23,7 @@ export class CoxeterDynkinDiagram {
 
     // 指定されたノード間の辺のラベルだけを含める
     for (const genPair in this.labels) {
-      if (nodes.includes(genPair[0]) && nodes.includes(genPair[1])) {
+      if (gens.includes(genPair[0]) && gens.includes(genPair[1])) {
         newLabels[genPair] = this.labels[genPair];
       }
     }
@@ -31,16 +31,16 @@ export class CoxeterDynkinDiagram {
     return new CoxeterDynkinDiagram(newLabels, newNodeMarks);
   }
 
-  withoutNodes(nodes: string[]) {
+  withoutGens(gens: string[]) {
     const newNodeMarks = { ...this.nodeMarks };
     const newLabels = { ...this.labels };
 
-    for (const node of nodes) {
+    for (const node of gens) {
       delete newNodeMarks[node];
     }
 
     for (const genPair in newLabels) {
-      if (nodes.some((node) => genPair.includes(node))) {
+      if (gens.some((node) => genPair.includes(node))) {
         delete newLabels[genPair];
       }
     }

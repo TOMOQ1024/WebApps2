@@ -26,19 +26,16 @@ export class Polytope {
     const visitedNodes = new Set<CoxeterNode>();
 
     // 生成元の組み合わせごとに処理
-    const genCombinations = getCombinations(
-      this.diagram.gens,
-      this.diagram.gens.length - 1
-    );
-    for (const genCombination of genCombinations) {
+    const rmGens = [...this.diagram.gens].reverse(); // 何故か逆順にする必要がある
+    for (const rmGen of rmGens) {
+      const diagram = this.diagram.withoutGens([rmGen]);
+      const isVolumeless = diagram.isVolumeless();
       visitedNodes.clear();
 
       // 各ノードを起点として深さ優先探索
       for (const node of this.nodes) {
         if (visitedNodes.has(node)) continue;
 
-        const diagram = this.diagram.withNodes(genCombination);
-        const isVolumeless = diagram.isVolumeless();
         let subpolytope = new Polytope(diagram, new Set());
         const stack: CoxeterNode[] = [node];
 
@@ -52,7 +49,7 @@ export class Polytope {
           currentNode.polytopes.push(subpolytope);
 
           // 生成元の組み合わせに基づいて隣接ノードを探索
-          for (const gen of genCombination) {
+          for (const gen of diagram.gens) {
             const nextNode = currentNode.siblings[gen];
             if (nextNode && !visitedNodes.has(nextNode)) {
               stack.push(nextNode);
@@ -70,7 +67,9 @@ export class Polytope {
 
         if (alternativeSubpolytope) {
           subpolytope = alternativeSubpolytope;
-          subpolytope.diagram = diagram;
+          if (subpolytope.diagram.gens.length > diagram.gens.length) {
+            subpolytope.diagram = diagram;
+          }
         }
 
         if (isVolumeless) {
