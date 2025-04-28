@@ -1,8 +1,9 @@
 import { BufferAttribute, BufferGeometry, Matrix3, Vector3 } from "three";
-import { CoxeterDynkinDiagram, CoxeterNode } from "@/src/maths/CoxeterNode";
+import { CoxeterNode } from "@/src/maths/CoxeterNode";
 import { MobiusGyrovectorSphericalSpace3 } from "@/src/maths/MobiusGyrovectorSphericalSpace3";
 import { CountMap } from "@/src/CountMap";
 import { Polytope } from "@/src/maths/Polytope";
+import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
 
 /**
  * 多面体のモデルを生成する．

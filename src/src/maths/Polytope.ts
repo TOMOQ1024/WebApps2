@@ -1,5 +1,6 @@
 import { getCombinations } from "./CombinationUtils";
-import { CoxeterDynkinDiagram, CoxeterNode } from "./CoxeterNode";
+import { CoxeterDynkinDiagram } from "./CoxeterDynkinDiagram";
+import { CoxeterNode } from "./CoxeterNode";
 
 export class Polytope {
   nodes: Set<CoxeterNode> = new Set();
