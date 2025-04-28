@@ -100,6 +100,58 @@ export class CoxeterDynkinDiagram {
     // すべての連結成分に"x"マークのノードが存在する場合はfalseを返す
     return false;
   }
+
+  getDimension() {
+    // ノードの集合を取得
+    const nodes = Object.keys(this.nodeMarks);
+    if (nodes.length === 0) return 0;
+
+    // 連結成分を格納する配列
+    const components: string[][] = [];
+    // 訪問済みノードを記録するSet
+    const visited = new Set<string>();
+
+    // 深さ優先探索で連結成分を見つける関数
+    const dfs = (node: string, component: string[]) => {
+      visited.add(node);
+      component.push(node);
+
+      for (const neighbor of nodes) {
+        if (visited.has(neighbor)) continue;
+
+        // 2つのノード間のラベルを取得
+        const label = this.labels[node + neighbor];
+        // ラベルが存在し、2でない場合のみ連結と見做す
+        if (label[0] / label[1] !== 2) {
+          dfs(neighbor, component);
+        }
+      }
+    };
+
+    // すべてのノードについて連結成分を見つける
+    for (const node of nodes) {
+      if (!visited.has(node)) {
+        const component: string[] = [];
+        dfs(node, component);
+        components.push(component);
+      }
+    }
+
+    // "x"マークのノードが存在しない連結成分の個数をカウントする
+    let count = 0;
+    for (const component of components) {
+      let hasX = false;
+      for (const node of component) {
+        if (this.nodeMarks[node] === "x") {
+          hasX = true;
+          break;
+        }
+      }
+      if (!hasX) count++;
+    }
+
+    return this.gens.length - count;
+  }
 }
 
 export class CoxeterNode {
@@ -128,12 +180,13 @@ export class CoxeterNode {
   build() {
     let nodesToSearch: CoxeterNode[] = [this];
     let n: CoxeterNode | null;
+    let node: CoxeterNode;
     while (nodesToSearch.length > 0) {
+      node = nodesToSearch.shift()!;
       for (const gen in this.siblings) {
-        n = nodesToSearch[0]!.addSiblingIfNotExist(gen);
+        n = node.addSiblingIfNotExist(gen);
         if (n) nodesToSearch.push(n);
       }
-      nodesToSearch.shift();
       if (nodesToSearch.length > this.MAX_NODES) {
         throw new Error("Too many nodes to search");
       }
@@ -233,6 +286,7 @@ export class CoxeterNode {
   buildPolytope() {
     const polytope = new Polytope(this.diagram);
     polytope.nodes = new Set(Object.values(this.nodes()));
+    console.log(polytope.nodes.size);
     for (const node of polytope.nodes) {
       node.polytopes.push(polytope);
     }

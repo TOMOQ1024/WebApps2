@@ -75,7 +75,11 @@ export function CreatePolychoron(
       tobePolygons.add(c);
     });
   });
-  console.log(tobePolygons);
+  console.log(
+    [...tobePolygons.values()].map((c) =>
+      [...c.nodes.values()].map((n) => n.coordinate)
+    )
+  );
   console.log("Creating polygons");
   const subpolytopes2 = graph.getSubpolytopes(2);
   const polygons: { coordinates: string[]; gens: string }[] = [];
@@ -99,6 +103,14 @@ export function CreatePolychoron(
   console.log(`Vertices: ${representativeNodes.size}`);
   console.log(`Faces: ${polygons.length}`);
   console.log(CountMap(polygons.map((p) => p.coordinates.length)));
+
+  polygons.length = 0;
+  tobePolygons.forEach((c) => {
+    polygons.push({
+      coordinates: [...c.nodes.values()].map((n) => n.coordinate),
+      gens: c.diagram.gens.join(""),
+    });
+  });
 
   const { indices, ...attributes } = CreateAttributes(
     positions,

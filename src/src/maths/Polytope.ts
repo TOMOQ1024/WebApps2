@@ -21,9 +21,8 @@ export class Polytope {
   build() {
     if (this.diagram.gens.length < 1) return;
     const root = this.nodes.values().next().value;
-    if (!root) return;
-
-    const nodes = Object.values(root.nodes(this.diagram.gens));
+    if (!root) throw new Error("No root node found");
+    console.log(this.diagram.gens.join(""), this.nodes.size);
     const visitedNodes = new Set<CoxeterNode>();
 
     // 生成元の組み合わせごとに処理
@@ -35,31 +34,22 @@ export class Polytope {
       visitedNodes.clear();
 
       // 各ノードを起点として深さ優先探索
-      for (const node of nodes) {
+      for (const node of this.nodes) {
         if (visitedNodes.has(node)) continue;
 
-        let subpolytope = new Polytope(
-          this.diagram.withNodes(genCombination),
-          new Set([this])
-        );
+        const diagram = this.diagram.withNodes(genCombination);
+        const isVolumeless = diagram.isVolumeless();
+        const dimension = diagram.getDimension();
+        let subpolytope = new Polytope(diagram, new Set());
         const stack: CoxeterNode[] = [node];
 
-        let alternated = false;
         while (stack.length > 0) {
           const currentNode = stack.pop()!;
 
           visitedNodes.add(currentNode);
           subpolytope.nodes.add(currentNode.identicalNode);
-          const alternateSubpolytope = currentNode.polytopes.find(
-            (p) => p.diagram.gens.join("") === genCombination.join("")
-          );
-          if (alternateSubpolytope) {
-            alternateSubpolytope.nodes = subpolytope.nodes;
-            subpolytope = alternateSubpolytope;
-            alternated = true;
-          } else {
-            currentNode.polytopes.push(subpolytope);
-          }
+
+          currentNode.polytopes.push(subpolytope);
 
           // 生成元の組み合わせに基づいて隣接ノードを探索
           for (const gen of genCombination) {
@@ -70,24 +60,30 @@ export class Polytope {
           }
         }
 
-        let volumeless = subpolytope.diagram.isVolumeless();
+        const alternativeSubpolytope = node.polytopes.find(
+          (p) =>
+            p !== subpolytope &&
+            p.nodes.symmetricDifference(subpolytope.nodes).size === 0
+        );
 
-        if (
-          // subpolytope.nodes.size <= this.diagram.gens.length - 1 ||
-          volumeless
-        ) {
+        if (alternativeSubpolytope) {
+          subpolytope = alternativeSubpolytope;
+          subpolytope.diagram = diagram;
+        }
+
+        if (isVolumeless) {
           subpolytope.visibility = false;
         } else if (
+          alternativeSubpolytope ||
           [...this.children.values()].findIndex(
             (c) => c.nodes.symmetricDifference(subpolytope.nodes).size === 0
           ) === -1
         ) {
+          subpolytope.visibility = true;
           this.addChild(subpolytope);
+          subpolytope.build();
         }
       }
     }
-    this.children.forEach((child) => {
-      child.build();
-    });
   }
 }
