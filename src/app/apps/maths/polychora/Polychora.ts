@@ -551,13 +551,12 @@ function CreateAttributes(
         }
       }
 
-      const searchedEdges: Map<Polytope, Set<Polytope>> = new Map();
-      const searchedVertices: Map<Polytope, Set<Polytope>> = new Map();
+      const searchedEdges: Set<Polytope> = new Set();
       for (const polyhedron of polytope.children) {
-        searchedEdges.set(polyhedron, new Set());
+        searchedEdges.clear();
         for (const polygon of polyhedron.children) {
           for (const [sibling, edge] of polygon.siblings) {
-            if (searchedEdges.get(polyhedron)!.has(edge)) continue;
+            if (searchedEdges.has(edge)) continue;
             if (
               sibling.representativeNodes.difference(
                 polyhedron.representativeNodes
@@ -565,7 +564,7 @@ function CreateAttributes(
             ) {
               continue;
             }
-            searchedEdges.get(polyhedron)!.add(edge);
+            searchedEdges.add(edge);
             const [l, r] = [polygon, sibling];
             const [s, e] = [...edge.representativeNodes.values()];
             indices.push(
@@ -579,12 +578,13 @@ function CreateAttributes(
           }
         }
       }
+      const searchedVertices: Set<Polytope> = new Set();
       for (const polyhedron of polytope.children) {
-        searchedVertices.set(polyhedron, new Set());
+        searchedVertices.clear();
         for (const polygon of polyhedron.children) {
           for (const edge of polygon.children) {
             for (const vertex of edge.children) {
-              if (searchedVertices.get(polyhedron)!.has(vertex)) continue;
+              if (searchedVertices.has(vertex)) continue;
               if (
                 vertex.representativeNodes.difference(
                   polyhedron.representativeNodes
@@ -592,33 +592,27 @@ function CreateAttributes(
               ) {
                 continue;
               }
-              searchedVertices.get(polyhedron)!.add(vertex);
+              searchedVertices.add(vertex);
               let e: Polytope | undefined = undefined;
               let f: Polytope | undefined = polygon;
               const edges = new Set<Polytope>([]);
               const faces = new Set<Polytope>([]);
               if (f.visibility) faces.add(f);
-              let valid = true;
               while (1) {
                 [f, e] =
                   [...f.siblings].find(
-                    ([, joint]) =>
+                    ([sibling, joint]) =>
                       !edges.has(joint) &&
                       joint.children.has(vertex) &&
-                      joint.representativeNodes.difference(
+                      sibling.representativeNodes.difference(
                         polyhedron.representativeNodes
                       ).size === 0
                   ) ?? [];
                 if (!e || !f) {
-                  valid = false;
-                  console.log("invalid", vertex, edges, faces);
-                  break;
+                  throw new Error("Failed to find edge");
                 }
-                if (faces.has(f)) {
-                  valid = true;
-                  console.log("valid", vertex, edges, faces);
-                  break;
-                }
+                if (faces.has(f)) break;
+
                 if (f.visibility) faces.add(f);
                 edges.add(e);
               }
@@ -630,16 +624,14 @@ function CreateAttributes(
                     .get(vertex.representativeNodes.values().next().value!)!
                 );
               });
-              if (valid) {
-                for (let j = 0; j < p.length - 2; j++) {
-                  const L = (Math.floor(j / 2) + 1) % p.length;
-                  const H = (p.length - Math.ceil(j / 2)) % p.length;
-                  indices.push(
-                    p[H],
-                    p[j % 2 ? L + 1 : (H + p.length - 1) % p.length],
-                    p[L]
-                  );
-                }
+              for (let j = 0; j < p.length - 2; j++) {
+                const L = (Math.floor(j / 2) + 1) % p.length;
+                const H = (p.length - Math.ceil(j / 2)) % p.length;
+                indices.push(
+                  p[H],
+                  p[j % 2 ? L + 1 : (H + p.length - 1) % p.length],
+                  p[L]
+                );
               }
             }
           }
