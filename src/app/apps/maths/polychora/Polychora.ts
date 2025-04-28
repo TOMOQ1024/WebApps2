@@ -77,7 +77,7 @@ export function CreatePolychoron(
   });
   console.log(
     [...tobePolygons.values()].map((c) =>
-      [...c.nodes.values()].map((n) => n.coordinate)
+      [...c.representativeNodes.values()].map((n) => n.coordinate)
     )
   );
   console.log("Creating polygons");
@@ -107,7 +107,7 @@ export function CreatePolychoron(
   polygons.length = 0;
   tobePolygons.forEach((c) => {
     polygons.push({
-      coordinates: [...c.nodes.values()].map((n) => n.coordinate),
+      coordinates: [...c.representativeNodes.values()].map((n) => n.coordinate),
       gens: c.diagram.gens.join(""),
     });
   });

@@ -3,6 +3,7 @@ import { CoxeterDynkinDiagram, CoxeterNode } from "./CoxeterNode";
 
 export class Polytope {
   nodes: Set<CoxeterNode> = new Set();
+  representativeNodes: Set<CoxeterNode> = new Set();
   siblings: Set<Polytope> = new Set();
   children: Set<Polytope> = new Set();
   visibility: boolean = true;
@@ -22,7 +23,6 @@ export class Polytope {
     if (this.diagram.gens.length < 1) return;
     const root = this.nodes.values().next().value;
     if (!root) throw new Error("No root node found");
-    console.log(this.diagram.gens.join(""), this.nodes.size);
     const visitedNodes = new Set<CoxeterNode>();
 
     // 生成元の組み合わせごとに処理
@@ -39,7 +39,6 @@ export class Polytope {
 
         const diagram = this.diagram.withNodes(genCombination);
         const isVolumeless = diagram.isVolumeless();
-        const dimension = diagram.getDimension();
         let subpolytope = new Polytope(diagram, new Set());
         const stack: CoxeterNode[] = [node];
 
@@ -47,7 +46,8 @@ export class Polytope {
           const currentNode = stack.pop()!;
 
           visitedNodes.add(currentNode);
-          subpolytope.nodes.add(currentNode.identicalNode);
+          subpolytope.nodes.add(currentNode);
+          subpolytope.representativeNodes.add(currentNode.identicalNode);
 
           currentNode.polytopes.push(subpolytope);
 
@@ -63,7 +63,9 @@ export class Polytope {
         const alternativeSubpolytope = node.polytopes.find(
           (p) =>
             p !== subpolytope &&
-            p.nodes.symmetricDifference(subpolytope.nodes).size === 0
+            p.representativeNodes.symmetricDifference(
+              subpolytope.representativeNodes
+            ).size === 0
         );
 
         if (alternativeSubpolytope) {
@@ -76,7 +78,10 @@ export class Polytope {
         } else if (
           alternativeSubpolytope ||
           [...this.children.values()].findIndex(
-            (c) => c.nodes.symmetricDifference(subpolytope.nodes).size === 0
+            (c) =>
+              c.representativeNodes.symmetricDifference(
+                subpolytope.representativeNodes
+              ).size === 0
           ) === -1
         ) {
           subpolytope.visibility = true;
