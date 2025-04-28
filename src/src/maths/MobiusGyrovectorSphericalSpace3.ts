@@ -33,10 +33,10 @@ export interface Hyperplane3 {
 }
 
 export class MobiusGyrovectorSphericalSpace3 {
-  readonly curvature = 1;
-  readonly radius = 1;
+  // static readonly curvature = 1;
+  // static readonly radius = 1;
 
-  add(P: Vector3, Q: Vector3) {
+  static add(P: Vector3, Q: Vector3) {
     const A = P.clone().multiplyScalar(1 - 2 * P.dot(Q) - Q.lengthSq());
     const B = Q.clone().multiplyScalar(1 + P.lengthSq());
     return A.add(B).divideScalar(
@@ -44,39 +44,45 @@ export class MobiusGyrovectorSphericalSpace3 {
     );
   }
 
-  sub(P: Vector3, Q: Vector3) {
-    return this.add(Q.clone().negate(), P);
+  static sub(P: Vector3, Q: Vector3) {
+    return MobiusGyrovectorSphericalSpace3.add(Q.clone().negate(), P);
   }
 
   length(P: Vector3) {
     return 2 * Math.atan(P.length());
   }
 
-  distance(P: Vector3, Q: Vector3) {
-    return 2 * Math.atan(this.sub(P, Q).length());
+  static distance(P: Vector3, Q: Vector3) {
+    return 2 * Math.atan(MobiusGyrovectorSphericalSpace3.sub(P, Q).length());
   }
 
-  mul(r: number, P: Vector3) {
+  static mul(r: number, P: Vector3) {
     if (r === 0 || P.length() === 0) return new Vector3(0, 0, 0);
     return P.clone()
       .normalize()
       .multiplyScalar(Math.tan(r * Math.atan(P.length())));
   }
 
-  normal(P: Vector3) {
+  static normal(P: Vector3) {
     return new Vector3(P.y, -P.x);
   }
 
-  normalize(P: Vector3) {
+  static normalize(P: Vector3) {
     return P.clone().normalize().multiplyScalar(Math.tan(0.5));
   }
 
-  mix(P: Vector3, Q: Vector3, t: number) {
-    return this.add(P, this.mul(t, this.sub(Q, P)));
+  static mix(P: Vector3, Q: Vector3, t: number) {
+    return MobiusGyrovectorSphericalSpace3.add(
+      P,
+      MobiusGyrovectorSphericalSpace3.mul(
+        t,
+        MobiusGyrovectorSphericalSpace3.sub(Q, P)
+      )
+    );
   }
 
-  reflect(V: Vector3, P: Vector3, Q: Vector3, R: Vector3) {
-    const { i, k } = this.hyperplane(P, Q, R);
+  static reflect(V: Vector3, P: Vector3, Q: Vector3, R: Vector3) {
+    const { i, k } = MobiusGyrovectorSphericalSpace3.hyperplane(P, Q, R);
     const v = V.clone();
     const vDotI = v.dot(i);
     const vLengthSq = v.lengthSq();
@@ -96,14 +102,14 @@ export class MobiusGyrovectorSphericalSpace3 {
     return numerator.divideScalar(denominator);
   }
 
-  hyperplane(P: Vector3, Q: Vector3, R: Vector3) {
+  static hyperplane(P: Vector3, Q: Vector3, R: Vector3) {
     const m = new Matrix3(...P.toArray(), ...Q.toArray(), ...R.toArray());
     const det = m.determinant();
 
     const i = new Vector3(
-      P.lengthSq() * this.curvature - 1,
-      Q.lengthSq() * this.curvature - 1,
-      R.lengthSq() * this.curvature - 1
+      P.lengthSq() - 1,
+      Q.lengthSq() - 1,
+      R.lengthSq() - 1
     ).applyMatrix3(m.adjugate());
 
     return i.lengthSq() > 1e-10
@@ -111,11 +117,11 @@ export class MobiusGyrovectorSphericalSpace3 {
       : { i: new Vector3(0, 0, 0), k: 1 };
   }
 
-  invertHyperplane(h: Hyperplane3) {
+  static invertHyperplane(h: Hyperplane3) {
     return { i: h.i.clone().negate(), k: -h.k };
   }
 
-  midHyperplane(h1: Hyperplane3, h2: Hyperplane3) {
+  static midHyperplane(h1: Hyperplane3, h2: Hyperplane3) {
     const ra = Math.sqrt(h2.i.lengthSq() + 4 * h2.k * h2.k);
     const rb = Math.sqrt(h1.i.lengthSq() + 4 * h1.k * h1.k);
 
@@ -129,7 +135,7 @@ export class MobiusGyrovectorSphericalSpace3 {
   }
 
   // get one of two intersection points of three hyperplanes
-  intersectionPoint(h1: Hyperplane3, h2: Hyperplane3, h3: Hyperplane3) {
+  static intersectionPoint(h1: Hyperplane3, h2: Hyperplane3, h3: Hyperplane3) {
     // T_{AB}=k_{B}i_{A}-k_{A}i_{B} の計算
     const TAB = h2.i
       .clone()
@@ -186,42 +192,67 @@ export class MobiusGyrovectorSphericalSpace3 {
   }
 
   // 四面体の内心
-  incenter4(P: Vector3, Q: Vector3, R: Vector3, S: Vector3) {
-    const Hp = this.hyperplane(Q, R, S);
-    const Hq = this.hyperplane(P, S, R);
-    const Hr = this.hyperplane(S, P, Q);
-    const Hs = this.hyperplane(R, Q, P);
+  static incenter4(P: Vector3, Q: Vector3, R: Vector3, S: Vector3) {
+    const Hp = MobiusGyrovectorSphericalSpace3.hyperplane(Q, R, S);
+    const Hq = MobiusGyrovectorSphericalSpace3.hyperplane(P, S, R);
+    const Hr = MobiusGyrovectorSphericalSpace3.hyperplane(S, P, Q);
+    const Hs = MobiusGyrovectorSphericalSpace3.hyperplane(R, Q, P);
 
-    // const Mpq = this.midHyperplane(Hp, Hq);
-    // const Mpr = this.midHyperplane(Hp, Hr);
-    // const Mps = this.midHyperplane(Hp, Hs);
-    const Mpq = this.midHyperplane(Hp, this.invertHyperplane(Hq));
-    const Mpr = this.midHyperplane(Hp, this.invertHyperplane(Hr));
-    const Mps = this.midHyperplane(Hp, this.invertHyperplane(Hs));
+    // const Mpq = MobiusGyrovectorSphericalSpace3.midHyperplane(Hp, Hq);
+    // const Mpr = MobiusGyrovectorSphericalSpace3.midHyperplane(Hp, Hr);
+    // const Mps = MobiusGyrovectorSphericalSpace3.midHyperplane(Hp, Hs);
+    const Mpq = MobiusGyrovectorSphericalSpace3.midHyperplane(
+      Hp,
+      MobiusGyrovectorSphericalSpace3.invertHyperplane(Hq)
+    );
+    const Mpr = MobiusGyrovectorSphericalSpace3.midHyperplane(
+      Hp,
+      MobiusGyrovectorSphericalSpace3.invertHyperplane(Hr)
+    );
+    const Mps = MobiusGyrovectorSphericalSpace3.midHyperplane(
+      Hp,
+      MobiusGyrovectorSphericalSpace3.invertHyperplane(Hs)
+    );
 
-    const intersection = this.intersectionPoint(Mpq, Mpr, Mps);
+    const intersection = MobiusGyrovectorSphericalSpace3.intersectionPoint(
+      Mpq,
+      Mpr,
+      Mps
+    );
 
     return intersection;
   }
 
   // 点が四面体の内部にあるかどうかを判定
-  private isPointInsideTetrahedron(
+  private static isPointInsideTetrahedron(
     point: Vector3,
     P: Vector3,
     Q: Vector3,
     R: Vector3,
     S: Vector3
   ): boolean {
-    const Hp = this.hyperplane(Q, R, S);
-    const Hq = this.hyperplane(R, S, P);
-    const Hr = this.hyperplane(S, P, Q);
-    const Hs = this.hyperplane(P, Q, R);
+    const Hp = MobiusGyrovectorSphericalSpace3.hyperplane(Q, R, S);
+    const Hq = MobiusGyrovectorSphericalSpace3.hyperplane(R, S, P);
+    const Hr = MobiusGyrovectorSphericalSpace3.hyperplane(S, P, Q);
+    const Hs = MobiusGyrovectorSphericalSpace3.hyperplane(P, Q, R);
 
     // 各面からの距離の符号をチェック
-    const dp = this.distanceFromHyperplane(point, Hp);
-    const dq = this.distanceFromHyperplane(point, Hq);
-    const dr = this.distanceFromHyperplane(point, Hr);
-    const ds = this.distanceFromHyperplane(point, Hs);
+    const dp = MobiusGyrovectorSphericalSpace3.distanceFromHyperplane(
+      point,
+      Hp
+    );
+    const dq = MobiusGyrovectorSphericalSpace3.distanceFromHyperplane(
+      point,
+      Hq
+    );
+    const dr = MobiusGyrovectorSphericalSpace3.distanceFromHyperplane(
+      point,
+      Hr
+    );
+    const ds = MobiusGyrovectorSphericalSpace3.distanceFromHyperplane(
+      point,
+      Hs
+    );
 
     // すべての面から同じ側にあるかチェック
     return (
@@ -231,28 +262,34 @@ export class MobiusGyrovectorSphericalSpace3 {
   }
 
   // 点から超平面までの距離を計算
-  private distanceFromHyperplane(point: Vector3, h: Hyperplane3): number {
+  private static distanceFromHyperplane(
+    point: Vector3,
+    h: Hyperplane3
+  ): number {
     return point.dot(h.i) - h.k * (point.lengthSq() - 1);
   }
 
-  antipode(P: Vector3) {
+  static antipode(P: Vector3) {
     // \frac{-C}{\left|C\right|^{2}}
     return P.clone().negate().divideScalar(P.lengthSq());
   }
 
-  mean(...P: Vector3[]) {
-    const l = P.map((p) => 2 / (1 + this.curvature * p.lengthSq()));
+  static mean(...P: Vector3[]) {
+    const l = P.map((p) => 2 / (1 + p.lengthSq()));
     const m = l.reduce((a, b) => a + b) - l.length;
     const V = new Vector3(0, 0, 0);
     for (let i = 0; i < P.length; i++) {
       V.add(P[i].clone().multiplyScalar(l[i]));
     }
-    const A = this.mul(
+    const A = MobiusGyrovectorSphericalSpace3.mul(
       0.5,
       V.divideScalar(Math.abs(m) < 1e-20 ? 1e-20 * (Math.sign(m) || 1) : m)
     );
-    const B = this.antipode(A);
-    return this.distance(P[0], A) < this.distance(P[0], B) ? A : B;
+    const B = MobiusGyrovectorSphericalSpace3.antipode(A);
+    return MobiusGyrovectorSphericalSpace3.distance(P[0], A) <
+      MobiusGyrovectorSphericalSpace3.distance(P[0], B)
+      ? A
+      : B;
   }
 }
 

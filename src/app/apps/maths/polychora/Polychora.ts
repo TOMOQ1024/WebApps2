@@ -63,26 +63,17 @@ export function CreatePolychoron(
   const polytope = graph.buildPolytope();
   console.log(polytope);
   console.log("Creating polygons");
-  const polygons: Set<Polytope> = new Set();
-  for (const coordinate in nodes) {
-    const node = nodes[coordinate];
-    for (const polytope of node.polytopes) {
-      if (polytope.diagram.getDimension() === 2 && polytope.visibility) {
-        polygons.add(polytope);
-      }
-    }
-  }
 
-  console.log(`Dim 0 Elements: ${representativeNodes.size}`);
-  console.log(`Faces: ${polygons.size}`);
-  console.log(
-    CountMap([...polygons.values()].map((p) => p.representativeNodes.size))
-  );
+  // console.log(`Dim 0 Elements: ${representativeNodes.size}`);
+  // console.log(`Faces: ${polygons.size}`);
+  // console.log(
+  //   CountMap([...polygons.values()].map((p) => p.representativeNodes.size))
+  // );
 
   const { indices, ...attributes } = CreateAttributes(
     positions,
-    polygons,
-    "frame"
+    polytope,
+    "solidframe"
   );
   const geometry = new BufferGeometry();
   geometry.setIndex(indices);
@@ -93,10 +84,7 @@ export function CreatePolychoron(
   return geometry;
 }
 
-function GetFundamentalDomain(
-  labels: { [genPair: string]: [number, number] },
-  g: MobiusGyrovectorSphericalSpace3
-) {
+function GetFundamentalDomain(labels: { [genPair: string]: [number, number] }) {
   // point A
   const pointA = new Vector3(0, 0, 0);
 
@@ -169,9 +157,18 @@ function GetFundamentalDomain(
 
   return {
     pointA,
-    pointB: pointB.lengthSq() > 1 ? g.antipode(pointB) : pointB,
-    pointC: pointC.lengthSq() > 1 ? g.antipode(pointC) : pointC,
-    pointD: pointD.lengthSq() > 1 ? g.antipode(pointD) : pointD,
+    pointB:
+      pointB.lengthSq() > 1
+        ? MobiusGyrovectorSphericalSpace3.antipode(pointB)
+        : pointB,
+    pointC:
+      pointC.lengthSq() > 1
+        ? MobiusGyrovectorSphericalSpace3.antipode(pointC)
+        : pointC,
+    pointD:
+      pointD.lengthSq() > 1
+        ? MobiusGyrovectorSphericalSpace3.antipode(pointD)
+        : pointD,
   };
 }
 
@@ -192,24 +189,69 @@ function GetInitPoint(
   pointC: Vector3,
   pointD: Vector3,
   labels: { [genPair: string]: [number, number] },
-  ni: { [gen: string]: string },
-  g: MobiusGyrovectorSphericalSpace3
+  ni: { [gen: string]: string }
 ) {
-  const planeA = g.hyperplane(pointB, pointC, pointD);
-  const planeB = g.hyperplane(pointA, pointD, pointC);
-  const planeC = g.hyperplane(pointD, pointA, pointB);
-  const planeD = g.hyperplane(pointC, pointB, pointA);
-  const planeMAB = g.midHyperplane(planeA, g.invertHyperplane(planeB));
-  const planeMAC = g.midHyperplane(planeA, g.invertHyperplane(planeC));
-  const planeMAD = g.midHyperplane(planeA, g.invertHyperplane(planeD));
-  const planeMBC = g.midHyperplane(planeB, g.invertHyperplane(planeC));
-  const planeMBD = g.midHyperplane(planeB, g.invertHyperplane(planeD));
-  const planeMCD = g.midHyperplane(planeC, g.invertHyperplane(planeD));
+  const planeA = MobiusGyrovectorSphericalSpace3.hyperplane(
+    pointB,
+    pointC,
+    pointD
+  );
+  const planeB = MobiusGyrovectorSphericalSpace3.hyperplane(
+    pointA,
+    pointD,
+    pointC
+  );
+  const planeC = MobiusGyrovectorSphericalSpace3.hyperplane(
+    pointD,
+    pointA,
+    pointB
+  );
+  const planeD = MobiusGyrovectorSphericalSpace3.hyperplane(
+    pointC,
+    pointB,
+    pointA
+  );
+  const planeMAB = MobiusGyrovectorSphericalSpace3.midHyperplane(
+    planeA,
+    MobiusGyrovectorSphericalSpace3.invertHyperplane(planeB)
+  );
+  const planeMAC = MobiusGyrovectorSphericalSpace3.midHyperplane(
+    planeA,
+    MobiusGyrovectorSphericalSpace3.invertHyperplane(planeC)
+  );
+  const planeMAD = MobiusGyrovectorSphericalSpace3.midHyperplane(
+    planeA,
+    MobiusGyrovectorSphericalSpace3.invertHyperplane(planeD)
+  );
+  const planeMBC = MobiusGyrovectorSphericalSpace3.midHyperplane(
+    planeB,
+    MobiusGyrovectorSphericalSpace3.invertHyperplane(planeC)
+  );
+  const planeMBD = MobiusGyrovectorSphericalSpace3.midHyperplane(
+    planeB,
+    MobiusGyrovectorSphericalSpace3.invertHyperplane(planeD)
+  );
+  const planeMCD = MobiusGyrovectorSphericalSpace3.midHyperplane(
+    planeC,
+    MobiusGyrovectorSphericalSpace3.invertHyperplane(planeD)
+  );
 
   switch (`${ni.a}${ni.b}${ni.c}${ni.d}`) {
     case "xxxx":
-      console.log(g.incenter4(pointA, pointB, pointC, pointD));
-      return g.incenter4(pointA, pointB, pointC, pointD);
+      console.log(
+        MobiusGyrovectorSphericalSpace3.incenter4(
+          pointA,
+          pointB,
+          pointC,
+          pointD
+        )
+      );
+      return MobiusGyrovectorSphericalSpace3.incenter4(
+        pointA,
+        pointB,
+        pointC,
+        pointD
+      );
 
     case "xooo":
       return pointA;
@@ -221,29 +263,74 @@ function GetInitPoint(
       return pointD;
 
     case "xxoo":
-      return g.intersectionPoint(planeC, planeD, planeMAB);
+      return MobiusGyrovectorSphericalSpace3.intersectionPoint(
+        planeC,
+        planeD,
+        planeMAB
+      );
     case "xoxo":
-      return g.intersectionPoint(planeB, planeD, planeMAC);
+      return MobiusGyrovectorSphericalSpace3.intersectionPoint(
+        planeB,
+        planeD,
+        planeMAC
+      );
     case "xoox":
-      return g.intersectionPoint(planeB, planeC, planeMAD);
+      return MobiusGyrovectorSphericalSpace3.intersectionPoint(
+        planeB,
+        planeC,
+        planeMAD
+      );
     case "oxxo":
-      return g.intersectionPoint(planeA, planeD, planeMBC);
+      return MobiusGyrovectorSphericalSpace3.intersectionPoint(
+        planeA,
+        planeD,
+        planeMBC
+      );
     case "oxox":
-      return g.intersectionPoint(planeA, planeC, planeMBD);
+      return MobiusGyrovectorSphericalSpace3.intersectionPoint(
+        planeA,
+        planeC,
+        planeMBD
+      );
     case "ooxx":
-      return g.intersectionPoint(planeA, planeB, planeMCD);
+      return MobiusGyrovectorSphericalSpace3.intersectionPoint(
+        planeA,
+        planeB,
+        planeMCD
+      );
 
     case "oxxx":
-      return g.intersectionPoint(planeA, planeMBC, planeMCD);
+      return MobiusGyrovectorSphericalSpace3.intersectionPoint(
+        planeA,
+        planeMBC,
+        planeMCD
+      );
     case "xoxx":
-      return g.intersectionPoint(planeB, planeMAD, planeMCD);
+      return MobiusGyrovectorSphericalSpace3.intersectionPoint(
+        planeB,
+        planeMAD,
+        planeMCD
+      );
     case "xxox":
-      return g.intersectionPoint(planeC, planeMAD, planeMAB);
+      return MobiusGyrovectorSphericalSpace3.intersectionPoint(
+        planeC,
+        planeMAD,
+        planeMAB
+      );
     case "xxxo":
-      return g.intersectionPoint(planeD, planeMAC, planeMAB);
+      return MobiusGyrovectorSphericalSpace3.intersectionPoint(
+        planeD,
+        planeMAC,
+        planeMAB
+      );
 
     default:
-      return g.mean(pointA, pointB, pointC, pointD);
+      return MobiusGyrovectorSphericalSpace3.mean(
+        pointA,
+        pointB,
+        pointC,
+        pointD
+      );
   }
 }
 
@@ -255,11 +342,10 @@ function GetPositions(
   const positions: { [key: string]: Vector3 } = {};
 
   // 初期頂点座標の生成
-  const g = new MobiusGyrovectorSphericalSpace3();
-  const { pointA, pointB, pointC, pointD } = GetFundamentalDomain(labels, g);
+  const { pointA, pointB, pointC, pointD } = GetFundamentalDomain(labels);
   console.log(pointA, pointB, pointC, pointD);
   // 単位領域内の頂点定義
-  let Q0 = GetInitPoint(pointA, pointB, pointC, pointD, labels, ni, g);
+  let Q0 = GetInitPoint(pointA, pointB, pointC, pointD, labels, ni);
 
   // 頂点座標の生成(gyrovector)
   for (const node of representativeNodes) {
@@ -271,13 +357,13 @@ function GetPositions(
         continue;
       }
       if (coordinate[j] === "a") {
-        Q = g.reflect(Q, pointB, pointC, pointD);
+        Q = MobiusGyrovectorSphericalSpace3.reflect(Q, pointB, pointC, pointD);
       } else if (coordinate[j] === "b") {
-        Q = g.reflect(Q, pointA, pointD, pointC);
+        Q = MobiusGyrovectorSphericalSpace3.reflect(Q, pointA, pointD, pointC);
       } else if (coordinate[j] === "c") {
-        Q = g.reflect(Q, pointD, pointA, pointB);
+        Q = MobiusGyrovectorSphericalSpace3.reflect(Q, pointD, pointA, pointB);
       } else if (coordinate[j] === "d") {
-        Q = g.reflect(Q, pointC, pointB, pointA);
+        Q = MobiusGyrovectorSphericalSpace3.reflect(Q, pointC, pointB, pointA);
       }
       positions[coordinate.slice(j)] = Q;
     }
@@ -286,51 +372,19 @@ function GetPositions(
   return positions;
 }
 
-// 面の重複を削除
-function DedupePolygons(polygons: { coordinates: string[]; gens: string }[]) {
-  const uniquePolygons = new Map<
-    string,
-    { coordinates: string[]; gens: string }
-  >();
-
-  for (const polygon of polygons) {
-    // 最小の頂点を見つける
-    let minVertex = polygon.coordinates[0];
-    let minIndex = 0;
-    for (let i = 1; i < polygon.coordinates.length; i++) {
-      if (polygon.coordinates[i] < minVertex) {
-        minVertex = polygon.coordinates[i];
-        minIndex = i;
-      }
-    }
-
-    // 最小頂点から始まる2つの回転を生成
-    const rotated = polygon.coordinates
-      .slice(minIndex)
-      .concat(polygon.coordinates.slice(0, minIndex));
-    const reversed = [polygon.coordinates[minIndex]].concat(
-      [...rotated].reverse().slice(0, -1)
-    );
-
-    // 辞書順で小さい方をキーとして使用
-    const key =
-      rotated.join(",") < reversed.join(",")
-        ? rotated.join(",")
-        : reversed.join(",");
-
-    uniquePolygons.set(key, { coordinates: rotated, gens: polygon.gens });
-  }
-
-  // 結果を元の配列に書き戻し
-  polygons.length = 0;
-  polygons.push(...Array.from(uniquePolygons.values()));
-}
-
 function CreateAttributes(
   positions: { [key: string]: Vector3 },
-  polygons: Set<Polytope>,
+  polytope: Polytope,
   mode: "transparent" | "frame" | "solidframe"
 ) {
+  const polygons: Set<Polytope> = new Set();
+  for (const node of polytope.nodes) {
+    for (const polytope of node.polytopes) {
+      if (polytope.diagram.getDimension() === 2 && polytope.visibility) {
+        polygons.add(polytope);
+      }
+    }
+  }
   switch (mode) {
     case "transparent": {
       // 面全体を半透明で描画する
@@ -400,11 +454,12 @@ function CreateAttributes(
       const vertices: number[] = []; // 頂点座標
       const colors: number[] = []; // 頂点色
       let indexOffset = 0;
-      const g = new MobiusGyrovectorSphericalSpace3();
       for (let polygon of polygons) {
         const c = COLORS[polygon.diagram.gens.join("")];
         const p = [...polygon.representativeNodes.values()];
-        const M = g.mean(...p.map((c) => positions[c.coordinate]));
+        const M = MobiusGyrovectorSphericalSpace3.mean(
+          ...p.map((c) => positions[c.coordinate])
+        );
         // const M = p
         //   .map((c) => positions[c])
         //   .reduce((a, b) => a.add(b), new Vector3())
@@ -423,7 +478,13 @@ function CreateAttributes(
           colors.push(...c.map((c) => 1).map((c) => c * 0.1), 1);
         }
         for (let j = 0; j < p.length; j++) {
-          vertices.push(...g.mix(positions[p[j].coordinate], M, 0.1).toArray());
+          vertices.push(
+            ...MobiusGyrovectorSphericalSpace3.mix(
+              positions[p[j].coordinate],
+              M,
+              0.1
+            ).toArray()
+          );
           colors.push(...c.map((c) => 1), 1);
         }
         indexOffset += p.length * 2;
@@ -435,13 +496,76 @@ function CreateAttributes(
       };
     }
     case "solidframe": {
-      // 頂点座標と頂点・面マップの生成
-      // for face in polychoron
-      //   M = g.mean(...face)
-      //   for vertex in face
-      //     map.set([vertex, face], vertices.length/3)
-      //     vertices.push(...g.mix(vertex, M, 0.1).toArray())
+      const COLORS = {
+        ab: [1, 1, 0.9],
+        ba: [1, 1, 0.9],
+        bc: [1, 0.9, 1],
+        cb: [1, 0.9, 1],
+        cd: [0.9, 1, 1],
+        dc: [0.9, 1, 1],
+        da: [0.95, 0.95, 1],
+        ad: [0.95, 0.95, 1],
+        ac: [0.95, 1, 0.95],
+        ca: [0.95, 1, 0.95],
+        bd: [1, 0.95, 0.95],
+        db: [1, 0.95, 0.95],
+      } as { [key: string]: [number, number, number] };
+      const indexMap: Map<Polytope, Map<CoxeterNode, number>> = new Map();
+      const indices: number[] = []; // 三角形リスト
+      const vertices: number[] = []; // 頂点座標
+      const colors: number[] = []; // 頂点色
 
+      for (const polygon of polygons) {
+        indexMap.set(polygon, new Map());
+        const M = MobiusGyrovectorSphericalSpace3.mean(
+          ...[...polygon.representativeNodes.values()].map(
+            (n) => positions[n.coordinate]
+          )
+        );
+        for (const node of polygon.representativeNodes) {
+          const vertex = positions[node.coordinate];
+          indexMap.get(polygon)!.set(node, vertices.length / 3);
+          vertices.push(
+            ...MobiusGyrovectorSphericalSpace3.mix(vertex, M, 0.1).toArray()
+          );
+          colors.push(
+            ...(COLORS[polygon.diagram.gens.join("")] ?? [1, 1, 1]),
+            1
+          );
+        }
+      }
+
+      const searchedEdges: Map<Polytope, Set<Polytope>> = new Map();
+      for (const polyhedron of polytope.children) {
+        searchedEdges.set(polyhedron, new Set());
+        for (const polygon of polyhedron.children) {
+          for (const { joint: edge, sibling } of polygon.siblings) {
+            if (searchedEdges.get(polyhedron)!.has(edge)) continue;
+            if (
+              sibling.representativeNodes.difference(
+                polyhedron.representativeNodes
+              ).size > 0
+            ) {
+              continue;
+            }
+            searchedEdges.get(polyhedron)!.add(edge);
+            const [l, r] = [polygon, sibling];
+            const [s, e] = [...edge.representativeNodes.values()];
+            indices.push(
+              indexMap.get(l)!.get(s)!,
+              indexMap.get(r)!.get(s)!,
+              indexMap.get(l)!.get(e)!,
+              indexMap.get(r)!.get(s)!,
+              indexMap.get(r)!.get(e)!,
+              indexMap.get(l)!.get(e)!
+            );
+          }
+        }
+        const searchedVertices = new Set<Polytope>();
+        for (const polygon of polygons) {
+          //
+        }
+      }
       // 三角形リストの生成
       // for cell in polychoron
       //   for edge in cell
@@ -456,9 +580,9 @@ function CreateAttributes(
       //       map.get([e, l]),
       //     )
       return {
-        position: new BufferAttribute(new Float32Array([]), 3),
-        color: new BufferAttribute(new Float32Array([]), 4),
-        indices: new BufferAttribute(new Uint32Array([]), 1),
+        position: new BufferAttribute(new Float32Array(vertices), 3),
+        color: new BufferAttribute(new Float32Array(colors), 4),
+        indices: new BufferAttribute(new Uint32Array(indices), 1),
       };
     }
   }

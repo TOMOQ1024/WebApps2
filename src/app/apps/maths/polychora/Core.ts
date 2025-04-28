@@ -132,10 +132,15 @@ varying vec4 vColor;
 varying vec3 vDepth;
 #define PI 3.14159265358979323846
 
+float tanh(float x) {
+  return (exp(x) - exp(-x)) / (exp(x) + exp(-x));
+}
+
 void main() {
   vec4 c = pow(vColor, vec4(3.));
-  float depth = exp(-vDepth.z*.5);
-  gl_FragColor = vec4(c.rgb, depth);
+  float d = tanh(vDepth.z);
+  float alpha = (3.-d)/4.;
+  gl_FragColor = vec4(c.rgb*alpha, alpha);
 }
                   `,
   });
