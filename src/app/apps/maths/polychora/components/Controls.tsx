@@ -20,7 +20,9 @@ export default function Controls({ core }: { core: Core | undefined }) {
     if (det <= 0) {
       setError("頂点数が有限ではありません");
     } else if (core.diagram.getDimension() < 4) {
-      setError("多胞体の次元が4未満です");
+      setError(
+        "多胞体の次元が4未満です．低次元多胞体の生成は今後の開発で対応予定です．"
+      );
     } else {
       setError("");
       core.setPolychoron();
