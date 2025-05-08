@@ -3,24 +3,84 @@ import { CoxeterNode } from "./CoxeterNode";
 
 // カスタムSetのsymmetricDifference実装（パフォーマンス向上のため）
 function symmetricDifference<T>(setA: Set<T>, setB: Set<T>): Set<T> {
-  const result = new Set<T>();
+  // 両方のセットのサイズが異なる場合は必ず対称差分は空ではない
+  if (setA.size !== setB.size) {
+    const result = new Set<T>();
+    // setAにあってsetBにない要素を追加
+    for (const elem of setA) {
+      if (!setB.has(elem)) {
+        result.add(elem);
+      }
+    }
 
-  // setAにあってsetBにない要素を追加
+    // setBにあってsetAにない要素を追加
+    for (const elem of setB) {
+      if (!setA.has(elem)) {
+        result.add(elem);
+      }
+    }
+
+    return result;
+  }
+
+  // サイズが同じ場合の最適化
+  const result = new Set<T>();
   for (const elem of setA) {
     if (!setB.has(elem)) {
       result.add(elem);
+      // 一つでも差分があれば、対称差分は空ではない
+      if (result.size > 0) break;
     }
   }
 
-  // setBにあってsetAにない要素を追加
-  for (const elem of setB) {
-    if (!setA.has(elem)) {
-      result.add(elem);
+  // 最初の方向で差分がなければ、逆方向もチェック
+  if (result.size === 0) {
+    for (const elem of setB) {
+      if (!setA.has(elem)) {
+        result.add(elem);
+        break; // 一つ見つかれば十分
+      }
     }
   }
 
   return result;
 }
+
+// 高速なセット比較関数（symmetricDifferenceが0かどうかだけを判定）
+function isSymmetricDifferenceEmpty<T>(setA: Set<T>, setB: Set<T>): boolean {
+  // サイズが異なれば必ず差分あり
+  if (setA.size !== setB.size) return false;
+
+  // サイズが同じ場合、片方向の包含関係をチェックするだけで十分
+  for (const elem of setA) {
+    if (!setB.has(elem)) return false;
+  }
+
+  return true;
+}
+
+// isVolumelessの結果をキャッシュするためのMap
+const isVolumelessCache = new Map<string, boolean>();
+
+// CoxeterDynkinDiagramの拡張
+const originalIsVolumeless = CoxeterDynkinDiagram.prototype.isVolumeless;
+CoxeterDynkinDiagram.prototype.isVolumeless = function (): boolean {
+  // キャッシュキーを生成
+  const cacheKey = JSON.stringify({
+    nodeMarks: this.nodeMarks,
+    gens: this.gens,
+  });
+
+  // キャッシュにあればそれを返す
+  if (isVolumelessCache.has(cacheKey)) {
+    return isVolumelessCache.get(cacheKey)!;
+  }
+
+  // なければ計算してキャッシュ
+  const result = originalIsVolumeless.call(this);
+  isVolumelessCache.set(cacheKey, result);
+  return result;
+};
 
 export class Polytope {
   nodes: Set<CoxeterNode> = new Set();
@@ -33,6 +93,9 @@ export class Polytope {
   private alternativeCache: Map<string, Polytope | undefined> = new Map();
   // 生成元の組み合わせごとのダイアグラムをキャッシュ
   private diagramCache: Map<string, CoxeterDynkinDiagram> = new Map();
+  // 重複計算を避けるためのキャッシュ
+  private processedSubpolytopes = new Map<string, boolean>();
+  private cachedIdenticalSetsStrings = new WeakMap<Set<CoxeterNode>, string>();
 
   // CoxeterNodeから多面体構造を構築する
   constructor(
@@ -56,13 +119,20 @@ export class Polytope {
     if (!root) throw new Error("No root node found");
 
     // 生成元の組み合わせごとに処理
-    const rmGens = [...this.diagram.gens];
+    const rmGens = this.diagram.gens.slice(); // 配列コピーを最適化
 
-    // 事前に処理するノードのセットを構築
-    const allNodes = new Set(this.nodes);
-    const visitedNodesMap = new Map<string, Set<CoxeterNode>>();
+    // 事前に処理するノードを配列に格納（Set→Arrayの変換でパフォーマンス向上）
+    const allNodesArray = Array.from(this.nodes);
 
-    for (const rmGen of rmGens) {
+    // Set操作の高速化のためにMap化
+    const allNodesMap = new Map<string, CoxeterNode>();
+    for (const node of allNodesArray) {
+      allNodesMap.set(node.coordinate, node);
+    }
+
+    for (let genIndex = 0; genIndex < rmGens.length; genIndex++) {
+      const rmGen = rmGens[genIndex];
+
       // 重要なダイアグラムのキャッシュを利用
       const diagramKey = rmGen;
       let diagram: CoxeterDynkinDiagram;
@@ -75,55 +145,85 @@ export class Polytope {
       }
 
       const isVolumeless = diagram.isVolumeless();
-      const visitedNodes = new Set<CoxeterNode>();
+
+      // ビット演算でSet操作を高速化
+      // 代わりにMapを使用して高速な検索を実現
+      const visitedNodesMap = new Map<string, CoxeterNode>();
 
       // 各ノードを起点として深さ優先探索
-      for (const node of allNodes) {
-        if (visitedNodes.has(node)) continue;
+      for (let nodeIndex = 0; nodeIndex < allNodesArray.length; nodeIndex++) {
+        const node = allNodesArray[nodeIndex];
+        if (visitedNodesMap.has(node.coordinate)) continue;
 
         const cacheKey = this.getCacheKey(node, diagram);
-        let nodesToProcess: Set<CoxeterNode>;
+        let nodesToProcess: CoxeterNode[];
 
         if (this.nodeCache.has(cacheKey)) {
-          nodesToProcess = this.nodeCache.get(cacheKey)!;
-          for (const n of nodesToProcess) {
-            visitedNodes.add(n);
+          const cachedNodes = this.nodeCache.get(cacheKey)!;
+          for (const n of cachedNodes) {
+            visitedNodesMap.set(n.coordinate, n);
           }
+          nodesToProcess = Array.from(cachedNodes);
         } else {
           const stack: CoxeterNode[] = [node];
-          nodesToProcess = new Set<CoxeterNode>();
+          const nodesToProcessMap = new Map<string, CoxeterNode>();
+          nodesToProcessMap.set(node.coordinate, node);
 
           // ノードの収集フェーズ - パフォーマンス改善
           while (stack.length > 0) {
             const currentNode = stack.pop()!;
-            if (visitedNodes.has(currentNode)) continue;
+            visitedNodesMap.set(currentNode.coordinate, currentNode);
 
-            visitedNodes.add(currentNode);
-            nodesToProcess.add(currentNode);
-
-            // 隣接ノードの探索 - より効率的なループ
+            // 隣接ノードの探索 - 効率的なループ
             const diagramGens = diagram.gens;
             for (let i = 0; i < diagramGens.length; i++) {
               const gen = diagramGens[i];
               const nextNode = currentNode.siblings[gen];
-              if (nextNode && !visitedNodes.has(nextNode)) {
+              if (
+                nextNode &&
+                !visitedNodesMap.has(nextNode.coordinate) &&
+                !nodesToProcessMap.has(nextNode.coordinate)
+              ) {
                 stack.push(nextNode);
+                nodesToProcessMap.set(nextNode.coordinate, nextNode);
               }
             }
           }
-          this.nodeCache.set(cacheKey, nodesToProcess);
+
+          nodesToProcess = Array.from(nodesToProcessMap.values());
+          this.nodeCache.set(cacheKey, new Set(nodesToProcess));
         }
+
+        // 処理を最適化するためSubpolytopeごとのユニークIDを生成
+        const subpolytopeId = `${diagramKey}-${node.coordinate}`;
+        if (this.processedSubpolytopes.has(subpolytopeId)) {
+          continue; // 既に処理済みならスキップ
+        }
+        this.processedSubpolytopes.set(subpolytopeId, true);
 
         const subpolytope = new Polytope(diagram, new Set());
 
         // 一括処理フェーズ - パフォーマンス改善
+        const identicalNodeSetsMap = new Map<string, Set<CoxeterNode>>();
+
         for (const currentNode of nodesToProcess) {
           subpolytope.nodes.add(currentNode);
-          subpolytope.identicalNodeSets.add(currentNode.identicalNodes);
 
-          // 効率化: .forEach() ループを回避
-          for (const n of currentNode.identicalNodes) {
-            n.polytopes.push(subpolytope);
+          // identicalNodeSets操作を効率化
+          const identicalNodes = currentNode.identicalNodes;
+
+          // 既存のセットと重複しないようにする
+          let setExists = false;
+          const setRepKey = this.getSetKey(identicalNodes);
+
+          if (!identicalNodeSetsMap.has(setRepKey)) {
+            identicalNodeSetsMap.set(setRepKey, identicalNodes);
+            subpolytope.identicalNodeSets.add(identicalNodes);
+
+            // ポリトープの追加を最適化
+            for (const n of identicalNodes) {
+              n.polytopes.push(subpolytope);
+            }
           }
         }
 
@@ -137,22 +237,27 @@ export class Polytope {
           alternativeSubpolytope =
             this.alternativeCache.get(alternativeCacheKey);
         } else {
-          // 最適化: カスタム実装の symmetricDifference を使用
-          alternativeSubpolytope = node.polytopes.find((p) => {
-            if (p === subpolytope || !p.visibility) return false;
+          // 高速検索のための最適化
+          const candidatePolytopes = node.polytopes.filter(
+            (p) =>
+              p !== subpolytope &&
+              p.visibility &&
+              p.identicalNodeSets.size === subpolytope.identicalNodeSets.size
+          );
 
-            // 両方のセットのサイズが異なる場合、対称差分は必ず空ではない
-            if (p.identicalNodeSets.size !== subpolytope.identicalNodeSets.size)
-              return false;
-
-            // カスタム実装を使用
-            return (
-              symmetricDifference(
+          // 最適化されたセット比較関数を使用
+          for (const p of candidatePolytopes) {
+            if (
+              isSymmetricDifferenceEmpty(
                 p.identicalNodeSets,
                 subpolytope.identicalNodeSets
-              ).size === 0
-            );
-          });
+              )
+            ) {
+              alternativeSubpolytope = p;
+              break;
+            }
+          }
+
           this.alternativeCache.set(
             alternativeCacheKey,
             alternativeSubpolytope
@@ -185,13 +290,17 @@ export class Polytope {
   }
 
   private isUniqueChild(subpolytope: Polytope): boolean {
-    // 最適化: カスタム実装の symmetricDifference を使用
-    for (const c of this.children) {
+    // 最適化: カスタム実装の isSymmetricDifferenceEmpty を使用
+    const childrenArray = Array.from(this.children);
+    for (let i = 0; i < childrenArray.length; i++) {
+      const c = childrenArray[i];
       if (c.identicalNodeSets.size !== subpolytope.identicalNodeSets.size)
         continue;
       if (
-        symmetricDifference(c.identicalNodeSets, subpolytope.identicalNodeSets)
-          .size === 0
+        isSymmetricDifferenceEmpty(
+          c.identicalNodeSets,
+          subpolytope.identicalNodeSets
+        )
       ) {
         return false;
       }
@@ -200,8 +309,14 @@ export class Polytope {
   }
 
   private updateSiblingRelations() {
-    for (const child of this.children) {
-      for (const sibling of child.parent) {
+    // 配列変換して反復処理を高速化
+    const childrenArray = Array.from(this.children);
+    for (let i = 0; i < childrenArray.length; i++) {
+      const child = childrenArray[i];
+      // parentも配列変換
+      const parentArray = Array.from(child.parent);
+      for (let j = 0; j < parentArray.length; j++) {
+        const sibling = parentArray[j];
         if (sibling === this) continue;
         this.addSibling(sibling, child);
       }
@@ -212,30 +327,41 @@ export class Polytope {
     node: CoxeterNode,
     diagram: CoxeterDynkinDiagram
   ): string {
-    return `${node.coordinate}-${diagram.gens.sort().join(",")}`;
+    return `${node.coordinate}-${diagram.gens.join(",")}`;
+  }
+
+  // 集合を文字列化する効率的な方法
+  private getSetKey(set: Set<CoxeterNode>): string {
+    // キャッシュがあればそれを使用
+    if (this.cachedIdenticalSetsStrings.has(set)) {
+      return this.cachedIdenticalSetsStrings.get(set)!;
+    }
+
+    // なければ計算してキャッシュ
+    const coords: string[] = [];
+    for (const node of set) {
+      coords.push(node.coordinate);
+    }
+    coords.sort();
+    const key = coords.join(",");
+    this.cachedIdenticalSetsStrings.set(set, key);
+    return key;
   }
 
   private getAlternativeCacheKey(
     node: CoxeterNode,
     subpolytope: Polytope
   ): string {
-    // 最適化: 不必要な配列変換を減らす
-    const identicalSets = [...subpolytope.identicalNodeSets];
-    const setStrings = new Array(identicalSets.length);
+    // 最適化: サブポリトープの識別子を効率的に生成
+    const identicalSetsKeys: string[] = [];
 
-    for (let i = 0; i < identicalSets.length; i++) {
-      const nodesArray = [...identicalSets[i]];
-      const coordinates = new Array(nodesArray.length);
-
-      for (let j = 0; j < nodesArray.length; j++) {
-        coordinates[j] = nodesArray[j].coordinate;
-      }
-
-      coordinates.sort();
-      setStrings[i] = coordinates.join(",");
+    // 各セットの文字列表現を生成
+    for (const nodeSet of subpolytope.identicalNodeSets) {
+      identicalSetsKeys.push(this.getSetKey(nodeSet));
     }
 
-    setStrings.sort();
-    return `${node.coordinate}-${setStrings.join("|")}`;
+    // ソートして結合
+    identicalSetsKeys.sort();
+    return `${node.coordinate}-${identicalSetsKeys.join("|")}`;
   }
 }
