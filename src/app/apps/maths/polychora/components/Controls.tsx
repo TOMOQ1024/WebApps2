@@ -14,37 +14,52 @@ export default function Controls({ core }: { core: Core | undefined }) {
     }, 100);
   }, [core]);
 
-  const computeSchlafliMatrixDeterminant = () => {
+  const tryBuild = async () => {
     if (!core) return false;
+    const det = await computeSchlafliMatrixDeterminant();
+    if (det <= 0) {
+      setError("頂点数が有限ではありません");
+    } else if (core.diagram.getDimension() < 4) {
+      setError("多胞体の次元が4未満です");
+    } else {
+      setError("");
+      core.setPolychoron();
+      setBuildTime(core.buildTime);
+    }
+  };
+
+  const computeSchlafliMatrixDeterminant = async () => {
+    if (!core) return 0;
+    const labels = core.diagram.labels;
     const mat = new Matrix4(
       2,
-      -2 * Math.cos((Math.PI / core.labels.ab[0]) * core.labels.ab[1]),
-      -2 * Math.cos((Math.PI / core.labels.ac[0]) * core.labels.ac[1]),
-      -2 * Math.cos((Math.PI / core.labels.ad[0]) * core.labels.ad[1]),
+      -2 * Math.cos((Math.PI / labels.ab[0]) * labels.ab[1]),
+      -2 * Math.cos((Math.PI / labels.ac[0]) * labels.ac[1]),
+      -2 * Math.cos((Math.PI / labels.ad[0]) * labels.ad[1]),
 
-      -2 * Math.cos((Math.PI / core.labels.ab[0]) * core.labels.ab[1]),
+      -2 * Math.cos((Math.PI / labels.ab[0]) * labels.ab[1]),
       2,
-      -2 * Math.cos((Math.PI / core.labels.bc[0]) * core.labels.bc[1]),
-      -2 * Math.cos((Math.PI / core.labels.bd[0]) * core.labels.bd[1]),
+      -2 * Math.cos((Math.PI / labels.bc[0]) * labels.bc[1]),
+      -2 * Math.cos((Math.PI / labels.bd[0]) * labels.bd[1]),
 
-      -2 * Math.cos((Math.PI / core.labels.ac[0]) * core.labels.ac[1]),
-      -2 * Math.cos((Math.PI / core.labels.bc[0]) * core.labels.bc[1]),
+      -2 * Math.cos((Math.PI / labels.ac[0]) * labels.ac[1]),
+      -2 * Math.cos((Math.PI / labels.bc[0]) * labels.bc[1]),
       2,
-      -2 * Math.cos((Math.PI / core.labels.cd[0]) * core.labels.cd[1]),
+      -2 * Math.cos((Math.PI / labels.cd[0]) * labels.cd[1]),
 
-      -2 * Math.cos((Math.PI / core.labels.ad[0]) * core.labels.ad[1]),
-      -2 * Math.cos((Math.PI / core.labels.bd[0]) * core.labels.bd[1]),
-      -2 * Math.cos((Math.PI / core.labels.cd[0]) * core.labels.cd[1]),
+      -2 * Math.cos((Math.PI / labels.ad[0]) * labels.ad[1]),
+      -2 * Math.cos((Math.PI / labels.bd[0]) * labels.bd[1]),
+      -2 * Math.cos((Math.PI / labels.cd[0]) * labels.cd[1]),
       2
     );
-    const det = mat.determinant();
-    return det > 0;
+
+    return mat.determinant();
   };
 
   const handleInputChange = async (value: string, labelKey: string) => {
     if (!core) return;
 
-    const prev = core.labels[labelKey];
+    const prev = core.diagram.labels[labelKey];
     const rev = labelKey.split("").reverse().join("");
 
     const input = document.querySelector(`input.${rev}`) as HTMLInputElement;
@@ -52,25 +67,21 @@ export default function Controls({ core }: { core: Core | undefined }) {
       input.value = value;
     }
     if (/^\d+$/.test(value)) {
-      setError("");
-      core.labels[labelKey] = [+value, 1];
-      core.labels[rev] = [+value, 1];
-      if (!computeSchlafliMatrixDeterminant()) {
-        setError("頂点数が有限ではありません");
-      } else {
-        await core.setPolychoron();
-        setBuildTime(core.buildTime);
-      }
+      // 整数の場合
+      core.diagram.labels[labelKey] = [+value, 1];
+      core.diagram.labels[rev] = [+value, 1];
+      await tryBuild();
     } else if (/^(\d+\/\d+)$/.test(value)) {
-      setError("");
-      core.labels[labelKey] = value.split("/").map(Number) as [number, number];
-      core.labels[rev] = value.split("/").map(Number) as [number, number];
-      if (!computeSchlafliMatrixDeterminant()) {
-        setError("頂点数が有限ではありません");
-      } else {
-        await core.setPolychoron();
-        setBuildTime(core.buildTime);
-      }
+      // 分数の場合
+      core.diagram.labels[labelKey] = value.split("/").map(Number) as [
+        number,
+        number
+      ];
+      core.diagram.labels[rev] = value.split("/").map(Number) as [
+        number,
+        number
+      ];
+      await tryBuild();
     } else {
       setError(`${labelKey}の入力が適切ではありません\n例: 1, 2, 5/2`);
     }
@@ -88,7 +99,7 @@ export default function Controls({ core }: { core: Core | undefined }) {
         />
       );
     }
-    const value = core.labels[labelKey];
+    const value = core.diagram.labels[labelKey];
     const displayValue = `${value[0]}${value[1] > 1 ? `/${value[1]}` : ""}`;
 
     return (
@@ -109,19 +120,17 @@ export default function Controls({ core }: { core: Core | undefined }) {
       <input
         className={style.input}
         type="button"
-        value={core.nodeMarks[nodeKey]}
+        value={core.diagram.nodeMarks[nodeKey]}
         onClick={async (e) => {
-          core.nodeMarks[nodeKey] = (
+          core.diagram.nodeMarks[nodeKey] = (
             {
               x: "o",
               o: "x",
             } as { [key: string]: string }
-          )[core.nodeMarks[nodeKey]];
-          (e.target as HTMLInputElement).value = core.nodeMarks[nodeKey];
-          if (!error) {
-            await core.setPolychoron();
-            setBuildTime(core.buildTime);
-          }
+          )[core.diagram.nodeMarks[nodeKey]];
+          (e.target as HTMLInputElement).value =
+            core.diagram.nodeMarks[nodeKey];
+          await tryBuild();
         }}
       />
     );

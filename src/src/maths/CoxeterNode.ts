@@ -140,18 +140,6 @@ export class CoxeterNode {
     }
     polytope.build();
 
-    for (let d = this.diagram.getDimension(); d > 0; d--) {
-      const subPolytopes = new Set<Polytope>();
-      for (const node of polytope.nodes) {
-        for (const child of node.polytopes) {
-          if (child.visibility && child.diagram.getDimension() === d) {
-            subPolytopes.add(child);
-          }
-        }
-      }
-      console.log(subPolytopes);
-    }
-
     return polytope;
   }
 

@@ -24,6 +24,7 @@ import {
   OrbitControls,
 } from "three/examples/jsm/Addons";
 import { CreatePolychoron } from "./Polychora";
+import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
 
 export default class Core {
   cvs: HTMLCanvasElement;
@@ -33,26 +34,28 @@ export default class Core {
   scene: Scene;
   textureLoader = new TextureLoader();
   depthLimit: number = 1;
-  labels = {
-    ab: [2, 1],
-    ba: [2, 1],
-    bc: [3, 1],
-    cb: [3, 1],
-    cd: [3, 1],
-    dc: [3, 1],
-    ad: [3, 1],
-    da: [3, 1],
-    ac: [2, 1],
-    ca: [2, 1],
-    bd: [2, 1],
-    db: [2, 1],
-  } as { [genPair: string]: [number, number] };
-  nodeMarks = {
-    a: "o",
-    b: "x",
-    c: "o",
-    d: "o",
-  } as { [nodeKey: string]: string };
+  diagram = new CoxeterDynkinDiagram(
+    {
+      ab: [2, 1],
+      ba: [2, 1],
+      bc: [3, 1],
+      cb: [3, 1],
+      cd: [3, 1],
+      dc: [3, 1],
+      ad: [3, 1],
+      da: [3, 1],
+      ac: [2, 1],
+      ca: [2, 1],
+      bd: [2, 1],
+      db: [2, 1],
+    },
+    {
+      a: "x",
+      b: "x",
+      c: "x",
+      d: "x",
+    }
+  );
   ctrls: OrbitControls;
   geometry: BufferGeometry | null = null;
   mesh: LineSegments | Mesh | null = null;
@@ -263,10 +266,10 @@ void main() {
     );
   }
 
-  async setPolychoron() {
+  setPolychoron() {
     console.clear();
     const startTime = performance.now();
-    const g0 = (await CreatePolychoron(this.labels, this.nodeMarks, !true))!;
+    const g0 = CreatePolychoron(this.diagram, !true);
     const endTime = performance.now();
     const buildTime = endTime - startTime;
     this.buildTime = buildTime;

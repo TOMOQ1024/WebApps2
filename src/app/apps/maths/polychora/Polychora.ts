@@ -14,13 +14,9 @@ import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
  * @example
  * CreatePolyhedron(4,3,2,0,1,0) -> Cube
  */
-export function CreatePolychoron(
-  labels: { [genPair: string]: [number, number] },
-  nodeMarks: { [gen: string]: string },
-  dual: boolean
-) {
+export function CreatePolychoron(diagram: CoxeterDynkinDiagram, dual: boolean) {
   // 群構造の構築
-  const graph = new CoxeterNode(new CoxeterDynkinDiagram(labels, nodeMarks));
+  const graph = new CoxeterNode(diagram);
   console.log("ℹ️ Building graph");
   graph.build();
   console.log("✅ Graph built");
@@ -34,7 +30,7 @@ export function CreatePolychoron(
   console.log(representativeNodes);
 
   console.log("ℹ️ Getting positions");
-  const positions = GetPositions(representativeNodes, labels, nodeMarks); // ジャイロベクトル平面上の頂点座標
+  const positions = GetPositions(representativeNodes, diagram); // ジャイロベクトル平面上の頂点座標
   console.log("✅ Positions found");
 
   // console.log(positions);
@@ -63,8 +59,10 @@ export function CreatePolychoron(
 
   // 多角形リストの作成
   console.log("ℹ️ Building polytope");
+  console.time("Polytope build time");
   const polytope = graph.buildPolytope();
   console.log("✅ Polytope built");
+  console.timeEnd("Polytope build time");
   console.log(polytope);
 
   // console.log(`Dim 0 Elements: ${representativeNodes.size}`);
@@ -74,6 +72,7 @@ export function CreatePolychoron(
   // );
 
   console.log("ℹ️ Building geometry");
+  console.time("Geometry build time");
   const { indices, ...attributes } = CreateAttributes(
     positions,
     polytope,
@@ -85,6 +84,7 @@ export function CreatePolychoron(
     geometry.setAttribute(key, value);
   }
   console.log("✅ Geometry built");
+  console.timeEnd("Geometry build time");
   return geometry;
 }
 
@@ -340,16 +340,24 @@ function GetInitPoint(
 
 function GetPositions(
   representativeNodes: Set<CoxeterNode>,
-  labels: { [genPair: string]: [number, number] },
-  ni: { [gen: string]: string }
+  diagram: CoxeterDynkinDiagram
 ) {
   const positions: { [key: string]: Vector3 } = {};
 
   // 初期頂点座標の生成
-  const { pointA, pointB, pointC, pointD } = GetFundamentalDomain(labels);
+  const { pointA, pointB, pointC, pointD } = GetFundamentalDomain(
+    diagram.labels
+  );
   console.log(pointA, pointB, pointC, pointD);
   // 単位領域内の頂点定義
-  let Q0 = GetInitPoint(pointA, pointB, pointC, pointD, labels, ni);
+  let Q0 = GetInitPoint(
+    pointA,
+    pointB,
+    pointC,
+    pointD,
+    diagram.labels,
+    diagram.nodeMarks
+  );
 
   // 頂点座標の生成(gyrovector)
   for (const node of representativeNodes) {
@@ -628,7 +636,6 @@ function CreateAttributes(
                 if (f.visibility) faces.add(f);
                 edges.add(e);
               }
-              console.log("successed");
               const p: number[] = [];
               faces.forEach((f) => {
                 p.push(
