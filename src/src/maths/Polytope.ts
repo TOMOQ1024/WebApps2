@@ -59,29 +59,6 @@ function isSymmetricDifferenceEmpty<T>(setA: Set<T>, setB: Set<T>): boolean {
   return true;
 }
 
-// isVolumelessの結果をキャッシュするためのMap
-const isVolumelessCache = new Map<string, boolean>();
-
-// CoxeterDynkinDiagramの拡張
-const originalIsVolumeless = CoxeterDynkinDiagram.prototype.isVolumeless;
-CoxeterDynkinDiagram.prototype.isVolumeless = function (): boolean {
-  // キャッシュキーを生成
-  const cacheKey = JSON.stringify({
-    nodeMarks: this.nodeMarks,
-    gens: this.gens,
-  });
-
-  // キャッシュにあればそれを返す
-  if (isVolumelessCache.has(cacheKey)) {
-    return isVolumelessCache.get(cacheKey)!;
-  }
-
-  // なければ計算してキャッシュ
-  const result = originalIsVolumeless.call(this);
-  isVolumelessCache.set(cacheKey, result);
-  return result;
-};
-
 export class Polytope {
   nodes: Set<CoxeterNode> = new Set();
   identicalNodeSets: Set<Set<CoxeterNode>> = new Set();
@@ -91,8 +68,6 @@ export class Polytope {
 
   private nodeCache: Map<string, Set<CoxeterNode>> = new Map();
   private alternativeCache: Map<Polytope, Polytope | undefined> = new Map();
-  // 生成元の組み合わせごとのダイアグラムをキャッシュ
-  private diagramCache: Map<string, CoxeterDynkinDiagram> = new Map();
   // 重複計算を避けるためのキャッシュ
   private processedSubpolytopes = new Map<string, boolean>();
   private cachedIdenticalSetsStrings = new WeakMap<Set<CoxeterNode>, string>();
@@ -105,37 +80,28 @@ export class Polytope {
 
   build() {
     // 生成元の組み合わせごとに処理
-    const rmGens = this.diagram.gens;
-
-    for (const rmGen of rmGens) {
-      // ダイアグラムのキャッシュを利用
-      const diagramKey = rmGen;
-      let diagram = this.diagramCache.get(diagramKey);
-
-      if (!diagram) {
-        diagram = this.diagram.withoutGen(rmGen);
-        this.diagramCache.set(diagramKey, diagram);
-      }
+    for (const rmGen of this.diagram.gens) {
+      const diagram = this.diagram.withoutGen(rmGen);
 
       const isVolumeless = diagram.isVolumeless();
-      const visitedNodes = new Set<string>();
+      const visitedNodes = new Set<CoxeterNode>();
 
       // バッチ処理のためのキュー
       const processingQueue: { node: CoxeterNode; subpolytope: Polytope }[] =
         [];
 
       for (const node of this.nodes) {
-        if (visitedNodes.has(node.coordinate)) continue;
+        if (visitedNodes.has(node)) continue;
 
         const cacheKey = this.getCacheKey(node, diagram);
-        let nodesToProcess: CoxeterNode[];
+        let nodesToProcess: Set<CoxeterNode>;
 
         if (this.nodeCache.has(cacheKey)) {
           const cachedNodes = this.nodeCache.get(cacheKey)!;
           for (const n of cachedNodes) {
-            visitedNodes.add(n.coordinate);
+            visitedNodes.add(n);
           }
-          nodesToProcess = Array.from(cachedNodes);
+          nodesToProcess = cachedNodes;
         } else {
           nodesToProcess = this.collectConnectedNodes(
             node,
@@ -146,7 +112,7 @@ export class Polytope {
           this.nodeCache.set(cacheKey, new Set(nodesToProcess));
         }
 
-        const subpolytopeId = `${diagramKey}-${node.coordinate}`;
+        const subpolytopeId = `${rmGen}-${node.coordinate}`;
         if (this.processedSubpolytopes.has(subpolytopeId)) continue;
 
         this.processedSubpolytopes.set(subpolytopeId, true);
@@ -196,39 +162,38 @@ export class Polytope {
   private collectConnectedNodes(
     startNode: CoxeterNode,
     diagram: CoxeterDynkinDiagram,
-    visitedNodes: Set<string>
-  ): CoxeterNode[] {
+    visitedNodes: Set<CoxeterNode>
+  ): Set<CoxeterNode> {
     const stack = [startNode];
     const result = new Set<CoxeterNode>([startNode]);
-    visitedNodes.add(startNode.coordinate);
+    visitedNodes.add(startNode);
 
     while (stack.length > 0) {
       const currentNode = stack.pop()!;
 
       for (const gen of diagram.gens) {
         const nextNode = currentNode.siblings[gen];
-        if (nextNode && !visitedNodes.has(nextNode.coordinate)) {
-          visitedNodes.add(nextNode.coordinate);
+        if (nextNode && !visitedNodes.has(nextNode)) {
+          visitedNodes.add(nextNode);
           stack.push(nextNode);
           result.add(nextNode);
         }
       }
     }
 
-    return Array.from(result);
+    return result;
   }
 
-  private batchProcessNodes(nodes: CoxeterNode[], subpolytope: Polytope) {
-    const processedSets = new Set<string>();
+  private batchProcessNodes(nodes: Set<CoxeterNode>, subpolytope: Polytope) {
+    const processedSets = new Set<Set<CoxeterNode>>();
 
     for (const node of nodes) {
       subpolytope.nodes.add(node);
 
       const identicalNodes = node.identicalNodes;
-      const setKey = this.getSetKey(identicalNodes);
 
-      if (!processedSets.has(setKey)) {
-        processedSets.add(setKey);
+      if (!processedSets.has(identicalNodes)) {
+        processedSets.add(identicalNodes);
         subpolytope.identicalNodeSets.add(identicalNodes);
 
         for (const n of identicalNodes) {
@@ -307,23 +272,5 @@ export class Polytope {
     diagram: CoxeterDynkinDiagram
   ): string {
     return `${node.coordinate}-${diagram.gens.join(",")}`;
-  }
-
-  // 集合を文字列化する効率的な方法
-  private getSetKey(set: Set<CoxeterNode>): string {
-    // キャッシュがあればそれを使用
-    if (this.cachedIdenticalSetsStrings.has(set)) {
-      return this.cachedIdenticalSetsStrings.get(set)!;
-    }
-
-    // なければ計算してキャッシュ
-    const coords: string[] = [];
-    for (const node of set) {
-      coords.push(node.coordinate);
-    }
-    coords.sort();
-    const key = coords.join(",");
-    this.cachedIdenticalSetsStrings.set(set, key);
-    return key;
   }
 }
