@@ -15,6 +15,7 @@ import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
  * CreatePolyhedron(4,3,2,0,1,0) -> Cube
  */
 export function CreatePolychoron(diagram: CoxeterDynkinDiagram, dual: boolean) {
+  diagram.dropCache();
   // 群構造の構築
   const graph = new CoxeterNode(diagram);
   console.time("⌛️ Graph build time");

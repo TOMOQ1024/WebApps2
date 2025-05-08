@@ -7,7 +7,7 @@ export class CoxeterNode {
   polytopes: Polytope[] = [];
   identicalNodes: Set<CoxeterNode> = new Set([this]);
 
-  readonly MAX_NODES = 10000;
+  static readonly MAX_NODES = 10000;
 
   constructor(
     public diagram: CoxeterDynkinDiagram,
@@ -35,7 +35,7 @@ export class CoxeterNode {
         n = node.addSiblingIfNotExist(gen);
         if (n) nodesToSearch.push(n);
       }
-      if (nodesToSearch.length > this.MAX_NODES) {
+      if (nodesToSearch.length > CoxeterNode.MAX_NODES) {
         throw new Error("Too many nodes to search");
       }
     }

@@ -1,5 +1,6 @@
 export class CoxeterDynkinDiagram {
   gens: string[] = [];
+  gensStr: string = "";
 
   private _isVolumeless: boolean | undefined;
   private _dimension: number | undefined;
@@ -11,6 +12,13 @@ export class CoxeterDynkinDiagram {
     public nodeMarks: { [gen: string]: string } = {}
   ) {
     this.gens = Object.keys(nodeMarks);
+    this.gensStr = this.gens.join(",");
+  }
+
+  dropCache() {
+    this._isVolumeless = undefined;
+    this._dimension = undefined;
+    this.children.clear();
   }
 
   withoutGen(gen: string) {

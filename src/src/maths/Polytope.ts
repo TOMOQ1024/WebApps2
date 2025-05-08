@@ -67,10 +67,8 @@ export class Polytope {
   visibility: boolean = true;
 
   private nodeCache: Map<string, Set<CoxeterNode>> = new Map();
-  private alternativeCache: Map<Polytope, Polytope | undefined> = new Map();
   // 重複計算を避けるためのキャッシュ
   private processedSubpolytopes = new Map<string, boolean>();
-  private cachedIdenticalSetsStrings = new WeakMap<Set<CoxeterNode>, string>();
 
   // CoxeterNodeから多面体構造を構築する
   constructor(
@@ -121,13 +119,8 @@ export class Polytope {
         // ノードの一括処理
         this.batchProcessNodes(nodesToProcess, subpolytope);
 
-        let alternativeSubpolytope = this.alternativeCache.get(subpolytope);
-
-        if (alternativeSubpolytope === undefined) {
-          alternativeSubpolytope = this.findAlternativeSubpolytope(subpolytope);
-
-          this.alternativeCache.set(subpolytope, alternativeSubpolytope);
-        }
+        const alternativeSubpolytope =
+          this.findAlternativeSubpolytope(subpolytope);
 
         if (alternativeSubpolytope) {
           subpolytope.visibility = false;
@@ -207,16 +200,16 @@ export class Polytope {
     subpolytope: Polytope
   ): Polytope | undefined {
     const targetSize = subpolytope.identicalNodeSets.size;
-    const firstNode = subpolytope.nodes.values().next().value;
 
-    if (!firstNode) return undefined;
-
-    const candidates = firstNode.polytopes.filter(
-      (p) =>
-        p !== subpolytope &&
-        p.visibility &&
-        p.identicalNodeSets.size === targetSize
-    );
+    const candidates = subpolytope.nodes
+      .values()
+      .next()
+      .value!.polytopes.filter(
+        (p) =>
+          p !== subpolytope &&
+          p.visibility &&
+          p.identicalNodeSets.size === targetSize
+      );
 
     for (const candidate of candidates) {
       if (
@@ -271,6 +264,6 @@ export class Polytope {
     node: CoxeterNode,
     diagram: CoxeterDynkinDiagram
   ): string {
-    return `${node.coordinate}-${diagram.gens.join(",")}`;
+    return `${node.coordinate}-${diagram.gensStr}`;
   }
 }
