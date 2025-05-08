@@ -42,6 +42,11 @@ export class CoxeterDynkinDiagram {
   isVolumeless() {
     if (this._isVolumeless !== undefined) return this._isVolumeless;
 
+    if (Object.values(this.labels).some((label) => label[0] / label[1] === 1)) {
+      this._isVolumeless = true;
+      return true;
+    }
+
     // ノードの集合を取得
     const nodes = Object.keys(this.nodeMarks);
     if (nodes.length === 0) return false;

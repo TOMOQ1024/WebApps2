@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Core from "../Core";
 import style from "./Controls.module.scss";
 import { Matrix4 } from "three";
+import sleep from "@/src/Sleep";
 
 export default function Controls({ core }: { core: Core | undefined }) {
   const [error, setError] = useState("");
@@ -16,15 +17,18 @@ export default function Controls({ core }: { core: Core | undefined }) {
 
   const tryBuild = async () => {
     if (!core) return false;
+    core.diagram.dropCache();
     const det = await computeSchlafliMatrixDeterminant();
-    if (det <= 0) {
-      setError("頂点数が有限ではありません");
-    } else if (core.diagram.getDimension() < 4) {
+    if (core.diagram.isVolumeless()) {
       setError(
         "多胞体の次元が4未満です．低次元多胞体の生成は今後の開発で対応予定です．"
       );
+    } else if (det <= 0) {
+      setError("頂点数が有限ではありません");
     } else {
       setError("");
+      setBuildTime(0);
+      await sleep(10);
       core.setPolychoron();
       setBuildTime(core.buildTime);
     }
@@ -189,7 +193,9 @@ export default function Controls({ core }: { core: Core | undefined }) {
           <div className={`${style.error} ${error ? style.active : ""}`}>
             {error
               ? error.split("\n").map((line, i) => <p key={i}>{line}</p>)
-              : `多胞体の生成に成功しました(${buildTime.toFixed(2)}ms)`}
+              : buildTime > 0
+              ? `多胞体の生成に成功しました(${buildTime.toFixed(2)}ms)`
+              : "多胞体の生成中..."}
           </div>
         </>
       )}
