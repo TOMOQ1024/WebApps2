@@ -5,7 +5,7 @@ import { Polytope } from "./Polytope";
 export class CoxeterNode {
   siblings: { [gen: string]: CoxeterNode | null } = {};
   polytopes: Polytope[] = [];
-  identicalNode: CoxeterNode = this;
+  identicalNodes: Set<CoxeterNode> = new Set([this]);
 
   readonly MAX_NODES = 10000;
 
@@ -113,7 +113,7 @@ export class CoxeterNode {
         this.siblings[gen] = t;
         t.siblings[gen] = this;
         if (this.diagram.nodeMarks[gen] === "o") {
-          t.identicalNode = this.identicalNode;
+          t.identicalNodes = this.identicalNodes.add(t);
         }
         return null;
       }
@@ -124,7 +124,7 @@ export class CoxeterNode {
       this.root
     );
     if (this.diagram.nodeMarks[gen] === "o") {
-      n.identicalNode = this.identicalNode;
+      n.identicalNodes = this.identicalNodes.add(n);
     }
     this.siblings[gen] = n;
     n.siblings[gen] = this;
@@ -136,9 +136,22 @@ export class CoxeterNode {
     polytope.nodes = new Set(Object.values(this.nodes()));
     for (const node of polytope.nodes) {
       node.polytopes.push(polytope);
-      polytope.representativeNodes.add(node.identicalNode);
+      polytope.identicalNodeSets.add(node.identicalNodes);
     }
     polytope.build();
+
+    for (let d = this.diagram.getDimension(); d > 0; d--) {
+      const subPolytopes = new Set<Polytope>();
+      for (const node of polytope.nodes) {
+        for (const child of node.polytopes) {
+          if (child.visibility && child.diagram.getDimension() === d) {
+            subPolytopes.add(child);
+          }
+        }
+      }
+      console.log(subPolytopes);
+    }
+
     return polytope;
   }
 

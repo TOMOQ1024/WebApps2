@@ -3,7 +3,7 @@ import { CoxeterNode } from "./CoxeterNode";
 
 export class Polytope {
   nodes: Set<CoxeterNode> = new Set();
-  representativeNodes: Set<CoxeterNode> = new Set();
+  identicalNodeSets: Set<Set<CoxeterNode>> = new Set();
   siblings: Map<Polytope, Polytope> = new Map(); // sibling, joint
   children: Set<Polytope> = new Set();
   visibility: boolean = true;
@@ -49,9 +49,11 @@ export class Polytope {
 
           visitedNodes.add(currentNode);
           subpolytope.nodes.add(currentNode);
-          subpolytope.representativeNodes.add(currentNode.identicalNode);
+          subpolytope.identicalNodeSets.add(currentNode.identicalNodes);
 
-          currentNode.polytopes.push(subpolytope);
+          currentNode.identicalNodes.forEach((node) => {
+            node.polytopes.push(subpolytope);
+          });
 
           // 生成元の組み合わせに基づいて隣接ノードを探索
           for (const gen of diagram.gens) {
@@ -66,8 +68,8 @@ export class Polytope {
           (p) =>
             p !== subpolytope &&
             p.visibility &&
-            p.representativeNodes.symmetricDifference(
-              subpolytope.representativeNodes
+            p.identicalNodeSets.symmetricDifference(
+              subpolytope.identicalNodeSets
             ).size === 0
         );
 
@@ -85,8 +87,8 @@ export class Polytope {
           alternativeSubpolytope ||
           [...this.children.values()].findIndex(
             (c) =>
-              c.representativeNodes.symmetricDifference(
-                subpolytope.representativeNodes
+              c.identicalNodeSets.symmetricDifference(
+                subpolytope.identicalNodeSets
               ).size === 0
           ) === -1
         ) {

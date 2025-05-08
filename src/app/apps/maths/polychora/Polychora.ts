@@ -181,7 +181,7 @@ function GetRepresentativeNodes(nodes: { [key: string]: CoxeterNode }) {
   let n: CoxeterNode;
 
   Object.keys(nodes).forEach((c) => {
-    n = nodes[c].identicalNode;
+    n = nodes[c].identicalNodes.values().next().value!;
     representativeNodes.add(n);
   });
   return representativeNodes;
@@ -415,29 +415,25 @@ function CreateAttributes(
       let indexOffset = 0;
       for (let polygon of polygons) {
         const p = polygon;
-        for (let j = 0; j < p.representativeNodes.size - 2; j++) {
-          const L = (Math.floor(j / 2) + 1) % p.representativeNodes.size;
-          const H =
-            (p.representativeNodes.size - Math.ceil(j / 2)) %
-            p.representativeNodes.size;
+        const P = p.identicalNodeSets.size;
+        for (let j = 0; j < P - 2; j++) {
+          const L = (Math.floor(j / 2) + 1) % P;
+          const H = (P - Math.ceil(j / 2)) % P;
           indices.push(
             indexOffset + H,
-            indexOffset +
-              (j % 2
-                ? L + 1
-                : (H + p.representativeNodes.size - 1) %
-                  p.representativeNodes.size),
+            indexOffset + (j % 2 ? L + 1 : (H + P - 1) % P),
             indexOffset + L
           );
         }
-        for (let j = 0; j < p.representativeNodes.size; j++) {
+        for (let j = 0; j < P; j++) {
           vertices.push(
             ...positionMap[
-              [...p.representativeNodes.values()][j].coordinate
+              [...p.identicalNodeSets.values()][j].values().next().value!
+                .coordinate
             ].toArray()
           );
           let n =
-            p.representativeNodes.size >= 100 ? 0 : p.representativeNodes.size;
+            p.identicalNodeSets.size >= 100 ? 0 : p.identicalNodeSets.size;
           uvs.push(
             (Math.cos((j * 2 * Math.PI) / n) / 2 + 0.5 + (n % UV_DIV)) / UV_DIV,
             (Math.sin((j * 2 * Math.PI) / n) / 2 +
@@ -446,7 +442,7 @@ function CreateAttributes(
               UV_DIV
           );
         }
-        indexOffset += p.representativeNodes.size;
+        indexOffset += P;
       }
       return {
         position: new BufferAttribute(new Float32Array(vertices), 3),
@@ -476,38 +472,45 @@ function CreateAttributes(
       let indexOffset = 0;
       for (let polygon of polygons) {
         const c = COLORS[polygon.diagram.gens.join("")];
-        const p = [...polygon.representativeNodes.values()];
+        const p = polygon.identicalNodeSets;
+        const P = polygon.identicalNodeSets.size;
         const M = MobiusGyrovectorSphericalSpace3.mean(
-          ...p.map((c) => positionMap[c.coordinate])
+          ...[...p.values()].map(
+            (s) => positionMap[s.values().next().value!.coordinate]
+          )
         );
         // const M = p
         //   .map((c) => positions[c])
         //   .reduce((a, b) => a.add(b), new Vector3())
         //   .divideScalar(p.length);
-        for (let j = 0; j < p.length; j++) {
-          const k = (j + 1) % p.length;
+        for (let j = 0; j < P; j++) {
+          const k = (j + 1) % P;
           indices.push(
             indexOffset + j,
             indexOffset + k,
-            indexOffset + k + p.length,
+            indexOffset + k + P,
             indexOffset + j,
-            indexOffset + k + p.length,
-            indexOffset + j + p.length
+            indexOffset + k + P,
+            indexOffset + j + P
           );
-          vertices.push(...positionMap[p[j].coordinate].toArray());
+          vertices.push(
+            ...positionMap[
+              [...p.values()][j].values().next().value!.coordinate
+            ].toArray()
+          );
           colors.push(...c.map((c) => 1).map((c) => c * 0.1), 1);
         }
-        for (let j = 0; j < p.length; j++) {
+        for (let j = 0; j < P; j++) {
           vertices.push(
             ...MobiusGyrovectorSphericalSpace3.mix(
-              positionMap[p[j].coordinate],
+              positionMap[[...p.values()][j].values().next().value!.coordinate],
               M,
               0.1
             ).toArray()
           );
           colors.push(...c.map((c) => 1), 1);
         }
-        indexOffset += p.length * 2;
+        indexOffset += P * 2;
       }
       return {
         position: new BufferAttribute(new Float32Array(vertices), 3),
@@ -538,11 +541,12 @@ function CreateAttributes(
       for (const polygon of polygons) {
         indexMap.set(polygon, new Map());
         const M = MobiusGyrovectorSphericalSpace3.mean(
-          ...[...polygon.representativeNodes.values()].map(
-            (n) => positionMap[n.coordinate]
+          ...[...polygon.identicalNodeSets.values()].map(
+            (n) => positionMap[n.values().next().value!.coordinate]
           )
         );
-        for (const node of polygon.representativeNodes) {
+        for (const nodeSet of polygon.identicalNodeSets) {
+          const node = nodeSet.values().next().value!;
           const vertex = positionMap[node.coordinate];
           indexMap.get(polygon)!.set(node, positions.length / 3);
           positions.push(
@@ -562,15 +566,18 @@ function CreateAttributes(
           for (const [sibling, edge] of polygon.siblings) {
             if (searchedEdges.has(edge)) continue;
             if (
-              sibling.representativeNodes.difference(
-                polyhedron.representativeNodes
-              ).size > 0
+              sibling.identicalNodeSets.difference(polyhedron.identicalNodeSets)
+                .size > 0
             ) {
               continue;
             }
             searchedEdges.add(edge);
             const [l, r] = [polygon, sibling];
-            const [s, e] = [...edge.representativeNodes.values()];
+            const [s, e] = [
+              ...[...edge.identicalNodeSets.values()].map(
+                (n) => n.values().next().value!
+              ),
+            ];
             indices.push(
               indexMap.get(l)!.get(s)!,
               indexMap.get(r)!.get(s)!,
@@ -590,8 +597,8 @@ function CreateAttributes(
             for (const vertex of edge.children) {
               if (searchedVertices.has(vertex)) continue;
               if (
-                vertex.representativeNodes.difference(
-                  polyhedron.representativeNodes
+                vertex.identicalNodeSets.difference(
+                  polyhedron.identicalNodeSets
                 ).size > 0
               ) {
                 continue;
@@ -608,8 +615,8 @@ function CreateAttributes(
                     ([sibling, joint]) =>
                       !edges.has(joint) &&
                       joint.children.has(vertex) &&
-                      sibling.representativeNodes.difference(
-                        polyhedron.representativeNodes
+                      sibling.identicalNodeSets.difference(
+                        polyhedron.identicalNodeSets
                       ).size === 0
                   ) ?? [];
                 if (!e || !f) {
@@ -627,7 +634,13 @@ function CreateAttributes(
                 p.push(
                   indexMap
                     .get(f)!
-                    .get(vertex.representativeNodes.values().next().value!)!
+                    .get(
+                      vertex.identicalNodeSets
+                        .values()
+                        .next()
+                        .value!.values()
+                        .next().value!
+                    )!
                 );
               });
               for (let j = 0; j < p.length - 2; j++) {
