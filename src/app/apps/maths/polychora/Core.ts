@@ -38,8 +38,8 @@ export default class Core {
     {
       ab: [2, 1],
       ba: [2, 1],
-      bc: [3, 1],
-      cb: [3, 1],
+      bc: [5, 1],
+      cb: [5, 1],
       cd: [3, 1],
       dc: [3, 1],
       ad: [3, 1],

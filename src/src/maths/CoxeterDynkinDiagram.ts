@@ -1,5 +1,11 @@
 export class CoxeterDynkinDiagram {
   gens: string[] = [];
+
+  private _isVolumeless: boolean | undefined;
+  private _dimension: number | undefined;
+
+  children: Map<string, CoxeterDynkinDiagram> = new Map();
+
   constructor(
     public labels: { [genPair: string]: [number, number] } = {},
     public nodeMarks: { [gen: string]: string } = {}
@@ -7,45 +13,27 @@ export class CoxeterDynkinDiagram {
     this.gens = Object.keys(nodeMarks);
   }
 
-  withGens(gens: string[]) {
-    const newNodeMarks: { [gen: string]: string } = {};
-    const newLabels: { [genPair: string]: [number, number] } = {};
-
-    // 指定されたノードのマークだけを含める
-    for (const node of gens) {
-      if (this.nodeMarks[node]) {
-        newNodeMarks[node] = this.nodeMarks[node];
-      }
-    }
-
-    // 指定されたノード間の辺のラベルだけを含める
-    for (const genPair in this.labels) {
-      if (gens.includes(genPair[0]) && gens.includes(genPair[1])) {
-        newLabels[genPair] = this.labels[genPair];
-      }
-    }
-
-    return new CoxeterDynkinDiagram(newLabels, newNodeMarks);
-  }
-
-  withoutGens(gens: string[]) {
+  withoutGen(gen: string) {
+    if (this.children.has(gen)) return this.children.get(gen)!;
     const newNodeMarks = { ...this.nodeMarks };
     const newLabels = { ...this.labels };
 
-    for (const node of gens) {
-      delete newNodeMarks[node];
-    }
+    delete newNodeMarks[gen];
 
     for (const genPair in newLabels) {
-      if (gens.some((node) => genPair.includes(node))) {
+      if (genPair.includes(gen)) {
         delete newLabels[genPair];
       }
     }
 
-    return new CoxeterDynkinDiagram(newLabels, newNodeMarks);
+    const newDiagram = new CoxeterDynkinDiagram(newLabels, newNodeMarks);
+    this.children.set(gen, newDiagram);
+    return newDiagram;
   }
 
   isVolumeless() {
+    if (this._isVolumeless !== undefined) return this._isVolumeless;
+
     // ノードの集合を取得
     const nodes = Object.keys(this.nodeMarks);
     if (nodes.length === 0) return false;
@@ -91,14 +79,20 @@ export class CoxeterDynkinDiagram {
         }
       }
       // 1つでも"x"マークのないコンポーネントがあればtrueを返す
-      if (!hasX) return true;
+      if (!hasX) {
+        this._isVolumeless = true;
+        return true;
+      }
     }
 
     // すべての連結成分に"x"マークのノードが存在する場合はfalseを返す
+    this._isVolumeless = false;
     return false;
   }
 
   getDimension() {
+    if (this._dimension !== undefined) return this._dimension;
+
     // ノードの集合を取得
     const nodes = Object.keys(this.nodeMarks);
     if (nodes.length === 0) return 0;
@@ -147,6 +141,7 @@ export class CoxeterDynkinDiagram {
       if (!hasX) count++;
     }
 
-    return this.gens.length - count;
+    this._dimension = this.gens.length - count;
+    return this._dimension;
   }
 }
