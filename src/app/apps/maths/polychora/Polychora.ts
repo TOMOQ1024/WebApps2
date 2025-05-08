@@ -17,23 +17,18 @@ import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
 export function CreatePolychoron(diagram: CoxeterDynkinDiagram, dual: boolean) {
   // 群構造の構築
   const graph = new CoxeterNode(diagram);
-  console.log("ℹ️ Building graph");
+  console.time("⌛️ Graph build time");
   graph.build();
-  console.log("✅ Graph built");
-  console.log(graph);
+  console.timeEnd("⌛️ Graph build time");
   const nodes = graph.nodes(); // グラフの頂点配列
-  console.log(`Elements: ${Object.keys(nodes).length}`);
 
-  console.log("ℹ️ Getting representative nodes");
+  console.time("⌛️ Representative nodes time");
   const representativeNodes = GetRepresentativeNodes(nodes);
-  console.log("✅ Representative nodes found");
-  console.log(representativeNodes);
+  console.timeEnd("⌛️ Representative nodes time");
 
-  console.log("ℹ️ Getting positions");
+  console.time("⌛️ Positions time");
   const positions = GetPositions(representativeNodes, diagram); // ジャイロベクトル平面上の頂点座標
-  console.log("✅ Positions found");
-
-  // console.log(positions);
+  console.timeEnd("⌛️ Positions time");
 
   // #region snubによる面の追加
   // // snubによる面の追加
@@ -58,12 +53,9 @@ export function CreatePolychoron(diagram: CoxeterDynkinDiagram, dual: boolean) {
   // #endregion
 
   // 多角形リストの作成
-  console.log("ℹ️ Building polytope");
-  console.time("Polytope build time");
+  console.time("⌛️ Polytope build time");
   const polytope = graph.buildPolytope();
-  console.log("✅ Polytope built");
-  console.timeEnd("Polytope build time");
-  console.log(polytope);
+  console.timeEnd("⌛️ Polytope build time");
 
   // console.log(`Dim 0 Elements: ${representativeNodes.size}`);
   // console.log(`Faces: ${polygons.size}`);
@@ -71,8 +63,7 @@ export function CreatePolychoron(diagram: CoxeterDynkinDiagram, dual: boolean) {
   //   CountMap([...polygons.values()].map((p) => p.representativeNodes.size))
   // );
 
-  console.log("ℹ️ Building geometry");
-  console.time("Geometry build time");
+  console.time("⌛️ Geometry build time");
   const { indices, ...attributes } = CreateAttributes(
     positions,
     polytope,
@@ -83,8 +74,14 @@ export function CreatePolychoron(diagram: CoxeterDynkinDiagram, dual: boolean) {
   for (const [key, value] of Object.entries(attributes)) {
     geometry.setAttribute(key, value);
   }
-  console.log("✅ Geometry built");
-  console.timeEnd("Geometry build time");
+  console.timeEnd("⌛️ Geometry build time");
+
+  console.log(`Elements: ${Object.keys(nodes).length}`);
+  console.log("graph: ", graph);
+  console.log("representativeNodes: ", representativeNodes);
+  console.log("positions: ", positions);
+  console.log("polytope: ", polytope);
+
   return geometry;
 }
 
@@ -242,14 +239,6 @@ function GetInitPoint(
 
   switch (`${ni.a}${ni.b}${ni.c}${ni.d}`) {
     case "xxxx":
-      console.log(
-        MobiusGyrovectorSphericalSpace3.incenter4(
-          pointA,
-          pointB,
-          pointC,
-          pointD
-        )
-      );
       return MobiusGyrovectorSphericalSpace3.incenter4(
         pointA,
         pointB,
@@ -348,7 +337,6 @@ function GetPositions(
   const { pointA, pointB, pointC, pointD } = GetFundamentalDomain(
     diagram.labels
   );
-  console.log(pointA, pointB, pointC, pointD);
   // 単位領域内の頂点定義
   let Q0 = GetInitPoint(
     pointA,
