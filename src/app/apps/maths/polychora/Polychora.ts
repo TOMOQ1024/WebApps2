@@ -21,18 +21,21 @@ export function CreatePolychoron(
 ) {
   // 群構造の構築
   const graph = new CoxeterNode(new CoxeterDynkinDiagram(labels, nodeMarks));
-  console.log("Building graph");
+  console.log("ℹ️ Building graph");
   graph.build();
-  console.log(graph.isSolved(undefined) ? "solved" : "unsolved");
+  console.log("✅ Graph built");
   console.log(graph);
   const nodes = graph.nodes(); // グラフの頂点配列
   console.log(`Elements: ${Object.keys(nodes).length}`);
 
-  console.log("Getting representative nodes");
+  console.log("ℹ️ Getting representative nodes");
   const representativeNodes = GetRepresentativeNodes(nodes);
+  console.log("✅ Representative nodes found");
   console.log(representativeNodes);
 
+  console.log("ℹ️ Getting positions");
   const positions = GetPositions(representativeNodes, labels, nodeMarks); // ジャイロベクトル平面上の頂点座標
+  console.log("✅ Positions found");
 
   // console.log(positions);
 
@@ -59,10 +62,10 @@ export function CreatePolychoron(
   // #endregion
 
   // 多角形リストの作成
-  console.log("Building polytope");
+  console.log("ℹ️ Building polytope");
   const polytope = graph.buildPolytope();
+  console.log("✅ Polytope built");
   console.log(polytope);
-  console.log("Creating polygons");
 
   // console.log(`Dim 0 Elements: ${representativeNodes.size}`);
   // console.log(`Faces: ${polygons.size}`);
@@ -70,6 +73,7 @@ export function CreatePolychoron(
   //   CountMap([...polygons.values()].map((p) => p.representativeNodes.size))
   // );
 
+  console.log("ℹ️ Building geometry");
   const { indices, ...attributes } = CreateAttributes(
     positions,
     polytope,
@@ -77,10 +81,10 @@ export function CreatePolychoron(
   );
   const geometry = new BufferGeometry();
   geometry.setIndex(indices);
-
   for (const [key, value] of Object.entries(attributes)) {
     geometry.setAttribute(key, value);
   }
+  console.log("✅ Geometry built");
   return geometry;
 }
 
@@ -513,18 +517,18 @@ function CreateAttributes(
     }
     case "solidframe": {
       const COLORS = {
-        ab: [1, 1, 0.8],
-        ba: [1, 1, 0.8],
-        bc: [1, 0.8, 1],
-        cb: [1, 0.8, 1],
-        cd: [0.8, 1, 1],
-        dc: [0.8, 1, 1],
-        da: [0.8, 0.8, 1],
-        ad: [0.8, 0.8, 1],
-        ac: [0.8, 1, 0.8],
-        ca: [0.8, 1, 0.8],
-        bd: [1, 0.8, 0.8],
-        db: [1, 0.8, 0.8],
+        ab: [1, 1, 0.6],
+        ba: [1, 1, 0.6],
+        bc: [1, 0.6, 1],
+        cb: [1, 0.6, 1],
+        cd: [0.6, 1, 1],
+        dc: [0.6, 1, 1],
+        da: [0.6, 0.6, 1],
+        ad: [0.6, 0.6, 1],
+        ac: [0.6, 1, 0.6],
+        ca: [0.6, 1, 0.6],
+        bd: [1, 0.6, 0.6],
+        db: [1, 0.6, 0.6],
       } as { [key: string]: [number, number, number] };
       const indexMap: Map<Polytope, Map<CoxeterNode, number>> = new Map();
       const indices: number[] = []; // 三角形リスト
@@ -609,6 +613,7 @@ function CreateAttributes(
                       ).size === 0
                   ) ?? [];
                 if (!e || !f) {
+                  console.log(vertex, edges, faces);
                   throw new Error("Failed to find edge");
                 }
                 if (faces.has(f)) break;
@@ -616,6 +621,7 @@ function CreateAttributes(
                 if (f.visibility) faces.add(f);
                 edges.add(e);
               }
+              console.log("successed");
               const p: number[] = [];
               faces.forEach((f) => {
                 p.push(

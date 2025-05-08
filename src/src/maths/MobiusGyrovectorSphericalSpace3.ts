@@ -276,7 +276,7 @@ export class MobiusGyrovectorSphericalSpace3 {
 
   static mean(...P: Vector3[]) {
     const l = P.map((p) => 2 / (1 + p.lengthSq()));
-    const m = l.reduce((a, b) => a + b) - l.length;
+    const m = l.reduce((a, b) => a + b, 0) - l.length;
     const V = new Vector3(0, 0, 0);
     for (let i = 0; i < P.length; i++) {
       V.add(P[i].clone().multiplyScalar(l[i]));

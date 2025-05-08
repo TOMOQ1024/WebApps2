@@ -36,8 +36,8 @@ export default class Core {
   labels = {
     ab: [2, 1],
     ba: [2, 1],
-    bc: [4, 1],
-    cb: [4, 1],
+    bc: [3, 1],
+    cb: [3, 1],
     cd: [3, 1],
     dc: [3, 1],
     ad: [3, 1],
@@ -141,10 +141,11 @@ vec4 tanh(vec4 x) {
 }
 
 void main() {
-  vec4 t = vColor-.9;
+  float e = .2;
+  vec4 t = vColor - 1. + e;
   // float r = min(abs(t.x), min(abs(t.y), abs(t.z)));
-  // vec4 c = mix(vec4(0.), .9 + .1 * sign(t), r/.1);
-  vec4 c = .9 + .1 * tanh(30.*t);
+  // vec4 c = mix(vec4(0.), 1. - e + e * sign(t), r/.1);
+  vec4 c = 1. - e + e * tanh(30.*t);
   // vec4 c = pow(vColor, vec4(3.));
   float d = tanh(vDepth.z);
   float alpha = (3.-d)/4.;

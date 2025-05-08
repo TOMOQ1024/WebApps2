@@ -31,7 +31,7 @@ export class Polytope {
     const visitedNodes = new Set<CoxeterNode>();
 
     // 生成元の組み合わせごとに処理
-    const rmGens = [...this.diagram.gens].reverse(); // 何故か逆順にする必要がある
+    const rmGens = [...this.diagram.gens];
     for (const rmGen of rmGens) {
       const diagram = this.diagram.withoutGens([rmGen]);
       const isVolumeless = diagram.isVolumeless();
@@ -65,6 +65,7 @@ export class Polytope {
         const alternativeSubpolytope = node.polytopes.find(
           (p) =>
             p !== subpolytope &&
+            p.visibility &&
             p.representativeNodes.symmetricDifference(
               subpolytope.representativeNodes
             ).size === 0
@@ -79,7 +80,7 @@ export class Polytope {
         }
 
         if (isVolumeless) {
-          subpolytope.visibility = false;
+          // subpolytope.visibility = false;
         } else if (
           alternativeSubpolytope ||
           [...this.children.values()].findIndex(

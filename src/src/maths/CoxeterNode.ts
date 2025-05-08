@@ -134,9 +134,9 @@ export class CoxeterNode {
   buildPolytope() {
     const polytope = new Polytope(this.diagram);
     polytope.nodes = new Set(Object.values(this.nodes()));
-    console.log(polytope.nodes.size);
     for (const node of polytope.nodes) {
       node.polytopes.push(polytope);
+      polytope.representativeNodes.add(node.identicalNode);
     }
     polytope.build();
     return polytope;
