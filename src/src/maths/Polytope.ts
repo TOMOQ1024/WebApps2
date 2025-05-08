@@ -97,6 +97,9 @@ export class Polytope {
   private processedSubpolytopes = new Map<string, boolean>();
   private cachedIdenticalSetsStrings = new WeakMap<Set<CoxeterNode>, string>();
 
+  // キャッシュのサイズを制限するための定数
+  private static readonly MAX_CACHE_SIZE = 1000;
+
   // CoxeterNodeから多面体構造を構築する
   constructor(
     public diagram: CoxeterDynkinDiagram,
@@ -119,41 +122,37 @@ export class Polytope {
     if (!root) throw new Error("No root node found");
 
     // 生成元の組み合わせごとに処理
-    const rmGens = this.diagram.gens.slice(); // 配列コピーを最適化
-
-    // 事前に処理するノードを配列に格納（Set→Arrayの変換でパフォーマンス向上）
+    const rmGens = this.diagram.gens;
     const allNodesArray = Array.from(this.nodes);
 
-    // Set操作の高速化のためにMap化
-    const allNodesMap = new Map<string, CoxeterNode>();
-    for (const node of allNodesArray) {
-      allNodesMap.set(node.coordinate, node);
-    }
+    // ノードの座標をキーとした高速なルックアップマップを作成
+    const nodesLookup = new Map(
+      allNodesArray.map((node) => [node.coordinate, node])
+    );
 
-    for (let genIndex = 0; genIndex < rmGens.length; genIndex++) {
-      const rmGen = rmGens[genIndex];
-
-      // 重要なダイアグラムのキャッシュを利用
+    for (const rmGen of rmGens) {
+      // ダイアグラムのキャッシュを利用
       const diagramKey = rmGen;
-      let diagram: CoxeterDynkinDiagram;
+      let diagram = this.diagramCache.get(diagramKey);
 
-      if (this.diagramCache.has(diagramKey)) {
-        diagram = this.diagramCache.get(diagramKey)!;
-      } else {
+      if (!diagram) {
         diagram = this.diagram.withoutGens([rmGen]);
-        this.diagramCache.set(diagramKey, diagram);
+        // キャッシュサイズの制限
+        if (this.diagramCache.size < Polytope.MAX_CACHE_SIZE) {
+          this.diagramCache.set(diagramKey, diagram);
+        }
       }
 
       const isVolumeless = diagram.isVolumeless();
+      const visitedNodes = new Set<string>();
+      const subpolytopesInProgress = new Map<string, Polytope>();
 
-      // ビット演算でSet操作を高速化
-      // 代わりにMapを使用して高速な検索を実現
-      const visitedNodesMap = new Map<string, CoxeterNode>();
+      // バッチ処理のためのキュー
+      const processingQueue: { node: CoxeterNode; subpolytope: Polytope }[] =
+        [];
 
-      // 各ノードを起点として深さ優先探索
-      for (let nodeIndex = 0; nodeIndex < allNodesArray.length; nodeIndex++) {
-        const node = allNodesArray[nodeIndex];
-        if (visitedNodesMap.has(node.coordinate)) continue;
+      for (const node of allNodesArray) {
+        if (visitedNodes.has(node.coordinate)) continue;
 
         const cacheKey = this.getCacheKey(node, diagram);
         let nodesToProcess: CoxeterNode[];
@@ -161,107 +160,49 @@ export class Polytope {
         if (this.nodeCache.has(cacheKey)) {
           const cachedNodes = this.nodeCache.get(cacheKey)!;
           for (const n of cachedNodes) {
-            visitedNodesMap.set(n.coordinate, n);
+            visitedNodes.add(n.coordinate);
           }
           nodesToProcess = Array.from(cachedNodes);
         } else {
-          const stack: CoxeterNode[] = [node];
-          const nodesToProcessMap = new Map<string, CoxeterNode>();
-          nodesToProcessMap.set(node.coordinate, node);
+          nodesToProcess = this.collectConnectedNodes(
+            node,
+            diagram,
+            visitedNodes,
+            nodesLookup
+          );
 
-          // ノードの収集フェーズ - パフォーマンス改善
-          while (stack.length > 0) {
-            const currentNode = stack.pop()!;
-            visitedNodesMap.set(currentNode.coordinate, currentNode);
-
-            // 隣接ノードの探索 - 効率的なループ
-            const diagramGens = diagram.gens;
-            for (let i = 0; i < diagramGens.length; i++) {
-              const gen = diagramGens[i];
-              const nextNode = currentNode.siblings[gen];
-              if (
-                nextNode &&
-                !visitedNodesMap.has(nextNode.coordinate) &&
-                !nodesToProcessMap.has(nextNode.coordinate)
-              ) {
-                stack.push(nextNode);
-                nodesToProcessMap.set(nextNode.coordinate, nextNode);
-              }
-            }
+          // キャッシュサイズの制限
+          if (this.nodeCache.size < Polytope.MAX_CACHE_SIZE) {
+            this.nodeCache.set(cacheKey, new Set(nodesToProcess));
           }
-
-          nodesToProcess = Array.from(nodesToProcessMap.values());
-          this.nodeCache.set(cacheKey, new Set(nodesToProcess));
         }
 
-        // 処理を最適化するためSubpolytopeごとのユニークIDを生成
         const subpolytopeId = `${diagramKey}-${node.coordinate}`;
-        if (this.processedSubpolytopes.has(subpolytopeId)) {
-          continue; // 既に処理済みならスキップ
-        }
-        this.processedSubpolytopes.set(subpolytopeId, true);
+        if (this.processedSubpolytopes.has(subpolytopeId)) continue;
 
+        this.processedSubpolytopes.set(subpolytopeId, true);
         const subpolytope = new Polytope(diagram, new Set());
 
-        // 一括処理フェーズ - パフォーマンス改善
-        const identicalNodeSetsMap = new Map<string, Set<CoxeterNode>>();
-
-        for (const currentNode of nodesToProcess) {
-          subpolytope.nodes.add(currentNode);
-
-          // identicalNodeSets操作を効率化
-          const identicalNodes = currentNode.identicalNodes;
-
-          // 既存のセットと重複しないようにする
-          let setExists = false;
-          const setRepKey = this.getSetKey(identicalNodes);
-
-          if (!identicalNodeSetsMap.has(setRepKey)) {
-            identicalNodeSetsMap.set(setRepKey, identicalNodes);
-            subpolytope.identicalNodeSets.add(identicalNodes);
-
-            // ポリトープの追加を最適化
-            for (const n of identicalNodes) {
-              n.polytopes.push(subpolytope);
-            }
-          }
-        }
+        // ノードの一括処理
+        this.batchProcessNodes(nodesToProcess, subpolytope);
 
         const alternativeCacheKey = this.getAlternativeCacheKey(
           node,
           subpolytope
         );
-        let alternativeSubpolytope: Polytope | undefined;
+        let alternativeSubpolytope =
+          this.alternativeCache.get(alternativeCacheKey);
 
-        if (this.alternativeCache.has(alternativeCacheKey)) {
-          alternativeSubpolytope =
-            this.alternativeCache.get(alternativeCacheKey);
-        } else {
-          // 高速検索のための最適化
-          const candidatePolytopes = node.polytopes.filter(
-            (p) =>
-              p !== subpolytope &&
-              p.visibility &&
-              p.identicalNodeSets.size === subpolytope.identicalNodeSets.size
-          );
+        if (alternativeSubpolytope === undefined) {
+          alternativeSubpolytope = this.findAlternativeSubpolytope(subpolytope);
 
-          // 最適化されたセット比較関数を使用
-          for (const p of candidatePolytopes) {
-            if (
-              isSymmetricDifferenceEmpty(
-                p.identicalNodeSets,
-                subpolytope.identicalNodeSets
-              )
-            ) {
-              alternativeSubpolytope = p;
-              break;
-            }
+          // キャッシュサイズの制限
+          if (this.alternativeCache.size < Polytope.MAX_CACHE_SIZE) {
+            this.alternativeCache.set(
+              alternativeCacheKey,
+              alternativeSubpolytope
+            );
           }
-
-          this.alternativeCache.set(
-            alternativeCacheKey,
-            alternativeSubpolytope
-          );
         }
 
         if (alternativeSubpolytope) {
@@ -271,9 +212,21 @@ export class Polytope {
           ) {
             alternativeSubpolytope.diagram = diagram;
           }
-          this.processSubpolytope(alternativeSubpolytope, isVolumeless);
+          processingQueue.push({
+            node: node,
+            subpolytope: alternativeSubpolytope,
+          });
         } else {
-          this.processSubpolytope(subpolytope, isVolumeless);
+          processingQueue.push({ node: node, subpolytope: subpolytope });
+        }
+      }
+
+      // バッチ処理の実行
+      for (const { subpolytope } of processingQueue) {
+        if (!isVolumeless && this.isUniqueChild(subpolytope)) {
+          subpolytope.visibility = true;
+          this.addChild(subpolytope);
+          subpolytope.build();
         }
       }
     }
@@ -281,12 +234,79 @@ export class Polytope {
     this.updateSiblingRelations();
   }
 
-  private processSubpolytope(subpolytope: Polytope, isVolumeless: boolean) {
-    if (!isVolumeless && this.isUniqueChild(subpolytope)) {
-      subpolytope.visibility = true;
-      this.addChild(subpolytope);
-      subpolytope.build();
+  private collectConnectedNodes(
+    startNode: CoxeterNode,
+    diagram: CoxeterDynkinDiagram,
+    visitedNodes: Set<string>,
+    nodesLookup: Map<string, CoxeterNode>
+  ): CoxeterNode[] {
+    const stack = [startNode];
+    const result = new Set<CoxeterNode>([startNode]);
+    visitedNodes.add(startNode.coordinate);
+
+    while (stack.length > 0) {
+      const currentNode = stack.pop()!;
+
+      for (const gen of diagram.gens) {
+        const nextNode = currentNode.siblings[gen];
+        if (nextNode && !visitedNodes.has(nextNode.coordinate)) {
+          visitedNodes.add(nextNode.coordinate);
+          stack.push(nextNode);
+          result.add(nextNode);
+        }
+      }
     }
+
+    return Array.from(result);
+  }
+
+  private batchProcessNodes(nodes: CoxeterNode[], subpolytope: Polytope) {
+    const processedSets = new Set<string>();
+
+    for (const node of nodes) {
+      subpolytope.nodes.add(node);
+
+      const identicalNodes = node.identicalNodes;
+      const setKey = this.getSetKey(identicalNodes);
+
+      if (!processedSets.has(setKey)) {
+        processedSets.add(setKey);
+        subpolytope.identicalNodeSets.add(identicalNodes);
+
+        for (const n of identicalNodes) {
+          n.polytopes.push(subpolytope);
+        }
+      }
+    }
+  }
+
+  private findAlternativeSubpolytope(
+    subpolytope: Polytope
+  ): Polytope | undefined {
+    const targetSize = subpolytope.identicalNodeSets.size;
+    const firstNode = subpolytope.nodes.values().next().value;
+
+    if (!firstNode) return undefined;
+
+    const candidates = firstNode.polytopes.filter(
+      (p) =>
+        p !== subpolytope &&
+        p.visibility &&
+        p.identicalNodeSets.size === targetSize
+    );
+
+    for (const candidate of candidates) {
+      if (
+        isSymmetricDifferenceEmpty(
+          candidate.identicalNodeSets,
+          subpolytope.identicalNodeSets
+        )
+      ) {
+        return candidate;
+      }
+    }
+
+    return undefined;
   }
 
   private isUniqueChild(subpolytope: Polytope): boolean {
