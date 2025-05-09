@@ -1,11 +1,27 @@
-import { Matrix3, Vector3 } from "three";
+import { Matrix2, Matrix3, Vector3 } from "three";
 import { clamp } from "three/src/math/MathUtils.js";
+
+function clampMinAbs(x: number, epsilon: number): number {
+  if (Math.abs(x) < epsilon) {
+    return x >= 0 ? epsilon : -epsilon;
+  }
+  return x;
+}
 
 declare module "three" {
   interface Matrix3 {
     adjugate(): Matrix3;
   }
+  interface Matrix2 {
+    determinant(): number;
+  }
 }
+
+// Matrix2.determinant
+(Matrix2.prototype as any).determinant = function () {
+  const a = this.elements;
+  return a[0] * a[3] - a[1] * a[2];
+};
 
 // Matrix3の拡張
 (Matrix3.prototype as any).adjugate = function () {
@@ -27,9 +43,27 @@ declare module "three" {
   return result;
 };
 
-export interface Hyperplane3 {
+export class Hyperplane3 {
   i: Vector3;
   k: number;
+
+  constructor(i: Vector3, k: number) {
+    this.i = i;
+    this.k = k;
+    this.normalize();
+  }
+
+  normalize() {
+    this.k /= clampMinAbs(this.i.length(), 1e-20);
+    this.i.normalize();
+  }
+
+  getRepresentativePoint() {
+    if (this.i.length() === 0) return new Vector3(1, 0, 0);
+    if (this.k === 0) return new Vector3(0, 0, 0);
+    const c = this.i.clone().divideScalar(clampMinAbs(this.k, 1e-20));
+    return c.multiplyScalar(1 - Math.sqrt(1 / c.lengthSq() + 1));
+  }
 }
 
 export class MobiusGyrovectorSphericalSpace3 {
@@ -48,7 +82,7 @@ export class MobiusGyrovectorSphericalSpace3 {
     return MobiusGyrovectorSphericalSpace3.add(Q.clone().negate(), P);
   }
 
-  length(P: Vector3) {
+  static getLength(P: Vector3) {
     return 2 * Math.atan(P.length());
   }
 
@@ -82,48 +116,40 @@ export class MobiusGyrovectorSphericalSpace3 {
   }
 
   static reflect(V: Vector3, P: Vector3, Q: Vector3, R: Vector3) {
-    const { i, k } = MobiusGyrovectorSphericalSpace3.hyperplane(P, Q, R);
+    const h = MobiusGyrovectorSphericalSpace3.hyperplane(P, Q, R);
     const v = V.clone();
-    const vDotI = v.dot(i);
+    const vDotI = v.dot(h.i);
     const vLengthSq = v.lengthSq();
-    const iLengthSq = i.lengthSq();
+    const iLengthSq = h.i.lengthSq();
 
     const numerator = v
       .clone()
-      .multiplyScalar(4 * k * k + iLengthSq)
-      .sub(i.clone().multiplyScalar(2 * (vDotI - k * vLengthSq + k)));
+      .multiplyScalar(h.k * h.k + iLengthSq)
+      .sub(h.i.clone().multiplyScalar(2 * vDotI - h.k * vLengthSq + h.k));
 
-    const denominator = v
-      .clone()
-      .multiplyScalar(2 * k)
-      .sub(i)
-      .lengthSq();
+    const denominator = v.clone().multiplyScalar(h.k).sub(h.i).lengthSq();
 
-    return numerator.divideScalar(denominator);
+    return numerator.divideScalar(clampMinAbs(denominator, 1e-20));
   }
 
   static hyperplane(P: Vector3, Q: Vector3, R: Vector3) {
     const m = new Matrix3(...P.toArray(), ...Q.toArray(), ...R.toArray());
     const det = m.determinant();
 
-    const i = new Vector3(
-      P.lengthSq() - 1,
-      Q.lengthSq() - 1,
-      R.lengthSq() - 1
-    ).applyMatrix3(m.adjugate());
+    const i = new Vector3(P.lengthSq() - 1, Q.lengthSq() - 1, R.lengthSq() - 1)
+      .applyMatrix3(m.adjugate())
+      .divideScalar(2);
 
-    return i.lengthSq() > 1e-10
-      ? { i: i.clone().divideScalar(i.length()), k: det / i.length() }
-      : { i: new Vector3(0, 0, 0), k: 1 };
+    return new Hyperplane3(i, det);
   }
 
   static invertHyperplane(h: Hyperplane3) {
-    return { i: h.i.clone().negate(), k: -h.k };
+    return new Hyperplane3(h.i.clone().negate(), -h.k);
   }
 
   static midHyperplane(h1: Hyperplane3, h2: Hyperplane3) {
-    const ra = Math.sqrt(h2.i.lengthSq() + 4 * h2.k * h2.k);
-    const rb = Math.sqrt(h1.i.lengthSq() + 4 * h1.k * h1.k);
+    const ra = Math.sqrt(h2.i.lengthSq() + h2.k * h2.k);
+    const rb = Math.sqrt(h1.i.lengthSq() + h1.k * h1.k);
 
     const i = h1.i
       .clone()
@@ -131,7 +157,7 @@ export class MobiusGyrovectorSphericalSpace3 {
       .add(h2.i.clone().multiplyScalar(rb));
     const k = h1.k * ra + h2.k * rb;
 
-    return { i, k };
+    return new Hyperplane3(i, k);
   }
 
   // get one of two intersection points of three hyperplanes
@@ -181,15 +207,62 @@ export class MobiusGyrovectorSphericalSpace3 {
     );
 
     // 分母の計算
-    const denominator = 2 * hP.k * T.lengthSq();
+    const denominator = hP.k * T.lengthSq();
 
     // 分子の計算
     const dotTiB = T.dot(hP.i);
     const numerator =
-      dotTiB + Math.sqrt(dotTiB * dotTiB + 4 * hP.k * hP.k * T.lengthSq());
+      dotTiB + Math.sqrt(dotTiB * dotTiB + hP.k * hP.k * T.lengthSq());
 
-    return T.multiplyScalar(numerator / denominator);
+    return T.clone().multiplyScalar(numerator / denominator);
   }
+
+  static intersectionHyperplane(
+    h1: Hyperplane3,
+    h2: Hyperplane3,
+    h3: Hyperplane3
+  ) {
+    const i1 = h1.i,
+      i2 = h2.i,
+      i3 = h3.i,
+      k1 = h1.k,
+      k2 = h2.k,
+      k3 = h3.k;
+    const g1 = new Matrix2(
+      k3 * i2.dot(i2.clone().multiplyScalar(k1).addScaledVector(i1, -k2)),
+      k3 * i2.dot(i3.clone().multiplyScalar(k1).addScaledVector(i1, -k3)),
+      k2 * i3.dot(i2.clone().multiplyScalar(k1).addScaledVector(i1, -k2)),
+      k2 * i3.dot(i3.clone().multiplyScalar(k1).addScaledVector(i1, -k3))
+    ).determinant();
+    const g2 = new Matrix2(
+      k1 * i3.dot(i3.clone().multiplyScalar(k2).addScaledVector(i2, -k3)),
+      k1 * i3.dot(i1.clone().multiplyScalar(k2).addScaledVector(i2, -k1)),
+      k3 * i1.dot(i3.clone().multiplyScalar(k2).addScaledVector(i2, -k3)),
+      k3 * i1.dot(i1.clone().multiplyScalar(k2).addScaledVector(i2, -k1))
+    ).determinant();
+    const g3 = new Matrix2(
+      k2 * i1.dot(i1.clone().multiplyScalar(k3).addScaledVector(i3, -k1)),
+      k2 * i1.dot(i2.clone().multiplyScalar(k3).addScaledVector(i3, -k2)),
+      k1 * i2.dot(i1.clone().multiplyScalar(k3).addScaledVector(i3, -k1)),
+      k1 * i2.dot(i2.clone().multiplyScalar(k3).addScaledVector(i3, -k2))
+    ).determinant();
+
+    return new Hyperplane3(
+      new Vector3(0, 0, 0)
+        .addScaledVector(i1, k2 * k3 * g1)
+        .addScaledVector(i2, k3 * k1 * g2)
+        .addScaledVector(i3, k1 * k2 * g3),
+      k1 * k2 * k3 * (g1 + g2 + g3)
+    );
+  }
+
+  // static intersectionPoint(h1: Hyperplane3, h2: Hyperplane3, h3: Hyperplane3) {
+  //   return MobiusGyrovectorSphericalSpace3.intersectionHyperplane(
+  //     h1,
+  //     h2,
+  //     h3
+  //   ).getRepresentativePoint();
+  // }
 
   // 四面体の内心
   static incenter4(P: Vector3, Q: Vector3, R: Vector3, S: Vector3) {
@@ -220,7 +293,18 @@ export class MobiusGyrovectorSphericalSpace3 {
       Mps
     );
 
-    return intersection;
+    if (
+      MobiusGyrovectorSphericalSpace3.isPointInsideTetrahedron(
+        intersection,
+        P,
+        Q,
+        R,
+        S
+      )
+    )
+      return intersection;
+
+    return MobiusGyrovectorSphericalSpace3.antipode(intersection);
   }
 
   // 点が四面体の内部にあるかどうかを判定
@@ -266,12 +350,11 @@ export class MobiusGyrovectorSphericalSpace3 {
     point: Vector3,
     h: Hyperplane3
   ): number {
-    return point.dot(h.i) - h.k * (point.lengthSq() - 1);
+    return point.dot(h.i) * 2 - h.k * (point.lengthSq() - 1);
   }
 
   static antipode(P: Vector3) {
-    // \frac{-C}{\left|C\right|^{2}}
-    return P.clone().negate().divideScalar(P.lengthSq());
+    return P.clone().negate().divideScalar(clampMinAbs(P.lengthSq(), 1e-20));
   }
 
   static mean(...P: Vector3[]) {
@@ -283,7 +366,7 @@ export class MobiusGyrovectorSphericalSpace3 {
     }
     const A = MobiusGyrovectorSphericalSpace3.mul(
       0.5,
-      V.divideScalar(Math.abs(m) < 1e-20 ? 1e-20 * (Math.sign(m) || 1) : m)
+      V.divideScalar(clampMinAbs(m, 1e-20))
     );
     const B = MobiusGyrovectorSphericalSpace3.antipode(A);
     return MobiusGyrovectorSphericalSpace3.distance(P[0], A) <
