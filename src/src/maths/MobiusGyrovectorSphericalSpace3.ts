@@ -1,9 +1,16 @@
 import { Matrix2, Matrix3, Vector3 } from "three";
 import { clamp } from "three/src/math/MathUtils.js";
 
-function clampMinAbs(x: number, epsilon: number): number {
-  if (Math.abs(x) < epsilon) {
-    return x >= 0 ? epsilon : -epsilon;
+function clampMinAbs(x: number, r: number): number {
+  if (Math.abs(x) < r) {
+    return x >= 0 ? r : -r;
+  }
+  return x;
+}
+
+function clampMaxAbs(x: number, r: number): number {
+  if (Math.abs(x) > r) {
+    return x >= 0 ? r : -r;
   }
   return x;
 }
@@ -61,8 +68,8 @@ export class Hyperplane3 {
   getRepresentativePoint() {
     if (this.i.length() === 0) return new Vector3(1, 0, 0);
     if (this.k === 0) return new Vector3(0, 0, 0);
-    const c = this.i.clone().divideScalar(clampMinAbs(this.k, 1e-20));
-    return c.multiplyScalar(1 - Math.sqrt(1 / c.lengthSq() + 1));
+    const c = this.i.clone().divideScalar(this.k);
+    return c.multiplyScalar(1 - Math.sqrt(1 + 1 / c.lengthSq()));
   }
 }
 
@@ -74,7 +81,7 @@ export class MobiusGyrovectorSphericalSpace3 {
     const A = P.clone().multiplyScalar(1 - 2 * P.dot(Q) - Q.lengthSq());
     const B = Q.clone().multiplyScalar(1 + P.lengthSq());
     return A.add(B).divideScalar(
-      1 - 2 * P.dot(Q) + P.lengthSq() * Q.lengthSq()
+      clampMinAbs(1 - 2 * P.dot(Q) + P.lengthSq() * Q.lengthSq(), 1e-20)
     );
   }
 
@@ -161,7 +168,26 @@ export class MobiusGyrovectorSphericalSpace3 {
   }
 
   // get one of two intersection points of three hyperplanes
-  static intersectionPoint(h1: Hyperplane3, h2: Hyperplane3, h3: Hyperplane3) {
+  static intersectionPoint(
+    h1: Hyperplane3,
+    h2: Hyperplane3,
+    h3: Hyperplane3,
+    P: Vector3 | undefined = undefined
+  ) {
+    // const i = MobiusGyrovectorSphericalSpace3.intersectionHyperplane(
+    //   h1,
+    //   h2,
+    //   h3
+    // ).getRepresentativePoint();
+
+    // if (!P) return i;
+
+    // const j = MobiusGyrovectorSphericalSpace3.antipode(i);
+    // const di = MobiusGyrovectorSphericalSpace3.distance(i, P);
+    // const dj = MobiusGyrovectorSphericalSpace3.distance(j, P);
+    // if (di < dj) return i;
+    // return j;
+
     // T_{AB}=k_{B}i_{A}-k_{A}i_{B} の計算
     const TAB = h2.i
       .clone()
@@ -256,14 +282,6 @@ export class MobiusGyrovectorSphericalSpace3 {
     );
   }
 
-  // static intersectionPoint(h1: Hyperplane3, h2: Hyperplane3, h3: Hyperplane3) {
-  //   return MobiusGyrovectorSphericalSpace3.intersectionHyperplane(
-  //     h1,
-  //     h2,
-  //     h3
-  //   ).getRepresentativePoint();
-  // }
-
   // 四面体の内心
   static incenter4(P: Vector3, Q: Vector3, R: Vector3, S: Vector3) {
     const Hp = MobiusGyrovectorSphericalSpace3.hyperplane(Q, R, S);
@@ -287,24 +305,7 @@ export class MobiusGyrovectorSphericalSpace3 {
       MobiusGyrovectorSphericalSpace3.invertHyperplane(Hs)
     );
 
-    const intersection = MobiusGyrovectorSphericalSpace3.intersectionPoint(
-      Mpq,
-      Mpr,
-      Mps
-    );
-
-    if (
-      MobiusGyrovectorSphericalSpace3.isPointInsideTetrahedron(
-        intersection,
-        P,
-        Q,
-        R,
-        S
-      )
-    )
-      return intersection;
-
-    return MobiusGyrovectorSphericalSpace3.antipode(intersection);
+    return MobiusGyrovectorSphericalSpace3.intersectionPoint(Mpq, Mpr, Mps, P);
   }
 
   // 点が四面体の内部にあるかどうかを判定

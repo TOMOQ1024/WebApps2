@@ -260,62 +260,73 @@ function GetInitPoint(
       return MobiusGyrovectorSphericalSpace3.intersectionPoint(
         planeC,
         planeD,
-        planeMAB
+        planeMAB,
+        MobiusGyrovectorSphericalSpace3.mean(pointC, pointD)
       );
+
     case "xoxo":
       return MobiusGyrovectorSphericalSpace3.intersectionPoint(
         planeB,
         planeD,
-        planeMAC
+        planeMAC,
+        MobiusGyrovectorSphericalSpace3.mean(pointB, pointD)
       );
     case "xoox":
       return MobiusGyrovectorSphericalSpace3.intersectionPoint(
         planeB,
         planeC,
-        planeMAD
+        planeMAD,
+        MobiusGyrovectorSphericalSpace3.mean(pointB, pointC)
       );
     case "oxxo":
       return MobiusGyrovectorSphericalSpace3.intersectionPoint(
         planeA,
         planeD,
-        planeMBC
+        planeMBC,
+        MobiusGyrovectorSphericalSpace3.mean(pointA, pointD)
       );
     case "oxox":
       return MobiusGyrovectorSphericalSpace3.intersectionPoint(
         planeA,
         planeC,
-        planeMBD
+        planeMBD,
+        MobiusGyrovectorSphericalSpace3.mean(pointA, pointC)
       );
     case "ooxx":
       return MobiusGyrovectorSphericalSpace3.intersectionPoint(
         planeA,
         planeB,
-        planeMCD
+        planeMCD,
+        MobiusGyrovectorSphericalSpace3.mean(pointA, pointB)
       );
 
     case "oxxx":
       return MobiusGyrovectorSphericalSpace3.intersectionPoint(
         planeA,
         planeMBC,
-        planeMCD
+        planeMCD,
+        MobiusGyrovectorSphericalSpace3.mean(pointB, pointC, pointD)
       );
     case "xoxx":
       return MobiusGyrovectorSphericalSpace3.intersectionPoint(
         planeB,
         planeMAD,
-        planeMCD
+        planeMCD,
+        MobiusGyrovectorSphericalSpace3.mean(pointA, pointC, pointD)
       );
     case "xxox":
       return MobiusGyrovectorSphericalSpace3.intersectionPoint(
         planeC,
         planeMAD,
-        planeMAB
+        planeMAB,
+        MobiusGyrovectorSphericalSpace3.mean(pointA, pointB, pointD)
       );
     case "xxxo":
       return MobiusGyrovectorSphericalSpace3.intersectionPoint(
         planeD,
         planeMAC,
-        planeMAB
+        planeMAB,
+        MobiusGyrovectorSphericalSpace3.mean(pointA, pointB, pointC)
       );
 
     default:
@@ -547,7 +558,7 @@ function createSolidFrameAttributes(
       const vertex = positionMap[node.coordinate];
       indexMap.get(polygon)!.set(node, positions.length / 3);
       positions.push(
-        ...MobiusGyrovectorSphericalSpace3.mix(vertex, meanPos, 0.1).toArray()
+        ...MobiusGyrovectorSphericalSpace3.mix(vertex, meanPos, 0.01).toArray()
       );
       colors.push(...color, 1);
     }
