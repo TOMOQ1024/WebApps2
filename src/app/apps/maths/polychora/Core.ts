@@ -1,28 +1,18 @@
 import axios from "axios";
 import {
   AmbientLight,
-  AxesHelper,
-  BoxGeometry,
   BufferGeometry,
   DirectionalLight,
   DoubleSide,
-  EdgesGeometry,
-  LineBasicMaterial,
   LineSegments,
   Mesh,
   MeshBasicMaterial,
-  MeshLambertMaterial,
   OrthographicCamera,
   RawShaderMaterial,
   Scene,
-  TextureLoader,
   WebGLRenderer,
 } from "three";
-import {
-  GLTFExporter,
-  LineMaterial,
-  OrbitControls,
-} from "three/examples/jsm/Addons";
+import { GLTFExporter, OrbitControls } from "three/examples/jsm/Addons";
 import { CreatePolychoron } from "./Polychora";
 import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
 
@@ -32,8 +22,6 @@ export default class Core {
   renderer: WebGLRenderer;
   camera: OrthographicCamera;
   scene: Scene;
-  textureLoader = new TextureLoader();
-  depthLimit: number = 1;
   diagram = new CoxeterDynkinDiagram(
     {
       ab: [2, 1],
@@ -57,7 +45,6 @@ export default class Core {
     }
   );
   ctrls: OrbitControls;
-  geometry: BufferGeometry | null = null;
   mesh: LineSegments | Mesh | null = null;
   buildTime: number = 0;
   material = new RawShaderMaterial({
@@ -65,97 +52,8 @@ export default class Core {
     uniforms: {
       time: { value: 0 },
     },
-    vertexShader: `
-uniform mat4 modelViewMatrix;
-uniform mat4 projectionMatrix;
-
-attribute vec3 position;
-attribute vec2 uv;
-attribute vec4 color;
-uniform float time;
-
-varying vec2 vUv;
-varying vec4 vColor;
-varying vec3 vDepth;
-#define cv 1.0
-
-// #region gyrovector functions
-float tanh(float x) {
-  return (exp(x) - exp(-x)) / (exp(x) + exp(-x));
-}
-
-float atanh(float x) {
-  return 0.5 * log((1.0 + x) / (1.0 - x));
-}
-
-float g_tan(float x) {
-  if (cv < 0.0) return tanh(x);
-  if (cv > 0.0) return tan(x);
-  return x;
-}
-
-float g_atan(float x) {
-  if (cv < 0.0) return atanh(x);
-  if (cv > 0.0) return atan(x);
-  return x;
-}
-
-vec3 g_add(vec3 p, vec3 q) {
-  float k = cv;
-  return ((1. - 2. * k * dot(p, q) - k * dot(q, q)) * p + (1. + k * dot(p, p)) * q) / (1. - 2. * k * dot(p, q) + k * k * dot(p, p) * dot(q, q));
-}
-
-vec3 g_sub(vec3 p, vec3 q) {
-  return g_add(-q, p);
-}
-
-vec3 g_mul(float r, vec3 p) {
-  if (r == 0.0 || length(p) == 0.0) return vec3(0.0);
-  return normalize(p) * g_tan(r * g_atan(length(p)));
-}
-// #endregion
-
-void main() {
-  // vec3 origin = vec3(0.,0.,0.);
-  vec3 origin = g_mul(time, vec3(0.,0.,.1));
-  vec3 S = g_add(origin, position);
-  float l = 1.;
-  vec3 P = S*l/(dot(S,S)*(l-1.)+l);
-  vDepth = -(modelViewMatrix * vec4(P.xyz, 1.)).xyz;
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(P.xyz, 1.0);
-  vUv = uv;
-  vColor = color;
-}
-                `,
-    fragmentShader: `
-precision highp float;
-
-varying vec2 vUv;
-varying vec4 vColor;
-varying vec3 vDepth;
-#define PI 3.14159265358979323846
-
-float tanh(float x) {
-  return (exp(x) - exp(-x)) / (exp(x) + exp(-x));
-}
-
-vec4 tanh(vec4 x) {
-  return (exp(x) - exp(-x)) / (exp(x) + exp(-x));
-}
-
-void main() {
-  float e = .2;
-  vec4 t = vColor - 1. + e;
-  // float r = min(abs(t.x), min(abs(t.y), abs(t.z)));
-  // vec4 c = mix(vec4(0.), 1. - e + e * sign(t), r/.1);
-  vec4 c = 1. - e + e * tanh(30.*t);
-  // vec4 c = pow(vColor, vec4(3.));
-  float d = tanh(vDepth.z);
-  float alpha = (3.-d)/4.;
-  gl_FragColor = vec4(c.rgb*alpha, alpha);
-}
-                  `,
   });
+  isCompiled = false;
 
   constructor(cvs: HTMLCanvasElement | undefined = undefined) {
     if (cvs) {
@@ -184,6 +82,17 @@ void main() {
     // this.scene.add(new AxesHelper(10));
 
     this.scene.add(this.camera);
+
+    this.loadShader();
+  }
+
+  async loadShader() {
+    const res = await axios.get("/api/shaders/polychora");
+    this.material.vertexShader = res.data.vert;
+    this.material.fragmentShader = res.data.frag;
+    this.material.needsUpdate = true;
+    await this.renderer.compileAsync(this.scene, this.camera);
+    this.isCompiled = true;
   }
 
   init(beginLoop = true) {
@@ -230,7 +139,8 @@ void main() {
 
   loop(deltaTime: number) {
     // console.log("loop");
-    if (this.renderer) this.renderer.render(this.scene, this.camera);
+    if (this.renderer && this.isCompiled)
+      this.renderer.render(this.scene, this.camera);
     this.material.uniforms.time.value += deltaTime;
   }
 
@@ -269,22 +179,15 @@ void main() {
   setPolychoron() {
     console.clear();
     const startTime = performance.now();
-    const g0 = CreatePolychoron(this.diagram, !true);
+    const geometry = CreatePolychoron(this.diagram, !true);
     const endTime = performance.now();
     const buildTime = endTime - startTime;
     this.buildTime = buildTime;
-    if (this.mesh) this.scene.remove(this.mesh);
-    this.geometry = g0;
-    this.mesh = new Mesh(g0, this.material);
-    // g.computeVertexNormals();
-    // this.mesh = new Mesh(
-    //   g,
-    //   new MeshLambertMaterial({ color: 0xffffff, side: DoubleSide })
-    // );
-    // this.mesh = new LineSegments(
-    //   new EdgesGeometry(g),
-    //   new LineBasicMaterial({ color: 0xffffff, linewidth: 1 })
-    // );
-    this.scene.add(this.mesh);
+    if (this.mesh) {
+      this.mesh.geometry = geometry;
+    } else {
+      this.mesh = new Mesh(geometry, this.material);
+      this.scene.add(this.mesh);
+    }
   }
 }

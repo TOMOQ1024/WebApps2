@@ -261,7 +261,7 @@ function GetInitPoint(
         planeC,
         planeD,
         planeMAB,
-        MobiusGyrovectorSphericalSpace3.mean(pointC, pointD)
+        MobiusGyrovectorSphericalSpace3.mean(pointA, pointB)
       );
 
     case "xoxo":
@@ -269,35 +269,35 @@ function GetInitPoint(
         planeB,
         planeD,
         planeMAC,
-        MobiusGyrovectorSphericalSpace3.mean(pointB, pointD)
+        MobiusGyrovectorSphericalSpace3.mean(pointA, pointC)
       );
     case "xoox":
       return MobiusGyrovectorSphericalSpace3.intersectionPoint(
         planeB,
         planeC,
         planeMAD,
-        MobiusGyrovectorSphericalSpace3.mean(pointB, pointC)
+        MobiusGyrovectorSphericalSpace3.mean(pointA, pointD)
       );
     case "oxxo":
       return MobiusGyrovectorSphericalSpace3.intersectionPoint(
         planeA,
         planeD,
         planeMBC,
-        MobiusGyrovectorSphericalSpace3.mean(pointA, pointD)
+        MobiusGyrovectorSphericalSpace3.mean(pointB, pointC)
       );
     case "oxox":
       return MobiusGyrovectorSphericalSpace3.intersectionPoint(
         planeA,
         planeC,
         planeMBD,
-        MobiusGyrovectorSphericalSpace3.mean(pointA, pointC)
+        MobiusGyrovectorSphericalSpace3.mean(pointB, pointD)
       );
     case "ooxx":
       return MobiusGyrovectorSphericalSpace3.intersectionPoint(
         planeA,
         planeB,
         planeMCD,
-        MobiusGyrovectorSphericalSpace3.mean(pointA, pointB)
+        MobiusGyrovectorSphericalSpace3.mean(pointC, pointD)
       );
 
     case "oxxx":
@@ -349,6 +349,7 @@ function GetPositions(
   const { pointA, pointB, pointC, pointD } = GetFundamentalDomain(
     diagram.labels
   );
+  console.log(pointA, pointB, pointC, pointD);
   // 単位領域内の頂点定義
   let Q0 = GetInitPoint(
     pointA,
@@ -558,7 +559,7 @@ function createSolidFrameAttributes(
       const vertex = positionMap[node.coordinate];
       indexMap.get(polygon)!.set(node, positions.length / 3);
       positions.push(
-        ...MobiusGyrovectorSphericalSpace3.mix(vertex, meanPos, 0.01).toArray()
+        ...MobiusGyrovectorSphericalSpace3.mix(vertex, meanPos, 0.1).toArray()
       );
       colors.push(...color, 1);
     }
