@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import Core from "../Core";
+import Core from "../core/Core";
 import { useSession } from "next-auth/react";
 import Controls from "./Controls";
 import { Vector3 } from "three";

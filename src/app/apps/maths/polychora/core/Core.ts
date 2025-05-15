@@ -13,7 +13,7 @@ import {
   WebGLRenderer,
 } from "three";
 import { GLTFExporter, OrbitControls } from "three/examples/jsm/Addons";
-import { CreatePolychoron } from "./Polychora";
+import { CreatePolychoronGeometry } from "./Geometry";
 import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
 
 export default class Core {
@@ -179,7 +179,7 @@ export default class Core {
   setPolychoron() {
     console.clear();
     const startTime = performance.now();
-    const geometry = CreatePolychoron(this.diagram, !true);
+    const geometry = CreatePolychoronGeometry(this.diagram, false);
     const endTime = performance.now();
     const buildTime = endTime - startTime;
     this.buildTime = buildTime;

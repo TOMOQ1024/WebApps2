@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Core from "../Core";
+import Core from "../core/Core";
 import style from "./Controls.module.scss";
 import { Matrix4 } from "three";
 import sleep from "@/src/Sleep";
