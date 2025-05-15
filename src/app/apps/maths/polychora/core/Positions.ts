@@ -2,7 +2,8 @@ import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
 import { CoxeterNode } from "@/src/maths/CoxeterNode";
 import { MobiusGyrovectorSphericalSpace3 } from "@/src/maths/MobiusGyrovectorSphericalSpace3";
 import { Vector3 } from "three";
-import { GetFundamentalDomain, GetInitPoint } from "./FundamentalDomain";
+import { GetFundamentalDomain } from "./FundamentalDomain";
+import { GetInitPoint } from "./InitPoint";
 
 /**
  * 位置を取得する
