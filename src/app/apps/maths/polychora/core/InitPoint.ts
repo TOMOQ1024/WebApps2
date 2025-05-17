@@ -1,4 +1,7 @@
-import { MobiusGyrovectorSphericalSpace3 } from "@/src/maths/MobiusGyrovectorSphericalSpace3";
+import {
+  Hyperplane3,
+  MobiusGyrovectorSphericalSpace3,
+} from "@/src/maths/MobiusGyrovectorSphericalSpace3";
 import { Vector3 } from "three";
 
 /**
@@ -12,49 +15,33 @@ export function GetInitPoint(
   labels: { [genPair: string]: [number, number] },
   ni: { [gen: string]: string }
 ) {
-  const planeA = MobiusGyrovectorSphericalSpace3.hyperplane(
-    pointB,
-    pointC,
-    pointD
-  );
-  const planeB = MobiusGyrovectorSphericalSpace3.hyperplane(
-    pointA,
-    pointD,
-    pointC
-  );
-  const planeC = MobiusGyrovectorSphericalSpace3.hyperplane(
-    pointD,
-    pointA,
-    pointB
-  );
-  const planeD = MobiusGyrovectorSphericalSpace3.hyperplane(
-    pointC,
-    pointB,
-    pointA
-  );
+  const planeA = Hyperplane3.fromPoints(pointB, pointC, pointD);
+  const planeB = Hyperplane3.fromPoints(pointA, pointD, pointC);
+  const planeC = Hyperplane3.fromPoints(pointD, pointA, pointB);
+  const planeD = Hyperplane3.fromPoints(pointC, pointB, pointA);
   const planeMAB = MobiusGyrovectorSphericalSpace3.midHyperplane(
     planeA,
-    MobiusGyrovectorSphericalSpace3.invertHyperplane(planeB)
+    planeB.inverted()
   );
   const planeMAC = MobiusGyrovectorSphericalSpace3.midHyperplane(
     planeA,
-    MobiusGyrovectorSphericalSpace3.invertHyperplane(planeC)
+    planeC.inverted()
   );
   const planeMAD = MobiusGyrovectorSphericalSpace3.midHyperplane(
     planeA,
-    MobiusGyrovectorSphericalSpace3.invertHyperplane(planeD)
+    planeD.inverted()
   );
   const planeMBC = MobiusGyrovectorSphericalSpace3.midHyperplane(
     planeB,
-    MobiusGyrovectorSphericalSpace3.invertHyperplane(planeC)
+    planeC.inverted()
   );
   const planeMBD = MobiusGyrovectorSphericalSpace3.midHyperplane(
     planeB,
-    MobiusGyrovectorSphericalSpace3.invertHyperplane(planeD)
+    planeD.inverted()
   );
   const planeMCD = MobiusGyrovectorSphericalSpace3.midHyperplane(
     planeC,
-    MobiusGyrovectorSphericalSpace3.invertHyperplane(planeD)
+    planeD.inverted()
   );
 
   switch (`${ni.a}${ni.b}${ni.c}${ni.d}`) {
