@@ -18,7 +18,16 @@ export function GetPositions(
   const { pointA, pointB, pointC, pointD } = GetFundamentalDomain(
     diagram.labels
   );
-  console.log(pointA, pointB, pointC, pointD);
+  console.log(
+    [pointA, pointB, pointC, pointD]
+      .map(
+        (v, i) =>
+          `${String.fromCharCode(65 + i)}=(${v.x.toFixed(6)}, ${v.y.toFixed(
+            6
+          )}, ${v.z.toFixed(6)})\n`
+      )
+      .join("")
+  );
   // 単位領域内の頂点定義
   let Q0 = GetInitPoint(
     pointA,

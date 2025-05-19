@@ -1,5 +1,8 @@
 import { Matrix3, Vector3 } from "three";
-import { MobiusGyrovectorSphericalSpace3 } from "@/src/maths/MobiusGyrovectorSphericalSpace3";
+import {
+  Hyperplane3,
+  MobiusGyrovectorSphericalSpace3,
+} from "@/src/maths/MobiusGyrovectorSphericalSpace3";
 
 /**
  * 基本領域を取得する
@@ -14,6 +17,7 @@ export function GetFundamentalDomain(labels: {
   const angleCD = Math.PI - (Math.PI / labels.cd[0]) * labels.cd[1];
   const angleDB = Math.PI - (Math.PI / labels.bd[0]) * labels.bd[1];
   const angleBC = Math.PI - (Math.PI / labels.bc[0]) * labels.bc[1];
+  console.log(angleCD, angleDB, angleBC);
   const planeB = new Vector3(1, 0, 0);
   const planeC = new Vector3(Math.cos(angleBC), Math.sin(angleBC), 0);
   const planeD = new Vector3(Math.cos(angleDB), 0, Math.sin(angleDB));
@@ -75,6 +79,11 @@ export function GetFundamentalDomain(labels: {
           sphereRadiusA * sphereRadiusA
       )
   );
+
+  if (Hyperplane3.fromPoints(pointD, pointA, pointB).distance(pointC) < 0) {
+    console.log("negate");
+    pointC.negate();
+  }
 
   return {
     pointA,

@@ -1,5 +1,4 @@
 import { Matrix2, Matrix3, Vector3 } from "three";
-import { clamp } from "three/src/math/MathUtils.js";
 
 const EPSILON = 1e-10;
 
@@ -99,9 +98,6 @@ export class Hyperplane3 {
 }
 
 export class MobiusGyrovectorSphericalSpace3 {
-  // static readonly curvature = 1;
-  // static readonly radius = 1;
-
   static add(P: Vector3, Q: Vector3) {
     const A = P.clone().multiplyScalar(1 - 2 * P.dot(Q) - Q.lengthSq());
     const B = Q.clone().multiplyScalar(1 + P.lengthSq());
@@ -189,12 +185,6 @@ export class MobiusGyrovectorSphericalSpace3 {
       h3
     ).getRepresentativePoint();
 
-    console.log("distance");
-    console.log(i);
-    console.log(h1.distance(i));
-    console.log(h2.distance(i));
-    console.log(h3.distance(i));
-
     if (!P) return i;
 
     const j = MobiusGyrovectorSphericalSpace3.antipode(i);
@@ -203,68 +193,20 @@ export class MobiusGyrovectorSphericalSpace3 {
     let r = new Vector3(0, 0, 0);
     if (di < dj) r = i;
     else r = j;
-    console.log(r);
-    console.log(h1.distance(i));
-    console.log(h2.distance(i));
-    console.log(h3.distance(i));
-    console.log(h3.distance(j));
-    console.log(h2.distance(j));
-    console.log(h3.distance(j));
+    // console.log("distance to point");
+    // console.log(i);
+    // console.log(di);
+    // console.log(j);
+    // console.log(dj);
+    // console.log(r);
+    // console.log("distance to hyperplanes");
+    // console.log(h1.distance(i));
+    // console.log(h2.distance(i));
+    // console.log(h3.distance(i));
+    // console.log(h3.distance(j));
+    // console.log(h2.distance(j));
+    // console.log(h3.distance(j));
     return r;
-
-    // T_{AB}=k_{B}i_{A}-k_{A}i_{B} の計算
-    const TAB = h2.i
-      .clone()
-      .multiplyScalar(h1.k)
-      .sub(h1.i.clone().multiplyScalar(h2.k));
-    const TBC = h3.i
-      .clone()
-      .multiplyScalar(h2.k)
-      .sub(h2.i.clone().multiplyScalar(h3.k));
-    const TCA = h1.i
-      .clone()
-      .multiplyScalar(h3.k)
-      .sub(h3.i.clone().multiplyScalar(h1.k));
-
-    // ゼロベクトルでない2つを選ぶ
-    const arr = [TAB, TBC, TCA].map((v) => v.normalize());
-    if (Math.abs(h1.k) < EPSILON) arr.push(h1.i.normalize());
-    if (Math.abs(h2.k) < EPSILON) arr.push(h2.i.normalize());
-    if (Math.abs(h3.k) < EPSILON) arr.push(h3.i.normalize());
-    arr.sort((a, b) => a.lengthSq() - b.lengthSq());
-    let [T1, T2] = [arr.pop()!, arr.pop()!];
-    // T1,T2が一次従属の間，T2をarrから選び出す
-    try {
-      while (T1.clone().cross(T2).lengthSq() < EPSILON) {
-        T2 = arr.pop()!;
-      }
-    } catch (e) {
-      console.log(T1, T2, arr);
-      console.log(e);
-      throw new Error("Invalid hyperplanes");
-    }
-
-    let hP: Hyperplane3;
-    if (Math.abs(h1.k) > EPSILON) hP = h1;
-    else if (Math.abs(h2.k) > EPSILON) hP = h2;
-    else hP = h3;
-
-    // T_{x},T_{y},T_{z}の計算
-    const T = new Vector3(
-      T1.y * T2.z - T1.z * T2.y,
-      T1.z * T2.x - T1.x * T2.z,
-      T1.x * T2.y - T1.y * T2.x
-    );
-
-    // 分母の計算
-    const denominator = hP.k * T.lengthSq();
-
-    // 分子の計算
-    const dotTiB = T.dot(hP.i);
-    const numerator =
-      dotTiB + Math.sqrt(dotTiB * dotTiB + hP.k * hP.k * T.lengthSq());
-
-    return T.clone().multiplyScalar(numerator / denominator);
   }
 
   static intersectionHyperplane(
@@ -298,23 +240,23 @@ export class MobiusGyrovectorSphericalSpace3 {
     ).determinant();
 
     const ig = new Vector3(0, 0, 0)
-      .addScaledVector(i1, k2 * k3 * g1)
-      .addScaledVector(i2, k3 * k1 * g2)
-      .addScaledVector(i3, k1 * k2 * g3);
-    const kg = k1 * k2 * k3 * (g1 + g2 + g3);
+      .addScaledVector(i1, g1 / k1)
+      .addScaledVector(i2, g2 / k2)
+      .addScaledVector(i3, g3 / k3);
+    const kg = g1 + g2 + g3;
 
-    console.log("in");
-    console.log(i1, i2, i3);
-    console.log("kn");
-    console.log(k1, k2, k3);
-    console.log("ig,kg");
-    console.log(ig, kg);
-    console.log("dot(expected 0,0,0)");
-    console.log(
-      ig.dot(ig.clone().multiplyScalar(k1).sub(i1.clone().multiplyScalar(kg))),
-      ig.dot(ig.clone().multiplyScalar(k2).sub(i2.clone().multiplyScalar(kg))),
-      ig.dot(ig.clone().multiplyScalar(k3).sub(i3.clone().multiplyScalar(kg)))
-    );
+    // console.log("in");
+    // console.log(i1, i2, i3);
+    // console.log("kn");
+    // console.log(k1, k2, k3);
+    // console.log("ig,kg");
+    // console.log(ig, kg);
+    // console.log("dot(expected 0,0,0)");
+    // console.log(
+    //   ig.dot(ig.clone().multiplyScalar(k1).sub(i1.clone().multiplyScalar(kg))),
+    //   ig.dot(ig.clone().multiplyScalar(k2).sub(i2.clone().multiplyScalar(kg))),
+    //   ig.dot(ig.clone().multiplyScalar(k3).sub(i3.clone().multiplyScalar(kg)))
+    // );
 
     return new Hyperplane3(ig, kg);
   }
