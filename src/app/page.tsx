@@ -1,10 +1,9 @@
-import { redirect } from "next/navigation";
+import TopPage from "@/components/TopPage";
 
 export const metadata = {
   title: "tomoq",
 };
 
 export default function Home() {
-  redirect(`/apps`);
-  return <main></main>;
+  return <TopPage />;
 }

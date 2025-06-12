@@ -1,14 +1,11 @@
 import { NextAuthProvider } from "@/components/NextAuthProvider";
 import "./globals.scss";
-import Header from "@/components/header";
+import Header from "@/components/Header";
 import { authOptions } from "@/lib/authOptions";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { getServerSession } from "next-auth/next";
-import "@fontsource/roboto/300.css";
-import "@fontsource/roboto/400.css";
-import "@fontsource/roboto/500.css";
-import "@fontsource/roboto/700.css";
+import "@fontsource-variable/m-plus-1-code";
 import { FullHeightProvider } from "@/components/FullHeightProvider";
 import { IsClientCtxProvider } from "@/components/IsClientCtx";
 

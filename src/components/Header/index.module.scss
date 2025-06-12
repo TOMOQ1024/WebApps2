@@ -1,0 +1,29 @@
+@use "@/app/tokens.scss" as *;
+@use "sass:color";
+@use "sass:map";
+
+.header {
+  width: 100%;
+  height: var(--header-height);
+  background: rgb(map.get($colors, "background-rgb"));
+  // background: linear-gradient(
+  //   180deg,
+  //   color.invert(rgb(map.get($colors, "background-rgb")), 0%),
+  //   color.invert(rgb(map.get($colors, "background-rgb")), 20%)
+  // );
+  border-bottom: 2px solid #000000;
+  display: flex;
+  justify-content: flex-start;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+
+  .title {
+    display: inline-block;
+    margin: auto auto 0 10px;
+    font-family: var(--font-mono);
+    font-weight: bold;
+    font-size: x-large;
+  }
+}

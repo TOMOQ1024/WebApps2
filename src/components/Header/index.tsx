@@ -2,6 +2,7 @@
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
+import styles from "./index.module.scss";
 
 export default function Header() {
   const { data: session } = useSession();
@@ -14,28 +15,13 @@ export default function Header() {
   }
 
   return (
-    <header>
+    <header className={styles.header}>
       <Link href="/" className="title">
-        tomoq apps
+        tomoq.net
       </Link>
-      {/* <input
-      type='button'
-      value='TOGGLE THEME(does not work)'
-      onClick={e=>ToggleTheme()}
-      /> */}
       <div>
         {session && (
           <>
-            {/* name:{session.user?.name}
-            image:
-            <Image
-              loader={() => src}
-              unoptimized
-              src={src}
-              alt="icon"
-              width={100}
-              height={100}
-            /> */}
             <button onClick={() => signOut()}>Sign out</button>
           </>
         )}
