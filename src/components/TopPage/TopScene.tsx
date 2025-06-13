@@ -1,6 +1,6 @@
 import { useRef, useMemo, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Mesh, ShaderMaterial } from "three";
+import { Mesh, ShaderMaterial, Vector2 } from "three";
 import { vertexShader } from "./Shaders/VertexShader";
 import { fragmentShader } from "./Shaders/FragmentShader";
 
@@ -8,7 +8,7 @@ interface TopSceneProps {
   scrollY: number;
 }
 
-const TopScene = ({ scrollY }: TopSceneProps) => {
+const TopScene: React.FC<TopSceneProps> = ({ scrollY }) => {
   const meshRef = useRef<Mesh>(null);
   const materialRef = useRef<ShaderMaterial>(null);
 
@@ -17,12 +17,7 @@ const TopScene = ({ scrollY }: TopSceneProps) => {
       uTime: { value: 0 },
       uScroll: { value: 0 },
       uRadius: { value: 2.0 }, // 描画範囲の半径
-      uResolution: {
-        value: [
-          typeof window !== "undefined" ? window.innerWidth : 1920,
-          typeof window !== "undefined" ? window.innerHeight : 1080,
-        ],
-      },
+      uResolution: { value: new Vector2(1, 1) },
     }),
     []
   );
@@ -31,10 +26,10 @@ const TopScene = ({ scrollY }: TopSceneProps) => {
   useEffect(() => {
     const handleResize = () => {
       if (materialRef.current) {
-        materialRef.current.uniforms.uResolution.value = [
+        materialRef.current.uniforms.uResolution.value.set(
           window.innerWidth,
-          window.innerHeight,
-        ];
+          window.innerHeight
+        );
       }
     };
 
@@ -44,8 +39,12 @@ const TopScene = ({ scrollY }: TopSceneProps) => {
 
   useFrame((state) => {
     if (materialRef.current) {
-      materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
+      materialRef.current.uniforms.uTime.value = state.clock.getElapsedTime();
       materialRef.current.uniforms.uScroll.value = scrollY;
+      materialRef.current.uniforms.uResolution.value.set(
+        state.size.width,
+        state.size.height
+      );
     }
   });
 
@@ -56,12 +55,13 @@ const TopScene = ({ scrollY }: TopSceneProps) => {
 
       {/* メインのポリゴン（全画面プレーン） */}
       <mesh ref={meshRef} position={[0, 0, 0]}>
-        <planeGeometry args={[10, 10]} />
+        <planeGeometry args={[20, 20]} />
         <shaderMaterial
           ref={materialRef}
           vertexShader={vertexShader}
           fragmentShader={fragmentShader}
           uniforms={uniforms}
+          transparent
         />
       </mesh>
     </>

@@ -6,7 +6,6 @@
   width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
-  padding-top: tokens.$header-height;
 }
 
 .canvasContainer {
@@ -37,7 +36,7 @@
 }
 
 .heroSection {
-  margin-top: calc(50vh + 30px); // ヘッダーの高さ分下げる
+  margin-top: calc(50vh + tokens.$header-height); // ヘッダーの高さ分下げる
   text-align: center;
 
   h1 {
@@ -112,45 +111,33 @@
 
 .interestsSection {
   .visualList {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
   }
 
   .visualItem {
-    position: sticky;
-    top: 50px; // ヘッダー分を考慮
-    height: 100vh;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    margin-bottom: 2rem;
-    transition: all 0.5s ease;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: transform 0.3s ease;
 
-    .visualCard {
-      padding: 3rem;
-      max-width: 600px;
-      border: 2px solid rgba(255, 255, 255, 0.8);
-      background: rgba(0, 0, 0, 0.7);
-      transition: all 0.5s ease;
-      backdrop-filter: blur(15px);
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
 
-      h3 {
-        font-size: 2rem;
-        margin: 0 0 1.5rem 0;
-        color: #ffffff;
-        border-bottom: 2px solid #ffffff;
-        padding-bottom: 1rem;
-        font-weight: bold;
-      }
+  .visualCard {
+    h3 {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
 
-      p {
-        color: #ffffff;
-        line-height: 1.8;
-        margin: 0;
-        font-size: 1.1rem;
-        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-      }
+    p {
+      font-size: 0.9rem;
+      color: #999;
+      line-height: 1.4;
     }
   }
 }
@@ -167,23 +154,6 @@
 
   .heroSection h1 {
     font-size: 3rem;
-  }
-
-  .visualItem {
-    height: 80vh;
-    margin-bottom: 1rem;
-
-    .visualCard {
-      padding: 2rem;
-
-      h3 {
-        font-size: 1.6rem;
-      }
-
-      p {
-        font-size: 1rem;
-      }
-    }
   }
 
   .contactSection {

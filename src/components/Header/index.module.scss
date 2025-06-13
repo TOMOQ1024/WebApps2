@@ -3,26 +3,82 @@
 @use "sass:map";
 
 .header {
-  width: 100%;
-  height: tokens.$header-height;
-  background: rgb(map.get(tokens.$colors, "background-rgb"));
-  // background: linear-gradient(
-  //   180deg,
-  //   color.invert(rgb(map.get($colors, "background-rgb")), 0%),
-  //   color.invert(rgb(map.get($colors, "background-rgb")), 20%)
-  // );
-  border-bottom: 2px solid rgb(map.get(tokens.$colors, "border-rgb"));
-  display: flex;
-  justify-content: flex-start;
   position: fixed;
   top: 0;
   left: 0;
+  width: 100%;
+  height: tokens.$header-height;
+  background: rgb(map.get(tokens.$colors, "background-rgb"));
+  border-bottom: 2px solid rgb(map.get(tokens.$colors, "border-rgb"));
   z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+}
 
-  .title {
-    display: inline-block;
-    margin: auto auto 0 10px;
-    font-weight: bold;
-    font-size: 1.5rem;
+.titleContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.2rem;
+  color: rgb(map.get(tokens.$colors, "foreground-rgb"));
+}
+
+.homeLink {
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+.pathLinks {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pathSegment {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pathLink {
+  text-decoration: none;
+  transition: color 0.3s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+.pathSeparator {
+  color: #666;
+}
+
+.currentPath {
+  color: #999;
+}
+
+.authContainer {
+  display: flex;
+  align-items: center;
+}
+
+.signOutButton {
+  background: none;
+  border: 1px solid #64ffda;
+  color: #64ffda;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(100, 255, 218, 0.1);
   }
 }
