@@ -6,17 +6,10 @@ import styles from "./index.module.scss";
 
 export default function Header() {
   const { data: session } = useSession();
-  const [isDark, setIsDark] = useState(false);
-  // const src = session && session.user?.image || '';
-
-  function ToggleTheme() {
-    console.log("toggle theme");
-    setIsDark((d) => !d);
-  }
 
   return (
     <header className={styles.header}>
-      <Link href="/" className="title">
+      <Link href="/" className={styles.title}>
         tomoq.net
       </Link>
       <div>

@@ -1,16 +1,20 @@
+@use "@/app/tokens.scss" as tokens;
+@use "sass:map";
+
 .topPage {
   position: relative;
   width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
+  padding-top: tokens.$header-height;
 }
 
 .canvasContainer {
   position: fixed;
-  top: 30px; // ヘッダーの高さ分下げる
+  top: tokens.$header-height; // ヘッダーの高さ分下げる
   left: 0;
   width: 100%;
-  height: calc(100vh - 30px); // ヘッダーの分を除く
+  height: calc(100vh - tokens.$header-height); // ヘッダーの分を除く
   z-index: 0;
   pointer-events: none; // スクロールを阻害しないように
 }
@@ -73,31 +77,12 @@
 }
 
 .contactSection {
-  .contactContainer {
-    display: flex;
-    justify-content: center;
-    margin: 2rem 0;
-  }
-
-  .contactCard {
-    padding: 2rem;
-    max-width: 600px;
-    border: 2px solid #000000;
-    background: rgba(255, 255, 255, 0.95);
-    transition: all 0.3s ease;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    p {
-      margin: 0 0 1.5rem 0;
-      color: #333333;
-      line-height: 1.6;
-      font-size: 1.1rem;
-      text-align: center;
-    }
+  p {
+    margin: 0 0 1.5rem 0;
+    color: #333333;
+    line-height: 1.6;
+    font-size: 1.1rem;
+    text-align: center;
   }
 
   .contactLinks {
@@ -121,46 +106,6 @@
     &:hover {
       background: #000000;
       color: #ffffff;
-    }
-  }
-}
-
-.licenseSection {
-  .licenseContainer {
-    display: flex;
-    justify-content: center;
-    margin: 2rem 0;
-  }
-
-  .licenseCard {
-    padding: 2rem;
-    max-width: 700px;
-    border: 2px solid #000000;
-    background: rgba(255, 255, 255, 0.95);
-    transition: all 0.3s ease;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    p {
-      margin: 0 0 1.5rem 0;
-      color: #333333;
-      line-height: 1.6;
-      font-size: 1rem;
-    }
-  }
-
-  .licenseNote {
-    margin-top: 1rem;
-    padding: 1rem;
-    background: rgba(0, 0, 0, 0.05);
-    border-left: 3px solid #000000;
-
-    small {
-      color: #666666;
-      font-style: italic;
     }
   }
 }

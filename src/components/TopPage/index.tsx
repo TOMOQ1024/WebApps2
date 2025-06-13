@@ -39,7 +39,7 @@ const TopPage = () => {
         <section className={styles.aboutSection}>
           <h2>About me</h2>
           <div className={styles.personalStory}>
-            <p>TODO: 自己紹介文を書く</p>
+            <p>私のみたいものと，私のみたいものをつくるものをつくります．</p>
           </div>
         </section>
 
@@ -50,84 +50,69 @@ const TopPage = () => {
             <div className={styles.visualItem}>
               <div className={styles.visualCard}>
                 <h3>関数アート</h3>
-                <p>
-                  波動関数と螺旋が織りなす流動的なパターン。数学関数の時間発展による美しい軌跡を描きます。
-                  三角関数の調和が生み出す自然な流れを感じてください。
-                </p>
+                <p>方程式や不等式で図形を描く</p>
               </div>
             </div>
 
             <div className={styles.visualItem}>
               <div className={styles.visualCard}>
                 <h3>フラクタル図形</h3>
-                <p>
-                  マンデルブロ集合をベースにした自己相似構造。複素平面での反復計算により現れる
-                  無限の複雑さを持つ境界線。ズームインしても繰り返される美しいパターンの世界です。
-                </p>
+                <p>関数の反復計算で図形を描く</p>
               </div>
             </div>
 
             <div className={styles.visualItem}>
               <div className={styles.visualCard}>
-                <h3>空間充填</h3>
-                <p>
-                  ボロノイ図をベースとした動的な空間分割パターン。各点から最も近い種子点によって
-                  定義される領域が織りなす有機的な構造。自然界でも見られる効率的な空間利用の法則です。
-                </p>
+                <h3>平面充填</h3>
+                <p>鏡で模様を描く</p>
               </div>
             </div>
 
             <div className={styles.visualItem}>
               <div className={styles.visualCard}>
-                <h3>非ユークリッド幾何学</h3>
-                <p>
-                  双曲面上のタイリングパターン。平行線の公理が成り立たない世界での幾何学。
-                  曲がった空間での距離と角度の概念が生み出す、直感に反する美しい秩序。
-                </p>
+                <h3>一様多胞体</h3>
+                <p>正多角形，正多面体を一般化する</p>
               </div>
             </div>
           </div>
         </section>
 
         <section className={styles.contactSection}>
-          <h2>Contact</h2>
-          <div className={styles.contactContainer}>
-            <div className={styles.contactCard}>
-              <p>
-                作品や技術についてお話ししたい方、コラボレーションのご相談など、
-                お気軽にお声かけください。
-              </p>
-              <div className={styles.contactLinks}>
-                <a
-                  href="https://github.com/TOMOQ1024"
-                  className={styles.contactLink}
-                >
-                  GitHub
-                </a>
-                <a
-                  href="mailto:contact@example.com"
-                  className={styles.contactLink}
-                >
-                  Email
-                </a>
-              </div>
-            </div>
+          <h2>Links</h2>
+          <p>
+            作品や技術についてお話ししたい方，コラボレーションのご相談など，お気軽にお声かけください．
+          </p>
+          <div className={styles.contactLinks}>
+            <a href="https://x.com/TOMOQ8192" className={styles.contactLink}>
+              X
+            </a>
+            <a
+              href="https://github.com/TOMOQ1024"
+              className={styles.contactLink}
+            >
+              GitHub
+            </a>
+            <a
+              href="https://tomoq8192.booth.pm/"
+              className={styles.contactLink}
+            >
+              Booth
+            </a>
+            <a
+              href="https://vrchat.com/home/user/usr_de301140-5558-4aa6-8b5c-8ca502b7ac0a"
+              className={styles.contactLink}
+            >
+              VRChat
+            </a>
           </div>
         </section>
 
         <section className={styles.licenseSection}>
           <h2>License</h2>
-          <div className={styles.licenseContainer}>
-            <div className={styles.licenseCard}>
-              <p>
-                このサイトのソースコードは MIT License の下で公開されています。
-                数学的ビジュアライゼーションのコードも学習・研究目的で自由にご利用いただけます。
-              </p>
-              <div className={styles.licenseNote}>
-                <small>作品の商用利用については事前にご相談ください。</small>
-              </div>
-            </div>
-          </div>
+          <p>
+            このサイトのソースコードは MIT License
+            の下で公開されており，学習・研究目的で自由にご利用いただけます．またサイト内でのスクリーンショットやダウンロード可能なコンテンツは目的にかかわらず自由にご利用いただけます．
+          </p>
         </section>
 
         {/* スクロールのためのスペーサー */}

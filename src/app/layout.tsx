@@ -5,8 +5,7 @@ import { authOptions } from "@/lib/authOptions";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { getServerSession } from "next-auth/next";
-import "@fontsource-variable/m-plus-1-code";
-import { FullHeightProvider } from "@/components/FullHeightProvider";
+import "@fontsource-variable/roboto-mono";
 import { IsClientCtxProvider } from "@/components/IsClientCtx";
 
 export default async function RootLayout({
@@ -24,7 +23,6 @@ export default async function RootLayout({
       */}
       <head />
       <body>
-        <FullHeightProvider />
         <NextAuthProvider session={session}>
           <IsClientCtxProvider>
             <Header />
