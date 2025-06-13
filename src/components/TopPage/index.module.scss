@@ -1,5 +1,6 @@
 @use "@/app/tokens.scss" as tokens;
 @use "sass:map";
+@use "sass:color";
 
 .topPage {
   position: relative;
@@ -22,7 +23,7 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  min-height: 300vh;
+  // min-height: 300vh;
   pointer-events: none;
 
   section {
@@ -30,8 +31,11 @@
     padding: 2rem;
     margin: 2rem auto;
     max-width: 800px;
-    background: rgba(255, 255, 255, 0.9);
-    border: 2px solid #000000;
+    background: color.adjust(
+      rgb(map.get(tokens.$colors, "background-rgb")),
+      $alpha: -0.1
+    );
+    border: 2px solid rgb(map.get(tokens.$colors, "border-rgb"));
   }
 }
 
@@ -42,43 +46,42 @@
   h1 {
     font-size: 4rem;
     margin: 0;
-    color: #000000;
     font-weight: bold;
   }
 
   p {
     font-size: 1.2rem;
     margin: 1rem 0;
-    color: #000000;
   }
 }
 
-.aboutSection h2,
-.interestsSection h2,
-.contactSection h2,
-.licenseSection h2 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  color: #000000;
-  border-bottom: 2px solid #000000;
-  padding-bottom: 0.5rem;
+.aboutSection,
+.interestsSection,
+.contactSection,
+.licenseSection {
+  h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid rgb(map.get(tokens.$colors, "border-rgb"));
+    padding-bottom: 0.5rem;
+  }
+  p {
+    line-height: 1.6;
+    font-size: 1.1rem;
+    text-align: center;
+  }
 }
 
 .aboutSection {
-  .personalStory {
-    p {
-      margin: 1rem 0;
-      color: #000000;
-      line-height: 1.8;
-      font-size: 1.1rem;
-    }
+  p {
+    margin: 1rem 0;
+    line-height: 1.8;
+    font-size: 1.1rem;
   }
 }
 
 .contactSection {
   p {
-    margin: 0 0 1.5rem 0;
-    color: #333333;
     line-height: 1.6;
     font-size: 1.1rem;
     text-align: center;
@@ -94,17 +97,15 @@
   .contactLink {
     display: inline-block;
     padding: 1rem 2rem;
-    border: 2px solid #000000;
-    background: #ffffff;
-    color: #000000;
+    border: 2px solid rgb(map.get(tokens.$colors, "border-rgb"));
+    background: rgb(map.get(tokens.$colors, "background-rgb"));
     text-decoration: none;
     font-weight: bold;
     transition: all 0.2s ease;
     font-family: var(--font-mono);
 
     &:hover {
-      background: #000000;
-      color: #ffffff;
+      filter: invert(1);
     }
   }
 }
@@ -118,14 +119,16 @@
   }
 
   .visualItem {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
+    background: color.adjust(
+      rgb(map.get(tokens.$colors, "background-rgb")),
+      $alpha: -0.1
+    );
+    border: 2px solid rgb(map.get(tokens.$colors, "border-rgb"));
     padding: 1rem;
-    transition: transform 0.3s ease;
 
-    &:hover {
-      transform: translateY(-2px);
-    }
+    // &:hover {
+    //   transform: scale(1.05);
+    // }
   }
 
   .visualCard {
@@ -136,14 +139,9 @@
 
     p {
       font-size: 0.9rem;
-      color: #999;
       line-height: 1.4;
     }
   }
-}
-
-.spacer {
-  height: 100vh;
 }
 
 @media (max-width: 768px) {
@@ -157,11 +155,6 @@
   }
 
   .contactSection {
-    .contactCard {
-      padding: 1.5rem;
-      margin: 0 1rem;
-    }
-
     .contactLinks {
       flex-direction: column;
 
@@ -169,13 +162,6 @@
         text-align: center;
         padding: 0.8rem 1.5rem;
       }
-    }
-  }
-
-  .licenseSection {
-    .licenseCard {
-      padding: 1.5rem;
-      margin: 0 1rem;
     }
   }
 }

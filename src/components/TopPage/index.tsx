@@ -38,9 +38,7 @@ const TopPage = () => {
 
         <section className={styles.aboutSection}>
           <h2>About me</h2>
-          <div className={styles.personalStory}>
-            <p>私のみたいものと，私のみたいものをつくるものをつくります．</p>
-          </div>
+          <p>私のみたいものと，私のみたいものをつくるものをつくります．</p>
         </section>
 
         <section className={styles.interestsSection}>
@@ -63,7 +61,7 @@ const TopPage = () => {
 
             <div className={styles.visualItem}>
               <div className={styles.visualCard}>
-                <h3>平面充填</h3>
+                <h3>一様平面充填</h3>
                 <p>鏡で模様を描く</p>
               </div>
             </div>
@@ -72,6 +70,20 @@ const TopPage = () => {
               <div className={styles.visualCard}>
                 <h3>一様多胞体</h3>
                 <p>正多角形，正多面体を一般化する</p>
+              </div>
+            </div>
+
+            <div className={styles.visualItem}>
+              <div className={styles.visualCard}>
+                <h3>仮想現実</h3>
+                <p>現実にはない景色をつくる</p>
+              </div>
+            </div>
+
+            <div className={styles.visualItem}>
+              <div className={styles.visualCard}>
+                <h3>シェーダー</h3>
+                <p>多量の計算で新しい体験をつくる</p>
               </div>
             </div>
           </div>
@@ -114,9 +126,6 @@ const TopPage = () => {
             の下で公開されており，学習・研究目的で自由にご利用いただけます．またサイト内でのスクリーンショットやダウンロード可能なコンテンツは目的にかかわらず自由にご利用いただけます．
           </p>
         </section>
-
-        {/* スクロールのためのスペーサー */}
-        <div className={styles.spacer}></div>
       </div>
     </div>
   );
