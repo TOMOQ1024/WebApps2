@@ -68,25 +68,10 @@
   p {
     line-height: 1.6;
     font-size: 1.1rem;
-    text-align: center;
-  }
-}
-
-.aboutSection {
-  p {
-    margin: 1rem 0;
-    line-height: 1.8;
-    font-size: 1.1rem;
   }
 }
 
 .contactSection {
-  p {
-    line-height: 1.6;
-    font-size: 1.1rem;
-    text-align: center;
-  }
-
   .contactLinks {
     display: flex;
     gap: 1rem;
@@ -101,11 +86,11 @@
     background: rgb(map.get(tokens.$colors, "background-rgb"));
     text-decoration: none;
     font-weight: bold;
-    transition: all 0.2s ease;
     font-family: var(--font-mono);
 
     &:hover {
       filter: invert(1);
+      // transform: scale(1.05);
     }
   }
 }
@@ -125,10 +110,6 @@
     );
     border: 2px solid rgb(map.get(tokens.$colors, "border-rgb"));
     padding: 1rem;
-
-    // &:hover {
-    //   transform: scale(1.05);
-    // }
   }
 
   .visualCard {

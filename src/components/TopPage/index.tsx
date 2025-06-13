@@ -122,7 +122,9 @@ const TopPage = () => {
         <section className={styles.licenseSection}>
           <h2>License</h2>
           <p>
-            このサイトのソースコードは MIT License
+            このサイトの
+            <a href="https://github.com/TOMOQ1024/WebApps2">ソースコード</a>は
+            MIT License
             の下で公開されており，学習・研究目的で自由にご利用いただけます．またサイト内でのスクリーンショットやダウンロード可能なコンテンツは目的にかかわらず自由にご利用いただけます．
           </p>
         </section>
