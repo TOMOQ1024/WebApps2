@@ -4,7 +4,7 @@ import Post from "./Post";
 import useSWRInfinite from "swr/infinite";
 import axios from "axios";
 import { IPost } from "@/types/IPost";
-import Core from "@/app/apps/maths/compdynam/Core";
+import Core from "@/app/apps/(maths)/compdynam/Core";
 import { useIsClient } from "@/components/IsClientCtx";
 import { useInView } from "react-intersection-observer";
 

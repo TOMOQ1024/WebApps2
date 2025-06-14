@@ -69,28 +69,24 @@
     line-height: 1.6;
     font-size: 1.1rem;
   }
-}
-
-.contactSection {
-  .contactLinks {
+  .linkWrapper {
     display: flex;
     gap: 1rem;
     justify-content: center;
     flex-wrap: wrap;
-  }
+    a {
+      display: inline-block;
+      padding: 1rem 2rem;
+      border: 2px solid rgb(map.get(tokens.$colors, "border-rgb"));
+      background: rgb(map.get(tokens.$colors, "background-rgb"));
+      text-decoration: none;
+      font-weight: bold;
+      font-family: var(--font-mono);
 
-  .contactLink {
-    display: inline-block;
-    padding: 1rem 2rem;
-    border: 2px solid rgb(map.get(tokens.$colors, "border-rgb"));
-    background: rgb(map.get(tokens.$colors, "background-rgb"));
-    text-decoration: none;
-    font-weight: bold;
-    font-family: var(--font-mono);
-
-    &:hover {
-      filter: invert(1);
-      // transform: scale(1.05);
+      &:hover {
+        filter: invert(1);
+        // transform: scale(1.05);
+      }
     }
   }
 }

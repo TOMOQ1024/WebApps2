@@ -18,7 +18,7 @@ const TopPage = () => {
   }, []);
 
   return (
-    <div className={styles.topPage}>
+    <main className={styles.topPage}>
       {/* Three.js Canvas - 画面いっぱいのサイズ */}
       <div className={styles.canvasContainer}>
         <Canvas
@@ -37,8 +37,12 @@ const TopPage = () => {
         </section>
 
         <section className={styles.aboutSection}>
-          <h2>About me</h2>
+          <h2>About this site</h2>
           <p>私のみたいものと，私のみたいものをつくるものをつくります．</p>
+          <div className={styles.linkWrapper}>
+            <a href="/apps">Apps</a>
+            {/* <a href="/works">Works</a> */}
+          </div>
         </section>
 
         <section className={styles.interestsSection}>
@@ -94,26 +98,11 @@ const TopPage = () => {
           <p>
             作品や技術についてお話ししたい方，コラボレーションのご相談など，お気軽にお声かけください．
           </p>
-          <div className={styles.contactLinks}>
-            <a href="https://x.com/TOMOQ8192" className={styles.contactLink}>
-              X
-            </a>
-            <a
-              href="https://github.com/TOMOQ1024"
-              className={styles.contactLink}
-            >
-              GitHub
-            </a>
-            <a
-              href="https://tomoq8192.booth.pm/"
-              className={styles.contactLink}
-            >
-              Booth
-            </a>
-            <a
-              href="https://vrchat.com/home/user/usr_de301140-5558-4aa6-8b5c-8ca502b7ac0a"
-              className={styles.contactLink}
-            >
+          <div className={styles.linkWrapper}>
+            <a href="https://x.com/TOMOQ8192">X</a>
+            <a href="https://github.com/TOMOQ1024">GitHub</a>
+            <a href="https://tomoq8192.booth.pm/">Booth</a>
+            <a href="https://vrchat.com/home/user/usr_de301140-5558-4aa6-8b5c-8ca502b7ac0a">
               VRChat
             </a>
           </div>
@@ -129,7 +118,7 @@ const TopPage = () => {
           </p>
         </section>
       </div>
-    </div>
+    </main>
   );
 };
 
