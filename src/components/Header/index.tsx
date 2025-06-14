@@ -2,6 +2,7 @@
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import ThemeToggle from "../ThemeToggle";
 import styles from "./index.module.scss";
 
 export default function Header() {
@@ -37,13 +38,16 @@ export default function Header() {
           </>
         )}
       </div>
-      <div className={styles.authContainer}>
+      <div className={styles.buttonContainer}>
+        <ThemeToggle />
+      </div>
+      {/* <div className={styles.authContainer}>
         {session && (
           <button onClick={() => signOut()} className={styles.signOutButton}>
             Sign out
           </button>
         )}
-      </div>
+      </div> */}
     </header>
   );
 }

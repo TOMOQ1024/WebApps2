@@ -1,10 +1,7 @@
-@use "@/styles/tokens" as tokens;
-@use "sass:map";
-
 .appsPage {
   min-height: 100vh;
   padding: 2rem;
-  background-color: rgb(map.get(tokens.$colors, "background-rgb"));
+  background-color: var(--background-color);
 }
 
 .heroSection {
@@ -30,8 +27,8 @@
 }
 
 .appCard {
-  background: rgb(map.get(tokens.$colors, "background-rgb"));
-  border: 2px solid rgb(map.get(tokens.$colors, "border-rgb"));
+  background: var(--background-color);
+  border: 2px solid var(--border-color);
   padding: 1rem;
 
   &:hover {

@@ -1,20 +1,21 @@
-@use "@/styles/tokens.scss" as tokens;
-@use "sass:color";
-@use "sass:map";
-
 .header {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: tokens.$header-height - 2px;
-  background: rgb(map.get(tokens.$colors, "background-rgb"));
-  border-bottom: 2px solid rgb(map.get(tokens.$colors, "border-rgb"));
+  right: 0;
+  height: calc(var(--header-height) - 2px);
+  background: var(--background-color);
+  border-bottom: 2px solid var(--border-color);
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2rem;
+  padding: 0 1rem;
+  box-sizing: border-box;
+
+  @media (min-width: 768px) {
+    padding: 0 2rem;
+  }
 }
 
 .titleContainer {
@@ -22,7 +23,9 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 1.2rem;
-  color: rgb(map.get(tokens.$colors, "foreground-rgb"));
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .homeLink {
@@ -62,6 +65,12 @@
 
 .currentPath {
   color: #999;
+}
+
+.buttonContainer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .authContainer {

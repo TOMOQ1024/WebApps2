@@ -1,0 +1,18 @@
+.themeToggle {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 2px solid var(--border-color);
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+
+  canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+}
