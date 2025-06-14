@@ -102,7 +102,7 @@ export const appList = {
   },
   glslfilter: {
     appName: "GLSL Filter",
-    tags: new Set(["utility", "webgl", "wip"]),
+    tags: new Set(["utility", "webgl"]),
   },
   "2d": {
     appName: "2D Graphing Calculator",
@@ -114,7 +114,7 @@ export const appList = {
   },
   compdynam: {
     appName: "CompDynam",
-    tags: new Set(["maths", "fractal", "wip"]),
+    tags: new Set(["maths", "fractal"]),
   },
   sierpinskigasket: {
     appName: "Sierpinski Gasket",
