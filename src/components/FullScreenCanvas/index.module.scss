@@ -1,0 +1,10 @@
+@use "@/styles/tokens.scss" as tokens;
+
+.canvasContainer {
+  position: fixed;
+  top: tokens.$header-height;
+  left: 0;
+  width: 100vw;
+  height: calc(100vh - tokens.$header-height);
+  z-index: 0;
+}

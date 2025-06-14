@@ -10,11 +10,9 @@ body {
   color: rgb(map.get(tokens.$colors, "foreground-rgb"));
   background: rgb(map.get(tokens.$colors, "background-rgb"));
   font-family: tokens.$font-family;
-}
-
-body {
   min-height: 100vh;
   padding-top: tokens.$header-height;
+  margin: 0;
 }
 
 a {

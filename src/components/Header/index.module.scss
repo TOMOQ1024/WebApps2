@@ -7,7 +7,7 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: tokens.$header-height;
+  height: tokens.$header-height - 2px;
   background: rgb(map.get(tokens.$colors, "background-rgb"));
   border-bottom: 2px solid rgb(map.get(tokens.$colors, "border-rgb"));
   z-index: 1000;

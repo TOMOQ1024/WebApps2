@@ -9,16 +9,6 @@
   overflow-x: hidden;
 }
 
-.canvasContainer {
-  position: fixed;
-  top: tokens.$header-height; // ヘッダーの高さ分下げる
-  left: 0;
-  width: 100%;
-  height: calc(100vh - tokens.$header-height); // ヘッダーの分を除く
-  z-index: 0;
-  pointer-events: none; // スクロールを阻害しないように
-}
-
 .content {
   position: relative;
   z-index: 1;

@@ -1,6 +1,8 @@
-import { useRef, useMemo, useEffect } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useRef, useMemo, useEffect, useState } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
 import { Mesh, ShaderMaterial, Vector2 } from "three";
+import { OrthographicCamera } from "@react-three/drei";
+
 import { vertexShader } from "./Shaders/VertexShader";
 import { fragmentShader } from "./Shaders/FragmentShader";
 
@@ -11,6 +13,7 @@ interface TopSceneProps {
 const TopScene: React.FC<TopSceneProps> = ({ scrollY }) => {
   const meshRef = useRef<Mesh>(null);
   const materialRef = useRef<ShaderMaterial>(null);
+  const { size } = useThree();
 
   const uniforms = useMemo(
     () => ({
@@ -50,12 +53,10 @@ const TopScene: React.FC<TopSceneProps> = ({ scrollY }) => {
 
   return (
     <>
-      {/* 環境光 */}
-      <ambientLight intensity={0.5} />
+      <OrthographicCamera makeDefault position={[0, 0, 1]} />
 
-      {/* メインのポリゴン（全画面プレーン） */}
-      <mesh ref={meshRef} position={[0, 0, 0]}>
-        <planeGeometry args={[20, 20]} />
+      <mesh ref={meshRef}>
+        <planeGeometry args={[size.width * 16, size.height * 16]} />
         <shaderMaterial
           ref={materialRef}
           vertexShader={vertexShader}

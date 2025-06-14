@@ -1,9 +1,9 @@
 "use client";
 
-import { Canvas } from "@react-three/fiber";
 import { useEffect, useState } from "react";
 import TopScene from "./TopScene";
 import styles from "./index.module.scss";
+import FullScreenCanvas from "../FullScreenCanvas";
 
 const TopPage = () => {
   const [scrollY, setScrollY] = useState(0);
@@ -19,15 +19,9 @@ const TopPage = () => {
 
   return (
     <main className={styles.topPage}>
-      {/* Three.js Canvas - 画面いっぱいのサイズ */}
-      <div className={styles.canvasContainer}>
-        <Canvas
-          camera={{ position: [0, 0, 5], fov: 75 }}
-          gl={{ antialias: true }}
-        >
-          <TopScene scrollY={scrollY} />
-        </Canvas>
-      </div>
+      <FullScreenCanvas>
+        <TopScene scrollY={scrollY} />
+      </FullScreenCanvas>
 
       {/* スクロール可能なコンテンツエリア */}
       <div className={styles.content}>
