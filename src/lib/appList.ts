@@ -6,6 +6,7 @@ export type AppTag =
   | "webgl"
   | "webgpu"
   | "fractal"
+  | "geometry"
   | "wip";
 
 /**
@@ -96,6 +97,51 @@ export const appList = {
     tags: new Set(["game", "wip"]),
   },
 
+  chaosgame: {
+    appName: "Chaos Game",
+    tags: new Set(["wip"]),
+  },
+  compdynam: {
+    appName: "CompDynam",
+    tags: new Set(["maths", "fractal"]),
+  },
+  graph2d: {
+    appName: "2D Graphing Calculator",
+    tags: new Set(["maths", "wip"]),
+  },
+  graph3d: {
+    appName: "3D Graphing Calculator",
+    tags: new Set(["maths", "wip"]),
+  },
+  h2tiling: {
+    appName: "H2 Tiling",
+    tags: new Set(["wip"]),
+  },
+  lifegame: {
+    appName: "Life Game",
+    tags: new Set(["wip"]),
+  },
+  mandelbrotset: {
+    appName: "Mandelbrot Set",
+    tags: new Set(["wip"]),
+  },
+  polychora: {
+    appName: "Polychora",
+    tags: new Set(["maths", "geometry"]),
+  },
+  polyhedra: {
+    appName: "Polyhedra",
+    tags: new Set(["maths", "geometry"]),
+  },
+  recursivetree: {
+    appName: "Recursive Tree",
+    tags: new Set(["wip"]),
+  },
+  sierpinskigasket: {
+    appName: "Sierpinski Gasket",
+    tags: new Set(["wip"]),
+  },
+
   diceroll: {
     appName: "Dice Roll",
     tags: new Set(["utility", "wip"]),
@@ -103,42 +149,6 @@ export const appList = {
   glslfilter: {
     appName: "GLSL Filter",
     tags: new Set(["utility", "webgl"]),
-  },
-  "2d": {
-    appName: "2D Graphing Calculator",
-    tags: new Set(["maths", "wip"]),
-  },
-  "3d": {
-    appName: "3D Graphing Calculator",
-    tags: new Set(["maths", "wip"]),
-  },
-  compdynam: {
-    appName: "CompDynam",
-    tags: new Set(["maths", "fractal"]),
-  },
-  sierpinskigasket: {
-    appName: "Sierpinski Gasket",
-    tags: new Set(["wip"]),
-  },
-  recursivetree: {
-    appName: "Recursive Tree",
-    tags: new Set(["wip"]),
-  },
-  mandelbrotset: {
-    appName: "Mandelbrot Set",
-    tags: new Set(["wip"]),
-  },
-  lifegame: {
-    appName: "Life Game",
-    tags: new Set(["wip"]),
-  },
-  chaosgame: {
-    appName: "Chaos Game",
-    tags: new Set(["wip"]),
-  },
-  h2tiling: {
-    appName: "H2 Tiling",
-    tags: new Set(["wip"]),
   },
 } as {
   [path: string]: {
