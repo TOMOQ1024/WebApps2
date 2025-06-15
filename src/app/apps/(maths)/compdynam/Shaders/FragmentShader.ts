@@ -25,7 +25,7 @@ vec2 compdynam(vec2 C) {
   vec2 z = c/* input z0 here */;
 
   for(int i = 0; i < 50/* input iter here */; i++) {
-    z = cprod(z, z)+c/* input func here */;
+    z = z/* input func here */;
     // if (40. < abs(log(length(z)))) break;
   }
   return z;

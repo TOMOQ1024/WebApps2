@@ -1,12 +1,7 @@
 "use client";
 
-import FullScreenCanvas from "@/components/FullScreenCanvas";
-import CompdynamScene from "./Scene";
+import Main from "./Main";
 
-export default function Main() {
-  return (
-    <FullScreenCanvas>
-      <CompdynamScene />
-    </FullScreenCanvas>
-  );
+export default function Page() {
+  return <Main />;
 }

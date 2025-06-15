@@ -1,5 +1,5 @@
 import GraphMgr from "@/src/GraphMgr";
-import { Parse } from "@/src/parser/Main";
+import { Parse } from "@/src/parser-old/Main";
 import axios from "axios";
 import { Dispatch, SetStateAction } from "react";
 import {

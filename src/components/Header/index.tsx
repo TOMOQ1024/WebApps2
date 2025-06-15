@@ -38,9 +38,7 @@ export default function Header() {
           </>
         )}
       </div>
-      <div className={styles.buttonContainer}>
-        <ThemeToggle />
-      </div>
+      <div className={styles.buttonContainer}>{/* <ThemeToggle /> */}</div>
       {/* <div className={styles.authContainer}>
         {session && (
           <button onClick={() => signOut()} className={styles.signOutButton}>

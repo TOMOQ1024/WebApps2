@@ -12,7 +12,7 @@ import {
 import axios from "axios";
 import { Vector2 } from "three";
 import { Dispatch, SetStateAction } from "react";
-import { Parse } from "@/src/parser/Main";
+import { Parse } from "@/src/parser-old/Main";
 import GraphMgr from "@/src/GraphMgr";
 
 export default class CDCore {
