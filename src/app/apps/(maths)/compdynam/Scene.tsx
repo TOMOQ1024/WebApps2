@@ -1,24 +1,19 @@
-import { useRef, useMemo, useEffect, useState } from "react";
+import { useRef, useMemo, useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Mesh, ShaderMaterial, Vector2 } from "three";
+import { ShaderMaterial, Vector2 } from "three";
 import { OrthographicCamera } from "@react-three/drei";
 
 import { vertexShader } from "./Shaders/VertexShader";
 import { fragmentShader } from "./Shaders/FragmentShader";
 
-interface TopSceneProps {
-  scrollY: number;
-}
-
-const TopScene: React.FC<TopSceneProps> = ({ scrollY }) => {
+const CompdynamScene = () => {
   const materialRef = useRef<ShaderMaterial>(null);
   const { size } = useThree();
 
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uScroll: { value: 0 },
-      uRadius: { value: 2.0 }, // 描画範囲の半径
+      uGraph: { value: { origin: new Vector2(0, 0), radius: 2.0 } }, // 描画範囲の半径
       uResolution: { value: new Vector2(1, 1) },
     }),
     []
@@ -42,7 +37,6 @@ const TopScene: React.FC<TopSceneProps> = ({ scrollY }) => {
   useFrame((state) => {
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value = state.clock.getElapsedTime();
-      materialRef.current.uniforms.uScroll.value = scrollY;
       materialRef.current.uniforms.uResolution.value.set(
         state.size.width,
         state.size.height
@@ -53,7 +47,6 @@ const TopScene: React.FC<TopSceneProps> = ({ scrollY }) => {
   return (
     <>
       <OrthographicCamera makeDefault position={[0, 0, 1]} />
-
       <mesh>
         <planeGeometry args={[size.width * 16, size.height * 16]} />
         <shaderMaterial
@@ -61,11 +54,10 @@ const TopScene: React.FC<TopSceneProps> = ({ scrollY }) => {
           vertexShader={vertexShader}
           fragmentShader={fragmentShader}
           uniforms={uniforms}
-          transparent
         />
       </mesh>
     </>
   );
 };
 
-export default TopScene;
+export default CompdynamScene;

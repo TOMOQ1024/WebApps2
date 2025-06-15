@@ -3,7 +3,7 @@
   top: 0;
   left: 0;
   right: 0;
-  height: calc(var(--header-height) - 2px);
+  height: var(--header-height);
   background: var(--background-color);
   border-bottom: 2px solid var(--border-color);
   z-index: 1000;

@@ -1,10 +1,12 @@
-import "./app.scss";
-import MainWrapper from "./components/MainWrapper";
+"use client";
 
-export const metadata = {
-  title: "Compdynam",
-};
+import FullScreenCanvas from "@/components/FullScreenCanvas";
+import CompdynamScene from "./Scene";
 
 export default function Main() {
-  return <MainWrapper />;
+  return (
+    <FullScreenCanvas>
+      <CompdynamScene />
+    </FullScreenCanvas>
+  );
 }
