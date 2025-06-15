@@ -10,6 +10,8 @@ struct Graph {
 };
 uniform Graph uGraph;
 uniform sampler2D uTexture;
+uniform int uRenderMode;
+uniform int uIterations;
 varying vec2 vPosition;
 
 ${complexFunctionShader}
@@ -24,7 +26,7 @@ vec2 compdynam(vec2 C) {
   vec2 c = vec2(C);
   vec2 z = c/* input z0 here */;
 
-  for(int i = 0; i < 50/* input iter here */; i++) {
+  for(int i = 0; i < uIterations; i++) {
     z = z/* input func here */;
     // if (40. < abs(log(length(z)))) break;
   }
@@ -35,7 +37,7 @@ void main() {
   vec2 z0 = vPosition / min(uResolution.x, uResolution.y) * uGraph.radius + uGraph.origin;
   vec2 a = compdynam(z0);
 
-  switch(0/* render mode here */) {
+  switch(uRenderMode) {
     case 0:/* hsv */
       {
         float b = a.x != 0. ? atan(a.y, a.x) : a.y < 0. ? -PI / 2. : PI / 2.;

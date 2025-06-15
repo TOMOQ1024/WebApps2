@@ -72,6 +72,8 @@ export default function Canvas({ shader, onGraphChange }: CanvasProps) {
             radius: 2,
           },
         },
+        uIterations: { value: 50 },
+        uRenderMode: { value: 0 },
       },
       vertexShader: vertexShader,
       fragmentShader: shader,
@@ -233,6 +235,9 @@ export default function Canvas({ shader, onGraphChange }: CanvasProps) {
     };
 
     window.addEventListener("resize", handleResize);
+
+    // 初期値をシェーダーに適用
+    onGraphChange(graphManagerRef.current.getGraph());
 
     return () => {
       window.removeEventListener("resize", handleResize);

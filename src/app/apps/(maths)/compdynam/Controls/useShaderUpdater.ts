@@ -1,7 +1,8 @@
 import { useState, useCallback } from "react";
+import { fragmentShader } from "../Shaders/FragmentShader";
 
-export function useShaderUpdater(initialShader: string) {
-  const [shader, setShader] = useState(initialShader);
+export function useShaderUpdater() {
+  const [shader, setShader] = useState(fragmentShader);
 
   const updateShader = useCallback(
     (updates: {
@@ -10,7 +11,7 @@ export function useShaderUpdater(initialShader: string) {
       renderMode?: number;
     }) => {
       setShader(() => {
-        let newShader = initialShader;
+        let newShader = fragmentShader;
 
         if (updates.iterations !== undefined) {
           newShader = newShader.replace(
