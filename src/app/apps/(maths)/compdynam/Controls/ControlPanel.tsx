@@ -27,22 +27,28 @@ export default function ControlPanel({
   const [latex, setLatex] = useState("z^2+c");
   const [renderMode, setRenderMode] = useState(0);
 
+  // 初期値の適用
   useEffect(() => {
     onIterationsChange(iterations);
-  }, [iterations, onIterationsChange]);
-
-  useEffect(() => {
     try {
       const glslCode = latexToGLSL(latex);
       onFunctionChange(glslCode);
     } catch (error) {
+      console.error("Failed to parse initial LaTeX:", error);
+    }
+    onRenderModeChange(renderMode);
+  }, []); // 初回マウント時のみ実行
+
+  const handleLatexChange = (mathField: any) => {
+    const newLatex = mathField.latex();
+    setLatex(newLatex);
+    try {
+      const glslCode = latexToGLSL(newLatex);
+      onFunctionChange(glslCode);
+    } catch (error) {
       console.error("Failed to parse LaTeX:", error);
     }
-  }, [latex, onFunctionChange]);
-
-  useEffect(() => {
-    onRenderModeChange(renderMode);
-  }, [renderMode, onRenderModeChange]);
+  };
 
   return (
     <div className={styles.controlPanel}>
@@ -61,7 +67,7 @@ export default function ControlPanel({
         <label className={styles.label}>関数 f(z)</label>
         <EditableMathField
           latex={latex}
-          onChange={(mathField) => setLatex(mathField.latex())}
+          onChange={handleLatexChange}
           className={styles.input}
         />
       </div>
