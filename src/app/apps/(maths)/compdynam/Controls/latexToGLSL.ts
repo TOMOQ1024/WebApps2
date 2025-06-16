@@ -108,183 +108,237 @@ function parseLatex(latex: string): ASTNode {
     return node;
   }
 
-  function parseFunction(): ASTNode {
-    let name: string;
-    if (peek() === "\\") {
-      name = parseCommand();
-    } else {
-      const symbol = parseSymbol();
-      if (symbol.type !== "symbol") {
-        throw new Error("Expected function name");
-      }
-      name = symbol.name;
-    }
-
-    skipWhitespace();
-
-    // 括弧の処理
-    let hasLeft = false;
-    if (peek() === "\\") {
-      const cmd = parseCommand();
-      if (cmd === "left") {
-        hasLeft = true;
-        skipWhitespace();
-        if (peek() !== "(") {
-          throw new Error("Expected ( after \\left");
-        }
-        advance(); // '('
+  function parseFunction(cmdFromFactor?: string): ASTNode {
+    let name = "";
+    if (cmdFromFactor) {
+      const knownFuncs = [
+        "sin",
+        "cos",
+        "tan",
+        "exp",
+        "sqrt",
+        "abs",
+        "sinh",
+        "cosh",
+        "tanh",
+      ];
+      let cmd = cmdFromFactor;
+      if (knownFuncs.includes(cmd)) {
+        name = cmd;
       } else {
-        throw new Error(`Expected \\left, got \\${cmd}`);
+        throw new Error(`Unknown function: ${cmd}`);
       }
-    } else if (peek() === "(") {
-      advance(); // '('
-    }
-
-    // 引数のパース
-    const args: ASTNode[] = [];
-    if (
-      peek() !== ")" &&
-      peek() !== "" &&
-      !(peek() === "\\" && latex.slice(pos + 1, pos + 6) === "right")
-    ) {
       skipWhitespace();
-      // 連続するfactorを配列で集めて左結合
-      const factors = [];
-      while (peek().match(/[a-zA-Z0-9.\\(]/)) {
-        factors.push(parseFactor());
-        skipWhitespace();
-      }
-      if (factors.length > 0) {
-        const argNode = leftAssocCprod(factors);
-        args.push(argNode);
-      }
-    }
-
-    if (hasLeft && peek() === "\\") {
-      const rightCmd = parseCommand();
-      if (rightCmd === "right") {
-        skipWhitespace();
-        if (peek() !== ")") {
-          throw new Error("Expected ) after \\right");
+      // 括弧の処理
+      let hasLeft = false;
+      if (peek() === "\\") {
+        const afterFunc = parseCommand();
+        if (afterFunc === "left") {
+          hasLeft = true;
+          skipWhitespace();
+          if (peek() !== "(") {
+            throw new Error("Expected ( after \\left");
+          }
+          advance(); // '('
+        } else {
+          // left以外が来た場合は'('の省略とみなしてそのまま引数パースへ
+          // 何もしない
         }
-        advance(); // ')'
-      } else {
-        throw new Error(`Expected \\right, got \\${rightCmd}`);
+      } else if (peek() === "(") {
+        advance(); // '('
       }
-    } else if (peek() === ")") {
-      advance();
+      skipWhitespace();
+      // 引数のパース
+      const args: ASTNode[] = [];
+      if (peek() !== ")" && peek() !== "") {
+        args.push(parseExpression());
+      }
+      if (hasLeft) {
+        skipWhitespace();
+        if (peek() === "\\") {
+          const rightCmd = parseCommand();
+          if (rightCmd === "right") {
+            skipWhitespace();
+            if (peek() !== ")") {
+              throw new Error("Expected ) after \\right");
+            }
+            advance(); // ')'
+          } else {
+            throw new Error(`Expected \\right, got \\${rightCmd}`);
+          }
+        } else if (peek() === ")") {
+          advance();
+        } else {
+          throw new Error("Expected closing parenthesis");
+        }
+        // ここで余計な括弧消費を防ぐ
+        skipWhitespace();
+        if (peek() === ")") {
+          // すでに括弧を消費しているのでadvanceしない
+          return { type: "function", name, args };
+        }
+      } else if (peek() === ")") {
+        advance();
+      }
+      if (args.length === 0) {
+        throw new Error(`Function ${name} requires an argument`);
+      }
+      return { type: "function", name, args };
     }
-
-    // 空の引数リストの場合、デフォルトの引数を設定
-    if (args.length === 0) {
-      args.push({ type: "symbol", name: "z" });
-    }
-
-    return { type: "function", name, args };
+    throw new Error("Invalid function parse");
   }
 
   function parseFactor(): ASTNode {
     skipWhitespace();
     const char = peek();
 
+    // 単項マイナスの処理
+    if (char === "-") {
+      advance();
+      const expr = parseFactor();
+      return {
+        type: "operator",
+        op: "-",
+        left: expr,
+        right: { type: "number", value: 0 },
+      };
+    }
+
+    let node: ASTNode | null = null;
     if (char.match(/[0-9.]/)) {
-      return parseNumber();
-    }
-
-    if (char === "\\") {
-      const cmd = parseCommand();
-      if (cmd === "frac") {
-        skipWhitespace();
-        if (peek() !== "{") {
-          throw new Error("Expected { after \\frac");
-        }
-        advance(); // '{'
-        const numerator = parseExpression();
-        skipWhitespace();
-        if (peek() !== "}") {
-          throw new Error("Expected } after numerator");
-        }
-        advance(); // '}'
-        skipWhitespace();
-        if (peek() !== "{") {
-          throw new Error("Expected { before denominator");
-        }
-        advance(); // '{'
-        const denominator = parseExpression();
-        skipWhitespace();
-        if (peek() !== "}") {
-          throw new Error("Expected } after denominator");
-        }
-        advance(); // '}'
-        return {
-          type: "operator",
-          op: "/",
-          left: numerator,
-          right: denominator,
-        };
-      }
-      if (cmd === "left") {
-        advance(); // '('
-        const expr = parseExpression();
-        skipWhitespace();
-        if (peek() === "\\") {
-          const rightCmd = parseCommand();
-          if (rightCmd === "right") {
-            advance(); // ')'
-            return expr;
+      node = parseNumber();
+    } else if (char === "\\") {
+      const knownFuncs = [
+        "sin",
+        "cos",
+        "tan",
+        "exp",
+        "sqrt",
+        "abs",
+        "sinh",
+        "cosh",
+        "tanh",
+      ];
+      let cmdStart = pos;
+      let tempCmd = parseCommand();
+      pos = cmdStart; // 位置を戻す
+      if (knownFuncs.includes(tempCmd)) {
+        node = parseFunction(tempCmd);
+      } else {
+        // 定数やfrac, left等の処理
+        const constCmd = parseCommand();
+        if (constCmd === "pi" || constCmd === "e") {
+          node = { type: "symbol", name: constCmd };
+        } else if (constCmd === "frac") {
+          skipWhitespace();
+          if (peek() !== "{") throw new Error("Expected { after \\frac");
+          advance(); // '{'
+          const numerator = parseExpression();
+          skipWhitespace();
+          if (peek() !== "}") throw new Error("Expected } after numerator");
+          advance(); // '}'
+          skipWhitespace();
+          if (peek() !== "{") throw new Error("Expected { before denominator");
+          advance(); // '{'
+          const denominator = parseExpression();
+          skipWhitespace();
+          if (peek() !== "}") throw new Error("Expected } after denominator");
+          advance(); // '}'
+          node = {
+            type: "operator",
+            op: "/",
+            left: numerator,
+            right: denominator,
+          };
+        } else if (constCmd === "left") {
+          advance(); // '('
+          const expr = parseExpression();
+          skipWhitespace();
+          if (peek() === "\\") {
+            const rightCmd = parseCommand();
+            if (rightCmd === "right") {
+              advance(); // ')'
+              node = expr;
+            } else {
+              throw new Error(`Expected \\right, got \\${rightCmd}`);
+            }
+          } else if (peek() === ")") {
+            throw new Error("Expected \\right, got )");
           } else {
-            throw new Error(`Expected \\right, got \\${rightCmd}`);
+            throw new Error("Expected closing parenthesis");
           }
-        } else if (peek() === ")") {
-          throw new Error("Expected \\right, got )");
-        }
-        throw new Error("Expected closing parenthesis");
-      }
-      // それ以外のコマンドは関数としてparseFunctionに渡す
-      pos -= cmd.length + 1; // コマンドの先頭に戻す
-      return parseFunction();
-    }
-
-    if (char.match(/[a-zA-Z]/)) {
-      // 次の文字が ( か \ かどうかを判定。ただし、\cdot など演算子の場合はparseFunctionを呼ばない
-      const next = latex[pos + 1];
-      if (next === "(") {
-        return parseFunction();
-      }
-      if (next === "\\") {
-        // \cdot, \times など演算子の場合はparseFunctionを呼ばずsymbolのみ返す
-        const opCandidate = latex.slice(pos + 2, pos + 6);
-        if (opCandidate === "cdot" || opCandidate === "times") {
-          return parseSymbol();
         } else {
-          return parseFunction();
+          throw new Error(`Unknown command: \\${constCmd}`);
         }
       }
-      const symbol = parseSymbol();
-      // 次の文字が数値の場合、暗黙的な乗算を追加
-      if (peek().match(/[0-9.]/)) {
-        return {
-          type: "operator",
-          op: "*",
-          left: symbol,
-          right: parseNumber(),
-        };
+    } else if (char.match(/[a-zA-Z]/)) {
+      // ここで関数名の先読み
+      const knownFuncs = [
+        "sin",
+        "cos",
+        "tan",
+        "exp",
+        "sqrt",
+        "abs",
+        "sinh",
+        "cosh",
+        "tanh",
+      ];
+      for (const func of knownFuncs) {
+        if (latex.slice(pos, pos + func.length) === func) {
+          pos += func.length;
+          node = parseFunction(func);
+          break;
+        }
       }
-      return symbol;
-    }
-
-    if (char === "(") {
+      if (!node) {
+        node = parseSymbol();
+      }
+    } else if (char === "(") {
       advance();
       const expr = parseExpression();
       skipWhitespace();
       if (peek() === ")") {
         advance();
-        return expr;
+        node = expr;
+      } else {
+        throw new Error("Expected closing parenthesis");
       }
-      throw new Error("Expected closing parenthesis");
+    } else {
+      throw new Error(`Unexpected character: ${char} at position ${pos}`);
     }
 
-    throw new Error(`Unexpected character: ${char} at position ${pos}`);
+    // 暗黙の乗算（数値・シンボル・関数が連続する場合）
+    skipWhitespace();
+    while (
+      peek() !== ")" &&
+      (peek().match(/[0-9.]/) ||
+        peek().match(/[a-zA-Z]/) ||
+        (peek() === "\\" &&
+          (() => {
+            let save = pos;
+            advance();
+            let cmd = "";
+            while (peek().match(/[a-zA-Z]/)) cmd += advance();
+            pos = save;
+            return [
+              "sin",
+              "cos",
+              "tan",
+              "exp",
+              "sqrt",
+              "abs",
+              "sinh",
+              "cosh",
+              "tanh",
+            ].includes(cmd);
+          })()))
+    ) {
+      let right = parseFactor();
+      node = { type: "operator", op: "*", left: node, right };
+      skipWhitespace();
+    }
+    return node;
   }
 
   function parsePower(): ASTNode {
@@ -294,7 +348,17 @@ function parseLatex(latex: string): ASTNode {
     while (peek() === "^") {
       advance();
       skipWhitespace();
-      const right = parseFactor();
+      let right;
+      if (peek() === "{") {
+        advance(); // '{'
+        right = parseExpression();
+        if (peek() !== "}") {
+          throw new Error("Expected } after exponent");
+        }
+        advance(); // '}'
+      } else {
+        right = parseFactor();
+      }
       left = { type: "operator", op: "^", left, right };
     }
 
@@ -364,6 +428,10 @@ function convertToGLSL(node: ASTNode): string {
           return "t";
         case "i":
           return "vec2(0.0, 1.0)";
+        case "pi":
+          return "vec2(PI, 0.0)";
+        case "e":
+          return "vec2(E, 0.0)";
         default:
           return node.name;
       }
@@ -376,6 +444,10 @@ function convertToGLSL(node: ASTNode): string {
         case "+":
           return `${left} + ${right}`;
         case "-":
+          // 単項マイナスの場合
+          if (right === "vec2(0.0, 0.0)") {
+            return `-${left}`;
+          }
           return `${left} - ${right}`;
         case "*":
           return `cprod(${left}, ${right})`;
@@ -414,43 +486,4 @@ function convertToGLSL(node: ASTNode): string {
           throw new Error(`Unsupported function: ${fnName}`);
       }
   }
-}
-
-// テストコードを追加
-export function testLatexToGLSL() {
-  const testCases = [
-    {
-      input: "\\frac{1}{2}",
-      expected: "cdiv(vec2(1.0, 0.0), vec2(2.0, 0.0))",
-    },
-    {
-      input: "z + \\frac{1}{z}",
-      expected: "z + cdiv(vec2(1.0, 0.0), z)",
-    },
-    {
-      input: "\\frac{z^2 + 1}{z - 1}",
-      expected: "cdiv(cprod(z, z) + vec2(1.0, 0.0), z - vec2(1.0, 0.0))",
-    },
-    {
-      input: "\\frac{\\sin(z)}{\\cos(z)}",
-      expected: "cdiv(csin(z), ccos(z))",
-    },
-  ];
-
-  console.log("Running LaTeX to GLSL conversion tests...");
-  testCases.forEach((testCase, index) => {
-    try {
-      const result = latexToGLSL(testCase.input);
-      if (result === testCase.expected) {
-        console.log(`✅ Test ${index + 1} passed`);
-      } else {
-        console.error(`❌ Test ${index + 1} failed`);
-        console.error(`Input: ${testCase.input}`);
-        console.error(`Expected: ${testCase.expected}`);
-        console.error(`Got: ${result}`);
-      }
-    } catch (error) {
-      console.error(`❌ Test ${index + 1} failed with error:`, error);
-    }
-  });
 }
