@@ -36,6 +36,12 @@ function parseLatex(latex: string): ASTNode {
 
   function skipWhitespace() {
     while (peek().match(/\s/)) advance();
+    // '\ ' も空白としてスキップ
+    while (peek() === "\\" && latex[pos + 1] === " ") {
+      advance(); // '\'
+      advance(); // ' '
+      while (peek().match(/\s/)) advance();
+    }
   }
 
   function parseCommand(): string {
@@ -69,6 +75,9 @@ function parseLatex(latex: string): ASTNode {
 
   function parseNumber(): ASTNode {
     let num = "";
+    if (peek() === ".") {
+      num += advance();
+    }
     while (peek().match(/[0-9.]/)) {
       num += advance();
     }
@@ -76,11 +85,27 @@ function parseLatex(latex: string): ASTNode {
   }
 
   function parseSymbol(): ASTNode {
-    let name = "";
+    // 1文字ずつsymbolノードに分割し、暗黙の乗算でつなぐ
+    let nodes: ASTNode[] = [];
     while (peek().match(/[a-zA-Z]/)) {
-      name += advance();
+      nodes.push({ type: "symbol", name: advance() });
     }
-    return { type: "symbol", name };
+    if (nodes.length === 0) throw new Error("Expected symbol");
+    let node = nodes[0];
+    for (let i = 1; i < nodes.length; i++) {
+      node = { type: "operator", op: "*", left: node, right: nodes[i] };
+    }
+    return node;
+  }
+
+  // 左結合でcprodを作るヘルパー
+  function leftAssocCprod(factors: ASTNode[]): ASTNode {
+    if (factors.length === 0) throw new Error("No factors");
+    let node = factors[0];
+    for (let i = 1; i < factors.length; i++) {
+      node = { type: "operator", op: "*", left: node, right: factors[i] };
+    }
+    return node;
   }
 
   function parseFunction(): ASTNode {
@@ -113,44 +138,41 @@ function parseLatex(latex: string): ASTNode {
       }
     } else if (peek() === "(") {
       advance(); // '('
-    } else {
-      throw new Error("Expected ( or \\left(");
     }
 
+    // 引数のパース
     const args: ASTNode[] = [];
-    while (true) {
-      if (peek() === "\\") {
-        const cmd = parseCommand();
-        if (hasLeft && cmd === "right") {
-          skipWhitespace();
-          if (peek() !== ")") {
-            throw new Error("Expected ) after \\right");
-          }
-          advance(); // ')'
-          break;
-        } else if (!hasLeft && cmd === "right") {
-          throw new Error("Unexpected \\right without \\left");
-        } else {
-          throw new Error(
-            `Expected ${hasLeft ? "\\right" : ")"}, got \\${cmd}`
-          );
-        }
-      } else if (peek() === ")") {
-        if (hasLeft) {
-          throw new Error("Expected \\right, got )");
-        }
-        advance();
-        break;
-      } else if (peek() === "") {
-        throw new Error(
-          "Unexpected end of input while parsing function arguments"
-        );
-      }
-      args.push(parseExpression());
-      if (peek() === ",") {
-        advance();
+    if (
+      peek() !== ")" &&
+      peek() !== "" &&
+      !(peek() === "\\" && latex.slice(pos + 1, pos + 6) === "right")
+    ) {
+      skipWhitespace();
+      // 連続するfactorを配列で集めて左結合
+      const factors = [];
+      while (peek().match(/[a-zA-Z0-9.\\(]/)) {
+        factors.push(parseFactor());
         skipWhitespace();
       }
+      if (factors.length > 0) {
+        const argNode = leftAssocCprod(factors);
+        args.push(argNode);
+      }
+    }
+
+    if (hasLeft && peek() === "\\") {
+      const rightCmd = parseCommand();
+      if (rightCmd === "right") {
+        skipWhitespace();
+        if (peek() !== ")") {
+          throw new Error("Expected ) after \\right");
+        }
+        advance(); // ')'
+      } else {
+        throw new Error(`Expected \\right, got \\${rightCmd}`);
+      }
+    } else if (peek() === ")") {
+      advance();
     }
 
     // 空の引数リストの場合、デフォルトの引数を設定
@@ -165,7 +187,7 @@ function parseLatex(latex: string): ASTNode {
     skipWhitespace();
     const char = peek();
 
-    if (char.match(/[0-9]/)) {
+    if (char.match(/[0-9.]/)) {
       return parseNumber();
     }
 
@@ -217,20 +239,38 @@ function parseLatex(latex: string): ASTNode {
           throw new Error("Expected \\right, got )");
         }
         throw new Error("Expected closing parenthesis");
-      } else {
-        // 単項関数の場合
-        skipWhitespace();
-        const arg = parseFactor();
-        return { type: "function", name: cmd, args: [arg] };
       }
+      // それ以外のコマンドは関数としてparseFunctionに渡す
+      pos -= cmd.length + 1; // コマンドの先頭に戻す
+      return parseFunction();
     }
 
     if (char.match(/[a-zA-Z]/)) {
+      // 次の文字が ( か \ かどうかを判定。ただし、\cdot など演算子の場合はparseFunctionを呼ばない
       const next = latex[pos + 1];
-      if (next === "(" || next === "\\") {
+      if (next === "(") {
         return parseFunction();
       }
-      return parseSymbol();
+      if (next === "\\") {
+        // \cdot, \times など演算子の場合はparseFunctionを呼ばずsymbolのみ返す
+        const opCandidate = latex.slice(pos + 2, pos + 6);
+        if (opCandidate === "cdot" || opCandidate === "times") {
+          return parseSymbol();
+        } else {
+          return parseFunction();
+        }
+      }
+      const symbol = parseSymbol();
+      // 次の文字が数値の場合、暗黙的な乗算を追加
+      if (peek().match(/[0-9.]/)) {
+        return {
+          type: "operator",
+          op: "*",
+          left: symbol,
+          right: parseNumber(),
+        };
+      }
+      return symbol;
     }
 
     if (char === "(") {
@@ -265,11 +305,26 @@ function parseLatex(latex: string): ASTNode {
     let left = parsePower();
     skipWhitespace();
 
-    while (peek().match(/[*\/]/)) {
-      const op = advance();
+    while (
+      peek().match(/[*\/]/) ||
+      (peek() === "\\" && latex.slice(pos + 1, pos + 5) === "cdot")
+    ) {
+      let op: string;
+      if (peek() === "*") {
+        op = advance();
+      } else if (peek() === "/") {
+        op = advance();
+      } else if (peek() === "\\" && latex.slice(pos + 1, pos + 5) === "cdot") {
+        advance(); // '\'
+        for (let i = 0; i < 4; i++) advance(); // 'cdot'
+        op = "*";
+      } else {
+        throw new Error("Unknown operator in parseTerm");
+      }
       skipWhitespace();
       const right = parsePower();
       left = { type: "operator", op, left, right };
+      skipWhitespace();
     }
 
     return left;
