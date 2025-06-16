@@ -6,6 +6,7 @@ import styles from "./Canvas.module.scss";
 
 interface CanvasProps {
   shader: string;
+  graph: GraphMgr;
   onGraphChange: (graph: GraphMgr) => void;
   iterations: number;
   renderMode: number;
@@ -13,6 +14,7 @@ interface CanvasProps {
 
 export default function Canvas({
   shader,
+  graph,
   onGraphChange,
   iterations,
   renderMode,
@@ -22,13 +24,18 @@ export default function Canvas({
   );
   const containerRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
-  const graphManagerRef = useRef<GraphMgr>(new GraphMgr());
+  const graphManagerRef = useRef<GraphMgr>(graph);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.OrthographicCamera | null>(null);
   const materialRef = useRef<THREE.ShaderMaterial | null>(null);
   const pointersRef = useRef<
     { pointerId: number; clientX: number; clientY: number }[]
   >([]);
+
+  // graphの変更を監視
+  useEffect(() => {
+    graphManagerRef.current = graph;
+  }, [graph]);
 
   // 初期解像度の設定
   useEffect(() => {

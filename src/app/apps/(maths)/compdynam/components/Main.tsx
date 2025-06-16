@@ -1,8 +1,9 @@
 import { useState } from "react";
-import ControlPanel from "./Components/ControlPanel";
-import Canvas from "./Components/Canvas";
+import ControlPanel from "./ControlPanel";
+import Canvas from "./Canvas";
+import ControlButtons from "./ControlButtons";
 import GraphMgr from "@/src/GraphMgr";
-import { fragmentShader } from "./Shaders/FragmentShader";
+import { fragmentShader } from "../Shaders/FragmentShader";
 
 export default function Main() {
   const [shader, setShader] = useState(fragmentShader);
@@ -10,10 +11,15 @@ export default function Main() {
   const [iterations, setIterations] = useState(50);
   const [renderMode, setRenderMode] = useState(0);
 
+  const handleResetGraph = () => {
+    setGraph(new GraphMgr());
+  };
+
   return (
-    <div>
+    <main className="relative">
       <Canvas
         shader={shader}
+        graph={graph}
         onGraphChange={setGraph}
         iterations={iterations}
         renderMode={renderMode}
@@ -37,6 +43,11 @@ export default function Main() {
         }}
         onRenderModeChange={setRenderMode}
       />
-    </div>
+      <ControlButtons
+        onResetGraph={handleResetGraph}
+        onRenderModeChange={setRenderMode}
+        currentRenderMode={renderMode}
+      />
+    </main>
   );
 }

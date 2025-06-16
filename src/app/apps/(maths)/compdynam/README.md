@@ -6,6 +6,11 @@
 
 ![スクリーンショット](./ss.png)
 
+## 操作方法(共通)
+
+- パレットアイコンのボタンで描画モードを切り替える
+- 家アイコンのボタンで表示領域をリセットする
+
 ## 操作方法(PC)
 
 - キャンバス上でのマウスドラッグで移動
@@ -16,14 +21,12 @@
 - キャンバス上でのタッチドラッグで移動
 - キャンバス上でのピンチでズームイン・アウト
 
-## 主なファイル
+## 今後の課題
 
-- [Components](./Components)
-  - [Canvas.tsx](./Components/Canvas.tsx)
-  - [ControlPanel.tsx](./Components/ControlPanel.tsx)
-- [UseShaderUpdater.ts](./UseShaderUpdater.ts)
-- [Shaders](./Shaders)
-  - [FragmentShader.ts](./Shaders/FragmentShader.ts)
-  - [VertexShader.ts](./Shaders/VertexShader.ts)
-- [Main.tsx](./Main.tsx)
-- [README.md](./README.md)
+- 計算モードの実装
+
+  初期からの実装(1 フレームごとに指定した反復回数分計算する方法)に加えて，キャンバスと同じサイズのバッファ(符号付き浮動小数点)を別途 2 つ用意して，ダブルバッファリングの要領でより小さな負荷で計算できる方法を実装する．`ControlButtons`の計算モード切り替えボタンを押すと，計算モードが切り替わるようにする．
+
+- 不正な数式入力時のエラー処理
+
+  画面上にエラーを表示する
