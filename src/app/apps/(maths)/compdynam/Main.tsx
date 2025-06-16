@@ -1,16 +1,12 @@
 import { useState } from "react";
-import { useShaderUpdater } from "./Controls/useShaderUpdater";
-import ControlPanel from "./Controls/ControlPanel";
-import Canvas from "./components/Canvas";
-import { Graph } from "./Controls/GraphManager";
-import * as THREE from "three";
+import ControlPanel from "./Components/ControlPanel";
+import Canvas from "./Components/Canvas";
+import GraphMgr from "@/src/GraphMgr";
+import { fragmentShader } from "./Shaders/FragmentShader";
 
 export default function Main() {
-  const { shader, updateShader } = useShaderUpdater();
-  const [graph, setGraph] = useState<Graph>({
-    origin: new THREE.Vector2(0, 0),
-    radius: 2,
-  });
+  const [shader, setShader] = useState(fragmentShader);
+  const [graph, setGraph] = useState<GraphMgr>(new GraphMgr());
   const [iterations, setIterations] = useState(50);
   const [renderMode, setRenderMode] = useState(0);
 
@@ -24,7 +20,21 @@ export default function Main() {
       />
       <ControlPanel
         onIterationsChange={setIterations}
-        onFunctionChange={(glslCode) => updateShader({ function: glslCode })}
+        onFunctionChange={(glslCode) => {
+          setShader(() => {
+            let newShader = fragmentShader;
+
+            if (glslCode !== undefined) {
+              newShader = newShader.replace(
+                /z\/\* input func here \*\/;/,
+                `${glslCode};`
+              );
+            }
+
+            // console.log(newShader);
+            return newShader;
+          });
+        }}
         onRenderModeChange={setRenderMode}
       />
     </div>

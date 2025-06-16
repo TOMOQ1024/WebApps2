@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { vertexShader } from "../Shaders/VertexShader";
-import { GraphManager, Graph } from "../Controls/GraphManager";
+import GraphMgr from "@/src/GraphMgr";
 import styles from "./Canvas.module.scss";
 
 interface CanvasProps {
   shader: string;
-  onGraphChange: (graph: Graph) => void;
+  onGraphChange: (graph: GraphMgr) => void;
   iterations: number;
   renderMode: number;
 }
@@ -22,9 +22,7 @@ export default function Canvas({
   );
   const containerRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
-  const graphManagerRef = useRef<GraphManager>(
-    new GraphManager(new THREE.Vector2(0, 0), 2)
-  );
+  const graphManagerRef = useRef<GraphMgr>(new GraphMgr());
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.OrthographicCamera | null>(null);
   const materialRef = useRef<THREE.ShaderMaterial | null>(null);
@@ -122,7 +120,7 @@ export default function Canvas({
             (2 * (p.clientY - e.clientY)) / m
           );
           graphManagerRef.current.translate(delta.negate());
-          onGraphChange(graphManagerRef.current.getGraph());
+          onGraphChange(graphManagerRef.current);
           break;
         default:
           const C0 = pidx === 0 ? e : c[0];
@@ -147,8 +145,8 @@ export default function Canvas({
             (2 * (C1.clientY - C0.clientY)) / m
           );
           graphManagerRef.current.translate(dOri.negate());
-          graphManagerRef.current.zoom(Math.log(pDelta / nDelta) * 500, pOri);
-          onGraphChange(graphManagerRef.current.getGraph());
+          graphManagerRef.current.zoom(pOri, Math.log(pDelta / nDelta) * 500);
+          onGraphChange(graphManagerRef.current);
           break;
       }
 
@@ -178,8 +176,8 @@ export default function Canvas({
         ((((event.clientX - rect.left) / rect.width) * 2 - 1) * rect.width) / m,
         ((((event.clientY - rect.top) / rect.height) * 2 - 1) * rect.height) / m
       );
-      graphManagerRef.current.zoom(event.deltaY, c.negate());
-      onGraphChange(graphManagerRef.current.getGraph());
+      graphManagerRef.current.zoom(c.negate(), event.deltaY);
+      onGraphChange(graphManagerRef.current);
     };
 
     renderer.domElement.addEventListener("pointerdown", handlePointerDown, {
@@ -199,7 +197,7 @@ export default function Canvas({
       animationFrameId = requestAnimationFrame(animate);
       if (materialRef.current) {
         materialRef.current.uniforms.uTime.value += 0.01;
-        const graph = graphManagerRef.current.getGraph();
+        const graph = graphManagerRef.current;
         materialRef.current.uniforms.uGraph.value.origin.set(
           graph.origin.x,
           graph.origin.y
@@ -244,7 +242,7 @@ export default function Canvas({
     window.addEventListener("resize", handleResize);
 
     // 初期値をシェーダーに適用
-    onGraphChange(graphManagerRef.current.getGraph());
+    onGraphChange(graphManagerRef.current);
 
     return () => {
       window.removeEventListener("resize", handleResize);
@@ -263,6 +261,7 @@ export default function Canvas({
   }, [shader, onGraphChange, resolution, iterations, renderMode]);
 
   useEffect(() => {
+    console.log(iterations, renderMode);
     if (materialRef.current) {
       materialRef.current.uniforms.uIterations.value = iterations;
       materialRef.current.uniforms.uRenderMode.value = renderMode;

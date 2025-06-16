@@ -1,10 +1,7 @@
 import { Vector2 } from "three";
 
 export default class GraphMgr {
-  origin = new Vector2(0, 0);
-  radius = 2;
-
-  constructor() {}
+  constructor(public origin = new Vector2(0, 0), public radius = 2) {}
 
   // x,yはキャンバス中心を原点とした座標
   /**

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { latexToGLSL } from "../Parser/latexToGLSL";
+import { latexToGLSL } from "@/src/Parser/latexToGLSL";
 import styles from "./ControlPanel.module.scss";
 
 const EditableMathField = dynamic(
@@ -58,7 +58,11 @@ export default function ControlPanel({
           type="number"
           min="0"
           value={iterations}
-          onChange={(e) => setIterations(parseInt(e.target.value))}
+          onChange={(e) => {
+            setIterations(parseInt(e.target.value));
+            onIterationsChange(parseInt(e.target.value));
+            console.log(iterations);
+          }}
           className={styles.input}
         />
       </div>
@@ -76,7 +80,10 @@ export default function ControlPanel({
         <label className={styles.label}>描画モード</label>
         <select
           value={renderMode}
-          onChange={(e) => setRenderMode(parseInt(e.target.value))}
+          onChange={(e) => {
+            setRenderMode(parseInt(e.target.value));
+            onRenderModeChange(parseInt(e.target.value));
+          }}
           className={styles.select}
         >
           <option value={0}>HSV</option>
