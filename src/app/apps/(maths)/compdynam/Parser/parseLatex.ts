@@ -1,29 +1,6 @@
-// 抽象構文木の型定義
-type ASTNode =
-  | { type: "number"; value: number }
-  | { type: "symbol"; name: string }
-  | { type: "operator"; op: string; left: ASTNode; right: ASTNode }
-  | { type: "function"; name: string; args: ASTNode[] };
+import { ASTNode } from "./ASTNode";
 
-export function latexToGLSL(latex: string): string {
-  try {
-    // LaTeXをパースして抽象構文木に変換
-    console.log(`latex: ${latex}`);
-    const ast = parseLatex(latex);
-    console.log(`ast: ${ast}`);
-
-    // 抽象構文木をGLSLコードに変換
-    let glslCode = convertToGLSL(ast);
-    console.log(`glslCode: ${glslCode}`);
-
-    return glslCode;
-  } catch (error) {
-    console.error("Failed to parse LaTeX:", error);
-    throw error;
-  }
-}
-
-function parseLatex(latex: string): ASTNode {
+export function parseLatex(latex: string): ASTNode {
   let pos = 0;
 
   function peek(): string {
@@ -53,26 +30,6 @@ function parseLatex(latex: string): ASTNode {
     return cmd;
   }
 
-  function parseFraction(): ASTNode {
-    advance(); // '\'
-    const cmd = parseCommand();
-    if (cmd !== "frac") {
-      throw new Error(`Expected \\frac, got \\${cmd}`);
-    }
-
-    skipWhitespace();
-    const numerator = parseExpression();
-    skipWhitespace();
-    const denominator = parseExpression();
-
-    return {
-      type: "operator",
-      op: "/",
-      left: numerator,
-      right: denominator,
-    };
-  }
-
   function parseNumber(): ASTNode {
     let num = "";
     if (peek() === ".") {
@@ -94,16 +51,6 @@ function parseLatex(latex: string): ASTNode {
     let node = nodes[0];
     for (let i = 1; i < nodes.length; i++) {
       node = { type: "operator", op: "*", left: node, right: nodes[i] };
-    }
-    return node;
-  }
-
-  // 左結合でcprodを作るヘルパー
-  function leftAssocCprod(factors: ASTNode[]): ASTNode {
-    if (factors.length === 0) throw new Error("No factors");
-    let node = factors[0];
-    for (let i = 1; i < factors.length; i++) {
-      node = { type: "operator", op: "*", left: node, right: factors[i] };
     }
     return node;
   }
@@ -409,81 +356,4 @@ function parseLatex(latex: string): ASTNode {
   }
 
   return parseExpression();
-}
-
-function convertToGLSL(node: ASTNode): string {
-  switch (node.type) {
-    case "number":
-      return `vec2(${
-        node.value % 1 === 0 ? node.value.toFixed(1) : node.value
-      }, 0.0)`;
-
-    case "symbol":
-      switch (node.name) {
-        case "z":
-          return "z";
-        case "c":
-          return "c";
-        case "t":
-          return "t";
-        case "i":
-          return "vec2(0.0, 1.0)";
-        case "pi":
-          return "vec2(PI, 0.0)";
-        case "e":
-          return "vec2(E, 0.0)";
-        default:
-          return node.name;
-      }
-
-    case "operator":
-      const left = convertToGLSL(node.left);
-      const right = convertToGLSL(node.right);
-
-      switch (node.op) {
-        case "+":
-          return `${left} + ${right}`;
-        case "-":
-          // 単項マイナスの場合
-          if (right === "vec2(0.0, 0.0)") {
-            return `-${left}`;
-          }
-          return `${left} - ${right}`;
-        case "*":
-          return `cprod(${left}, ${right})`;
-        case "/":
-          return `cdiv(${left}, ${right})`;
-        case "^":
-          return `cpow(${left}, ${right})`;
-        default:
-          throw new Error(`Unsupported operator: ${node.op}`);
-      }
-
-    case "function":
-      const args = node.args.map(convertToGLSL);
-      const fnName = node.name.toLowerCase();
-
-      switch (fnName) {
-        case "sinh":
-          return `csinh(${args[0]})`;
-        case "cosh":
-          return `ccosh(${args[0]})`;
-        case "tanh":
-          return `ctanh(${args[0]})`;
-        case "sin":
-          return `csin(${args[0]})`;
-        case "cos":
-          return `ccos(${args[0]})`;
-        case "tan":
-          return `ctan(${args[0]})`;
-        case "exp":
-          return `cexp(${args[0]})`;
-        case "sqrt":
-          return `csqrt(${args[0]})`;
-        case "abs":
-          return `cabs(${args[0]})`;
-        default:
-          throw new Error(`Unsupported function: ${fnName}`);
-      }
-  }
 }

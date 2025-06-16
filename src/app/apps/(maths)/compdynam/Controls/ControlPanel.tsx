@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { latexToGLSL } from "./latexToGLSL";
+import { latexToGLSL } from "../Parser/latexToGLSL";
 import styles from "./ControlPanel.module.scss";
 
 const EditableMathField = dynamic(
