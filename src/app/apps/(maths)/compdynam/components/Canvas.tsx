@@ -7,9 +7,16 @@ import styles from "./Canvas.module.scss";
 interface CanvasProps {
   shader: string;
   onGraphChange: (graph: Graph) => void;
+  iterations: number;
+  renderMode: number;
 }
 
-export default function Canvas({ shader, onGraphChange }: CanvasProps) {
+export default function Canvas({
+  shader,
+  onGraphChange,
+  iterations,
+  renderMode,
+}: CanvasProps) {
   const [resolution, setResolution] = useState<THREE.Vector2>(
     new THREE.Vector2(800, 600)
   );
@@ -72,8 +79,8 @@ export default function Canvas({ shader, onGraphChange }: CanvasProps) {
             radius: 2,
           },
         },
-        uIterations: { value: 50 },
-        uRenderMode: { value: 0 },
+        uIterations: { value: iterations },
+        uRenderMode: { value: renderMode },
       },
       vertexShader: vertexShader,
       fragmentShader: shader,
@@ -253,7 +260,14 @@ export default function Canvas({ shader, onGraphChange }: CanvasProps) {
         containerRef.current.removeChild(renderer.domElement);
       }
     };
-  }, [shader, onGraphChange, resolution]);
+  }, [shader, onGraphChange, resolution, iterations, renderMode]);
+
+  useEffect(() => {
+    if (materialRef.current) {
+      materialRef.current.uniforms.uIterations.value = iterations;
+      materialRef.current.uniforms.uRenderMode.value = renderMode;
+    }
+  }, [iterations, renderMode]);
 
   return <div ref={containerRef} className={styles.canvas} />;
 }

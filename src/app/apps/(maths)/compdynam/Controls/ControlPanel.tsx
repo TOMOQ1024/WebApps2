@@ -29,7 +29,7 @@ export default function ControlPanel({
 
   useEffect(() => {
     onIterationsChange(iterations);
-  }, [iterations]);
+  }, [iterations, onIterationsChange]);
 
   useEffect(() => {
     try {
@@ -38,11 +38,11 @@ export default function ControlPanel({
     } catch (error) {
       console.error("Failed to parse LaTeX:", error);
     }
-  }, [latex]);
+  }, [latex, onFunctionChange]);
 
   useEffect(() => {
     onRenderModeChange(renderMode);
-  }, [renderMode]);
+  }, [renderMode, onRenderModeChange]);
 
   return (
     <div className={styles.controlPanel}>

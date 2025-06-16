@@ -11,14 +11,21 @@ export default function Main() {
     origin: new THREE.Vector2(0, 0),
     radius: 2,
   });
+  const [iterations, setIterations] = useState(50);
+  const [renderMode, setRenderMode] = useState(0);
 
   return (
     <div>
-      <Canvas shader={shader} onGraphChange={setGraph} />
+      <Canvas
+        shader={shader}
+        onGraphChange={setGraph}
+        iterations={iterations}
+        renderMode={renderMode}
+      />
       <ControlPanel
-        onIterationsChange={(iterations) => updateShader({ iterations })}
+        onIterationsChange={setIterations}
         onFunctionChange={(glslCode) => updateShader({ function: glslCode })}
-        onRenderModeChange={(mode) => updateShader({ renderMode: mode })}
+        onRenderModeChange={setRenderMode}
       />
     </div>
   );
