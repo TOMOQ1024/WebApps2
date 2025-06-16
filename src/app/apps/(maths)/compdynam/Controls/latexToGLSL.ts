@@ -47,6 +47,26 @@ function parseLatex(latex: string): ASTNode {
     return cmd;
   }
 
+  function parseFraction(): ASTNode {
+    advance(); // '\'
+    const cmd = parseCommand();
+    if (cmd !== "frac") {
+      throw new Error(`Expected \\frac, got \\${cmd}`);
+    }
+
+    skipWhitespace();
+    const numerator = parseExpression();
+    skipWhitespace();
+    const denominator = parseExpression();
+
+    return {
+      type: "operator",
+      op: "/",
+      left: numerator,
+      right: denominator,
+    };
+  }
+
   function parseNumber(): ASTNode {
     let num = "";
     while (peek().match(/[0-9.]/)) {
@@ -151,6 +171,36 @@ function parseLatex(latex: string): ASTNode {
 
     if (char === "\\") {
       const cmd = parseCommand();
+      if (cmd === "frac") {
+        skipWhitespace();
+        if (peek() !== "{") {
+          throw new Error("Expected { after \\frac");
+        }
+        advance(); // '{'
+        const numerator = parseExpression();
+        skipWhitespace();
+        if (peek() !== "}") {
+          throw new Error("Expected } after numerator");
+        }
+        advance(); // '}'
+        skipWhitespace();
+        if (peek() !== "{") {
+          throw new Error("Expected { before denominator");
+        }
+        advance(); // '{'
+        const denominator = parseExpression();
+        skipWhitespace();
+        if (peek() !== "}") {
+          throw new Error("Expected } after denominator");
+        }
+        advance(); // '}'
+        return {
+          type: "operator",
+          op: "/",
+          left: numerator,
+          right: denominator,
+        };
+      }
       if (cmd === "left") {
         advance(); // '('
         const expr = parseExpression();
@@ -245,7 +295,9 @@ function parseLatex(latex: string): ASTNode {
 function convertToGLSL(node: ASTNode): string {
   switch (node.type) {
     case "number":
-      return `vec2(${node.value}, 0.0)`;
+      return `vec2(${
+        node.value % 1 === 0 ? node.value.toFixed(1) : node.value
+      }, 0.0)`;
 
     case "symbol":
       switch (node.name) {
@@ -307,4 +359,43 @@ function convertToGLSL(node: ASTNode): string {
           throw new Error(`Unsupported function: ${fnName}`);
       }
   }
+}
+
+// テストコードを追加
+export function testLatexToGLSL() {
+  const testCases = [
+    {
+      input: "\\frac{1}{2}",
+      expected: "cdiv(vec2(1.0, 0.0), vec2(2.0, 0.0))",
+    },
+    {
+      input: "z + \\frac{1}{z}",
+      expected: "z + cdiv(vec2(1.0, 0.0), z)",
+    },
+    {
+      input: "\\frac{z^2 + 1}{z - 1}",
+      expected: "cdiv(cprod(z, z) + vec2(1.0, 0.0), z - vec2(1.0, 0.0))",
+    },
+    {
+      input: "\\frac{\\sin(z)}{\\cos(z)}",
+      expected: "cdiv(csin(z), ccos(z))",
+    },
+  ];
+
+  console.log("Running LaTeX to GLSL conversion tests...");
+  testCases.forEach((testCase, index) => {
+    try {
+      const result = latexToGLSL(testCase.input);
+      if (result === testCase.expected) {
+        console.log(`✅ Test ${index + 1} passed`);
+      } else {
+        console.error(`❌ Test ${index + 1} failed`);
+        console.error(`Input: ${testCase.input}`);
+        console.error(`Expected: ${testCase.expected}`);
+        console.error(`Got: ${result}`);
+      }
+    } catch (error) {
+      console.error(`❌ Test ${index + 1} failed with error:`, error);
+    }
+  });
 }
