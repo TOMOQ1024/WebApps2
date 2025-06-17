@@ -22,8 +22,11 @@ export default function Home() {
               return null;
             }
             return (
-              // <div key={path} className={styles.appCard}>
-              <Link href={`/apps/${path}`} className={styles.appCard}>
+              <Link
+                key={path}
+                href={`/apps/${path}`}
+                className={styles.appCard}
+              >
                 <div className={styles.appIcon}>
                   <Image
                     src={`/app-icons/${path}.png`}
@@ -35,7 +38,6 @@ export default function Home() {
                 </div>
                 <div className={styles.appName}>{appName}</div>
               </Link>
-              // </div>
             );
           }
         )}

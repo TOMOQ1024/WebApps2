@@ -254,6 +254,8 @@ export default function Canvas({
     // 初期値をシェーダーに適用
     onGraphChange(graphManagerRef.current);
 
+    const containerElement = containerRef.current;
+
     return () => {
       window.removeEventListener("resize", handleResize);
       renderer.domElement.removeEventListener("pointerdown", handlePointerDown);
@@ -264,8 +266,8 @@ export default function Canvas({
       material.dispose();
       geometry.dispose();
       renderer.dispose();
-      if (containerRef.current) {
-        containerRef.current.removeChild(renderer.domElement);
+      if (containerElement) {
+        containerElement.removeChild(renderer.domElement);
       }
     };
   }, [shader, onGraphChange, resolution, iterations, renderMode]);

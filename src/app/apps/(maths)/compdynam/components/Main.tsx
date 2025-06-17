@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import ControlPanel from "./ControlPanel";
 import Canvas from "./Canvas";
 import ControlButtons from "./ControlButtons";
@@ -16,53 +16,56 @@ export default function Main() {
   const [currentInitialValueCode, setCurrentInitialValueCode] =
     useState<string>("vec2(0.0, 0.0)");
 
+  const updateShader = useCallback(
+    (
+      functionCode: string | undefined,
+      initialValueCode: string | undefined
+    ) => {
+      setShader(() => {
+        let newShader = fragmentShader;
+
+        // 関数コードの更新
+        const finalFunctionCode =
+          functionCode !== undefined ? functionCode : currentFunctionCode;
+        if (finalFunctionCode) {
+          newShader = newShader.replace(
+            /z\/\* input func here \*\/;/,
+            `${finalFunctionCode};`
+          );
+        }
+
+        // 初期値コードの更新
+        const finalInitialValueCode =
+          initialValueCode !== undefined
+            ? initialValueCode
+            : currentInitialValueCode;
+        if (finalInitialValueCode) {
+          newShader = newShader.replace(
+            /c\/\* input initial value here \*\/;/,
+            `${finalInitialValueCode};`
+          );
+        }
+
+        return newShader;
+      });
+
+      // 状態を更新
+      if (functionCode !== undefined) {
+        setCurrentFunctionCode(functionCode);
+      }
+      if (initialValueCode !== undefined) {
+        setCurrentInitialValueCode(initialValueCode);
+      }
+    },
+    [currentFunctionCode, currentInitialValueCode]
+  );
+
   useEffect(() => {
     updateShader("cpow(z, vec2(2.0, 0.0)) + c", "vec2(0.0, 0.0)");
-  }, []);
+  }, [updateShader]);
 
   const handleResetGraph = () => {
     setGraph(new GraphMgr());
-  };
-
-  const updateShader = (
-    functionCode: string | undefined,
-    initialValueCode: string | undefined
-  ) => {
-    setShader(() => {
-      let newShader = fragmentShader;
-
-      // 関数コードの更新
-      const finalFunctionCode =
-        functionCode !== undefined ? functionCode : currentFunctionCode;
-      if (finalFunctionCode) {
-        newShader = newShader.replace(
-          /z\/\* input func here \*\/;/,
-          `${finalFunctionCode};`
-        );
-      }
-
-      // 初期値コードの更新
-      const finalInitialValueCode =
-        initialValueCode !== undefined
-          ? initialValueCode
-          : currentInitialValueCode;
-      if (finalInitialValueCode) {
-        newShader = newShader.replace(
-          /c\/\* input initial value here \*\/;/,
-          `${finalInitialValueCode};`
-        );
-      }
-
-      return newShader;
-    });
-
-    // 状態を更新
-    if (functionCode !== undefined) {
-      setCurrentFunctionCode(functionCode);
-    }
-    if (initialValueCode !== undefined) {
-      setCurrentInitialValueCode(initialValueCode);
-    }
   };
 
   return (
