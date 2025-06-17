@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ControlPanel from "./ControlPanel";
 import Canvas from "./Canvas";
 import ControlButtons from "./ControlButtons";
@@ -10,6 +10,15 @@ export default function Main() {
   const [graph, setGraph] = useState<GraphMgr>(new GraphMgr());
   const [iterations, setIterations] = useState(50);
   const [renderMode, setRenderMode] = useState(0);
+  const [currentFunctionCode, setCurrentFunctionCode] = useState<string>(
+    "cpow(z, vec2(2.0, 0.0)) + c"
+  );
+  const [currentInitialValueCode, setCurrentInitialValueCode] =
+    useState<string>("vec2(0.0, 0.0)");
+
+  useEffect(() => {
+    updateShader("cpow(z, vec2(2.0, 0.0)) + c", "vec2(0.0, 0.0)");
+  }, []);
 
   const handleResetGraph = () => {
     setGraph(new GraphMgr());
@@ -21,23 +30,41 @@ export default function Main() {
   ) => {
     setShader(() => {
       let newShader = fragmentShader;
+      console.log(functionCode ?? currentFunctionCode);
+      console.log(initialValueCode ?? currentInitialValueCode);
 
-      if (functionCode !== undefined) {
+      // 関数コードの更新
+      const finalFunctionCode =
+        functionCode !== undefined ? functionCode : currentFunctionCode;
+      if (finalFunctionCode) {
         newShader = newShader.replace(
           /z\/\* input func here \*\/;/,
-          `${functionCode};`
+          `${finalFunctionCode};`
         );
       }
 
-      if (initialValueCode !== undefined) {
+      // 初期値コードの更新
+      const finalInitialValueCode =
+        initialValueCode !== undefined
+          ? initialValueCode
+          : currentInitialValueCode;
+      if (finalInitialValueCode) {
         newShader = newShader.replace(
-          /z0\/\* input initial value here \*\/;/,
-          `${initialValueCode};`
+          /c\/\* input initial value here \*\/;/,
+          `${finalInitialValueCode};`
         );
       }
 
       return newShader;
     });
+
+    // 状態を更新
+    if (functionCode !== undefined) {
+      setCurrentFunctionCode(functionCode);
+    }
+    if (initialValueCode !== undefined) {
+      setCurrentInitialValueCode(initialValueCode);
+    }
   };
 
   return (
