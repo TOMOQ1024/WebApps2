@@ -1,6 +1,6 @@
 import { ASTNode } from "./ASTNode";
 
-export function ASTToGLSL(node: ASTNode): string {
+export function ASTToGLSL(node: ASTNode, knownVars: string[]): string {
   switch (node.type) {
     case "number":
       return `vec2(${
@@ -9,25 +9,20 @@ export function ASTToGLSL(node: ASTNode): string {
 
     case "symbol":
       switch (node.name) {
-        case "z":
-          return "z";
-        case "c":
-          return "c";
-        case "t":
-          return "t";
-        case "i":
-          return "vec2(0.0, 1.0)";
         case "pi":
           return "vec2(PI, 0.0)";
         case "e":
           return "vec2(E, 0.0)";
         default:
+          if (knownVars.includes(node.name)) {
+            return node.name;
+          }
           throw new Error(`Unsupported symbol: ${node.name}`);
       }
 
     case "operator":
-      const left = ASTToGLSL(node.left);
-      const right = ASTToGLSL(node.right);
+      const left = ASTToGLSL(node.left, knownVars);
+      const right = ASTToGLSL(node.right, knownVars);
 
       switch (node.op) {
         case "+":
@@ -49,7 +44,7 @@ export function ASTToGLSL(node: ASTNode): string {
       }
 
     case "function":
-      const args = node.args.map(ASTToGLSL);
+      const args = node.args.map((arg) => ASTToGLSL(arg, knownVars));
       const fnName = node.name.toLowerCase();
 
       switch (fnName) {

@@ -39,7 +39,11 @@ export default function ControlPanel({
     const newValue = mathField.latex();
     setInitialValue(newValue);
     try {
-      const initialValueCode = latexToGLSL(newValue);
+      const initialValueCode = latexToGLSL(
+        newValue,
+        ["sin", "cos", "tan", "exp", "sqrt", "abs", "sinh", "cosh", "tanh"],
+        ["c", "t", "i"]
+      );
       onInitialValueChange(initialValueCode);
       setError(null);
     } catch (error) {
@@ -51,7 +55,11 @@ export default function ControlPanel({
     const newValue = mathField.latex();
     setFunctionExpr(newValue);
     try {
-      const glslCode = latexToGLSL(newValue);
+      const glslCode = latexToGLSL(
+        newValue,
+        ["sin", "cos", "tan", "exp", "sqrt", "abs", "sinh", "cosh", "tanh"],
+        ["z", "c", "t", "i"]
+      );
       onFunctionChange(glslCode);
       setError(null);
     } catch (error) {

@@ -1,6 +1,6 @@
 import { ASTNode } from "./ASTNode";
 
-export function parseLatex(latex: string): ASTNode {
+export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
   let pos = 0;
 
   function peek(): string {
@@ -62,17 +62,6 @@ export function parseLatex(latex: string): ASTNode {
   function parseFunction(cmdFromFactor?: string): ASTNode {
     let name = "";
     if (cmdFromFactor) {
-      const knownFuncs = [
-        "sin",
-        "cos",
-        "tan",
-        "exp",
-        "sqrt",
-        "abs",
-        "sinh",
-        "cosh",
-        "tanh",
-      ];
       let cmd = cmdFromFactor;
       if (knownFuncs.includes(cmd)) {
         name = cmd;
@@ -159,17 +148,6 @@ export function parseLatex(latex: string): ASTNode {
     if (char.match(/[0-9.]/)) {
       node = parseNumber();
     } else if (char === "\\") {
-      const knownFuncs = [
-        "sin",
-        "cos",
-        "tan",
-        "exp",
-        "sqrt",
-        "abs",
-        "sinh",
-        "cosh",
-        "tanh",
-      ];
       let cmdStart = pos;
       let tempCmd = parseCommand();
       pos = cmdStart; // 位置を戻す
@@ -224,17 +202,6 @@ export function parseLatex(latex: string): ASTNode {
       }
     } else if (char.match(/[a-zA-Z]/)) {
       // ここで関数名の先読み
-      const knownFuncs = [
-        "sin",
-        "cos",
-        "tan",
-        "exp",
-        "sqrt",
-        "abs",
-        "sinh",
-        "cosh",
-        "tanh",
-      ];
       for (const func of knownFuncs) {
         if (latex.slice(pos, pos + func.length) === func) {
           pos += func.length;
@@ -272,17 +239,7 @@ export function parseLatex(latex: string): ASTNode {
             let cmd = "";
             while (peek().match(/[a-zA-Z]/)) cmd += advance();
             pos = save;
-            return [
-              "sin",
-              "cos",
-              "tan",
-              "exp",
-              "sqrt",
-              "abs",
-              "sinh",
-              "cosh",
-              "tanh",
-            ].includes(cmd);
+            return knownFuncs.includes(cmd);
           })()))
     ) {
       let right = parseFactor();
