@@ -64,6 +64,7 @@ describe("latexToGLSL", () => {
   });
 
   test("エラーケース", () => {
+    expect(() => latexToGLSL(".")).toThrow();
     expect(() => latexToGLSL("\\sin")).toThrow();
     expect(() => latexToGLSL("\\frac{1}")).toThrow();
     expect(() => latexToGLSL("\\frac{1}{")).toThrow();

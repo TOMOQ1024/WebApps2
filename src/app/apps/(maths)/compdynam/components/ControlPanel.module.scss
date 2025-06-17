@@ -2,12 +2,10 @@
   position: absolute;
   bottom: 1rem;
   left: 1rem;
-  background: var(--background-color);
-  padding: 1rem;
-}
-
-.controlGroup {
-  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: flex-start;
 }
 
 .label {
@@ -19,7 +17,6 @@
 .input {
   width: 100%;
   padding: 0.5rem;
-  border: 2px solid var(--border-color);
   font-size: 1rem;
 }
 
@@ -27,13 +24,9 @@
   display: flex;
   align-items: center;
   font-size: 1.2rem;
-  padding: 0.5rem;
-  border: 2px solid var(--border-color);
   background: var(--background-color);
-}
-
-.staticText {
-  user-select: none;
+  border: 2px solid var(--border-color);
+  padding: 1rem;
 }
 
 .iterations {
@@ -44,6 +37,10 @@
 
 .error {
   color: #dc3545;
+  font-weight: 500;
   font-size: 0.875rem;
   margin-top: 0.5rem;
+  background: var(--background-color);
+  border: 2px solid var(--border-color);
+  padding: 0.5rem;
 }

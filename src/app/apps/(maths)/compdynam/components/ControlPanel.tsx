@@ -1,24 +1,7 @@
-import { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
+import { useState } from "react";
 import { latexToGLSL } from "@/src/Parser/latexToGLSL";
+import { EditableMathField, StaticMathField } from "@/components/MathFields";
 import styles from "./ControlPanel.module.scss";
-
-const EditableMathField = dynamic(
-  () =>
-    import("react-mathquill").then((mod) => {
-      mod.addStyles();
-      return mod.EditableMathField;
-    }),
-  { ssr: false }
-);
-const StaticMathField = dynamic(
-  () =>
-    import("react-mathquill").then((mod) => {
-      mod.addStyles();
-      return mod.StaticMathField;
-    }),
-  { ssr: false }
-);
 
 interface ControlPanelProps {
   onIterationsChange: (iterations: number) => void;
@@ -38,16 +21,18 @@ export default function ControlPanel({
 
   // 反復回数のバリデーション
   const handleIterationsChange = (mathField: any) => {
-    let value = mathField.latex().replace(/[^0-9]/g, "");
-    if (value === "") value = "0";
-    setIterations(value);
-    const intVal = parseInt(value, 10);
-    if (isNaN(intVal) || intVal < 0) {
+    const latex = mathField.latex();
+    if (latex === "") {
+      setError("反復回数を入力してください。");
+      return;
+    }
+    if (/[^0-9]/.test(latex)) {
       setError("反復回数は非負整数で入力してください。");
       return;
     }
     setError(null);
-    onIterationsChange(intVal);
+    setIterations(latex);
+    onIterationsChange(parseInt(latex, 10));
   };
 
   const handleInitialValueChange = (mathField: any) => {
@@ -58,7 +43,7 @@ export default function ControlPanel({
       onInitialValueChange(initialValueCode);
       setError(null);
     } catch (error) {
-      setError("初期値の解析に失敗しました。正しい形式で入力してください。");
+      setError(`${error}`);
     }
   };
 
@@ -76,32 +61,29 @@ export default function ControlPanel({
 
   return (
     <div className={styles.controlPanel}>
-      <div className={styles.controlGroup}>
-        <label className={styles.label}>数式</label>
-        <div className={styles.mathContainer}>
-          <StaticMathField className={styles.staticText}>f</StaticMathField>
-          <EditableMathField
-            latex={iterations}
-            onChange={handleIterationsChange}
-            className={styles.iterations}
-            config={{ restrictMismatchedBrackets: true }}
-          />
-          <StaticMathField className={styles.staticText}>(</StaticMathField>
-          <EditableMathField
-            latex={initialValue}
-            onChange={handleInitialValueChange}
-            className={styles.input}
-          />
-          <StaticMathField className={styles.staticText}>
-            ) \qquad \mid \qquad f(z)=
-          </StaticMathField>
-          <EditableMathField
-            latex={functionExpr}
-            onChange={handleFunctionChange}
-            className={styles.input}
-          />
-        </div>
-        {error && <div className={styles.error}>{error}</div>}
+      {error && <div className={styles.error}>{error}</div>}
+      <div className={styles.mathContainer}>
+        <StaticMathField className={styles.staticText}>f</StaticMathField>
+        <EditableMathField
+          latex={iterations}
+          onChange={handleIterationsChange}
+          className={styles.iterations}
+          config={{ restrictMismatchedBrackets: true }}
+        />
+        <StaticMathField className={styles.staticText}>(</StaticMathField>
+        <EditableMathField
+          latex={initialValue}
+          onChange={handleInitialValueChange}
+          className={styles.initialValue}
+        />
+        <StaticMathField className={styles.staticText}>
+          ) \qquad \mid \qquad f(z)=
+        </StaticMathField>
+        <EditableMathField
+          latex={functionExpr}
+          onChange={handleFunctionChange}
+          className={styles.functionExpr}
+        />
       </div>
     </div>
   );

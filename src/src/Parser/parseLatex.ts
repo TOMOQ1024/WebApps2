@@ -38,7 +38,11 @@ export function parseLatex(latex: string): ASTNode {
     while (peek().match(/[0-9.]/)) {
       num += advance();
     }
-    return { type: "number", value: parseFloat(num) };
+    const value = parseFloat(num);
+    if (isNaN(value)) {
+      throw new Error(`Invalid number: ${num}`);
+    }
+    return { type: "number", value };
   }
 
   function parseSymbol(): ASTNode {
