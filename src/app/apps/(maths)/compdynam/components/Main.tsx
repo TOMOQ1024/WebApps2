@@ -60,9 +60,10 @@ export default function Main() {
     [currentFunctionCode, currentInitialValueCode]
   );
 
+  // コンポーネントのマウント時に一度だけ初期値を設定
   useEffect(() => {
     updateShader("cpow(z, vec2(2.0, 0.0)) + c", "vec2(0.0, 0.0)");
-  }, [updateShader]);
+  }, []); // 空の依存配列で、マウント時に一度だけ実行
 
   const handleResetGraph = () => {
     setGraph(new GraphMgr());
