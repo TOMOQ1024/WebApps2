@@ -100,6 +100,9 @@ export default function Canvas({
 
     const handlePointerDown = (e: PointerEvent) => {
       e.preventDefault();
+      if (e.button === 2) {
+        return;
+      }
       renderer.domElement.setPointerCapture(e.pointerId);
       pointersRef.current.push({
         pointerId: e.pointerId,

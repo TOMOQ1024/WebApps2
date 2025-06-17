@@ -30,8 +30,6 @@ export default function Main() {
   ) => {
     setShader(() => {
       let newShader = fragmentShader;
-      console.log(functionCode ?? currentFunctionCode);
-      console.log(initialValueCode ?? currentInitialValueCode);
 
       // 関数コードの更新
       const finalFunctionCode =

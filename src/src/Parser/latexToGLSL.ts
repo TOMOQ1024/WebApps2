@@ -10,7 +10,6 @@ export function latexToGLSL(
     // LaTeXをパースして抽象構文木に変換
     console.log(`latex: ${latex}`);
     const ast = parseLatex(latex, knownFuncs);
-    console.log(ast);
 
     // 抽象構文木をGLSLコードに変換
     let glslCode = ASTToGLSL(ast, knownVars);
