@@ -180,21 +180,49 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
             right: denominator,
           };
         } else if (constCmd === "left") {
-          advance(); // '('
-          const expr = parseExpression();
           skipWhitespace();
-          if (peek() === "\\") {
-            const rightCmd = parseCommand();
-            if (rightCmd === "right") {
-              advance(); // ')'
-              node = expr;
+          if (peek() === "|") {
+            // \left| ... \right| の絶対値記号の処理
+            advance(); // '|'
+            const expr = parseExpression();
+            skipWhitespace();
+            if (peek() === "\\") {
+              const rightCmd = parseCommand();
+              if (rightCmd === "right") {
+                skipWhitespace();
+                if (peek() === "|") {
+                  advance(); // '|'
+                  // abs関数のASTノードを生成
+                  node = { type: "function", name: "abs", args: [expr] };
+                } else {
+                  throw new Error("Expected | after \\right");
+                }
+              } else {
+                throw new Error(`Expected \\right, got \\${rightCmd}`);
+              }
             } else {
-              throw new Error(`Expected \\right, got \\${rightCmd}`);
+              throw new Error("Expected \\right|");
             }
-          } else if (peek() === ")") {
-            throw new Error("Expected \\right, got )");
+          } else if (peek() === "(") {
+            // 通常の括弧の処理
+            advance(); // '('
+            const expr = parseExpression();
+            skipWhitespace();
+            if (peek() === "\\") {
+              const rightCmd = parseCommand();
+              if (rightCmd === "right") {
+                advance(); // ')'
+                node = expr;
+              } else {
+                throw new Error(`Expected \\right, got \\${rightCmd}`);
+              }
+            } else if (peek() === ")") {
+              throw new Error("Expected \\right, got )");
+            } else {
+              throw new Error("Expected closing parenthesis");
+            }
           } else {
-            throw new Error("Expected closing parenthesis");
+            throw new Error("Expected ( or | after \\left");
           }
         } else {
           throw new Error(`Unknown command: \\${constCmd}`);

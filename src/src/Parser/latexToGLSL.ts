@@ -3,8 +3,8 @@ import { parseLatex } from "./parseLatex";
 
 export function latexToGLSL(
   latex: string,
-  knownFuncs: string[],
-  knownVars: string[]
+  knownFuncs: string[] = ["sin", "cos", "tan", "exp", "sinh", "cosh", "tanh"],
+  knownVars: string[] = ["z", "c", "t"]
 ): string {
   try {
     // LaTeXをパースして抽象構文木に変換

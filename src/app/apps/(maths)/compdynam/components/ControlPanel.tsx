@@ -41,8 +41,8 @@ export default function ControlPanel({
     try {
       const initialValueCode = latexToGLSL(
         newValue,
-        ["sin", "cos", "tan", "exp", "sqrt", "abs", "sinh", "cosh", "tanh"],
-        ["c", "t", "i"]
+        ["sin", "cos", "tan", "exp", "sinh", "cosh", "tanh"],
+        ["c", "t"]
       );
       onInitialValueChange(initialValueCode);
       setError(null);
@@ -57,8 +57,8 @@ export default function ControlPanel({
     try {
       const glslCode = latexToGLSL(
         newValue,
-        ["sin", "cos", "tan", "exp", "sqrt", "abs", "sinh", "cosh", "tanh"],
-        ["z", "c", "t", "i"]
+        ["sin", "cos", "tan", "exp", "sinh", "cosh", "tanh"],
+        ["z", "c", "t"]
       );
       onFunctionChange(glslCode);
       setError(null);

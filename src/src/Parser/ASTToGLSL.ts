@@ -9,6 +9,8 @@ export function ASTToGLSL(node: ASTNode, knownVars: string[]): string {
 
     case "symbol":
       switch (node.name) {
+        case "i":
+          return "vec2(0.0, 1.0)";
         case "pi":
           return "vec2(PI, 0.0)";
         case "e":

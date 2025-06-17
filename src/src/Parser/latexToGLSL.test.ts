@@ -27,6 +27,13 @@ describe("latexToGLSL", () => {
     expect(latexToGLSL("2^{-2}")).toBe("cpow(vec2(2.0, 0.0), -vec2(2.0, 0.0))");
   });
 
+  test("括弧の変換", () => {
+    expect(latexToGLSL("(z+1)^2")).toBe(
+      "cpow(z + vec2(1.0, 0.0), vec2(2.0, 0.0))"
+    );
+    expect(latexToGLSL("\\left|z\\right|")).toBe("cabs(z)");
+  });
+
   test("空白を含む数式の変換", () => {
     expect(latexToGLSL("z+\\ 1")).toBe("z + vec2(1.0, 0.0)");
   });
