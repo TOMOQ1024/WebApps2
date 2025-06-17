@@ -11,84 +11,97 @@ const EditableMathField = dynamic(
     }),
   { ssr: false }
 );
+const StaticMathField = dynamic(
+  () =>
+    import("react-mathquill").then((mod) => {
+      mod.addStyles();
+      return mod.StaticMathField;
+    }),
+  { ssr: false }
+);
 
 interface ControlPanelProps {
   onIterationsChange: (iterations: number) => void;
   onFunctionChange: (glslCode: string) => void;
-  onRenderModeChange: (mode: number) => void;
+  onInitialValueChange: (glslCode: string) => void;
 }
 
 export default function ControlPanel({
   onIterationsChange,
   onFunctionChange,
-  onRenderModeChange,
+  onInitialValueChange,
 }: ControlPanelProps) {
-  const [iterations, setIterations] = useState(50);
-  const [latex, setLatex] = useState("z^2+c");
-  const [renderMode, setRenderMode] = useState(0);
+  const [iterations, setIterations] = useState("50");
+  const [initialValue, setInitialValue] = useState("0");
+  const [functionExpr, setFunctionExpr] = useState("z^2+c");
+  const [error, setError] = useState<string | null>(null);
 
-  // 初期値の適用
-  useEffect(() => {
-    onIterationsChange(iterations);
-    try {
-      const glslCode = latexToGLSL(latex);
-      onFunctionChange(glslCode);
-    } catch (error) {
-      console.error("Failed to parse initial LaTeX:", error);
+  // 反復回数のバリデーション
+  const handleIterationsChange = (mathField: any) => {
+    let value = mathField.latex().replace(/[^0-9]/g, "");
+    if (value === "") value = "0";
+    setIterations(value);
+    const intVal = parseInt(value, 10);
+    if (isNaN(intVal) || intVal < 0) {
+      setError("反復回数は非負整数で入力してください。");
+      return;
     }
-    onRenderModeChange(renderMode);
-  }, []); // 初回マウント時のみ実行
+    setError(null);
+    onIterationsChange(intVal);
+  };
 
-  const handleLatexChange = (mathField: any) => {
-    const newLatex = mathField.latex();
-    setLatex(newLatex);
+  const handleInitialValueChange = (mathField: any) => {
+    const newValue = mathField.latex();
+    setInitialValue(newValue);
     try {
-      const glslCode = latexToGLSL(newLatex);
-      onFunctionChange(glslCode);
+      const initialValueCode = latexToGLSL(newValue);
+      onInitialValueChange(initialValueCode);
+      setError(null);
     } catch (error) {
-      console.error("Failed to parse LaTeX:", error);
+      setError("初期値の解析に失敗しました。正しい形式で入力してください。");
+    }
+  };
+
+  const handleFunctionChange = (mathField: any) => {
+    const newValue = mathField.latex();
+    setFunctionExpr(newValue);
+    try {
+      const glslCode = latexToGLSL(newValue);
+      onFunctionChange(glslCode);
+      setError(null);
+    } catch (error) {
+      setError(`${error}`);
     }
   };
 
   return (
     <div className={styles.controlPanel}>
       <div className={styles.controlGroup}>
-        <label className={styles.label}>反復回数</label>
-        <input
-          type="number"
-          min="0"
-          value={iterations}
-          onChange={(e) => {
-            setIterations(parseInt(e.target.value));
-            onIterationsChange(parseInt(e.target.value));
-            console.log(iterations);
-          }}
-          className={styles.input}
-        />
-      </div>
-
-      <div className={styles.controlGroup}>
-        <label className={styles.label}>関数 f(z)</label>
-        <EditableMathField
-          latex={latex}
-          onChange={handleLatexChange}
-          className={styles.input}
-        />
-      </div>
-
-      <div className={styles.controlGroup}>
-        <label className={styles.label}>描画モード</label>
-        <select
-          value={renderMode}
-          onChange={(e) => {
-            setRenderMode(parseInt(e.target.value));
-            onRenderModeChange(parseInt(e.target.value));
-          }}
-          className={styles.select}
-        >
-          <option value={0}>HSV</option>
-          <option value={1}>Grayscale</option>
-        </select>
+        <label className={styles.label}>数式</label>
+        <div className={styles.mathContainer}>
+          <StaticMathField className={styles.staticText}>f</StaticMathField>
+          <EditableMathField
+            latex={iterations}
+            onChange={handleIterationsChange}
+            className={styles.iterations}
+            config={{ restrictMismatchedBrackets: true }}
+          />
+          <StaticMathField className={styles.staticText}>(</StaticMathField>
+          <EditableMathField
+            latex={initialValue}
+            onChange={handleInitialValueChange}
+            className={styles.input}
+          />
+          <StaticMathField className={styles.staticText}>
+            ) \qquad \mid \qquad f(z)=
+          </StaticMathField>
+          <EditableMathField
+            latex={functionExpr}
+            onChange={handleFunctionChange}
+            className={styles.input}
+          />
+        </div>
+        {error && <div className={styles.error}>{error}</div>}
       </div>
     </div>
   );

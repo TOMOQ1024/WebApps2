@@ -15,6 +15,31 @@ export default function Main() {
     setGraph(new GraphMgr());
   };
 
+  const updateShader = (
+    functionCode: string | undefined,
+    initialValueCode: string | undefined
+  ) => {
+    setShader(() => {
+      let newShader = fragmentShader;
+
+      if (functionCode !== undefined) {
+        newShader = newShader.replace(
+          /z\/\* input func here \*\/;/,
+          `${functionCode};`
+        );
+      }
+
+      if (initialValueCode !== undefined) {
+        newShader = newShader.replace(
+          /z0\/\* input initial value here \*\/;/,
+          `${initialValueCode};`
+        );
+      }
+
+      return newShader;
+    });
+  };
+
   return (
     <main className="relative">
       <Canvas
@@ -26,22 +51,12 @@ export default function Main() {
       />
       <ControlPanel
         onIterationsChange={setIterations}
-        onFunctionChange={(glslCode) => {
-          setShader(() => {
-            let newShader = fragmentShader;
-
-            if (glslCode !== undefined) {
-              newShader = newShader.replace(
-                /z\/\* input func here \*\/;/,
-                `${glslCode};`
-              );
-            }
-
-            // console.log(newShader);
-            return newShader;
-          });
+        onFunctionChange={(functionCode) => {
+          updateShader(functionCode, undefined);
         }}
-        onRenderModeChange={setRenderMode}
+        onInitialValueChange={(initialValueCode) => {
+          updateShader(undefined, initialValueCode);
+        }}
       />
       <ControlButtons
         onResetGraph={handleResetGraph}

@@ -54,7 +54,7 @@ export default function ControlButtons({
           <polyline points="9 22 9 12 15 12 15 22" />
         </svg>
       </button>
-      <button
+      {/* <button
         className={styles.button}
         onClick={() => {}}
         title="計算モード切り替え"
@@ -71,7 +71,7 @@ export default function ControlButtons({
         >
           <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
         </svg>
-      </button>
+      </button> */}
     </div>
   );
 }

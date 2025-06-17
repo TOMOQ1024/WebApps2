@@ -22,7 +22,7 @@ export function ASTToGLSL(node: ASTNode): string {
         case "e":
           return "vec2(E, 0.0)";
         default:
-          return node.name;
+          throw new Error(`Unsupported symbol: ${node.name}`);
       }
 
     case "operator":

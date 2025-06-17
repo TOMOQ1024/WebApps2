@@ -14,7 +14,6 @@ export function latexToGLSL(latex: string): string {
 
     return glslCode;
   } catch (error) {
-    console.error("Failed to parse LaTeX:", error);
     throw error;
   }
 }
