@@ -1,16 +1,14 @@
-# CompDynam
+# Polychora
 
-複素関数の反復計算を可視化するページ．
+4 次元一様多胞体を観察するページ．
 
-リンク: [https://www.tomoq.net/apps/compdynam](https://www.tomoq.net/apps/compdynam)
+リンク: [https://www.tomoq.net/apps/polychora](https://www.tomoq.net/apps/polychora)
 
 ![スクリーンショット](./ss.png)
 
 ## 操作方法(共通)
 
-- 左下のフォームで反復回数と初期値，関数を設定する
-- パレットアイコンのボタンで描画モードを切り替える
-- 家アイコンのボタンで表示領域をリセットする
+- 左下のフォームでコクセターディンキン図を設定する
 
 ## 操作方法(PC)
 

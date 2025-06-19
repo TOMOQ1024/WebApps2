@@ -1,9 +1,7 @@
-import MainWrapper from "./components/MainWrapper";
+"use client";
 
-export const metadata = {
-  title: "Polychora",
-};
+import Main from "./components/Main";
 
-export default function Main() {
-  return <MainWrapper />;
+export default function Page() {
+  return <Main />;
 }
