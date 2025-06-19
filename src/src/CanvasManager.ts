@@ -13,7 +13,7 @@ export class CanvasManager {
   private renderer: THREE.WebGLRenderer;
   private scene: THREE.Scene;
   private camera: THREE.OrthographicCamera;
-  private graphManager: GraphMgr;
+  private graphManager: GraphMgr | undefined;
   private pointers: { pointerId: number; clientX: number; clientY: number }[] =
     [];
   private animationFrameId: number = 0;
@@ -36,7 +36,7 @@ export class CanvasManager {
       0.1,
       10
     );
-    this.graphManager = options.graphManager || new GraphMgr();
+    this.graphManager = options.graphManager;
     this.onGraphChange = options.onGraphChange;
     this.onResolutionChange = options.onResolutionChange;
 
@@ -55,6 +55,8 @@ export class CanvasManager {
   }
 
   private setupEventListeners() {
+    window.addEventListener("resize", this.boundHandleResize);
+    if (!this.graphManager) return;
     this.renderer.domElement.addEventListener(
       "pointerdown",
       this.boundHandlePointerDown,
@@ -79,10 +81,10 @@ export class CanvasManager {
     this.renderer.domElement.addEventListener("wheel", this.boundHandleWheel, {
       passive: false,
     });
-    window.addEventListener("resize", this.boundHandleResize);
   }
 
   private handlePointerDown(e: PointerEvent) {
+    if (!this.graphManager) return;
     e.preventDefault();
     if (e.button === 2) return;
     this.renderer.domElement.setPointerCapture(e.pointerId);
@@ -94,6 +96,7 @@ export class CanvasManager {
   }
 
   private handlePointerMove(e: PointerEvent) {
+    if (!this.graphManager) return;
     e.preventDefault();
     const rect = this.renderer.domElement.getBoundingClientRect();
     const m = Math.min(rect.width, rect.height);
@@ -149,6 +152,7 @@ export class CanvasManager {
   }
 
   private handlePointerUp(e: PointerEvent) {
+    if (!this.graphManager) return;
     e.preventDefault();
     this.renderer.domElement.releasePointerCapture(e.pointerId);
     this.pointers.splice(
@@ -158,6 +162,7 @@ export class CanvasManager {
   }
 
   private handleWheel(event: WheelEvent) {
+    if (!this.graphManager) return;
     event.preventDefault();
     const rect = this.renderer.domElement.getBoundingClientRect();
     const m = Math.min(rect.width, rect.height);
@@ -217,22 +222,24 @@ export class CanvasManager {
 
   public dispose() {
     window.removeEventListener("resize", this.boundHandleResize);
-    this.renderer.domElement.removeEventListener(
-      "pointerdown",
-      this.boundHandlePointerDown
-    );
-    this.renderer.domElement.removeEventListener(
-      "pointermove",
-      this.boundHandlePointerMove
-    );
-    this.renderer.domElement.removeEventListener(
-      "pointerup",
-      this.boundHandlePointerUp
-    );
-    this.renderer.domElement.removeEventListener(
-      "wheel",
-      this.boundHandleWheel
-    );
+    if (this.graphManager) {
+      this.renderer.domElement.removeEventListener(
+        "pointerdown",
+        this.boundHandlePointerDown
+      );
+      this.renderer.domElement.removeEventListener(
+        "pointermove",
+        this.boundHandlePointerMove
+      );
+      this.renderer.domElement.removeEventListener(
+        "pointerup",
+        this.boundHandlePointerUp
+      );
+      this.renderer.domElement.removeEventListener(
+        "wheel",
+        this.boundHandleWheel
+      );
+    }
     cancelAnimationFrame(this.animationFrameId);
     this.renderer.dispose();
     if (this.renderer.domElement.parentElement) {

@@ -5,6 +5,7 @@
   --background-color: white;
   --text-color: black;
   --border-color: black;
+  --error-color: #f44;
 
   &[data-theme="auto"] {
     @media (prefers-color-scheme: dark) {
@@ -36,6 +37,26 @@ body {
   font-family: var(--font-family);
   padding-top: var(--header-height);
   margin: 0;
+}
+
+input {
+  color: var(--text-color);
+  background: var(--background-color);
+  border: 2px solid var(--border-color);
+  outline: none;
+  padding: 0.2rem;
+  font-size: 1rem;
+  font-family: var(--font-family);
+}
+
+button {
+  color: var(--text-color);
+  background: var(--background-color);
+  border: 2px solid var(--border-color);
+  outline: none;
+  padding: 0.2rem;
+  font-size: 1rem;
+  font-family: var(--font-family);
 }
 
 a {

@@ -15,6 +15,25 @@ export class CoxeterDynkinDiagram {
     this.gensStr = this.gens.join(",");
   }
 
+  static fromStringMatrix(matrix: string[][], toggles: string[]) {
+    const diagram = new CoxeterDynkinDiagram();
+    for (let i = 0; i < matrix.length; i++) {
+      for (let j = 0; j < matrix[i].length; j++) {
+        const [numerator, denominator] = /\//.test(matrix[i][j])
+          ? matrix[i][j].split("/").map((x) => parseInt(x))
+          : [parseInt(matrix[i][j]), 1];
+        diagram.labels[
+          `${String.fromCharCode(65 + i)}${String.fromCharCode(65 + j)}`
+        ] = [numerator, denominator];
+      }
+    }
+    for (let i = 0; i < toggles.length; i++) {
+      diagram.nodeMarks[String.fromCharCode(65 + i)] = toggles[i];
+    }
+
+    return diagram;
+  }
+
   dropCache() {
     this._isVolumeless = undefined;
     this._dimension = undefined;

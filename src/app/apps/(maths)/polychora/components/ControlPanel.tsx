@@ -1,98 +1,99 @@
-import { useState } from "react";
-import { latexToGLSL } from "@/src/Parser/latexToGLSL";
-import { EditableMathField, StaticMathField } from "@/components/MathFields";
+import React from "react";
 import styles from "./ControlPanel.module.scss";
 
+// 入力値型: 4x4の文字列行列
+export type MatrixValue = string[][]; // 4x4
+export type ToggleValue = ("o" | "x")[]; // 4つ
+
 interface ControlPanelProps {
-  onIterationsChange: (iterations: number) => void;
-  onFunctionChange: (glslCode: string) => void;
-  onInitialValueChange: (glslCode: string) => void;
+  matrix: MatrixValue;
+  toggles: ToggleValue;
+  onMatrixChange: (matrix: MatrixValue) => void;
+  onTogglesChange: (toggles: ToggleValue) => void;
+  error?: string | null;
 }
 
-export default function ControlPanel({
-  onIterationsChange,
-  onFunctionChange,
-  onInitialValueChange,
-}: ControlPanelProps) {
-  const [iterations, setIterations] = useState("50");
-  const [initialValue, setInitialValue] = useState("0");
-  const [functionExpr, setFunctionExpr] = useState("z^2+c");
-  const [error, setError] = useState<string | null>(null);
+// 入力バリデーション: 1以上の整数 or a/b (a,b>=1)
+function isValidCellValue(val: string): boolean {
+  if (/^\d+$/.test(val)) {
+    return parseInt(val, 10) >= 1;
+  }
+  if (/^(\d+)\/(\d+)$/.test(val)) {
+    const match = val.match(/^(\d+)\/(\d+)$/);
+    if (!match) return false;
+    const num = parseInt(match[1], 10);
+    const denom = parseInt(match[2], 10);
+    return num >= 1 && denom >= 1;
+  }
+  return false;
+}
 
-  // 反復回数のバリデーション
-  const handleIterationsChange = (mathField: any) => {
-    const latex = mathField.latex();
-    if (latex === "") {
-      setError("反復回数を入力してください。");
-      return;
-    }
-    if (/[^0-9]/.test(latex)) {
-      setError("反復回数は非負整数で入力してください。");
-      return;
-    }
-    setError(null);
-    setIterations(latex);
-    onIterationsChange(parseInt(latex, 10));
+const ControlPanel: React.FC<ControlPanelProps> = ({
+  matrix,
+  toggles,
+  onMatrixChange,
+  onTogglesChange,
+  error,
+}) => {
+  // セル変更
+  const handleCellChange = (i: number, j: number, value: string) => {
+    const newMatrix = matrix.map((row, r) =>
+      row.map((cell, c) => (r === i && c === j ? value : cell))
+    );
+    onMatrixChange(newMatrix);
   };
 
-  const handleInitialValueChange = (mathField: any) => {
-    const newValue = mathField.latex();
-    setInitialValue(newValue);
-    try {
-      const initialValueCode = latexToGLSL(
-        newValue,
-        ["sin", "cos", "tan", "exp", "sinh", "cosh", "tanh"],
-        ["c", "t"]
-      );
-      onInitialValueChange(initialValueCode);
-      setError(null);
-    } catch (error) {
-      setError(`${error}`);
-    }
-  };
-
-  const handleFunctionChange = (mathField: any) => {
-    const newValue = mathField.latex();
-    setFunctionExpr(newValue);
-    try {
-      const glslCode = latexToGLSL(
-        newValue,
-        ["sin", "cos", "tan", "exp", "sinh", "cosh", "tanh"],
-        ["z", "c", "t"]
-      );
-      onFunctionChange(glslCode);
-      setError(null);
-    } catch (error) {
-      setError(`${error}`);
-    }
+  // トグル変更
+  const handleToggle = (idx: number) => {
+    const newToggles = toggles.map((v, i) =>
+      i === idx ? (v === "o" ? "x" : "o") : v
+    );
+    onTogglesChange(newToggles);
   };
 
   return (
     <div className={styles.controlPanel}>
       {error && <div className={styles.error}>{error}</div>}
       <div className={styles.mathContainer}>
-        <StaticMathField className={styles.staticText}>f</StaticMathField>
-        <EditableMathField
-          latex={iterations}
-          onChange={handleIterationsChange}
-          className={styles.iterations}
-          config={{ restrictMismatchedBrackets: true }}
-        />
-        <StaticMathField className={styles.staticText}>(</StaticMathField>
-        <EditableMathField
-          latex={initialValue}
-          onChange={handleInitialValueChange}
-          className={styles.initialValue}
-        />
-        <StaticMathField className={styles.staticText}>
-          ) \qquad \mid \qquad f(z)=
-        </StaticMathField>
-        <EditableMathField
-          latex={functionExpr}
-          onChange={handleFunctionChange}
-          className={styles.functionExpr}
-        />
+        <div className={styles.togglesRow}>
+          {toggles.map((v, i) => (
+            <button
+              key={i}
+              className={styles.toggle}
+              onClick={() => handleToggle(i)}
+              type="button"
+            >
+              {v}
+            </button>
+          ))}
+        </div>
+        <table className={styles.matrixTable}>
+          <tbody>
+            {matrix.map((row, i) => (
+              <tr key={i}>
+                {row.map((cell, j) => (
+                  <td key={j}>
+                    <input
+                      type="text"
+                      value={cell}
+                      onChange={(e) => handleCellChange(i, j, e.target.value)}
+                      className={`${styles.cell} ${
+                        cell === "" || isValidCellValue(cell)
+                          ? ""
+                          : styles.cellError
+                      }`}
+                      inputMode="text"
+                      pattern="^\\d+$|^\\d+/\\d+$"
+                    />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
-}
+};
+
+export default ControlPanel;

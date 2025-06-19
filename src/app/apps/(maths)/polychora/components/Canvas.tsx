@@ -1,25 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { vertexShader } from "../Shaders/VertexShader";
-import GraphMgr from "@/src/GraphMgr";
 import styles from "./Canvas.module.scss";
 import { CanvasManager } from "@/src/CanvasManager";
+import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
+import { fragmentShader } from "../Shaders/FragmentShader";
 
 interface CanvasProps {
-  shader: string;
-  graph: GraphMgr;
-  onGraphChange: (graph: GraphMgr) => void;
-  iterations: number;
   renderMode: number;
+  diagram: CoxeterDynkinDiagram;
 }
 
-export default function Canvas({
-  shader,
-  graph,
-  onGraphChange,
-  iterations,
-  renderMode,
-}: CanvasProps) {
+export default function Canvas({ renderMode, diagram }: CanvasProps) {
   const [resolution, setResolution] = useState<THREE.Vector2>(() => {
     // サーバーサイドレンダリング時はデフォルト値を使用
     if (typeof window === "undefined") {
@@ -53,8 +45,6 @@ export default function Canvas({
     const canvasManager = new CanvasManager({
       container: containerRef.current,
       resolution,
-      onGraphChange,
-      graphManager: graph,
       onResolutionChange: (newResolution) => {
         setResolution(newResolution);
       },
@@ -77,11 +67,10 @@ export default function Canvas({
             radius: 2,
           },
         },
-        uIterations: { value: iterations },
         uRenderMode: { value: renderMode },
       },
       vertexShader: vertexShader,
-      fragmentShader: shader,
+      fragmentShader: fragmentShader,
     });
     materialRef.current = material;
 
@@ -91,12 +80,6 @@ export default function Canvas({
     canvasManager.startAnimation((time) => {
       if (materialRef.current) {
         materialRef.current.uniforms.uTime.value = time * 0.001;
-        const graph = canvasManager.getGraphManager();
-        materialRef.current.uniforms.uGraph.value.origin.set(
-          graph.origin.x,
-          graph.origin.y
-        );
-        materialRef.current.uniforms.uGraph.value.radius = graph.radius;
       }
     });
 
@@ -105,21 +88,13 @@ export default function Canvas({
       material.dispose();
       geometry.dispose();
     };
-  }, [shader, resolution, iterations, renderMode]);
-
-  // graphの変更を監視
-  useEffect(() => {
-    if (canvasManagerRef.current) {
-      canvasManagerRef.current.updateGraph(graph);
-    }
-  }, [graph]);
+  }, [resolution, renderMode]);
 
   useEffect(() => {
     if (materialRef.current) {
-      materialRef.current.uniforms.uIterations.value = iterations;
       materialRef.current.uniforms.uRenderMode.value = renderMode;
     }
-  }, [iterations, renderMode]);
+  }, [renderMode]);
 
   return <div ref={containerRef} className={styles.canvasContainer} />;
 }

@@ -1,13 +1,11 @@
 import styles from "./ControlButtons.module.scss";
 
 interface ControlButtonsProps {
-  onResetGraph: () => void;
   onRenderModeChange: (mode: number) => void;
   currentRenderMode: number;
 }
 
 export default function ControlButtons({
-  onResetGraph,
   onRenderModeChange,
   currentRenderMode,
 }: ControlButtonsProps) {
@@ -37,7 +35,7 @@ export default function ControlButtons({
       </button>
       <button
         className={styles.button}
-        onClick={onResetGraph}
+        onClick={() => {}}
         title="グラフをリセット"
       >
         <svg

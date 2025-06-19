@@ -1,94 +1,71 @@
 import { useEffect, useState, useCallback } from "react";
-import ControlPanel from "./ControlPanel";
 import Canvas from "./Canvas";
 import ControlButtons from "./ControlButtons";
-import GraphMgr from "@/src/GraphMgr";
-import { fragmentShader } from "../Shaders/FragmentShader";
+import ControlPanel, { MatrixValue, ToggleValue } from "./ControlPanel";
+import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
 
 export default function Main() {
-  const [shader, setShader] = useState(fragmentShader);
-  const [graph, setGraph] = useState<GraphMgr>(new GraphMgr());
-  const [iterations, setIterations] = useState(50);
   const [renderMode, setRenderMode] = useState(0);
-  const [currentFunctionCode, setCurrentFunctionCode] = useState<string>(
-    "cpow(z, vec2(2.0, 0.0)) + c"
-  );
-  const [currentInitialValueCode, setCurrentInitialValueCode] =
-    useState<string>("vec2(0.0, 0.0)");
 
-  const updateShader = useCallback(
-    (
-      functionCode: string | undefined,
-      initialValueCode: string | undefined
-    ) => {
-      setShader(() => {
-        let newShader = fragmentShader;
-
-        // 関数コードの更新
-        const finalFunctionCode =
-          functionCode !== undefined ? functionCode : currentFunctionCode;
-        if (finalFunctionCode) {
-          newShader = newShader.replace(
-            /z\/\* input func here \*\/;/,
-            `${finalFunctionCode};`
-          );
-        }
-
-        // 初期値コードの更新
-        const finalInitialValueCode =
-          initialValueCode !== undefined
-            ? initialValueCode
-            : currentInitialValueCode;
-        if (finalInitialValueCode) {
-          newShader = newShader.replace(
-            /c\/\* input initial value here \*\/;/,
-            `${finalInitialValueCode};`
-          );
-        }
-
-        return newShader;
-      });
-
-      // 状態を更新
-      if (functionCode !== undefined) {
-        setCurrentFunctionCode(functionCode);
-      }
-      if (initialValueCode !== undefined) {
-        setCurrentInitialValueCode(initialValueCode);
-      }
-    },
-    [currentFunctionCode, currentInitialValueCode]
+  // 4x4行列とo/xトグルの状態
+  const [matrix, setMatrix] = useState<MatrixValue>([
+    ["1", "2", "2", "2"],
+    ["2", "1", "2", "2"],
+    ["2", "2", "1", "2"],
+    ["2", "2", "2", "1"],
+  ]);
+  const [toggles, setToggles] = useState<ToggleValue>(["x", "x", "x", "x"]);
+  const [matrixError, setMatrixError] = useState<string | null>(null);
+  const [diagram, setDiagram] = useState<CoxeterDynkinDiagram>(
+    CoxeterDynkinDiagram.fromStringMatrix(matrix, toggles)
   );
 
-  // コンポーネントのマウント時に一度だけ初期値を設定
+  // 入力値からCoxeterDynkinDiagramを生成
   useEffect(() => {
-    updateShader("cpow(z, vec2(2.0, 0.0)) + c", "vec2(0.0, 0.0)");
-  }, []); // 空の依存配列で、マウント時に一度だけ実行
-
-  const handleResetGraph = () => {
-    setGraph(new GraphMgr());
-  };
+    // バリデーション
+    let error: string | null = null;
+    for (let i = 0; i < 4; ++i) {
+      for (let j = 0; j < 4; ++j) {
+        const val = matrix[i][j];
+        if (i === j && val !== "1") {
+          error = `対角成分(${i + 1},${j + 1})は1でなければなりません。`;
+        }
+        if (val === "" || (!/^\d+$/.test(val) && !/^\d+\/\d+$/.test(val))) {
+          error = `(${i + 1},${j + 1})に不正な値があります。`;
+        }
+        // 1以上の整数または分数チェック
+        if (/^\d+$/.test(val) && parseInt(val) < 1) {
+          error = `(${i + 1},${j + 1})は1以上の整数でなければなりません。`;
+        }
+        if (/^(\d+)\/(\d+)$/.test(val)) {
+          const match = val.match(/^(\d+)\/(\d+)$/);
+          if (!match || parseInt(match[1]) < 1 || parseInt(match[2]) < 1) {
+            error = `(${i + 1},${
+              j + 1
+            })の分数は分子・分母とも1以上でなければなりません。`;
+          }
+        }
+      }
+    }
+    setMatrixError(error);
+    if (error) {
+      return;
+    }
+    setDiagram(CoxeterDynkinDiagram.fromStringMatrix(matrix, toggles));
+    console.log(CoxeterDynkinDiagram.fromStringMatrix(matrix, toggles));
+  }, [matrix, toggles]);
 
   return (
     <main className="relative">
-      <Canvas
-        shader={shader}
-        graph={graph}
-        onGraphChange={setGraph}
-        iterations={iterations}
-        renderMode={renderMode}
-      />
+      <Canvas diagram={diagram} renderMode={renderMode} />
       <ControlPanel
-        onIterationsChange={setIterations}
-        onFunctionChange={(functionCode) => {
-          updateShader(functionCode, undefined);
-        }}
-        onInitialValueChange={(initialValueCode) => {
-          updateShader(undefined, initialValueCode);
-        }}
+        matrix={matrix}
+        toggles={toggles}
+        onMatrixChange={setMatrix}
+        onTogglesChange={setToggles}
+        error={matrixError}
       />
       <ControlButtons
-        onResetGraph={handleResetGraph}
         onRenderModeChange={setRenderMode}
         currentRenderMode={renderMode}
       />
