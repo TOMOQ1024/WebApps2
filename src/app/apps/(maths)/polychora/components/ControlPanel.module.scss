@@ -53,6 +53,10 @@
 
 .error {
   color: var(--error-color);
-  font-size: 0.95rem;
+  font-weight: 500;
+  font-size: 0.875rem;
   margin-top: 0.5rem;
+  background: var(--background-color);
+  border: 2px solid var(--border-color);
+  padding: 0.5rem;
 }

@@ -51,8 +51,20 @@ export default function Main() {
     if (error) {
       return;
     }
-    setDiagram(CoxeterDynkinDiagram.fromStringMatrix(matrix, toggles));
-    console.log(CoxeterDynkinDiagram.fromStringMatrix(matrix, toggles));
+    const newDiagram = CoxeterDynkinDiagram.fromStringMatrix(matrix, toggles);
+    console.log(newDiagram);
+
+    if (newDiagram.getDimension() !== 4) {
+      setMatrixError(
+        `Coxeter-Dynkin図形の次元が4ではありません(${newDiagram.getDimension()}次元)。`
+      );
+      return;
+    }
+    if (newDiagram.groupType !== "finite") {
+      setMatrixError("Coxeter-Dynkin図形の群が有限ではありません。");
+      return;
+    }
+    setDiagram(newDiagram);
   }, [matrix, toggles]);
 
   return (
