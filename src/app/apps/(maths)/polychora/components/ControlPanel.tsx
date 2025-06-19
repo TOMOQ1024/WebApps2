@@ -38,7 +38,11 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   // セル変更
   const handleCellChange = (i: number, j: number, value: string) => {
     const newMatrix = matrix.map((row, r) =>
-      row.map((cell, c) => (r === i && c === j ? value : cell))
+      row.map((cell, c) => {
+        if (r === i && c === j) return value;
+        if (r === j && c === i) return value;
+        return cell;
+      })
     );
     onMatrixChange(newMatrix);
   };
