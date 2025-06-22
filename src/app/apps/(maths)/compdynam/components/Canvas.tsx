@@ -93,10 +93,10 @@ export default function Canvas({
         materialRef.current.uniforms.uTime.value = time * 0.001;
         const graph = canvasManager.getGraphManager();
         materialRef.current.uniforms.uGraph.value.origin.set(
-          graph.origin.x,
-          graph.origin.y
+          graph!.origin.x,
+          graph!.origin.y
         );
-        materialRef.current.uniforms.uGraph.value.radius = graph.radius;
+        materialRef.current.uniforms.uGraph.value.radius = graph!.radius;
       }
     });
 
