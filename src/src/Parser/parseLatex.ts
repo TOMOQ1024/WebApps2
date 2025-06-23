@@ -197,6 +197,17 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
           } else {
             throw new Error(`Unknown operator: ${operatorName}`);
           }
+        } else if (constCmd === "overline") {
+          skipWhitespace();
+          if (peek() !== "{") throw new Error("Expected { after \\overline");
+          advance(); // '{'
+          const expr = parseExpression();
+          skipWhitespace();
+          if (peek() !== "}")
+            throw new Error("Expected } after overline argument");
+          advance(); // '}'
+          // overlineを複素共役として処理
+          node = { type: "function", name: "conj", args: [expr] };
         } else if (constCmd === "left") {
           skipWhitespace();
           if (peek() === "|") {
