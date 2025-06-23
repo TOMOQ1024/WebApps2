@@ -156,7 +156,7 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
       } else {
         // 定数やfrac, left等の処理
         const constCmd = parseCommand();
-        if (constCmd === "pi" || constCmd === "e") {
+        if (constCmd === "pi") {
           node = { type: "symbol", name: constCmd };
         } else if (constCmd === "frac") {
           skipWhitespace();
@@ -203,8 +203,11 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
             ) {
               node = parseFunction(operatorName);
             } else {
-              // 括弧がない場合、関数名のsymbolとして扱い、後続の要素との暗黙の乗算に委ねる
-              node = { type: "symbol" as const, name: operatorName };
+              // 括弧がない場合でも、関数として処理し次の要素を引数とする
+              skipWhitespace();
+              // 次の要素をパースして引数とする
+              const arg = parseFactor();
+              node = { type: "function", name: operatorName, args: [arg] };
             }
           } else {
             throw new Error(`Unknown operator: ${operatorName}`);
@@ -295,38 +298,6 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
       throw new Error(`Unexpected character: ${char} at position ${pos}`);
     }
 
-    // 暗黙の乗算（数値・シンボル・関数が連続する場合）
-    skipWhitespace();
-    while (
-      peek() !== ")" &&
-      peek() !== "" &&
-      peek() !== "}" &&
-      peek() !== "+" &&
-      peek() !== "-" &&
-      peek() !== "*" &&
-      peek() !== "/" &&
-      peek() !== "^" &&
-      (peek().match(/[0-9.]/) ||
-        peek().match(/[a-zA-Z]/) ||
-        (peek() === "\\" &&
-          (() => {
-            let save = pos;
-            advance();
-            let cmd = "";
-            while (peek().match(/[a-zA-Z]/)) cmd += advance();
-            pos = save;
-            return (
-              knownFuncs.includes(cmd) ||
-              cmd === "operatorname" ||
-              cmd === "overline" ||
-              cmd === "left"
-            );
-          })()))
-    ) {
-      let right = parseFactor();
-      node = { type: "operator", op: "*", left: node, right };
-      skipWhitespace();
-    }
     return node;
   }
 
@@ -406,6 +377,7 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
     let left = parsePower();
     skipWhitespace();
 
+    // 明示的な乗算・除算
     while (
       peek().match(/[*\/]/) ||
       (peek() === "\\" && latex.slice(pos + 1, pos + 5) === "cdot")
@@ -425,6 +397,39 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
       skipWhitespace();
       const right = parsePower();
       left = { type: "operator", op, left, right };
+      skipWhitespace();
+    }
+
+    // 暗黙の乗算（数値・シンボル・関数が連続する場合）
+    while (
+      peek() !== ")" &&
+      peek() !== "" &&
+      peek() !== "}" &&
+      peek() !== "+" &&
+      peek() !== "-" &&
+      peek() !== "*" &&
+      peek() !== "/" &&
+      peek() !== "^" &&
+      (peek().match(/[0-9.]/) ||
+        peek().match(/[a-zA-Z]/) ||
+        (peek() === "\\" &&
+          (() => {
+            let save = pos;
+            advance();
+            let cmd = "";
+            while (peek().match(/[a-zA-Z]/)) cmd += advance();
+            pos = save;
+            return (
+              knownFuncs.includes(cmd) ||
+              cmd === "operatorname" ||
+              cmd === "overline" ||
+              cmd === "left" ||
+              cmd === "pi"
+            );
+          })()))
+    ) {
+      let right = parsePower();
+      left = { type: "operator", op: "*", left: left, right };
       skipWhitespace();
     }
 

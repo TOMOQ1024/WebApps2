@@ -68,6 +68,12 @@ describe("latexToGLSL", () => {
   });
 
   test("複雑な式の変換", () => {
+    expect(latexToGLSL("e^{i\\pi}")).toBe(
+      "cpow(vec2(E, 0.0), cprod(vec2(0.0, 1.0), vec2(PI, 0.0)))"
+    );
+    expect(latexToGLSL("\\frac{1}{z}2^3")).toBe(
+      "cprod(cdiv(vec2(1.0, 0.0), z), cpow(vec2(2.0, 0.0), vec2(3.0, 0.0)))"
+    );
     expect(latexToGLSL("exp\\left(z\\right)")).toBe("cexp(z)");
     expect(latexToGLSL("\\frac{\\sin(z)}{\\cos(z)}")).toBe(
       "cdiv(csin(z), ccos(z))"

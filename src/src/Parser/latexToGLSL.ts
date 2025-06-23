@@ -31,12 +31,10 @@ export function latexToGLSL(
 ): string {
   try {
     // LaTeXをパースして抽象構文木に変換
-    console.log(`latex: ${latex}`);
     const ast = parseLatex(latex, knownFuncs);
 
     // 抽象構文木をGLSLコードに変換
     let glslCode = ASTToGLSL(ast, knownVars);
-    console.log(`glslCode: ${glslCode}`);
 
     return glslCode;
   } catch (error) {
