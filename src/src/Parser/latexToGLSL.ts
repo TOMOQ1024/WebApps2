@@ -3,7 +3,26 @@ import { parseLatex } from "./parseLatex";
 
 export function latexToGLSL(
   latex: string,
-  knownFuncs: string[] = ["sin", "cos", "tan", "exp", "sinh", "cosh", "tanh"],
+  knownFuncs: string[] = [
+    "sin",
+    "cos",
+    "tan",
+    "exp",
+    "sinh",
+    "cosh",
+    "tanh",
+    "abs",
+    "sqrt",
+    "log",
+    "Log",
+    "re",
+    "Re",
+    "im",
+    "Im",
+    "conj",
+    "arg",
+    "Arg",
+  ],
   knownVars: string[] = ["z", "c", "t"]
 ): string {
   try {

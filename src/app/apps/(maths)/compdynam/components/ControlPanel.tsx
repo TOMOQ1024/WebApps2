@@ -39,11 +39,7 @@ export default function ControlPanel({
     const newValue = mathField.latex();
     setInitialValue(newValue);
     try {
-      const initialValueCode = latexToGLSL(
-        newValue,
-        ["sin", "cos", "tan", "exp", "sinh", "cosh", "tanh"],
-        ["c", "t"]
-      );
+      const initialValueCode = latexToGLSL(newValue, undefined, ["c", "t"]);
       onInitialValueChange(initialValueCode);
       setError(null);
     } catch (error) {
@@ -55,11 +51,7 @@ export default function ControlPanel({
     const newValue = mathField.latex();
     setFunctionExpr(newValue);
     try {
-      const glslCode = latexToGLSL(
-        newValue,
-        ["sin", "cos", "tan", "exp", "sinh", "cosh", "tanh"],
-        ["z", "c", "t"]
-      );
+      const glslCode = latexToGLSL(newValue, undefined, ["z", "c", "t"]);
       onFunctionChange(glslCode);
       setError(null);
     } catch (error) {
@@ -76,7 +68,10 @@ export default function ControlPanel({
           latex={iterations}
           onChange={handleIterationsChange}
           className={styles.iterations}
-          config={{ restrictMismatchedBrackets: true }}
+          config={{
+            restrictMismatchedBrackets: true,
+            autoOperatorNames: "Log Re Im conj Arg",
+          }}
         />
         <StaticMathField className={styles.staticText}>(</StaticMathField>
         <EditableMathField
@@ -91,6 +86,9 @@ export default function ControlPanel({
           latex={functionExpr}
           onChange={handleFunctionChange}
           className={styles.functionExpr}
+          config={{
+            autoOperatorNames: "Log Re Im conj Arg",
+          }}
         />
       </div>
     </div>

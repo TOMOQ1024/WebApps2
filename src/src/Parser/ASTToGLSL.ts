@@ -47,7 +47,7 @@ export function ASTToGLSL(node: ASTNode, knownVars: string[]): string {
 
     case "function":
       const args = node.args.map((arg) => ASTToGLSL(arg, knownVars));
-      const fnName = node.name.toLowerCase();
+      const fnName = node.name;
 
       switch (fnName) {
         case "sinh":
@@ -68,6 +68,24 @@ export function ASTToGLSL(node: ASTNode, knownVars: string[]): string {
           return `csqrt(${args[0]})`;
         case "abs":
           return `cabs(${args[0]})`;
+        case "re":
+          throw new Error("re is not supported. Use Re instead.");
+        case "Re":
+          return `cre(${args[0]})`;
+        case "im":
+          throw new Error("im is not supported. Use Im instead.");
+        case "Im":
+          return `cim(${args[0]})`;
+        case "conj":
+          return `cconj(${args[0]})`;
+        case "arg":
+          throw new Error("arg is not supported. Use Arg instead.");
+        case "Arg":
+          return `carg(${args[0]})`;
+        case "log":
+          throw new Error("log is not supported. Use Log instead.");
+        case "Log":
+          return `clog(${args[0]})`;
         default:
           throw new Error(`Unsupported function: ${fnName}`);
       }

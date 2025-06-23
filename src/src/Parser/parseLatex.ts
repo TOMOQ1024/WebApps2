@@ -179,6 +179,24 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
             left: numerator,
             right: denominator,
           };
+        } else if (constCmd === "operatorname") {
+          skipWhitespace();
+          if (peek() !== "{")
+            throw new Error("Expected { after \\operatorname");
+          advance(); // '{'
+          let operatorName = "";
+          while (peek() !== "}") {
+            if (peek() === "")
+              throw new Error("Expected } after operator name");
+            operatorName += advance();
+          }
+          advance(); // '}'
+          // 関数名が既知の関数リストに含まれているか確認
+          if (knownFuncs.includes(operatorName)) {
+            node = parseFunction(operatorName);
+          } else {
+            throw new Error(`Unknown operator: ${operatorName}`);
+          }
         } else if (constCmd === "left") {
           skipWhitespace();
           if (peek() === "|") {

@@ -110,6 +110,12 @@ vec2 carg(vec2 z) {
   return vec2(atan(z.y, z.x), 0.);
 }
 
+vec2 clog(vec2 z) {
+  if(length(z) == 0.)
+    return vec2(-1e20, 0.);
+  return vec2(log(length(z)), atan(z.y, z.x));
+}
+
 vec2 csqrt(vec2 z) {
   return cpow(z, vec2(.5, 0.));
 }
