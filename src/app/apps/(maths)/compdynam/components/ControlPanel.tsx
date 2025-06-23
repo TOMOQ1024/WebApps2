@@ -1,36 +1,52 @@
-import { useState } from "react";
-import { latexToGLSL } from "@/src/Parser/latexToGLSL";
+import { useState, useEffect } from "react";
 import { EditableMathField, StaticMathField } from "@/components/MathFields";
 import styles from "./ControlPanel.module.scss";
 
-interface ControlPanelProps {
+export interface ControlPanelProps {
   onIterationsChange: (iterations: number) => void;
-  onFunctionChange: (glslCode: string) => void;
-  onInitialValueChange: (glslCode: string) => void;
+  onFunctionLatexChange: (latex: string) => void;
+  onInitialValueLatexChange: (latex: string) => void;
+  currentFunctionLatex: string;
+  currentInitialValueLatex: string;
+  currentIterations: number;
+  error?: string | null;
 }
 
 export default function ControlPanel({
   onIterationsChange,
-  onFunctionChange,
-  onInitialValueChange,
+  onFunctionLatexChange,
+  onInitialValueLatexChange,
+  currentFunctionLatex,
+  currentInitialValueLatex,
+  currentIterations,
+  error,
 }: ControlPanelProps) {
-  const [iterations, setIterations] = useState("50");
-  const [initialValue, setInitialValue] = useState("0");
-  const [functionExpr, setFunctionExpr] = useState("z^2+c");
-  const [error, setError] = useState<string | null>(null);
+  const [iterations, setIterations] = useState(currentIterations.toString());
+  const [initialValue, setInitialValue] = useState(currentInitialValueLatex);
+  const [functionExpr, setFunctionExpr] = useState(currentFunctionLatex);
+
+  // 親コンポーネントからの値が変更された時に同期
+  useEffect(() => {
+    setIterations(currentIterations.toString());
+  }, [currentIterations]);
+
+  useEffect(() => {
+    setInitialValue(currentInitialValueLatex);
+  }, [currentInitialValueLatex]);
+
+  useEffect(() => {
+    setFunctionExpr(currentFunctionLatex);
+  }, [currentFunctionLatex]);
 
   // 反復回数のバリデーション
   const handleIterationsChange = (mathField: any) => {
     const latex = mathField.latex();
     if (latex === "") {
-      setError("反復回数を入力してください。");
       return;
     }
     if (/[^0-9]/.test(latex)) {
-      setError("反復回数は非負整数で入力してください。");
       return;
     }
-    setError(null);
     setIterations(latex);
     onIterationsChange(parseInt(latex, 10));
   };
@@ -38,25 +54,13 @@ export default function ControlPanel({
   const handleInitialValueChange = (mathField: any) => {
     const newValue = mathField.latex();
     setInitialValue(newValue);
-    try {
-      const initialValueCode = latexToGLSL(newValue, undefined, ["c", "t"]);
-      onInitialValueChange(initialValueCode);
-      setError(null);
-    } catch (error) {
-      setError(`${error}`);
-    }
+    onInitialValueLatexChange(newValue);
   };
 
   const handleFunctionChange = (mathField: any) => {
     const newValue = mathField.latex();
     setFunctionExpr(newValue);
-    try {
-      const glslCode = latexToGLSL(newValue, undefined, ["z", "c", "t"]);
-      onFunctionChange(glslCode);
-      setError(null);
-    } catch (error) {
-      setError(`${error}`);
-    }
+    onFunctionLatexChange(newValue);
   };
 
   return (
