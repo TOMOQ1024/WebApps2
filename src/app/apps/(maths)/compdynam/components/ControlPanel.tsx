@@ -70,7 +70,8 @@ export default function ControlPanel({
           className={styles.iterations}
           config={{
             restrictMismatchedBrackets: true,
-            autoOperatorNames: "Log Re Im conj Arg",
+            autoOperatorNames:
+              "sin cos tan exp sinh cosh tanh Log Re Im conj Arg",
           }}
         />
         <StaticMathField className={styles.staticText}>(</StaticMathField>
@@ -87,7 +88,9 @@ export default function ControlPanel({
           onChange={handleFunctionChange}
           className={styles.functionExpr}
           config={{
-            autoOperatorNames: "Log Re Im conj Arg",
+            restrictMismatchedBrackets: true,
+            autoOperatorNames:
+              "sin cos tan exp sinh cosh tanh Log Re Im conj Arg",
           }}
         />
       </div>

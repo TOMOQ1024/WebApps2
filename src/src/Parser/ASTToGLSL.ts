@@ -64,8 +64,6 @@ export function ASTToGLSL(node: ASTNode, knownVars: string[]): string {
           return `ctan(${args[0]})`;
         case "exp":
           return `cexp(${args[0]})`;
-        case "sqrt":
-          return `csqrt(${args[0]})`;
         case "abs":
           return `cabs(${args[0]})`;
         case "re":

@@ -12,8 +12,6 @@ export function latexToGLSL(
     "cosh",
     "tanh",
     "abs",
-    "sqrt",
-    "log",
     "Log",
     "re",
     "Re",
