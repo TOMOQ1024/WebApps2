@@ -55,6 +55,18 @@ describe("latexToGLSL", () => {
     );
   });
 
+  test("operatorname形式の複素関数の変換", () => {
+    expect(latexToGLSL("\\operatorname{Re}z")).toBe("cre(z)");
+    expect(latexToGLSL("\\operatorname{Im}z")).toBe("cim(z)");
+    expect(latexToGLSL("\\operatorname{Log}z")).toBe("clog(z)");
+    expect(latexToGLSL("\\operatorname{Arg}z")).toBe("carg(z)");
+    expect(latexToGLSL("\\operatorname{conj}z")).toBe("cconj(z)");
+    expect(latexToGLSL("\\operatorname{Log}\\left(z\\right)")).toBe("clog(z)");
+    expect(latexToGLSL("\\operatorname{Re}\\left(z+1\\right)")).toBe(
+      "cre(z + vec2(1.0, 0.0))"
+    );
+  });
+
   test("複雑な式の変換", () => {
     expect(latexToGLSL("exp\\left(z\\right)")).toBe("cexp(z)");
     expect(latexToGLSL("\\frac{\\sin(z)}{\\cos(z)}")).toBe(
@@ -69,17 +81,8 @@ describe("latexToGLSL", () => {
     expect(latexToGLSL("\\sin\\left(\\frac{z}{2}\\right)")).toBe(
       "csin(cdiv(z, vec2(2.0, 0.0)))"
     );
-  });
-
-  test("operatorname形式の複素関数の変換", () => {
-    expect(latexToGLSL("\\operatorname{Re}z")).toBe("cre(z)");
-    expect(latexToGLSL("\\operatorname{Im}z")).toBe("cim(z)");
-    expect(latexToGLSL("\\operatorname{Log}z")).toBe("clog(z)");
-    expect(latexToGLSL("\\operatorname{Arg}z")).toBe("carg(z)");
-    expect(latexToGLSL("\\operatorname{conj}z")).toBe("cconj(z)");
-    expect(latexToGLSL("\\operatorname{Log}\\left(z\\right)")).toBe("clog(z)");
-    expect(latexToGLSL("\\operatorname{Re}\\left(z+1\\right)")).toBe(
-      "cre(z + vec2(1.0, 0.0))"
+    expect(latexToGLSL("2\\operatorname{Arg}z")).toBe(
+      "cprod(vec2(2.0, 0.0), carg(z))"
     );
   });
 
@@ -96,6 +99,7 @@ describe("latexToGLSL", () => {
 
   test("エラーケース", () => {
     expect(() => latexToGLSL(".")).toThrow();
+    expect(() => latexToGLSL("z^-z")).toThrow();
     expect(() => latexToGLSL("\\sin")).toThrow();
     expect(() => latexToGLSL("\\frac{1}")).toThrow();
     expect(() => latexToGLSL("\\frac{1}{")).toThrow();

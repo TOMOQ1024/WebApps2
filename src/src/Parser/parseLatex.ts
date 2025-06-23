@@ -193,7 +193,19 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
           advance(); // '}'
           // 関数名が既知の関数リストに含まれているか確認
           if (knownFuncs.includes(operatorName)) {
-            node = parseFunction(operatorName);
+            // 引数を確認
+            skipWhitespace();
+
+            // 括弧がある場合は通常の関数として処理
+            if (
+              peek() === "(" ||
+              (peek() === "\\" && latex.slice(pos + 1, pos + 5) === "left")
+            ) {
+              node = parseFunction(operatorName);
+            } else {
+              // 括弧がない場合、関数名のsymbolとして扱い、後続の要素との暗黙の乗算に委ねる
+              node = { type: "symbol" as const, name: operatorName };
+            }
           } else {
             throw new Error(`Unknown operator: ${operatorName}`);
           }
@@ -287,6 +299,13 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
     skipWhitespace();
     while (
       peek() !== ")" &&
+      peek() !== "" &&
+      peek() !== "}" &&
+      peek() !== "+" &&
+      peek() !== "-" &&
+      peek() !== "*" &&
+      peek() !== "/" &&
+      peek() !== "^" &&
       (peek().match(/[0-9.]/) ||
         peek().match(/[a-zA-Z]/) ||
         (peek() === "\\" &&
@@ -296,7 +315,12 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
             let cmd = "";
             while (peek().match(/[a-zA-Z]/)) cmd += advance();
             pos = save;
-            return knownFuncs.includes(cmd);
+            return (
+              knownFuncs.includes(cmd) ||
+              cmd === "operatorname" ||
+              cmd === "overline" ||
+              cmd === "left"
+            );
           })()))
     ) {
       let right = parseFactor();
@@ -322,7 +346,55 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
         }
         advance(); // '}'
       } else {
-        right = parseFactor();
+        // 指数部をパース
+        // 単項マイナスが来た場合の特別な処理
+        if (peek() === "-") {
+          advance(); // '-' を消費
+          skipWhitespace();
+          // マイナスの後に何もない、または適切な項がない場合はエラー
+          if (
+            peek() === "" ||
+            peek() === ")" ||
+            peek() === "}" ||
+            peek() === "^" ||
+            peek() === "+" ||
+            peek() === "-" ||
+            peek() === "*" ||
+            peek() === "/"
+          ) {
+            throw new Error(
+              "Incomplete expression: expected operand after '-'"
+            );
+          }
+          // 指数部で変数（z, c, t など）が直接来る場合もエラーとして扱う
+          // 例: z^-z のケース
+          if (peek().match(/[a-zA-Z]/)) {
+            // 一時的に先読みして、これが単一の変数かどうかチェック
+            let tempPos = pos;
+            let varName = "";
+            while (latex[tempPos] && latex[tempPos].match(/[a-zA-Z]/)) {
+              varName += latex[tempPos];
+              tempPos++;
+            }
+            // 既知の変数名の場合はエラー（指数部で-変数は数学的に不適切）
+            const knownVars = ["z", "c", "t", "i", "e"];
+            if (knownVars.includes(varName)) {
+              throw new Error(
+                "Incomplete expression: expected operand after '-'"
+              );
+            }
+          }
+          // 正常な場合は単項マイナスとして処理
+          let factor = parseFactor();
+          right = {
+            type: "operator" as const,
+            op: "-",
+            left: factor,
+            right: { type: "number" as const, value: 0 },
+          };
+        } else {
+          right = parseFactor();
+        }
       }
       left = { type: "operator", op: "^", left, right };
     }

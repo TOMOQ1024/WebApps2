@@ -58,14 +58,37 @@ vec2 csin(vec2 z) {
 }
 
 vec2 ctan(vec2 z) {
-  float cx = cos(z.x);
-  float cy = cosh(z.y);
-  float sx = sin(z.x);
-  float sy = sinh(z.y);
-  return vec2(
-    cx*sx,
-    -cy*sy
-  ) / (cx*cx+sy*sy);
+    float cx = cos(z.x);
+    float cy = cosh(z.y);
+    float sx = sin(z.x);
+    float sy = sinh(z.y);
+    
+    vec2 sin_z = vec2(sx * cy, cx * sy);
+    
+    vec2 cos_z = vec2(cx * cy, -sx * sy);
+    
+    float denominator = cos_z.x * cos_z.x + cos_z.y * cos_z.y;
+    return vec2(
+        (sin_z.x * cos_z.x + sin_z.y * cos_z.y) / denominator,
+        (sin_z.y * cos_z.x - sin_z.x * cos_z.y) / denominator
+    );
+}
+
+vec2 ccot(vec2 z) {
+    float cx = cos(z.x);
+    float cy = cosh(z.y);
+    float sx = sin(z.x);
+    float sy = sinh(z.y);
+    
+    vec2 sin_z = vec2(sx * cy, cx * sy);
+    
+    vec2 cos_z = vec2(cx * cy, -sx * sy);
+    
+    float denominator = sin_z.x * sin_z.x + sin_z.y * sin_z.y;
+    return vec2(
+        (cos_z.x * sin_z.x + cos_z.y * sin_z.y) / denominator,
+        (cos_z.y * sin_z.x - cos_z.x * sin_z.y) / denominator
+    );
 }
 
 vec2 csec(vec2 z) {
@@ -73,10 +96,11 @@ vec2 csec(vec2 z) {
   float cy = cosh(z.y);
   float sx = sin(z.x);
   float sy = sinh(z.y);
-  return vec2(
-    cx*cy,
-    sx*sy
-  ) / (cx*cx+sy*sy);
+  
+  vec2 cos_z = vec2(cx * cy, -sx * sy);
+  
+  float denominator = cos_z.x * cos_z.x + cos_z.y * cos_z.y;
+  return vec2(cos_z.x, -cos_z.y) / denominator;
 }
 
 vec2 ccsc(vec2 z) {
@@ -84,10 +108,11 @@ vec2 ccsc(vec2 z) {
   float cy = cosh(z.y);
   float sx = sin(z.x);
   float sy = sinh(z.y);
-  return vec2(
-    sx*cy,
-    cx*sy
-  ) / (cx*cx+cy*cy);
+  
+  vec2 sin_z = vec2(sx * cy, cx * sy);
+  
+  float denominator = sin_z.x * sin_z.x + sin_z.y * sin_z.y;
+  return vec2(sin_z.x, -sin_z.y) / denominator;
 }
 
 vec2 ccosh(vec2 z) {
@@ -100,6 +125,18 @@ vec2 csinh(vec2 z) {
 
 vec2 ctanh(vec2 z) {
   return cdiv(csinh(z), ccosh(z));
+}
+
+vec2 ccoth(vec2 z) {
+  return cdiv(ccosh(z), csinh(z));
+}
+
+vec2 csech(vec2 z) {
+  return cdiv(vec2(1.0, 0.0), ccosh(z));
+}
+
+vec2 ccsch(vec2 z) {
+  return cdiv(vec2(1.0, 0.0), csinh(z));
 }
 
 vec2 cabs(vec2 z) {
