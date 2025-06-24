@@ -22,7 +22,8 @@ interface GalleryGridCanvasProps {
   className?: string;
 }
 
-const CELL_SIZE = 160; // px 固定
+const CELL_SIZE = 200; // px 固定
+const PADDING = 20; // px, キャンバス内余白
 
 export default function GalleryGridCanvas({
   items,
@@ -46,7 +47,7 @@ export default function GalleryGridCanvas({
       const rows = Math.ceil(items.length / cols);
       setCols(cols);
       setRows(rows);
-      setCanvasSize({ width, height: rows * CELL_SIZE });
+      setCanvasSize({ width, height: rows * CELL_SIZE + PADDING * 2 });
     }
     updateGrid();
     window.addEventListener("resize", updateGrid);
@@ -75,7 +76,9 @@ export default function GalleryGridCanvas({
     camera.position.z = 1;
 
     // グリッド配置
-    const cellW = width / cols;
+    const gridW = width - PADDING * 2;
+    const gridH = height - PADDING * 2;
+    const cellW = gridW / cols;
     const cellH = CELL_SIZE;
     const cellSize = Math.min(cellW, cellH) * 0.9;
 
@@ -125,8 +128,8 @@ export default function GalleryGridCanvas({
       const mesh = new THREE.Mesh(geometry, material);
       const row = Math.floor(idx / cols);
       const col = idx % cols;
-      mesh.position.x = -width / 2 + cellW * (col + 0.5);
-      mesh.position.y = height / 2 - cellH * (row + 0.5);
+      mesh.position.x = -width / 2 + PADDING + cellW * (col + 0.5);
+      mesh.position.y = height / 2 - PADDING - cellH * (row + 0.5);
       mesh.userData = { item, row, col, idx };
       scene.add(mesh);
       meshes.push(mesh);
@@ -151,14 +154,45 @@ export default function GalleryGridCanvas({
       const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
       const wx = (x * width) / 2;
       const wy = (y * height) / 2;
-      const col = Math.floor((wx + width / 2) / cellW);
-      const row = Math.floor((-wy + height / 2) / cellH);
-      const idx = row * cols + col;
-      if (0 <= idx && idx < items.length) {
-        setHoverIdx(idx);
-      } else {
+      // パディング内か判定
+      if (
+        wx < -width / 2 + PADDING ||
+        wx > width / 2 - PADDING ||
+        wy < -height / 2 + PADDING ||
+        wy > height / 2 - PADDING
+      ) {
         setHoverIdx(null);
+        renderAll();
+        return;
       }
+      // パディングを除いたグリッド座標に変換
+      const gridX = wx + width / 2 - PADDING;
+      const gridY = height / 2 - PADDING - wy;
+      const col = Math.floor(gridX / (gridW / cols));
+      const row = Math.floor(gridY / CELL_SIZE);
+      const idx = row * cols + col;
+      // セル内か判定
+      if (
+        0 <= col &&
+        col < cols &&
+        0 <= row &&
+        row < rows &&
+        idx < items.length
+      ) {
+        // セルの中心座標
+        const cellCenterX = PADDING + (col + 0.5) * (gridW / cols);
+        const cellCenterY = PADDING + (row + 0.5) * CELL_SIZE;
+        // ポインタがセルの正方形領域内か
+        if (
+          Math.abs(wx + width / 2 - cellCenterX) <= cellSize / 2 &&
+          Math.abs(height / 2 - wy - cellCenterY) <= cellSize / 2
+        ) {
+          setHoverIdx(idx);
+          renderAll();
+          return;
+        }
+      }
+      setHoverIdx(null);
       renderAll();
     };
     const handlePointerLeave = () => {
@@ -205,7 +239,11 @@ export default function GalleryGridCanvas({
     >
       <div
         ref={canvasRef}
-        className={styles.gridCanvas}
+        className={
+          hoverIdx !== null
+            ? `${styles.gridCanvas} ${styles["gridCanvas--hover"]}`
+            : styles.gridCanvas
+        }
         style={{ height: canvasSize.height }}
       />
     </div>
