@@ -34,7 +34,7 @@ export default function ControlButtons({
       <button
         className={styles.button}
         onClick={onReset}
-        title="デフォルト設定にリセット"
+        title="描画設定をリセット"
       >
         <svg
           width="16"

@@ -122,31 +122,10 @@ export default function Main() {
   }, [core]);
 
   const handleReset = useCallback(() => {
-    const defaultDiagram = new CoxeterDynkinDiagram(
-      {
-        ab: [2, 1],
-        ba: [2, 1],
-        bc: [3, 1],
-        cb: [3, 1],
-        cd: [3, 1],
-        dc: [3, 1],
-        ad: [3, 1],
-        da: [3, 1],
-        ac: [2, 1],
-        ca: [2, 1],
-        bd: [2, 1],
-        db: [2, 1],
-      },
-      {
-        a: "x",
-        b: "x",
-        c: "x",
-        d: "x",
-      }
-    );
-    setDiagram(defaultDiagram);
-    setError(null);
-  }, []);
+    if (core) {
+      core.ctrls.reset();
+    }
+  }, [core]);
 
   // coreが初期化された後に初期の多胞体生成を実行
   useEffect(() => {
