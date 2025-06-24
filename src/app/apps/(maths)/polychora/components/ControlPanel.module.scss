@@ -6,9 +6,10 @@
   flex-direction: column;
   gap: 1rem;
   align-items: flex-start;
+  z-index: 10;
 }
 
-.mathContainer {
+.wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -18,41 +19,78 @@
   padding: 1rem;
 }
 
-.togglesRow {
+.matrixContainer {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
+  align-items: center;
+  justify-content: center;
 }
 
-.toggle {
-  width: 2rem;
-  height: 2rem;
-  font-size: 1.2rem;
+.bracket {
+  font-size: 2em;
+  margin: 0 10px;
+  transform: translateY(-10px) scaleY(4.5);
+  color: var(--text-color);
+}
+
+.matrix {
+  border-collapse: collapse;
+  width: auto;
+}
+
+.matrix td {
+  border: 2px solid var(--border-color);
+  width: 30px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.upperTriangular {
+  color: var(--text-color);
+}
+
+.lowerTriangular {
+  color: var(--text-color-secondary);
+}
+
+.input {
+  background-color: transparent;
+  border: none;
+  outline: none;
+  text-align: center;
+  width: 30px;
+  height: 30px;
+  color: inherit;
+  font-weight: bold;
+
+  &.invalid {
+    background-color: var(--error-color);
+  }
+
+  &:hover {
+    background-color: var(--background-color);
+  }
+
+  &:focus {
+    background-color: var(--background-color);
+  }
+}
+
+.nodeMarks {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.nodeMark {
+  width: 30px;
+  border: 2px solid var(--border-color);
+  text-align: center;
   cursor: pointer;
 }
 
-.matrixTable {
-  border-collapse: collapse;
-}
-
-.matrixTable td {
-  padding: 0.2rem;
-}
-
-.cell {
-  width: 3rem;
-  height: 1.5rem;
-  text-align: center;
-  border: 2px solid var(--border-color);
-}
-
-.cellError {
-  border: 2px solid var(--error-color);
-  color: var(--error-color);
-}
-
 .error {
-  color: var(--error-color);
+  color: #dc3545;
   font-weight: 500;
   font-size: 0.875rem;
   margin-top: 0.5rem;

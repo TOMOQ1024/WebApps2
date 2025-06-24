@@ -1,86 +1,165 @@
 import { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
+import ControlPanel from "./ControlPanel";
 import Canvas from "./Canvas";
 import ControlButtons from "./ControlButtons";
-import ControlPanel, { MatrixValue, ToggleValue } from "./ControlPanel";
+import Core from "../core/Core";
 import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
 
 export default function Main() {
-  const [renderMode, setRenderMode] = useState(0);
-
-  // 4x4行列とo/xトグルの状態
-  const [matrix, setMatrix] = useState<MatrixValue>([
-    ["1", "2", "2", "2"],
-    ["2", "1", "2", "2"],
-    ["2", "2", "1", "2"],
-    ["2", "2", "2", "1"],
-  ]);
-  const [toggles, setToggles] = useState<ToggleValue>(["x", "x", "x", "x"]);
-  const [matrixError, setMatrixError] = useState<string | null>(null);
+  const [core, setCore] = useState<Core>();
   const [diagram, setDiagram] = useState<CoxeterDynkinDiagram>(
-    CoxeterDynkinDiagram.fromStringMatrix(matrix, toggles)
+    new CoxeterDynkinDiagram(
+      {
+        ab: [2, 1],
+        ba: [2, 1],
+        bc: [3, 1],
+        cb: [3, 1],
+        cd: [3, 1],
+        dc: [3, 1],
+        ad: [3, 1],
+        da: [3, 1],
+        ac: [2, 1],
+        ca: [2, 1],
+        bd: [2, 1],
+        db: [2, 1],
+      },
+      {
+        a: "x",
+        b: "x",
+        c: "x",
+        d: "x",
+      }
+    )
+  );
+  const [error, setError] = useState<string | null>(null);
+  const [buildTime, setBuildTime] = useState(0);
+  const [hasLoadedFromParams, setHasLoadedFromParams] = useState(false);
+
+  const searchParams = useSearchParams();
+
+  // クエリパラメータから状態を読み込む（初回のみ）
+  useEffect(() => {
+    if (searchParams && !hasLoadedFromParams) {
+      // ここでクエリパラメータから初期状態を読み込む処理を追加
+      setHasLoadedFromParams(true);
+    }
+  }, [searchParams, hasLoadedFromParams]);
+
+  // 状態が変更された時にクエリパラメータを更新
+  const updateQueryParams = useCallback(() => {
+    // ここでクエリパラメータの更新処理を追加
+  }, [diagram]);
+
+  const computeSchlafliMatrixDeterminant = async () => {
+    if (!core) return 0;
+    const labels = core.diagram.labels;
+    const { Matrix4 } = await import("three");
+    const mat = new Matrix4(
+      2,
+      -2 * Math.cos((Math.PI / labels.ab[0]) * labels.ab[1]),
+      -2 * Math.cos((Math.PI / labels.ac[0]) * labels.ac[1]),
+      -2 * Math.cos((Math.PI / labels.ad[0]) * labels.ad[1]),
+
+      -2 * Math.cos((Math.PI / labels.ab[0]) * labels.ab[1]),
+      2,
+      -2 * Math.cos((Math.PI / labels.bc[0]) * labels.bc[1]),
+      -2 * Math.cos((Math.PI / labels.bd[0]) * labels.bd[1]),
+
+      -2 * Math.cos((Math.PI / labels.ac[0]) * labels.ac[1]),
+      -2 * Math.cos((Math.PI / labels.bc[0]) * labels.bc[1]),
+      2,
+      -2 * Math.cos((Math.PI / labels.cd[0]) * labels.cd[1]),
+
+      -2 * Math.cos((Math.PI / labels.ad[0]) * labels.ad[1]),
+      -2 * Math.cos((Math.PI / labels.bd[0]) * labels.bd[1]),
+      -2 * Math.cos((Math.PI / labels.cd[0]) * labels.cd[1]),
+      2
+    );
+
+    return mat.determinant();
+  };
+
+  const handleBuild = useCallback(async () => {
+    if (!core) return;
+
+    try {
+      core.diagram.dropCache();
+      const det = await computeSchlafliMatrixDeterminant();
+      if (core.diagram.isVolumeless()) {
+        setError(
+          "多胞体の次元が4未満です．低次元多胞体の生成は今後の開発で対応予定です．"
+        );
+      } else if (det <= 0) {
+        setError("頂点数が有限ではありません");
+      } else {
+        setError(null);
+        setBuildTime(0);
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        core.setPolychoron();
+        setBuildTime(core.buildTime);
+      }
+    } catch (err) {
+      setError(String(err));
+    }
+  }, [core]);
+
+  const handleDiagramChange = useCallback(
+    (newDiagram: CoxeterDynkinDiagram) => {
+      setDiagram(newDiagram);
+      if (core) {
+        core.diagram = newDiagram;
+        core.diagram.dropCache();
+        handleBuild();
+      }
+    },
+    [core, handleBuild]
   );
 
-  // 入力値からCoxeterDynkinDiagramを生成
-  useEffect(() => {
-    // バリデーション
-    let error: string | null = null;
-    for (let i = 0; i < 4; ++i) {
-      for (let j = 0; j < 4; ++j) {
-        const val = matrix[i][j];
-        if (i === j && val !== "1") {
-          error = `対角成分(${i + 1},${j + 1})は1でなければなりません。`;
-        }
-        if (val === "" || (!/^\d+$/.test(val) && !/^\d+\/\d+$/.test(val))) {
-          error = `(${i + 1},${j + 1})に不正な値があります。`;
-        }
-        // 1以上の整数または分数チェック
-        if (/^\d+$/.test(val) && parseInt(val) < 1) {
-          error = `(${i + 1},${j + 1})は1以上の整数でなければなりません。`;
-        }
-        if (/^(\d+)\/(\d+)$/.test(val)) {
-          const match = val.match(/^(\d+)\/(\d+)$/);
-          if (!match || parseInt(match[1]) < 1 || parseInt(match[2]) < 1) {
-            error = `(${i + 1},${
-              j + 1
-            })の分数は分子・分母とも1以上でなければなりません。`;
-          }
-        }
-      }
+  const handleDownloadGLB = useCallback(() => {
+    if (core) {
+      core.downloadGLB();
     }
-    setMatrixError(error);
-    if (error) {
-      return;
-    }
-    const newDiagram = CoxeterDynkinDiagram.fromStringMatrix(matrix, toggles);
-    console.log(newDiagram);
+  }, [core]);
 
-    if (newDiagram.getDimension() !== 4) {
-      setMatrixError(
-        `Coxeter-Dynkin図形の次元が4ではありません(${newDiagram.getDimension()}次元)。`
-      );
-      return;
-    }
-    if (newDiagram.groupType !== "finite") {
-      setMatrixError("Coxeter-Dynkin図形の群が有限ではありません。");
-      return;
-    }
-    setDiagram(newDiagram);
-  }, [matrix, toggles]);
+  const handleReset = useCallback(() => {
+    const defaultDiagram = new CoxeterDynkinDiagram(
+      {
+        ab: [2, 1],
+        ba: [2, 1],
+        bc: [3, 1],
+        cb: [3, 1],
+        cd: [3, 1],
+        dc: [3, 1],
+        ad: [3, 1],
+        da: [3, 1],
+        ac: [2, 1],
+        ca: [2, 1],
+        bd: [2, 1],
+        db: [2, 1],
+      },
+      {
+        a: "x",
+        b: "x",
+        c: "x",
+        d: "x",
+      }
+    );
+    setDiagram(defaultDiagram);
+    setError(null);
+  }, []);
 
   return (
-    <main className="relative">
-      <Canvas diagram={diagram} renderMode={renderMode} />
+    <main className="relative w-full h-screen">
       <ControlPanel
-        matrix={matrix}
-        toggles={toggles}
-        onMatrixChange={setMatrix}
-        onTogglesChange={setToggles}
-        error={matrixError}
+        diagram={diagram}
+        onDiagramChange={handleDiagramChange}
+        error={error}
+        buildTime={buildTime}
+        onBuild={handleBuild}
       />
-      <ControlButtons
-        onRenderModeChange={setRenderMode}
-        currentRenderMode={renderMode}
-      />
+      <Canvas core={core} setCore={setCore} diagram={diagram} />
+      <ControlButtons onDownloadGLB={handleDownloadGLB} onReset={handleReset} />
     </main>
   );
 }

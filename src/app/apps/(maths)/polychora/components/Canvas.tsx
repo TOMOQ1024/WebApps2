@@ -1,100 +1,82 @@
 import { useEffect, useRef, useState } from "react";
-import * as THREE from "three";
-import { vertexShader } from "../Shaders/VertexShader";
-import styles from "./Canvas.module.scss";
-import { CanvasManager } from "@/src/CanvasManager";
+import Core from "../core/Core";
 import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
-import { fragmentShader } from "../Shaders/FragmentShader";
+import styles from "./Canvas.module.scss";
 
-interface CanvasProps {
-  renderMode: number;
+export interface CanvasProps {
+  core: Core | undefined;
+  setCore: (core: Core) => void;
   diagram: CoxeterDynkinDiagram;
 }
 
-export default function Canvas({ renderMode, diagram }: CanvasProps) {
-  const [resolution, setResolution] = useState<THREE.Vector2>(() => {
-    // サーバーサイドレンダリング時はデフォルト値を使用
-    if (typeof window === "undefined") {
-      return new THREE.Vector2(800, 600);
-    }
-    // クライアントサイドではウィンドウサイズを使用
-    return new THREE.Vector2(window.innerWidth, window.innerHeight - 50);
-  });
-  const containerRef = useRef<HTMLDivElement>(null);
-  const canvasManagerRef = useRef<CanvasManager | null>(null);
-  const materialRef = useRef<THREE.ShaderMaterial | null>(null);
+export default function Canvas({ core, setCore, diagram }: CanvasProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isFull, setIsFull] = useState(false);
 
-  // クライアントサイドでの初期サイズ設定
   useEffect(() => {
-    const newResolution = new THREE.Vector2(
-      window.innerWidth,
-      window.innerHeight - 50
-    );
-    setResolution(newResolution);
-  }, []);
+    if (!canvasRef.current) return;
 
-  // シーンの初期化
-  useEffect(() => {
-    if (!containerRef.current) return;
+    const canvas = canvasRef.current;
+    const newCore = new Core(canvas);
+    setCore(newCore);
 
-    // 既存のキャンバスをクリーンアップ
-    if (canvasManagerRef.current) {
-      canvasManagerRef.current.dispose();
-    }
+    const handleResize = () => {
+      newCore.resizeCanvas();
+    };
 
-    const canvasManager = new CanvasManager({
-      container: containerRef.current,
-      resolution,
-      onResolutionChange: (newResolution) => {
-        setResolution(newResolution);
-      },
-    });
-    canvasManagerRef.current = canvasManager;
-
-    const geometry = new THREE.PlaneGeometry(
-      resolution.x * 16,
-      resolution.y * 16
-    );
-    const material = new THREE.ShaderMaterial({
-      uniforms: {
-        uTime: { value: 0 },
-        uResolution: {
-          value: resolution,
-        },
-        uGraph: {
-          value: {
-            origin: new THREE.Vector2(0, 0),
-            radius: 2,
-          },
-        },
-        uRenderMode: { value: renderMode },
-      },
-      vertexShader: vertexShader,
-      fragmentShader: fragmentShader,
-    });
-    materialRef.current = material;
-
-    const mesh = new THREE.Mesh(geometry, material);
-    canvasManager.getScene().add(mesh);
-
-    canvasManager.startAnimation((time) => {
-      if (materialRef.current) {
-        materialRef.current.uniforms.uTime.value = time * 0.001;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // フルスクリーン切り替え
+      const tagName = (e.target as HTMLElement).tagName;
+      if (e.key === "f" && !e.shiftKey && !e.metaKey && tagName !== "INPUT") {
+        const wr = newCore.cvs.parentElement!;
+        if (!document.fullscreenElement) {
+          setIsFull(true);
+          wr.requestFullscreen();
+          handleResize();
+        } else {
+          setIsFull(false);
+          document.exitFullscreen();
+          handleResize();
+        }
       }
-    });
+
+      if (e.key === "e" && !e.shiftKey && !e.metaKey && tagName !== "INPUT") {
+        newCore.downloadGLB();
+      }
+      if (e.key === "p" && !e.shiftKey && !e.metaKey && tagName !== "INPUT") {
+        (async () => {
+          await newCore.setPolychoron();
+        })();
+      }
+    };
+
+    newCore.init(true);
+
+    document.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("resize", handleResize);
 
     return () => {
-      canvasManager.dispose();
-      material.dispose();
-      geometry.dispose();
+      newCore.endLoop();
+      document.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("resize", handleResize);
     };
-  }, [resolution, renderMode]);
+  }, [setCore]);
 
+  // diagramが変更された時にcoreのdiagramを更新
   useEffect(() => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.uRenderMode.value = renderMode;
+    if (core) {
+      core.diagram = diagram;
     }
-  }, [renderMode]);
+  }, [core, diagram]);
 
-  return <div ref={containerRef} className={styles.canvasContainer} />;
+  return (
+    <div className={styles.canvasContainer}>
+      <canvas
+        ref={canvasRef}
+        width={800}
+        height={600}
+        className={styles.canvas}
+      />
+    </div>
+  );
 }
