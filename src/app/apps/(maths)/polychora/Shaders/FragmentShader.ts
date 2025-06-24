@@ -22,7 +22,8 @@ void main() {
   vec4 c = 1. - e + e * tanh(30. * t);
   // vec4 c = pow(vColor, vec4(3.));
   float d = tanh(vDepth.z);
-  float alpha = (3. - d) / 4.;
-  gl_FragColor = vec4(c.rgb * alpha, alpha);
+  float brightness = (1.5 - d) / 2.;
+  float alpha = 1.;
+  gl_FragColor = vec4(c.rgb * brightness, alpha);
 }
 `;
