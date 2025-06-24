@@ -22,7 +22,7 @@ interface GalleryGridCanvasProps {
   className?: string;
 }
 
-const CELL_SIZE = 200; // px 固定
+const CELL_SIZE = 300; // px 固定
 const PADDING = 20; // px, キャンバス内余白
 
 export default function GalleryGridCanvas({
@@ -112,7 +112,7 @@ export default function GalleryGridCanvas({
       const material = new THREE.ShaderMaterial({
         uniforms: {
           uTime: { value: 0 },
-          uResolution: { value: new THREE.Vector2(cellSize, cellSize) },
+          uResolution: { value: new THREE.Vector2(cellSize / 2, cellSize / 2) },
           uGraph: {
             value: {
               origin: new THREE.Vector2(...item.center),
