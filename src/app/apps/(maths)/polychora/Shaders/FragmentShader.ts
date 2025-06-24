@@ -1,61 +1,28 @@
-import { complexFunctionShader } from "./ComplexFunctionShader";
-
 export const fragmentShader = /* glsl */ `
-precision mediump float;
-uniform float uTime;
-uniform vec2 uResolution;
-struct Graph {
-  vec2 origin;
-  float radius;
-};
-uniform Graph uGraph;
-uniform sampler2D uTexture;
-uniform int uRenderMode;
-uniform int uIterations;
-varying vec2 vPosition;
+precision highp float;
 
-${complexFunctionShader}
+varying vec2 vUv;
+varying vec4 vColor;
+varying vec3 vDepth;
+#define PI 3.14159265358979323846
 
-vec3 hsv2rgb(float h, float s, float v) {
-  return ((clamp(abs(fract(h + vec3(0, 2, 1) / 3.) * 6. - 3.) - 1., 0., 1.) - 1.) * s + 1.) * v;
-  // return ((clamp(abs(fract(h+vec4(0.,2.,1.,1.)/3.)*6.-3.)-1.,0.,1.)-1.)*s+1.)*v;
+float tanh(float x) {
+  return (exp(x) - exp(-x)) / (exp(x) + exp(-x));
 }
 
-vec2 compdynam(vec2 C) {
-  vec2 t = vec2(uTime, 0.);
-  vec2 c = vec2(C);
-  vec2 z = c/* input initial value here */;
-
-  for(int i = 0; i < uIterations; i++) {
-    z = z/* input func here */;
-    // if (40. < abs(log(length(z)))) break;
-  }
-  return z;
+vec4 tanh(vec4 x) {
+  return (exp(x) - exp(-x)) / (exp(x) + exp(-x));
 }
 
 void main() {
-  vec2 z0 = vPosition / min(uResolution.x, uResolution.y) * uGraph.radius + uGraph.origin;
-  vec2 a = compdynam(z0);
-
-  switch(uRenderMode) {
-    case 0:/* hsv */
-      {
-        float b = a.x != 0. ? atan(a.y, a.x) : a.y < 0. ? -PI / 2. : PI / 2.;
-        gl_FragColor = vec4(hsv2rgb(b / 2. / PI + 1., 1., pow(1. / (1. + length(a)), .1)), 1.);
-        break;
-      }
-    case 1:/* grayscale */
-      {
-        float b = a.x != 0. ? atan(a.y, a.x) : a.y < 0. ? -PI / 2. : PI / 2.;
-        gl_FragColor = vec4(hsv2rgb(0., 0., pow(1. / (1. + length(a)), .1) * (1. + sin(b * 2.)) / 2.), 1.);
-        break;
-      }
-    case 2:/* image */
-      {
-        vec2 A0 = (a * 2. + 1.) / 2.;
-        gl_FragColor = length(a) < 1e20 ? texture2D(uTexture, vec2(A0.x, -A0.y)) : vec4(0., 0., 0., 1.);
-        break;
-      }
-  }
+  float e = .2;
+  vec4 t = vColor - 1. + e;
+  // float r = min(abs(t.x), min(abs(t.y), abs(t.z)));
+  // vec4 c = mix(vec4(0.), 1. - e + e * sign(t), r/.1);
+  vec4 c = 1. - e + e * tanh(30. * t);
+  // vec4 c = pow(vColor, vec4(3.));
+  float d = tanh(vDepth.z);
+  float alpha = (3. - d) / 4.;
+  gl_FragColor = vec4(c.rgb * alpha, alpha);
 }
 `;

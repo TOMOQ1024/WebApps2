@@ -15,6 +15,8 @@ import {
 import { GLTFExporter, OrbitControls } from "three/examples/jsm/Addons";
 import { CreatePolychoronGeometry } from "./Geometry";
 import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
+import { vertexShader } from "../Shaders/VertexShader";
+import { fragmentShader } from "../Shaders/FragmentShader";
 
 export default class Core {
   cvs: HTMLCanvasElement;
@@ -52,6 +54,8 @@ export default class Core {
     uniforms: {
       time: { value: 0 },
     },
+    vertexShader: vertexShader,
+    fragmentShader: fragmentShader,
   });
   isCompiled = false;
 
@@ -82,16 +86,6 @@ export default class Core {
     // this.scene.add(new AxesHelper(10));
 
     this.scene.add(this.camera);
-
-    this.loadShader();
-  }
-
-  async loadShader() {
-    const res = await axios.get("/api/shaders/polychora");
-    this.material.vertexShader = res.data.vert;
-    this.material.fragmentShader = res.data.frag;
-    this.material.needsUpdate = true;
-    await this.renderer.compileAsync(this.scene, this.camera);
     this.isCompiled = true;
   }
 
