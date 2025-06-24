@@ -1,4 +1,5 @@
 export const vertexShader = /* glsl */ `
+precision mediump float;
 varying vec2 vPosition;
 
 void main() {
