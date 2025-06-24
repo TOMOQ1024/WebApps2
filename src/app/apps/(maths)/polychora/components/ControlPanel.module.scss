@@ -89,12 +89,28 @@
   cursor: pointer;
 }
 
-.error {
-  color: #dc3545;
-  font-weight: 500;
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
+.message {
+  margin-top: 10px;
+  height: 40px;
+  font-size: 0.8em;
+  padding: 5px;
   background: var(--background-color);
   border: 2px solid var(--border-color);
-  padding: 0.5rem;
+
+  &.info {
+    color: var(--text-color-secondary);
+  }
+
+  &.success {
+    color: var(--success-color);
+  }
+
+  &.error {
+    color: var(--error-color);
+  }
+
+  p {
+    margin: 0;
+    line-height: 1.2;
+  }
 }

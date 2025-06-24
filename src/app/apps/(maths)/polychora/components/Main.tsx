@@ -51,8 +51,7 @@ export default function Main() {
     // ここでクエリパラメータの更新処理を追加
   }, [diagram]);
 
-  const computeSchlafliMatrixDeterminant = async () => {
-    if (!core) return 0;
+  const computeSchlafliMatrixDeterminant = async (core: Core) => {
     const labels = core.diagram.labels;
     const { Matrix4 } = await import("three");
     const mat = new Matrix4(
@@ -85,7 +84,7 @@ export default function Main() {
 
     try {
       core.diagram.dropCache();
-      const det = await computeSchlafliMatrixDeterminant();
+      const det = await computeSchlafliMatrixDeterminant(core);
       if (core.diagram.isVolumeless()) {
         setError(
           "多胞体の次元が4未満です．低次元多胞体の生成は今後の開発で対応予定です．"
@@ -148,6 +147,14 @@ export default function Main() {
     setDiagram(defaultDiagram);
     setError(null);
   }, []);
+
+  // coreが初期化された後に初期の多胞体生成を実行
+  useEffect(() => {
+    if (core) {
+      core.diagram = diagram;
+      handleBuild();
+    }
+  }, [core, diagram, handleBuild]);
 
   return (
     <main className="relative w-full h-screen">

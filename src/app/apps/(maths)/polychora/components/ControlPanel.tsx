@@ -28,31 +28,44 @@ export default function ControlPanel({
   }, [error]);
 
   const handleInputChange = async (value: string, labelKey: string) => {
-    const prev = diagram.labels[labelKey];
     const rev = labelKey.split("").reverse().join("");
 
-    const input = document.querySelector(`input.${rev}`) as HTMLInputElement;
-    if (input) {
-      input.value = value;
+    // 空文字列の場合は何もしない
+    if (value === "") {
+      return;
     }
 
-    if (/^\d+$/.test(value)) {
+    // 入力値の検証
+    const isValidInteger = /^\d+$/.test(value);
+    const isValidFraction = /^(\d+\/\d+)$/.test(value);
+
+    if (isValidInteger) {
       // 整数の場合
       const newLabels = { ...diagram.labels };
       const newNodeMarks = { ...diagram.nodeMarks };
       newLabels[labelKey] = [+value, 1];
       newLabels[rev] = [+value, 1];
       const newDiagram = new CoxeterDynkinDiagram(newLabels, newNodeMarks);
+      setLocalError(""); // エラーをクリア
       onDiagramChange(newDiagram);
-    } else if (/^(\d+\/\d+)$/.test(value)) {
+    } else if (isValidFraction) {
       // 分数の場合
-      const newLabels = { ...diagram.labels };
-      const newNodeMarks = { ...diagram.nodeMarks };
-      newLabels[labelKey] = value.split("/").map(Number) as [number, number];
-      newLabels[rev] = value.split("/").map(Number) as [number, number];
-      const newDiagram = new CoxeterDynkinDiagram(newLabels, newNodeMarks);
-      onDiagramChange(newDiagram);
+      const [numerator, denominator] = value.split("/").map(Number);
+      if (numerator >= 1 && denominator >= 1) {
+        const newLabels = { ...diagram.labels };
+        const newNodeMarks = { ...diagram.nodeMarks };
+        newLabels[labelKey] = [numerator, denominator];
+        newLabels[rev] = [numerator, denominator];
+        const newDiagram = new CoxeterDynkinDiagram(newLabels, newNodeMarks);
+        setLocalError(""); // エラーをクリア
+        onDiagramChange(newDiagram);
+      } else {
+        setLocalError(
+          `${labelKey}の分数は分子・分母とも1以上でなければなりません`
+        );
+      }
     } else {
+      // 不正な入力の場合
       setLocalError(`${labelKey}の入力が適切ではありません\n例: 1, 2, 5/2`);
     }
   };
@@ -71,10 +84,19 @@ export default function ControlPanel({
     const value = diagram.labels[labelKey];
     const displayValue = `${value[0]}${value[1] > 1 ? `/${value[1]}` : ""}`;
 
+    // より厳密なバリデーション
+    const isValidValue =
+      /^\d+$/.test(displayValue) ||
+      (/^(\d+\/\d+)$/.test(displayValue) &&
+        (() => {
+          const [num, den] = displayValue.split("/").map(Number);
+          return num >= 1 && den >= 1;
+        })());
+
     return (
       <input
         className={`${styles.input} ${
-          !/^(\d+|\d+\/\d+)$/.test(displayValue) ? styles.invalid : ""
+          !isValidValue ? styles.invalid : ""
         } ${labelKey}`}
         type="string"
         defaultValue={displayValue}
@@ -108,7 +130,15 @@ export default function ControlPanel({
 
   return (
     <div className={styles.controlPanel}>
-      <div className={`${styles.error} ${localError ? styles.active : ""}`}>
+      <div
+        className={`${styles.message} ${
+          localError
+            ? styles.error
+            : buildTime > 0
+            ? styles.success
+            : styles.info
+        }`}
+      >
         {localError
           ? localError.split("\n").map((line, i) => <p key={i}>{line}</p>)
           : buildTime > 0

@@ -6,7 +6,9 @@
   --text-color: black;
   --text-color-secondary: #888;
   --border-color: black;
-  --error-color: #f44;
+  --success-color: #0c0;
+  --warning-color: #fa0;
+  --error-color: #c00;
 
   &[data-theme="auto"] {
     @media (prefers-color-scheme: dark) {
