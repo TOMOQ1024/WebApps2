@@ -163,28 +163,28 @@ export default function ControlPanel({
           <table className={styles.matrix}>
             <tbody>
               <tr>
-                <td className={styles.upperTriangular}>{renderInput("aa")}</td>
+                <td className={styles.diagonal}>{renderInput("aa")}</td>
                 <td className={styles.upperTriangular}>{renderInput("ab")}</td>
                 <td className={styles.upperTriangular}>{renderInput("ac")}</td>
                 <td className={styles.upperTriangular}>{renderInput("ad")}</td>
               </tr>
               <tr>
                 <td className={styles.lowerTriangular}>{renderInput("ba")}</td>
-                <td className={styles.upperTriangular}>{renderInput("bb")}</td>
+                <td className={styles.diagonal}>{renderInput("bb")}</td>
                 <td className={styles.upperTriangular}>{renderInput("bc")}</td>
                 <td className={styles.upperTriangular}>{renderInput("bd")}</td>
               </tr>
               <tr>
                 <td className={styles.lowerTriangular}>{renderInput("ca")}</td>
                 <td className={styles.lowerTriangular}>{renderInput("cb")}</td>
-                <td className={styles.upperTriangular}>{renderInput("cc")}</td>
+                <td className={styles.diagonal}>{renderInput("cc")}</td>
                 <td className={styles.upperTriangular}>{renderInput("cd")}</td>
               </tr>
               <tr>
                 <td className={styles.lowerTriangular}>{renderInput("da")}</td>
                 <td className={styles.lowerTriangular}>{renderInput("db")}</td>
                 <td className={styles.lowerTriangular}>{renderInput("dc")}</td>
-                <td className={styles.upperTriangular}>{renderInput("dd")}</td>
+                <td className={styles.diagonal}>{renderInput("dd")}</td>
               </tr>
             </tbody>
           </table>

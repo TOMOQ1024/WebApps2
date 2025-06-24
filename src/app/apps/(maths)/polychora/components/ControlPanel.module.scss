@@ -44,11 +44,12 @@
   font-weight: bold;
 }
 
-.upperTriangular {
+.upperTriangular,
+.lowerTriangular {
   color: var(--text-color);
 }
 
-.lowerTriangular {
+.diagonal {
   color: var(--text-color-secondary);
 }
 
