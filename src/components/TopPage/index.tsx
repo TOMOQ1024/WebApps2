@@ -35,6 +35,7 @@ const TopPage = () => {
           <p>私のみたいものと，私のみたいものをつくるものをつくります．</p>
           <div className={styles.linkWrapper}>
             <a href="/apps">Apps</a>
+            <a href="/galleries">Galleries</a>
             {/* <a href="/works">Works</a> */}
           </div>
         </section>
