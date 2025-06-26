@@ -24,6 +24,9 @@ describe("latexToGLSL", () => {
     expect(latexToGLSL("zz")).toBe("cprod(z, z)");
     expect(latexToGLSL("ziz")).toBe("cprod(cprod(z, vec2(0.0, 1.0)), z)");
     expect(latexToGLSL("z^2")).toBe("cpow(z, vec2(2.0, 0.0))");
+    expect(latexToGLSL("iz^2")).toBe(
+      "cprod(vec2(0.0, 1.0), cpow(z, vec2(2.0, 0.0)))"
+    );
     expect(latexToGLSL("2^{-2}")).toBe("cpow(vec2(2.0, 0.0), -vec2(2.0, 0.0))");
     expect(latexToGLSL("\\left|z\\right|")).toBe("cabs(z)");
   });
@@ -82,7 +85,7 @@ describe("latexToGLSL", () => {
       "cpow(z, vec2(2.0, 0.0)) + cdiv(vec2(1.0, 0.0), z)"
     );
     expect(latexToGLSL("\\cos 2iz")).toBe(
-      "ccos(cprod(vec2(2.0, 0.0), cprod(vec2(0.0, 1.0), z)))"
+      "ccos(cprod(cprod(vec2(2.0, 0.0), vec2(0.0, 1.0)), z))"
     );
     expect(latexToGLSL("\\sin\\left(\\frac{z}{2}\\right)")).toBe(
       "csin(cdiv(z, vec2(2.0, 0.0)))"

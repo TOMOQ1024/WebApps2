@@ -46,17 +46,9 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
   }
 
   function parseSymbol(): ASTNode {
-    // 1文字ずつsymbolノードに分割し、暗黙の乗算でつなぐ
-    let nodes: ASTNode[] = [];
-    while (peek().match(/[a-zA-Z]/)) {
-      nodes.push({ type: "symbol", name: advance() });
-    }
-    if (nodes.length === 0) throw new Error("Expected symbol");
-    let node = nodes[0];
-    for (let i = 1; i < nodes.length; i++) {
-      node = { type: "operator", op: "*", left: node, right: nodes[i] };
-    }
-    return node;
+    // 1文字だけsymbolノードとして返す
+    if (!peek().match(/[a-zA-Z]/)) throw new Error("Expected symbol");
+    return { type: "symbol", name: advance() };
   }
 
   function parseFunction(cmdFromFactor?: string): ASTNode {
