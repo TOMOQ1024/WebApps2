@@ -26,7 +26,8 @@ export default function GalleryGridCanvas({
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [cols, setCols] = useState(1);
   const [rows, setRows] = useState(1);
-  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const [, forceUpdate] = useState(false);
+  const hoverIdxRef = useRef<number | null>(null);
   const router = useRouter();
 
   // 親要素の幅からcols/rows/canvasSizeを自動計算
@@ -127,20 +128,27 @@ export default function GalleryGridCanvas({
       meshes.push(mesh);
     });
 
+    // --- requestAnimationFrameで毎フレーム描画 ---
+    let running = true;
     function renderAll() {
       meshes.forEach((mesh, idx) => {
         mesh.scale.set(
-          hoverIdx === idx ? 1.1 : 1,
-          hoverIdx === idx ? 1.1 : 1,
+          hoverIdxRef.current === idx ? 1.1 : 1,
+          hoverIdxRef.current === idx ? 1.1 : 1,
           1
         );
       });
       renderer.render(scene, camera);
     }
-    renderAll();
+    function animate() {
+      if (!running) return;
+      renderAll();
+      requestAnimationFrame(animate);
+    }
+    animate();
 
     // ホバー・クリック判定
-    const handlePointerMove = (e: MouseEvent) => {
+    const getCellIndexFromPointer = (e: MouseEvent) => {
       const rect = renderer.domElement.getBoundingClientRect();
       const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
@@ -153,9 +161,7 @@ export default function GalleryGridCanvas({
         wy < -height / 2 + PADDING ||
         wy > height / 2 - PADDING
       ) {
-        setHoverIdx(null);
-        renderAll();
-        return;
+        return null;
       }
       // パディングを除いたグリッド座標に変換
       const gridX = wx + width / 2 - PADDING;
@@ -179,28 +185,28 @@ export default function GalleryGridCanvas({
           Math.abs(wx + width / 2 - cellCenterX) <= cellSize / 2 &&
           Math.abs(height / 2 - wy - cellCenterY) <= cellSize / 2
         ) {
-          setHoverIdx(idx);
-          renderAll();
-          return;
+          return idx;
         }
       }
-      setHoverIdx(null);
-      renderAll();
+      return null;
+    };
+
+    const handlePointerMove = (e: MouseEvent) => {
+      const idx = getCellIndexFromPointer(e);
+      if (hoverIdxRef.current !== idx) {
+        hoverIdxRef.current = idx;
+        forceUpdate((v) => !v);
+      }
     };
     const handlePointerLeave = () => {
-      setHoverIdx(null);
-      renderAll();
+      if (hoverIdxRef.current !== null) {
+        hoverIdxRef.current = null;
+        forceUpdate((v) => !v);
+      }
     };
     const handleClick = (e: MouseEvent) => {
-      const rect = renderer.domElement.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
-      const wx = (x * width) / 2;
-      const wy = (y * height) / 2;
-      const col = Math.floor((wx + width / 2) / cellW);
-      const row = Math.floor((-wy + height / 2) / cellH);
-      const idx = row * cols + col;
-      if (0 <= idx && idx < items.length) {
+      const idx = getCellIndexFromPointer(e);
+      if (idx !== null && 0 <= idx && idx < items.length) {
         const item = items[idx];
         const params = new URLSearchParams();
         params.set("function", encodeURIComponent(item.functionLatex));
@@ -216,6 +222,7 @@ export default function GalleryGridCanvas({
     renderer.domElement.addEventListener("click", handleClick);
 
     return () => {
+      running = false;
       renderer.domElement.removeEventListener("mousemove", handlePointerMove);
       renderer.domElement.removeEventListener("mouseleave", handlePointerLeave);
       renderer.domElement.removeEventListener("click", handleClick);
@@ -226,7 +233,7 @@ export default function GalleryGridCanvas({
         scene.remove(mesh);
       });
     };
-  }, [items, canvasSize, hoverIdx, cols, rows, router]);
+  }, [items, canvasSize, cols, rows, router]);
 
   // 親divでoverflow-y: auto、canvasは横幅100%、高さ可変
   return (
@@ -239,7 +246,7 @@ export default function GalleryGridCanvas({
       <div
         ref={canvasRef}
         className={
-          hoverIdx !== null
+          hoverIdxRef.current !== null
             ? `${styles.gridCanvas} ${styles["gridCanvas--hover"]}`
             : styles.gridCanvas
         }
