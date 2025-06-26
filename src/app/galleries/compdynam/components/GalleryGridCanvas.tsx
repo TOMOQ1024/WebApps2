@@ -29,12 +29,6 @@ export default function GalleryGridCanvas({
   const [, forceUpdate] = useState(false);
   const hoverIdxRef = useRef<number | null>(null);
   const router = useRouter();
-  const routerRef = useRef(router);
-
-  // routerRefを最新の値で更新
-  useEffect(() => {
-    routerRef.current = router;
-  }, [router]);
 
   // 親要素の幅からcols/rows/canvasSizeを自動計算
   useEffect(() => {
@@ -233,7 +227,7 @@ export default function GalleryGridCanvas({
         params.set("iter", item.iterations.toString());
         params.set("origin", `${item.center[0]},${item.center[1]}`);
         params.set("radius", item.radius.toString());
-        routerRef.current.push(`/apps/compdynam?${params.toString()}`);
+        router.push(`/apps/compdynam?${params.toString()}`);
       }
     };
     renderer.domElement.addEventListener("mousemove", handlePointerMove);
