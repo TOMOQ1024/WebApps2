@@ -3,18 +3,8 @@ import * as THREE from "three";
 import { fragmentShader as baseFragmentShader } from "@/app/apps/(maths)/compdynam/Shaders/FragmentShader";
 import { vertexShader as baseVertexShader } from "@/app/apps/(maths)/compdynam/Shaders/VertexShader";
 import { latexToGLSL } from "@/src/Parser/latexToGLSL";
-import GraphMgr from "@/src/GraphMgr";
 import styles from "./Main.module.scss";
-
-interface CompDynamGalleryItem {
-  id: string;
-  title: string;
-  functionLatex: string;
-  initialValueLatex: string;
-  iterations: number;
-  center: [number, number];
-  radius: number;
-}
+import { CompDynamGalleryItem } from "@/app/galleries/compdynam/GalleryData";
 
 interface GalleryGridCanvasProps {
   items: CompDynamGalleryItem[];
@@ -22,8 +12,8 @@ interface GalleryGridCanvasProps {
   className?: string;
 }
 
-const CELL_SIZE = 300; // px 固定
-const PADDING = 20; // px, キャンバス内余白
+const CELL_SIZE = 100; // px 固定
+const PADDING = 40; // px, キャンバス内余白
 
 export default function GalleryGridCanvas({
   items,
