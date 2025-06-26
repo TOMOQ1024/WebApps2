@@ -29,6 +29,12 @@ export default function GalleryGridCanvas({
   const [, forceUpdate] = useState(false);
   const hoverIdxRef = useRef<number | null>(null);
   const router = useRouter();
+  const routerRef = useRef(router);
+
+  // routerRefを最新の値で更新
+  useEffect(() => {
+    routerRef.current = router;
+  }, [router]);
 
   // 親要素の幅からcols/rows/canvasSizeを自動計算
   useEffect(() => {
@@ -48,9 +54,16 @@ export default function GalleryGridCanvas({
   }, [items.length]);
 
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || !containerRef.current) return;
     canvasRef.current.innerHTML = "";
-    const { width, height } = canvasSize;
+
+    // 動的にサイズとグリッド数を計算
+    const parentRect = containerRef.current.getBoundingClientRect();
+    const width = parentRect.width;
+    const cols = Math.max(1, Math.floor(width / CELL_SIZE));
+    const rows = Math.ceil(items.length / cols);
+    const height = rows * CELL_SIZE + PADDING * 2;
+
     if (width === 0 || height === 0) return;
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(width, height);
@@ -220,7 +233,7 @@ export default function GalleryGridCanvas({
         params.set("iter", item.iterations.toString());
         params.set("origin", `${item.center[0]},${item.center[1]}`);
         params.set("radius", item.radius.toString());
-        router.push(`/apps/compdynam?${params.toString()}`);
+        routerRef.current.push(`/apps/compdynam?${params.toString()}`);
       }
     };
     renderer.domElement.addEventListener("mousemove", handlePointerMove);
@@ -239,7 +252,7 @@ export default function GalleryGridCanvas({
         scene.remove(mesh);
       });
     };
-  }, [items, canvasSize, cols, rows, router]);
+  }, [items]);
 
   // 親divでoverflow-y: auto、canvasは横幅100%、高さ可変
   return (
@@ -256,7 +269,6 @@ export default function GalleryGridCanvas({
             ? `${styles.gridCanvas} ${styles["gridCanvas--hover"]}`
             : styles.gridCanvas
         }
-        style={{ height: canvasSize.height }}
       />
     </div>
   );
