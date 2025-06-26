@@ -105,7 +105,7 @@ export default function Canvas({
       material.dispose();
       geometry.dispose();
     };
-  }, [shader, resolution, iterations, renderMode]);
+  }, [shader, resolution, iterations, renderMode, graph, onGraphChange]);
 
   // graphの変更を監視
   useEffect(() => {

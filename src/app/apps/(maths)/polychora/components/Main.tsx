@@ -49,7 +49,7 @@ export default function Main() {
   // 状態が変更された時にクエリパラメータを更新
   const updateQueryParams = useCallback(() => {
     // ここでクエリパラメータの更新処理を追加
-  }, [diagram]);
+  }, []);
 
   const computeSchlafliMatrixDeterminant = async (core: Core) => {
     const labels = core.diagram.labels;
