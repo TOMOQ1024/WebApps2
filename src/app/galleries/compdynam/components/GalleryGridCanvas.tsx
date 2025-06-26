@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { fragmentShader as baseFragmentShader } from "@/app/apps/(maths)/compdynam/Shaders/FragmentShader";
@@ -5,10 +7,10 @@ import { vertexShader as baseVertexShader } from "@/app/apps/(maths)/compdynam/S
 import { latexToGLSL } from "@/src/Parser/latexToGLSL";
 import styles from "./Main.module.scss";
 import { CompDynamGalleryItem } from "@/app/galleries/compdynam/GalleryData";
+import { useRouter } from "next/navigation";
 
 interface GalleryGridCanvasProps {
   items: CompDynamGalleryItem[];
-  onSelect: (item: CompDynamGalleryItem) => void;
   className?: string;
 }
 
@@ -17,7 +19,6 @@ const PADDING = 40; // px, キャンバス内余白
 
 export default function GalleryGridCanvas({
   items,
-  onSelect,
   className,
 }: GalleryGridCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -26,6 +27,7 @@ export default function GalleryGridCanvas({
   const [cols, setCols] = useState(1);
   const [rows, setRows] = useState(1);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const router = useRouter();
 
   // 親要素の幅からcols/rows/canvasSizeを自動計算
   useEffect(() => {
@@ -199,7 +201,14 @@ export default function GalleryGridCanvas({
       const row = Math.floor((-wy + height / 2) / cellH);
       const idx = row * cols + col;
       if (0 <= idx && idx < items.length) {
-        onSelect(items[idx]);
+        const item = items[idx];
+        const params = new URLSearchParams();
+        params.set("function", encodeURIComponent(item.functionLatex));
+        params.set("initialValue", encodeURIComponent(item.initialValueLatex));
+        params.set("iter", item.iterations.toString());
+        params.set("origin", `${item.center[0]},${item.center[1]}`);
+        params.set("radius", item.radius.toString());
+        router.push(`/apps/compdynam?${params.toString()}`);
       }
     };
     renderer.domElement.addEventListener("mousemove", handlePointerMove);
@@ -217,7 +226,7 @@ export default function GalleryGridCanvas({
         scene.remove(mesh);
       });
     };
-  }, [items, onSelect, canvasSize, hoverIdx, cols, rows]);
+  }, [items, canvasSize, hoverIdx, cols, rows, router]);
 
   // 親divでoverflow-y: auto、canvasは横幅100%、高さ可変
   return (
