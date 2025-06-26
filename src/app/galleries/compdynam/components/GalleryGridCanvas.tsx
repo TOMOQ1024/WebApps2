@@ -130,8 +130,11 @@ export default function GalleryGridCanvas({
 
     // --- requestAnimationFrameで毎フレーム描画 ---
     let running = true;
-    function renderAll() {
+    let lastTime = performance.now();
+    function renderAll(deltaTime: number) {
       meshes.forEach((mesh, idx) => {
+        (mesh.material as THREE.ShaderMaterial).uniforms.uTime.value +=
+          deltaTime / 1000;
         mesh.scale.set(
           hoverIdxRef.current === idx ? 1.1 : 1,
           hoverIdxRef.current === idx ? 1.1 : 1,
@@ -142,7 +145,10 @@ export default function GalleryGridCanvas({
     }
     function animate() {
       if (!running) return;
-      renderAll();
+      const now = performance.now();
+      const deltaTime = now - lastTime;
+      lastTime = now;
+      renderAll(deltaTime);
       requestAnimationFrame(animate);
     }
     animate();
