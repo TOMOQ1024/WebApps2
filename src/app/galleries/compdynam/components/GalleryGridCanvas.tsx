@@ -30,6 +30,18 @@ export default function GalleryGridCanvas({
   const hoverIdxRef = useRef<number | null>(null);
   const router = useRouter();
 
+  // Three.js関連のrefs
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const sceneRef = useRef<THREE.Scene | null>(null);
+  const cameraRef = useRef<THREE.OrthographicCamera | null>(null);
+  const meshesRef = useRef<THREE.Mesh[]>([]);
+  const animationIdRef = useRef<number | null>(null);
+  const eventHandlersRef = useRef<{
+    handlePointerMove: (e: MouseEvent) => void;
+    handlePointerLeave: () => void;
+    handleClick: (e: MouseEvent) => void;
+  } | null>(null);
+
   // 親要素の幅からcols/rows/canvasSizeを自動計算
   useEffect(() => {
     function updateGrid() {
@@ -47,6 +59,152 @@ export default function GalleryGridCanvas({
     return () => window.removeEventListener("resize", updateGrid);
   }, [items.length]);
 
+  // リサイズ時のキャンバスサイズ変更とメッシュレイアウト更新
+  useEffect(() => {
+    if (
+      !rendererRef.current ||
+      !sceneRef.current ||
+      !cameraRef.current ||
+      !containerRef.current
+    )
+      return;
+
+    const parentRect = containerRef.current.getBoundingClientRect();
+    const width = parentRect.width;
+    const cols = Math.max(1, Math.floor(width / CELL_SIZE));
+    const rows = Math.ceil(items.length / cols);
+    const height = rows * CELL_SIZE + PADDING * 2;
+
+    if (width === 0 || height === 0) return;
+
+    // レンダラーサイズ更新
+    rendererRef.current.setSize(width, height);
+
+    // カメラ更新
+    cameraRef.current.left = -width / 2;
+    cameraRef.current.right = width / 2;
+    cameraRef.current.top = height / 2;
+    cameraRef.current.bottom = -height / 2;
+    cameraRef.current.updateProjectionMatrix();
+
+    // グリッド配置
+    const gridW = width - PADDING * 2;
+    const gridH = height - PADDING * 2;
+    const cellW = gridW / cols;
+    const cellH = CELL_SIZE;
+    const cellSize = Math.min(cellW, cellH) * 0.9;
+
+    // メッシュの位置更新
+    meshesRef.current.forEach((mesh, idx) => {
+      const row = Math.floor(idx / cols);
+      const col = idx % cols;
+      mesh.position.x = -width / 2 + PADDING + cellW * (col + 0.5);
+      mesh.position.y = height / 2 - PADDING - cellH * (row + 0.5);
+      mesh.userData = { ...mesh.userData, row, col, idx };
+    });
+
+    // マウスイベントハンドラーを更新
+    if (rendererRef.current && eventHandlersRef.current) {
+      const renderer = rendererRef.current;
+      const { handlePointerMove, handlePointerLeave, handleClick } =
+        eventHandlersRef.current;
+
+      // 既存のイベントリスナーを削除
+      renderer.domElement.removeEventListener("mousemove", handlePointerMove);
+      renderer.domElement.removeEventListener("mouseleave", handlePointerLeave);
+      renderer.domElement.removeEventListener("click", handleClick);
+
+      // 新しいイベントハンドラーを作成
+      const getCellIndexFromPointer = (e: MouseEvent) => {
+        const rect = renderer.domElement.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+        const wx = (x * width) / 2;
+        const wy = (y * height) / 2;
+        // パディング内か判定
+        if (
+          wx < -width / 2 + PADDING ||
+          wx > width / 2 - PADDING ||
+          wy < -height / 2 + PADDING ||
+          wy > height / 2 - PADDING
+        ) {
+          return null;
+        }
+        // パディングを除いたグリッド座標に変換
+        const gridX = wx + width / 2 - PADDING;
+        const gridY = height / 2 - PADDING - wy;
+        const col = Math.floor(gridX / (gridW / cols));
+        const row = Math.floor(gridY / CELL_SIZE);
+        const idx = row * cols + col;
+        // セル内か判定
+        if (
+          0 <= col &&
+          col < cols &&
+          0 <= row &&
+          row < rows &&
+          idx < items.length
+        ) {
+          // セルの中心座標
+          const cellCenterX = PADDING + (col + 0.5) * (gridW / cols);
+          const cellCenterY = PADDING + (row + 0.5) * CELL_SIZE;
+          // ポインタがセルの正方形領域内か
+          if (
+            Math.abs(wx + width / 2 - cellCenterX) <= cellSize / 2 &&
+            Math.abs(height / 2 - wy - cellCenterY) <= cellSize / 2
+          ) {
+            return idx;
+          }
+        }
+        return null;
+      };
+
+      const newHandlePointerMove = (e: MouseEvent) => {
+        const idx = getCellIndexFromPointer(e);
+        if (hoverIdxRef.current !== idx) {
+          hoverIdxRef.current = idx;
+          forceUpdate((v) => !v);
+        }
+      };
+
+      const newHandlePointerLeave = () => {
+        if (hoverIdxRef.current !== null) {
+          hoverIdxRef.current = null;
+          forceUpdate((v) => !v);
+        }
+      };
+
+      const newHandleClick = (e: MouseEvent) => {
+        const idx = getCellIndexFromPointer(e);
+        if (idx !== null && 0 <= idx && idx < items.length) {
+          const item = items[idx];
+          const params = new URLSearchParams();
+          params.set("function", encodeURIComponent(item.functionLatex));
+          params.set(
+            "initialValue",
+            encodeURIComponent(item.initialValueLatex)
+          );
+          params.set("iter", item.iterations.toString());
+          params.set("origin", `${item.center[0]},${item.center[1]}`);
+          params.set("radius", item.radius.toString());
+          router.push(`/apps/compdynam?${params.toString()}`);
+        }
+      };
+
+      // 新しいイベントリスナーを追加
+      renderer.domElement.addEventListener("mousemove", newHandlePointerMove);
+      renderer.domElement.addEventListener("mouseleave", newHandlePointerLeave);
+      renderer.domElement.addEventListener("click", newHandleClick);
+
+      // イベントハンドラーを更新
+      eventHandlersRef.current = {
+        handlePointerMove: newHandlePointerMove,
+        handlePointerLeave: newHandlePointerLeave,
+        handleClick: newHandleClick,
+      };
+    }
+  }, [canvasSize, cols, rows, items.length, router]);
+
+  // メッシュ生成（items変更時のみ）
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
     canvasRef.current.innerHTML = "";
@@ -59,12 +217,16 @@ export default function GalleryGridCanvas({
     const height = rows * CELL_SIZE + PADDING * 2;
 
     if (width === 0 || height === 0) return;
+
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 0);
     canvasRef.current.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
 
     const scene = new THREE.Scene();
+    sceneRef.current = scene;
+
     const camera = new THREE.OrthographicCamera(
       -width / 2,
       width / 2,
@@ -74,6 +236,7 @@ export default function GalleryGridCanvas({
       10
     );
     camera.position.z = 1;
+    cameraRef.current = camera;
 
     // グリッド配置
     const gridW = width - PADDING * 2;
@@ -134,6 +297,7 @@ export default function GalleryGridCanvas({
       scene.add(mesh);
       meshes.push(mesh);
     });
+    meshesRef.current = meshes;
 
     // --- requestAnimationFrameで毎フレーム描画 ---
     let running = true;
@@ -156,7 +320,7 @@ export default function GalleryGridCanvas({
       const deltaTime = now - lastTime;
       lastTime = now;
       renderAll(deltaTime);
-      requestAnimationFrame(animate);
+      animationIdRef.current = requestAnimationFrame(animate);
     }
     animate();
 
@@ -230,23 +394,46 @@ export default function GalleryGridCanvas({
         router.push(`/apps/compdynam?${params.toString()}`);
       }
     };
+
+    // イベントハンドラーをrefに保存
+    eventHandlersRef.current = {
+      handlePointerMove,
+      handlePointerLeave,
+      handleClick,
+    };
+
     renderer.domElement.addEventListener("mousemove", handlePointerMove);
     renderer.domElement.addEventListener("mouseleave", handlePointerLeave);
     renderer.domElement.addEventListener("click", handleClick);
 
     return () => {
       running = false;
-      renderer.domElement.removeEventListener("mousemove", handlePointerMove);
-      renderer.domElement.removeEventListener("mouseleave", handlePointerLeave);
-      renderer.domElement.removeEventListener("click", handleClick);
+      if (animationIdRef.current) {
+        cancelAnimationFrame(animationIdRef.current);
+      }
+      if (eventHandlersRef.current) {
+        const { handlePointerMove, handlePointerLeave, handleClick } =
+          eventHandlersRef.current;
+        renderer.domElement.removeEventListener("mousemove", handlePointerMove);
+        renderer.domElement.removeEventListener(
+          "mouseleave",
+          handlePointerLeave
+        );
+        renderer.domElement.removeEventListener("click", handleClick);
+      }
       renderer.dispose();
       meshes.forEach((mesh) => {
         (mesh.material as THREE.Material).dispose();
         mesh.geometry.dispose();
         scene.remove(mesh);
       });
+      rendererRef.current = null;
+      sceneRef.current = null;
+      cameraRef.current = null;
+      meshesRef.current = [];
+      eventHandlersRef.current = null;
     };
-  }, [items]);
+  }, [items, router]);
 
   // 親divでoverflow-y: auto、canvasは横幅100%、高さ可変
   return (
