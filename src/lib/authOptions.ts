@@ -20,25 +20,30 @@ export const authOptions = {
         password: { label: "Password", type: "password" },
       },
       authorize: async (credentials, req) => {
-        const hash = createHash('sha512');
-        console.log(`api_base_url: ${process.env.VERCEL_URL || process.env.LOCAL_API_BASE_URL}`);
-        return await axios.get(`${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://${process.env.LOCAL_API_BASE_URL}`}/api/get-user`, {
-          headers: {
-            'username': credentials!.username,
-            'passhash': hash.update(credentials!.password).digest('hex'),
-          },
-        }).then(async(res: AxiosResponse) => {
-          const { data: user, status } = res;
-          console.log(`user: ${Object.keys(user)}`);
-          console.log(`status: ${status}`);
-          if(status !== 200){
-            throw new Error('Authorize failed');
-          }
-          return user;
-        }).catch(e=>{
-          console.log(e);
-          return null;
-        });
+        const hash = createHash("sha512");
+        // 同じNext.jsアプリ内のAPIルートを使用
+        const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+        console.log(`api_base_url: ${baseUrl}`);
+        return await axios
+          .get(`${baseUrl}/api/get-user`, {
+            headers: {
+              username: credentials!.username,
+              passhash: hash.update(credentials!.password).digest("hex"),
+            },
+          })
+          .then(async (res: AxiosResponse) => {
+            const { data: user, status } = res;
+            console.log(`user: ${Object.keys(user)}`);
+            console.log(`status: ${status}`);
+            if (status !== 200) {
+              throw new Error("Authorize failed");
+            }
+            return user;
+          })
+          .catch((e) => {
+            console.log(e);
+            return null;
+          });
         // const user = findUserByCredentials(credentials);
         // if (user) {
         //   // 返されたオブジェクトはすべてJWTの`user`プロパティに保存される
@@ -67,4 +72,4 @@ export const authOptions = {
   events: {},
 
   debug: false,
-}
+};
