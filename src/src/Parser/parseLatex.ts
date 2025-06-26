@@ -83,7 +83,11 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
       // 引数のパース
       const args: ASTNode[] = [];
       if (peek() !== ")" && peek() !== "") {
-        args.push(parseExpression());
+        if (hasLeft || peek() === "(") {
+          args.push(parseExpression());
+        } else {
+          args.push(parseTerm());
+        }
       }
       if (hasLeft) {
         skipWhitespace();

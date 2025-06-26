@@ -71,6 +71,10 @@ describe("latexToGLSL", () => {
   });
 
   test("複雑な式の変換", () => {
+    expect(latexToGLSL("\\cos z-1")).toBe("ccos(z) - vec2(1.0, 0.0)");
+    expect(latexToGLSL("\\cos z^2-1")).toBe(
+      "ccos(cpow(z, vec2(2.0, 0.0))) - vec2(1.0, 0.0)"
+    );
     expect(latexToGLSL("e^{i\\pi}")).toBe(
       "cpow(vec2(E, 0.0), cprod(vec2(0.0, 1.0), vec2(PI, 0.0)))"
     );
