@@ -151,56 +151,6 @@ export default function Main() {
     }
   }, [searchParams, hasLoadedFromParams]);
 
-  // 状態が変更された時にクエリパラメータを更新
-  const updateQueryParams = useCallback(() => {
-    const params = new URLSearchParams();
-
-    if (currentFunctionLatex !== "z^2+c") {
-      params.set("function", encodeURIComponent(currentFunctionLatex));
-    }
-
-    if (currentInitialValueLatex !== "0") {
-      params.set("initialValue", encodeURIComponent(currentInitialValueLatex));
-    }
-
-    if (iterations !== 50) {
-      params.set("iter", iterations.toString());
-    }
-
-    if (graph.origin.x !== 0 || graph.origin.y !== 0) {
-      params.set("origin", `${graph.origin.x},${graph.origin.y}`);
-    }
-
-    if (graph.radius !== 2) {
-      params.set("radius", graph.radius.toString());
-    }
-
-    if (renderMode !== 0) {
-      params.set("renderMode", renderMode.toString());
-    }
-
-    const queryString = params.toString();
-    const newUrl = queryString ? `?${queryString}` : window.location.pathname;
-
-    // URLを更新（ページリロードなし）
-    window.history.replaceState({}, "", newUrl);
-  }, [
-    currentFunctionLatex,
-    currentInitialValueLatex,
-    iterations,
-    graph,
-    renderMode,
-  ]);
-
-  // // 状態変更時にクエリパラメータを更新
-  // useEffect(() => {
-  //   const timeoutId = setTimeout(() => {
-  //     updateQueryParams();
-  //   }, 500); // デバウンス: 500ms後に更新
-
-  //   return () => clearTimeout(timeoutId);
-  // }, [updateQueryParams]);
-
   const handleResetGraph = () => {
     setGraph(new GraphMgr());
   };

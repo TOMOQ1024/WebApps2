@@ -5,4 +5,13 @@
   width: 100vw;
   height: calc(100vh - var(--header-height));
   z-index: 0;
+
+  // タッチ操作でのスクロールを無効化
+  touch-action: none;
+
+  // テキスト選択を無効化
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }

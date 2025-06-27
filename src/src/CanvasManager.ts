@@ -57,11 +57,14 @@ export class CanvasManager {
   private setupEventListeners() {
     window.addEventListener("resize", this.boundHandleResize);
     if (!this.graphManager) return;
+
+    // タッチイベントの設定を改善
     this.renderer.domElement.addEventListener(
       "pointerdown",
       this.boundHandlePointerDown,
       {
         passive: false,
+        capture: true, // キャプチャフェーズでイベントを取得
       }
     );
     this.renderer.domElement.addEventListener(
@@ -69,6 +72,7 @@ export class CanvasManager {
       this.boundHandlePointerMove,
       {
         passive: false,
+        capture: true,
       }
     );
     this.renderer.domElement.addEventListener(
@@ -76,18 +80,51 @@ export class CanvasManager {
       this.boundHandlePointerUp,
       {
         passive: false,
+        capture: true,
       }
     );
     this.renderer.domElement.addEventListener("wheel", this.boundHandleWheel, {
       passive: false,
     });
+
+    // タッチイベントも明示的に処理
+    this.renderer.domElement.addEventListener(
+      "touchstart",
+      (e) => {
+        e.preventDefault();
+      },
+      { passive: false, capture: true }
+    );
+
+    this.renderer.domElement.addEventListener(
+      "touchmove",
+      (e) => {
+        e.preventDefault();
+      },
+      { passive: false, capture: true }
+    );
+
+    this.renderer.domElement.addEventListener(
+      "touchend",
+      (e) => {
+        e.preventDefault();
+      },
+      { passive: false, capture: true }
+    );
   }
 
   private handlePointerDown(e: PointerEvent) {
     if (!this.graphManager) return;
+
+    // タッチ操作とマウス操作の両方に対応
     e.preventDefault();
-    if (e.button === 2) return;
+    e.stopPropagation();
+
+    if (e.button === 2) return; // 右クリックは無視
+
+    // ポインターキャプチャを設定
     this.renderer.domElement.setPointerCapture(e.pointerId);
+
     this.pointers.push({
       pointerId: e.pointerId,
       clientX: e.clientX,
