@@ -1,8 +1,8 @@
-# R2 Tiling
+# 2D Tiling
 
 2 次元平面充填を描画するページ．
 
-リンク: [https://www.tomoq.net/apps/r2-tiling](https://www.tomoq.net/apps/r2-tiling)
+リンク: [https://www.tomoq.net/apps/2d-tiling](https://www.tomoq.net/apps/2d-tiling)
 
 ![スクリーンショット](./ss.png)
 

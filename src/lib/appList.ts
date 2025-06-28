@@ -113,8 +113,8 @@ export const appList = {
     appName: "3D Graphing Calculator",
     tags: new Set(["maths", "wip"]),
   },
-  "r2-tiling": {
-    appName: "R2 Tiling",
+  "2d-tiling": {
+    appName: "2D Tiling",
     tags: new Set(["maths", "geometry"]),
   },
   h2tiling: {
