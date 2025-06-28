@@ -113,6 +113,10 @@ export const appList = {
     appName: "3D Graphing Calculator",
     tags: new Set(["maths", "wip"]),
   },
+  "r2-tiling": {
+    appName: "R2 Tiling",
+    tags: new Set(["maths", "geometry"]),
+  },
   h2tiling: {
     appName: "H2 Tiling",
     tags: new Set(["wip"]),
