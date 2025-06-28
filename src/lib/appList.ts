@@ -105,9 +105,9 @@ export const appList = {
     appName: "CompDynam",
     tags: new Set(["maths", "fractal"]),
   },
-  graph2d: {
-    appName: "2D Graphing Calculator",
-    tags: new Set(["maths", "wip"]),
+  "graph-2d": {
+    appName: "Graph 2D",
+    tags: new Set(["maths"]),
   },
   graph3d: {
     appName: "3D Graphing Calculator",
