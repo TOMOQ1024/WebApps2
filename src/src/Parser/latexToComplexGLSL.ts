@@ -1,7 +1,7 @@
-import { ASTToGLSL } from "./ASTToGLSL";
+import { ASTToComplexGLSL } from "./ASTToComplexGLSL";
 import { parseLatex } from "./parseLatex";
 
-export function latexToGLSL(
+export function latexToComplexGLSL(
   latex: string,
   knownFuncs: string[] = [
     "sin",
@@ -18,19 +18,23 @@ export function latexToGLSL(
     "sech",
     "csch",
     "abs",
-    "ln",
+    "Log",
+    "re",
+    "Re",
+    "im",
+    "Im",
+    "conj",
+    "arg",
+    "Arg",
   ],
-  knownVars: string[] = ["x", "y", "t"]
+  knownVars: string[] = ["z", "c", "t"]
 ): string {
   try {
     // LaTeXをパースして抽象構文木に変換
     const ast = parseLatex(latex, knownFuncs);
 
     // 抽象構文木をGLSLコードに変換
-    let glslCode = ASTToGLSL(ast, knownFuncs, knownVars);
-
-    console.log(latex);
-    console.log(glslCode);
+    let glslCode = ASTToComplexGLSL(ast, knownVars);
 
     return glslCode;
   } catch (error) {

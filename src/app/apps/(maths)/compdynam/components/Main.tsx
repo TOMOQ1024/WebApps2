@@ -6,7 +6,7 @@ import ControlButtons from "./ControlButtons";
 import GraphMgr from "@/src/GraphMgr";
 import { fragmentShader } from "../Shaders/FragmentShader";
 import { Vector2 } from "three";
-import { latexToGLSL } from "@/src/Parser/latexToGLSL";
+import { latexToComplexGLSL } from "@/src/Parser/latexToComplexGLSL";
 
 export default function Main() {
   const [shader, setShader] = useState(fragmentShader);
@@ -31,15 +31,16 @@ export default function Main() {
   const convertLatexToGLSL = useCallback(
     (functionLatex: string, initialValueLatex: string) => {
       try {
-        const functionCode = latexToGLSL(functionLatex, undefined, [
+        const functionCode = latexToComplexGLSL(functionLatex, undefined, [
           "z",
           "c",
           "t",
         ]);
-        const initialValueCode = latexToGLSL(initialValueLatex, undefined, [
-          "c",
-          "t",
-        ]);
+        const initialValueCode = latexToComplexGLSL(
+          initialValueLatex,
+          undefined,
+          ["c", "t"]
+        );
         setError(null);
         return { functionCode, initialValueCode };
       } catch (error) {

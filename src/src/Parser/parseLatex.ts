@@ -360,7 +360,30 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
             right: { type: "number" as const, value: 0 },
           };
         } else {
-          right = parseFactor();
+          // 指数部で複数の数字が連続する場合の特別な処理
+          if (peek().match(/[0-9]/)) {
+            // 最初の1桁だけを指数として扱う
+            let firstDigit = advance();
+            right = { type: "number" as const, value: parseInt(firstDigit) };
+            left = { type: "operator", op: "^", left, right };
+            // 残りの部分がある場合は、暗黙の乗算として処理
+            if (
+              peek().match(/[0-9.]/) ||
+              peek().match(/[a-zA-Z]/) ||
+              peek() === "\\"
+            ) {
+              const remainingFactor: ASTNode = parsePower();
+              left = {
+                type: "operator",
+                op: "*",
+                left,
+                right: remainingFactor,
+              };
+            }
+            continue; // whileループを継続
+          } else {
+            right = parseFactor();
+          }
         }
       }
       left = { type: "operator", op: "^", left, right };

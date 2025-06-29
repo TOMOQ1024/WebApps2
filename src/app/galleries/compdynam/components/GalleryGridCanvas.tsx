@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { fragmentShader as baseFragmentShader } from "@/app/apps/(maths)/compdynam/Shaders/FragmentShader";
 import { vertexShader as baseVertexShader } from "@/app/apps/(maths)/compdynam/Shaders/VertexShader";
-import { latexToGLSL } from "@/src/Parser/latexToGLSL";
+import { latexToComplexGLSL } from "@/src/Parser/latexToComplexGLSL";
 import styles from "./Main.module.scss";
 import { CompDynamGalleryItem } from "@/app/galleries/compdynam/GalleryData";
 import { useRouter } from "next/navigation";
@@ -251,12 +251,12 @@ export default function GalleryGridCanvas({
       let fragmentShader = baseFragmentShader;
       let vertexShader = baseVertexShader;
       try {
-        const functionCode = latexToGLSL(item.functionLatex, undefined, [
+        const functionCode = latexToComplexGLSL(item.functionLatex, undefined, [
           "z",
           "c",
           "t",
         ]);
-        const initialValueCode = latexToGLSL(
+        const initialValueCode = latexToComplexGLSL(
           item.initialValueLatex,
           undefined,
           ["c", "t"]

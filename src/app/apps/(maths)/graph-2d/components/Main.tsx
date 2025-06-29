@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import ControlPanel, { ControlPanelProps } from "./ControlPanel";
+import ControlPanel from "./ControlPanel";
 import Canvas from "./Canvas";
 import ControlButtons from "./ControlButtons";
 import GraphMgr from "@/src/GraphMgr";
@@ -13,14 +13,11 @@ import { latexToGLSL } from "@/src/Parser/latexToGLSL";
 export default function Main() {
   const [shader, setShader] = useState(fragmentShader);
   const [graph, setGraph] = useState<GraphMgr>(new GraphMgr());
-  const [iterations, setIterations] = useState(50);
   const [renderMode, setRenderMode] = useState(0);
 
   // LaTeX文字列を管理
   const [currentFunctionLatex, setCurrentFunctionLatex] =
-    useState<string>("z^2+c");
-  const [currentInitialValueLatex, setCurrentInitialValueLatex] =
-    useState<string>("0");
+    useState<string>("x^2+y^2-1");
 
   // エラー状態
   const [error, setError] = useState<string | null>(null);
@@ -30,34 +27,24 @@ export default function Main() {
   const searchParams = useSearchParams();
 
   // LaTeX文字列からGLSLコードを生成
-  const convertLatexToGLSL = useCallback(
-    (functionLatex: string, initialValueLatex: string) => {
-      try {
-        const functionCode = latexToGLSL(functionLatex, undefined, [
-          "z",
-          "c",
-          "t",
-        ]);
-        const initialValueCode = latexToGLSL(initialValueLatex, undefined, [
-          "c",
-          "t",
-        ]);
-        setError(null);
-        return { functionCode, initialValueCode };
-      } catch (error) {
-        setError(String(error));
-        return null;
-      }
-    },
-    []
-  );
+  const convertLatexToGLSL = useCallback((functionLatex: string) => {
+    try {
+      const functionCode = latexToGLSL(functionLatex, undefined, [
+        "x",
+        "y",
+        "t",
+      ]);
+      setError(null);
+      return { functionCode };
+    } catch (error) {
+      setError(String(error));
+      return null;
+    }
+  }, []);
 
   // LaTeX文字列が変更された時にGLSLコードを更新
   useEffect(() => {
-    const result = convertLatexToGLSL(
-      currentFunctionLatex,
-      currentInitialValueLatex
-    );
+    const result = convertLatexToGLSL(currentFunctionLatex);
     if (!result) return;
     setShader(() => {
       let newShader = fragmentShader;
@@ -65,22 +52,14 @@ export default function Main() {
       // 関数コードの更新
       if (result.functionCode) {
         newShader = newShader.replace(
-          /z\/\* input func here \*\/;/,
-          `${result.functionCode};`
-        );
-      }
-
-      // 初期値コードの更新
-      if (result.initialValueCode) {
-        newShader = newShader.replace(
-          /c\/\* input initial value here \*\/;/,
-          `${result.initialValueCode};`
+          /\/\* input func here \*\//,
+          `c = ${result.functionCode};`
         );
       }
 
       return newShader;
     });
-  }, [currentFunctionLatex, currentInitialValueLatex, convertLatexToGLSL]);
+  }, [currentFunctionLatex, convertLatexToGLSL]);
 
   // クエリパラメータから状態を読み込む（初回のみ）
   useEffect(() => {
@@ -92,21 +71,6 @@ export default function Main() {
       if (functionLatex !== null) {
         const decodedFunctionLatex = decodeURIComponent(functionLatex);
         setCurrentFunctionLatex(decodedFunctionLatex);
-        hasUpdates = true;
-      }
-
-      // 初期値の読み込み (LaTeX文字列)
-      const initialValueLatex = searchParams.get("initialValue");
-      if (initialValueLatex !== null) {
-        const decodedInitialValueLatex = decodeURIComponent(initialValueLatex);
-        setCurrentInitialValueLatex(decodedInitialValueLatex);
-        hasUpdates = true;
-      }
-
-      // 反復回数の読み込み
-      const iter = searchParams.get("iter");
-      if (iter !== null) {
-        setIterations(+iter);
         hasUpdates = true;
       }
 
@@ -142,12 +106,6 @@ export default function Main() {
         hasUpdates = true;
       }
 
-      // パラメータがない場合のデフォルト設定
-      if (!hasUpdates) {
-        setCurrentFunctionLatex("z^2+c");
-        setCurrentInitialValueLatex("0");
-      }
-
       // 読み込み完了をマーク
       setHasLoadedFromParams(true);
     }
@@ -164,17 +122,6 @@ export default function Main() {
 
       if (currentFunctionLatex !== "z^2+c") {
         params.set("function", encodeURIComponent(currentFunctionLatex));
-      }
-
-      if (currentInitialValueLatex !== "0") {
-        params.set(
-          "initialValue",
-          encodeURIComponent(currentInitialValueLatex)
-        );
-      }
-
-      if (iterations !== 50) {
-        params.set("iter", iterations.toString());
       }
 
       if (graph.origin.x !== 0 || graph.origin.y !== 0) {
@@ -205,13 +152,7 @@ export default function Main() {
     } catch (error) {
       console.error("クリップボードへのコピーに失敗しました:", error);
     }
-  }, [
-    currentFunctionLatex,
-    currentInitialValueLatex,
-    iterations,
-    graph,
-    renderMode,
-  ]);
+  }, [currentFunctionLatex, graph, renderMode]);
 
   return (
     <main className="relative">
@@ -219,16 +160,11 @@ export default function Main() {
         shader={shader}
         graph={graph}
         onGraphChange={setGraph}
-        iterations={iterations}
         renderMode={renderMode}
       />
       <ControlPanel
-        onIterationsChange={setIterations}
         onFunctionLatexChange={setCurrentFunctionLatex}
-        onInitialValueLatexChange={setCurrentInitialValueLatex}
         currentFunctionLatex={currentFunctionLatex}
-        currentInitialValueLatex={currentInitialValueLatex}
-        currentIterations={iterations}
         error={error}
       />
       <ControlButtons
