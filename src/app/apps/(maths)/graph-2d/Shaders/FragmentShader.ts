@@ -1,4 +1,4 @@
-import { complexFunctionShader } from "./ComplexFunctionShader";
+import { mathFunctionShader } from "./MathFunctionShader";
 
 export const fragmentShader = /* glsl */ `
 precision mediump float;
@@ -14,7 +14,7 @@ uniform int uRenderMode;
 uniform int uIterations;
 varying vec2 vPosition;
 
-${complexFunctionShader}
+${mathFunctionShader}
 
 float graph2d(vec2 C) {
   float t = uTime;
