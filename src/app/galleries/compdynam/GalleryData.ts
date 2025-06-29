@@ -955,5 +955,19 @@ export const galleryData: CompDynamGalleryItem[] = [
     center: [0, 0],
     radius: 5,
   },
+  {
+    functionLatex: "z-\\frac{z^3-1}{3z^2}",
+    initialValueLatex: "c",
+    iterations: 50,
+    center: [0, 0],
+    radius: 2,
+  },
+  {
+    functionLatex: "z-\\frac{\\left(1.5+\\cos t\\right)z^3-1}{3z^2}",
+    initialValueLatex: "c",
+    iterations: 50,
+    center: [0, 0],
+    radius: 2,
+  },
   // https://x.com/TOMOQ8192/status/1748551565932216410
 ];
