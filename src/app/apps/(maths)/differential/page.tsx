@@ -30,20 +30,18 @@ export default function DifferentialPage() {
   return (
     <main className={styles.main}>
       <h2>微分計算ツール</h2>
-      <div style={{ marginBottom: 16 }}>
-        <label>数式入力（LaTeX形式, 例: x^2 + \sin x）</label>
+      <div className={styles.inputWrapper}>
+        <label>入力</label>
         <EditableMathField
+          className={styles.input}
           latex={input}
           onChange={(mf: any) => setInput(mf.latex())}
-          className={styles.input}
         />
       </div>
       {error && <div style={{ color: "red", marginTop: 12 }}>{error}</div>}
-      <div style={{ marginTop: 32 }}>
-        <label>微分結果（LaTeX形式）</label>
-        <div className={styles.output}>
-          <StaticMathField>{output}</StaticMathField>
-        </div>
+      <div className={styles.outputWrapper}>
+        <label>出力</label>
+        <StaticMathField className={styles.output}>{output}</StaticMathField>
       </div>
     </main>
   );

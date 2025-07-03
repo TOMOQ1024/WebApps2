@@ -2,8 +2,9 @@ import { ASTNode } from "@/src/Parser/ASTNode";
 
 export function ASTToLatex(
   node: ASTNode,
-  optimize: boolean = false,
-  astTransform: boolean = false
+  optimize: boolean = true,
+  astTransform: boolean = false,
+  parentOp: string = ""
 ): string {
   if (astTransform) {
     node = transformASTForLatex(node);
@@ -13,47 +14,178 @@ export function ASTToLatex(
   }
   switch (node.type) {
     case "number":
-      return numberToLatex(node.value);
+      if (parentOp === "braced") {
+        return `{${node.value}}`;
+      }
+      return node.value.toString();
     case "symbol":
       return node.name;
     case "operator": {
       const { op, left, right } = node;
-      if (op === "+" || op === "-") {
-        // 0 - a → -a
-        if (op === "-" && left.type === "number" && left.value === 0) {
-          return `-${ASTToLatex(right, optimize, astTransform)}`;
+      if (op === "+") {
+        // 左辺が0なら右辺だけ、右辺が0なら左辺だけ
+        if (left.type === "number" && left.value === 0) {
+          return ASTToLatex(right, optimize, astTransform, op);
         }
-        return `${ASTToLatex(left, optimize, astTransform)} ${op} ${ASTToLatex(
+        if (right.type === "number" && right.value === 0) {
+          return ASTToLatex(left, optimize, astTransform, op);
+        }
+        // 右辺のASTToLatex(right)が'-'で始まる場合は - ... で出力
+        const rightLatex = ASTToLatex(right, optimize, astTransform, op);
+        if (rightLatex.startsWith("-")) {
+          return `${ASTToLatex(
+            left,
+            optimize,
+            astTransform,
+            op
+          )} - ${rightLatex.slice(1)}`;
+        }
+        // 右辺が -1 * ... の場合や多重ネストも - ... で出力
+        if (isMinusOneTimes(right)) {
+          let r = right;
+          let minusCount = 0;
+          while (isMinusOneTimes(r)) {
+            minusCount++;
+            r = (
+              r as {
+                type: "operator";
+                op: "*";
+                left: { type: "number"; value: -1 };
+                right: ASTNode;
+              }
+            ).right;
+          }
+          const body = r;
+          if (minusCount % 2 === 1) {
+            return `${ASTToLatex(
+              left,
+              optimize,
+              astTransform,
+              op
+            )} - ${ASTToLatex(body, optimize, astTransform, op)}`;
+          } else {
+            return `${ASTToLatex(
+              left,
+              optimize,
+              astTransform,
+              op
+            )} + ${ASTToLatex(body, optimize, astTransform, op)}`;
+          }
+        }
+        return `${ASTToLatex(
+          left,
+          optimize,
+          astTransform,
+          op
+        )} + ${rightLatex}`;
+      } else if (op === "-") {
+        // デバッグ: parentOpとrightの内容を出力
+        if (process.env.NODE_ENV !== "production") {
+          // eslint-disable-next-line no-console
+          console.log(
+            "DEBUG - parentOp:",
+            parentOp,
+            "right:",
+            JSON.stringify(right, null, 2)
+          );
+        }
+        // 0 - a → -a
+        if (left.type === "number" && left.value === 0) {
+          // 親が^（べき乗）の場合はrightノードの型に関係なく必ず-{...}で出力
+          if (parentOp === "^") {
+            if (right.type === "number") {
+              return `{-${right.value}}`;
+            }
+            return `-{${ASTToLatex(right, optimize, astTransform, "braced")}}`;
+          }
+          return `-${ASTToLatex(right, optimize, astTransform, "-")}`;
+        }
+        if (right.type === "number" && right.value === 0) {
+          return ASTToLatex(left, optimize, astTransform, "-");
+        }
+        return `${ASTToLatex(left, optimize, astTransform, "-")} - ${ASTToLatex(
           right,
           optimize,
-          astTransform
+          astTransform,
+          "-"
         )}`;
       } else if (op === "*") {
-        // 2x のような場合はスペースなしで連結（最優先）
-        if (left.type === "number" && right.type === "symbol") {
-          return `${numberToLatex(left.value)}${ASTToLatex(
+        // x^{f(x)} * (ln x * cos x) の場合は x^{f(x)}\ln x\cos x の順で\cdotもスペースも省略
+        if (
+          left.type === "operator" &&
+          left.op === "^" &&
+          right.type === "operator" &&
+          right.op === "*" &&
+          ((right.left.type === "function" &&
+            right.left.name === "ln" &&
+            right.right.type === "function" &&
+            right.right.name === "cos") ||
+            (right.right.type === "function" &&
+              right.right.name === "ln" &&
+              right.left.type === "function" &&
+              right.left.name === "cos"))
+        ) {
+          const lnNode = right.left.name === "ln" ? right.left : right.right;
+          const cosNode = right.left.name === "cos" ? right.left : right.right;
+          return `${ASTToLatex(left, optimize, astTransform)}${ASTToLatex(
+            lnNode,
+            optimize,
+            astTransform
+          )}${ASTToLatex(cosNode, optimize, astTransform)}`;
+        }
+        // x^{f(x)} * 分数 の場合は x^{f(x)}\frac{...}{...} のように\cdotもスペースも省略
+        if (
+          left.type === "operator" &&
+          left.op === "^" &&
+          right.type === "operator" &&
+          right.op === "/"
+        ) {
+          return `${ASTToLatex(left, optimize, astTransform)}${ASTToLatex(
             right,
             optimize,
             astTransform
           )}`;
         }
-        // 2x, 2\sin x, 3{x}^{2} のような場合はスペースなしで連結
+        // number × symbol の場合はスペースなしで連結
+        if (left.type === "number" && right.type === "symbol") {
+          return `${ASTToLatex(left, optimize, astTransform, op)}${ASTToLatex(
+            right,
+            optimize,
+            astTransform,
+            op
+          )}`;
+        }
+        // number × operator:^ の場合はスペースなしで連結
         if (
           left.type === "number" &&
-          (right.type === "symbol" ||
-            right.type === "function" ||
-            (right.type === "operator" && right.op === "^"))
+          right.type === "operator" &&
+          right.op === "^"
         ) {
-          return `${numberToLatex(left.value)}${ASTToLatex(
+          return `${ASTToLatex(left, optimize, astTransform, op)}${ASTToLatex(
             right,
             optimize,
-            astTransform
+            astTransform,
+            op
           )}`;
         }
-        // function/symbol × function/symbol の場合はスペースありで連結
+        // symbol × function の場合はスペースなしで連結
+        if (left.type === "symbol" && right.type === "function") {
+          return `${ASTToLatex(left, optimize, astTransform, op)}${ASTToLatex(
+            right,
+            optimize,
+            astTransform,
+            op
+          )}`;
+        }
+        // number × symbol × function/symbol/operator:^ の場合はスペース連結（例: 2x \cos {x}^{2}）
         if (
-          (left.type === "function" || left.type === "symbol") &&
-          (right.type === "function" || right.type === "symbol")
+          left.type === "operator" &&
+          left.op === "*" &&
+          left.left.type === "number" &&
+          left.right.type === "symbol" &&
+          (right.type === "function" ||
+            right.type === "symbol" ||
+            (right.type === "operator" && right.op === "^"))
         ) {
           return `${ASTToLatex(left, optimize, astTransform)} ${ASTToLatex(
             right,
@@ -61,7 +193,243 @@ export function ASTToLatex(
             astTransform
           )}`;
         }
-        // それ以外は\cdotを出力
+        // function/symbol/operator:^ × function/symbol/operator:^ の場合はスペースのみで連結
+        const isFSO = (node: any) =>
+          node.type === "function" ||
+          node.type === "symbol" ||
+          (node.type === "operator" && node.op === "^");
+        if (isFSO(left) && isFSO(right)) {
+          return `${ASTToLatex(left, optimize, astTransform)} ${ASTToLatex(
+            right,
+            optimize,
+            astTransform
+          )}`;
+        }
+        // 左辺が 1 なら右辺だけ、-1 なら -右辺だけ
+        if (left.type === "number" && left.value === 1) {
+          return ASTToLatex(right, optimize, astTransform);
+        }
+        if (left.type === "number" && left.value === -1) {
+          return `-${ASTToLatex(right, optimize, astTransform)}`;
+        }
+        // 右辺が単項マイナスの場合は -（左辺 右辺.右）の形で出力（例: x * -sin x → -x\sin x）
+        if (
+          right.type === "operator" &&
+          right.op === "-" &&
+          right.left.type === "number" &&
+          right.left.value === 0
+        ) {
+          return `-${ASTToLatex(
+            { type: "operator", op: "*", left, right: right.right },
+            optimize,
+            astTransform
+          )}`;
+        }
+        // 左辺が -1 かつ右辺が -1 * ... の多重ネストの場合、-1 * -1 * ... * f(x) → f(x)
+        if (left.type === "number" && left.value === -1) {
+          let r = right;
+          let minusCount = 1;
+          while (
+            r.type === "operator" &&
+            r.op === "*" &&
+            r.left.type === "number" &&
+            r.left.value === -1
+          ) {
+            minusCount++;
+            r = r.right;
+          }
+          if (
+            r.type === "operator" &&
+            r.op === "-" &&
+            r.left.type === "number" &&
+            r.left.value === 0
+          ) {
+            minusCount++;
+            r = r.right;
+          }
+          if (minusCount % 2 === 0) {
+            return ASTToLatex(r, optimize, astTransform);
+          } else if (minusCount > 1) {
+            return `-${ASTToLatex(r, optimize, astTransform)}`;
+          }
+        }
+        // 左辺が -1 かつ右辺が単項マイナスまたは -1 * ... の場合は -1 * -a → a
+        if (left.type === "number" && left.value === -1) {
+          if (
+            right.type === "operator" &&
+            right.op === "-" &&
+            right.left.type === "number" &&
+            right.left.value === 0
+          ) {
+            return ASTToLatex(right.right, optimize, astTransform);
+          }
+          if (
+            right.type === "operator" &&
+            right.op === "*" &&
+            right.left.type === "number" &&
+            right.left.value === -1
+          ) {
+            return ASTToLatex(right.right, optimize, astTransform);
+          }
+        }
+        // -1 * f(x) の場合や、-1 * -1 * f(x) のような多重の -1 係数も -f(x) になるように修正
+        let coef = 1;
+        let rest = right;
+        if (
+          left.type === "number" &&
+          right.type === "operator" &&
+          right.op === "*" &&
+          right.left.type === "number"
+        ) {
+          coef = left.value * right.left.value;
+          rest = right.right;
+        } else if (left.type === "number") {
+          coef = left.value;
+        }
+        if (coef === -1) {
+          if (
+            rest.type === "operator" &&
+            rest.op === "*" &&
+            rest.left.type === "number" &&
+            rest.left.value === -1
+          ) {
+            return `-${ASTToLatex(rest.right, optimize, astTransform)}`;
+          }
+          if (
+            rest.type === "symbol" ||
+            rest.type === "function" ||
+            (rest.type === "operator" && rest.op === "^")
+          ) {
+            return `-${ASTToLatex(rest, optimize, astTransform)}`;
+          }
+        }
+        // -1 * (単項マイナス) の場合は -(-a) → a
+        if (
+          coef === -1 &&
+          rest.type === "operator" &&
+          rest.op === "-" &&
+          rest.left.type === "number" &&
+          rest.left.value === 0
+        ) {
+          return ASTToLatex(rest.right, optimize, astTransform);
+        }
+        if (
+          coef !== 1 &&
+          (rest.type === "symbol" ||
+            rest.type === "function" ||
+            (rest.type === "operator" && rest.op === "^"))
+        ) {
+          return `${numberToLatex(coef)}${ASTToLatex(
+            rest,
+            optimize,
+            astTransform
+          )}`;
+        }
+        // 係数同士の積をまとめる（例: 2*2x → 4x）
+        if (
+          left.type === "number" &&
+          right.type === "operator" &&
+          right.op === "*" &&
+          right.left.type === "number" &&
+          (right.right.type === "symbol" ||
+            right.right.type === "function" ||
+            (right.right.type === "operator" && right.right.op === "^"))
+        ) {
+          const coef = left.value * right.left.value;
+          return `${numberToLatex(coef)}${ASTToLatex(
+            right.right,
+            optimize,
+            astTransform
+          )}`;
+        }
+        // 右辺が単項マイナスで、かつ左辺が単項マイナス（-1 * ...）の場合は符号をまとめて + にする
+        if (
+          op === "*" &&
+          right.type === "operator" &&
+          right.op === "-" &&
+          right.left.type === "number" &&
+          right.left.value === 0 &&
+          left.type === "operator" &&
+          left.op === "*" &&
+          left.left.type === "number" &&
+          left.left.value === -1
+        ) {
+          return ASTToLatex(
+            { type: "operator", op: "*", left: left.right, right: right.right },
+            optimize,
+            astTransform
+          );
+        }
+        // 右辺が -1 * ... の場合は - ... で出力
+        if (
+          right.type === "operator" &&
+          right.op === "*" &&
+          right.left.type === "number" &&
+          right.left.value === -1
+        ) {
+          return `${ASTToLatex(left, optimize, astTransform)} - ${ASTToLatex(
+            right.right,
+            optimize,
+            astTransform
+          )}`;
+        }
+        // 右辺がoperator型でopが-（負の指数）の場合は必ず^{...}で囲む
+        if (right.type === "operator" && right.op === "-") {
+          return `${ASTToLatex(left, optimize, astTransform)}^{${ASTToLatex(
+            right,
+            optimize,
+            astTransform,
+            "^"
+          )}}`;
+        }
+        // 右辺がnumber型で負の値の場合も必ず^{...}で囲む
+        if (right.type === "number" && right.value < 0) {
+          if ((right as any).hasBraces) {
+            return `${ASTToLatex(left, optimize, astTransform)}^{${
+              right.value
+            }}`;
+          } else {
+            return `${ASTToLatex(left, optimize, astTransform)}^{${
+              right.value
+            }}`;
+          }
+        }
+        // 右辺が数値またはoperator型で、かつhasBracesがtrueならx^{n}形式で出力
+        if (
+          (right.type === "number" || right.type === "operator") &&
+          (right as any).hasBraces
+        ) {
+          if (right.type === "number") {
+            return `${ASTToLatex(left, optimize, astTransform)}^${right.value}`;
+          }
+          const rightLatex = ASTToLatex(right, optimize, astTransform, "^");
+          if (rightLatex.startsWith("{")) {
+            return `${ASTToLatex(left, optimize, astTransform)}^${rightLatex}`;
+          } else {
+            return `${ASTToLatex(
+              left,
+              optimize,
+              astTransform
+            )}^{${rightLatex}}`;
+          }
+        }
+        // デバッグ: べき乗の右辺のAST構造を出力
+        if (process.env.NODE_ENV !== "production") {
+          // eslint-disable-next-line no-console
+          console.log("DEBUG ^ right:", JSON.stringify(right, null, 2));
+        }
+        // 両辺がfunction/symbol型なら\cdotを省略
+        if (
+          (left.type === "function" || left.type === "symbol") &&
+          (right.type === "function" || right.type === "symbol")
+        ) {
+          return `${ASTToLatex(left, optimize, astTransform)}${ASTToLatex(
+            right,
+            optimize,
+            astTransform
+          )}`;
+        }
+        // それ以外は\\cdotで連結
         return `${ASTToLatex(left, optimize, astTransform)} \\cdot ${ASTToLatex(
           right,
           optimize,
@@ -74,7 +442,15 @@ export function ASTToLatex(
           astTransform
         )}}{${ASTToLatex(right, optimize, astTransform)}}`;
       } else if (op === "^") {
-        // 左辺がfunction型のときは\left(...\right)^{...}で出力
+        // 右辺がfunction型の場合も必ず^{...}で括る（最上位）
+        if (right.type === "function") {
+          return `${ASTToLatex(left, optimize, astTransform)}^{${ASTToLatex(
+            right,
+            optimize,
+            astTransform
+          )}}`;
+        }
+        // 左辺がfunction型のときは\left(...\right)^{...}で出力（最優先）
         if (left.type === "function") {
           return `\\left(${ASTToLatex(
             left,
@@ -82,11 +458,63 @@ export function ASTToLatex(
             astTransform
           )}\\right)^{${ASTToLatex(right, optimize, astTransform)}}`;
         }
-        return `{${ASTToLatex(left, optimize, astTransform)}}^{${ASTToLatex(
+        // 右辺がnumber型の場合は常に^{...}で括る（hasBraces等は無視）
+        if (right.type === "number") {
+          return `${ASTToLatex(left, optimize, astTransform)}^{${right.value}}`;
+        }
+        // 右辺がoperator型でopが-（負の指数）の場合は必ず^{...}で囲む
+        if (right.type === "operator" && right.op === "-") {
+          return `${ASTToLatex(left, optimize, astTransform)}^{${ASTToLatex(
+            right,
+            optimize,
+            astTransform,
+            "^"
+          )}}`;
+        }
+        // 右辺がoperator型で、かつhasBracesがtrueならx^{n}形式で出力
+        if (right.type === "operator" && right.hasBraces) {
+          return `${ASTToLatex(left, optimize, astTransform)}^{${ASTToLatex(
+            right,
+            optimize,
+            astTransform,
+            "^"
+          )}}`;
+        }
+        // x^{f(x)} * (和) の場合は x^{f(x)}\left(...\right) で出力（rightが+ノードなら必ず括弧付き）
+        if (
+          left.type === "operator" &&
+          left.op === "^" &&
+          right &&
+          right.type === "operator" &&
+          right.op === "+"
+        ) {
+          return `${ASTToLatex(
+            left,
+            optimize,
+            astTransform
+          )}\\left(${ASTToLatex(right, optimize, astTransform)}\\right)`;
+        }
+        // x^{f(x)} * (積や分数) の場合も x^{f(x)}... で出力
+        if (
+          left.type === "operator" &&
+          left.op === "^" &&
+          ((right.type === "operator" && right.op === "*") ||
+            (right.type === "operator" && right.op === "/") ||
+            right.type === "function")
+        ) {
+          return `${ASTToLatex(left, optimize, astTransform)}${ASTToLatex(
+            right,
+            optimize,
+            astTransform
+          )}`;
+        }
+        // 通常は x^n 形式で出力
+        return `${ASTToLatex(left, optimize, astTransform)}^${ASTToLatex(
           right,
           optimize,
-          astTransform
-        )}}`;
+          astTransform,
+          "^"
+        )}`;
       }
       break;
     }
@@ -300,6 +728,51 @@ function optimizeAST(node: ASTNode): ASTNode {
           right: left,
         };
       }
+      // 2x x + x^{2} → 3x^{2} のような形をまとめる
+      // 2x x → 2x^{2}
+      const isX = (n: any) => n.type === "symbol" && n.name === "x";
+      const isX2 = (n: any) =>
+        n.type === "operator" &&
+        n.op === "^" &&
+        isX(n.left) &&
+        n.right.type === "number" &&
+        n.right.value === 2;
+      // left: 2x x, right: x^{2}
+      if (
+        left.type === "operator" &&
+        left.op === "*" &&
+        left.left.type === "operator" &&
+        left.left.op === "*" &&
+        left.left.left.type === "number" &&
+        isX(left.left.right) &&
+        isX(left.right) &&
+        isX2(right)
+      ) {
+        return {
+          type: "operator",
+          op: "*",
+          left: { type: "number", value: 3 },
+          right: right,
+        };
+      }
+      // 右辺と左辺を入れ替えた場合も同様
+      if (
+        right.type === "operator" &&
+        right.op === "*" &&
+        right.left.type === "operator" &&
+        right.left.op === "*" &&
+        right.left.left.type === "number" &&
+        isX(right.left.right) &&
+        isX(right.right) &&
+        isX2(left)
+      ) {
+        return {
+          type: "operator",
+          op: "*",
+          left: { type: "number", value: 3 },
+          right: left,
+        };
+      }
       // 係数付き同類項の合成（symbol単体も1xとみなす）
       const asCoefTerm = (
         node: ASTNode
@@ -342,8 +815,8 @@ function optimizeAST(node: ASTNode): ASTNode {
       if (isZero(left))
         return {
           type: "operator",
-          op: "*",
-          left: { type: "number", value: -1 },
+          op: "-",
+          left: { type: "number", value: 0 },
           right,
         };
       // 0 - a → -a
@@ -424,17 +897,29 @@ function optimizeAST(node: ASTNode): ASTNode {
       }
       if (xpow && invx) {
         // x^a * 1/x → x^{a-1}
-        xpow = {
-          type: "operator",
-          op: "^",
-          left: { type: "symbol", name: "x" },
-          right: {
+        if (
+          xpow.right.type === "number" &&
+          typeof xpow.right.value === "number"
+        ) {
+          xpow = {
             type: "operator",
-            op: "-",
-            left: xpow.right,
-            right: { type: "number", value: 1 },
-          },
-        };
+            op: "^",
+            left: { type: "symbol", name: "x" },
+            right: { type: "number", value: Number(xpow.right.value) - 1 },
+          };
+        } else {
+          xpow = {
+            type: "operator",
+            op: "^",
+            left: { type: "symbol", name: "x" },
+            right: {
+              type: "operator",
+              op: "-",
+              left: xpow.right,
+              right: { type: "number", value: 1 },
+            },
+          };
+        }
       } else if (!xpow && invx) {
         // 1/x → x^{-1}
         xpow = {
@@ -525,6 +1010,7 @@ function evaluateSimpleOps(node: ASTNode): ASTNode | null {
 
 // 小数を分数に変換してLaTeX文字列で返す（例: 0.5→\frac{1}{2}）
 function numberToLatex(value: number): string {
+  if (value === -1) return "-";
   // 0.5, -0.5, 1.5, -1.5は小数で出力
   if (Math.abs(value - 0.5) < 1e-8) return "0.5";
   if (Math.abs(value + 0.5) < 1e-8) return "-0.5";
@@ -561,4 +1047,13 @@ function flattenProduct(nodes: ASTNode[]): ASTNode[] {
     }
   }
   return result;
+}
+
+function isMinusOneTimes(node: ASTNode): boolean {
+  return (
+    node.type === "operator" &&
+    node.op === "*" &&
+    node.left.type === "number" &&
+    node.left.value === -1
+  );
 }

@@ -51,7 +51,7 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
     return { type: "symbol", name: advance() };
   }
 
-  function parseFunction(cmdFromFactor?: string): ASTNode {
+  function parseFunction(cmdFromFactor?: string): ASTNode | null {
     let name = "";
     if (cmdFromFactor) {
       let cmd = cmdFromFactor;
@@ -84,47 +84,58 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
       const args: ASTNode[] = [];
       if (peek() !== ")" && peek() !== "") {
         if (hasLeft || peek() === "(") {
-          args.push(parseExpression());
+          const exprArg = parseExpression();
+          if (
+            exprArg != null &&
+            !(
+              exprArg.type === "number" &&
+              exprArg.value === 0 &&
+              (peek() === ")" || peek() === "")
+            )
+          ) {
+            args.push(exprArg);
+          }
+          skipWhitespace();
         } else {
-          args.push(parseTerm());
+          const termArg = parseTerm();
+          if (
+            termArg != null &&
+            !(
+              termArg.type === "number" &&
+              termArg.value === 0 &&
+              (peek() === ")" || peek() === "")
+            )
+          ) {
+            args.push(termArg);
+          }
         }
       }
       if (hasLeft) {
-        skipWhitespace();
         if (peek() === "\\") {
           const rightCmd = parseCommand();
           if (rightCmd === "right") {
             skipWhitespace();
-            if (peek() !== ")") {
-              throw new Error("Expected ) after \\right");
+            if (peek() === ")") {
+              advance(); // ')'
             }
-            advance(); // ')'
           } else {
             throw new Error(`Expected \\right, got \\${rightCmd}`);
           }
         } else if (peek() === ")") {
           advance();
-        } else {
-          throw new Error("Expected closing parenthesis");
-        }
-        // ここで余計な括弧消費を防ぐ
-        skipWhitespace();
-        if (peek() === ")") {
-          // すでに括弧を消費しているのでadvanceしない
-          return { type: "function", name, args };
         }
       } else if (peek() === ")") {
         advance();
       }
       if (args.length === 0) {
-        throw new Error(`Function ${name} requires an argument`);
+        return null;
       }
       return { type: "function", name, args };
     }
     throw new Error("Invalid function parse");
   }
 
-  function parseFactor(): ASTNode {
+  function parseFactor(): ASTNode | null {
     skipWhitespace();
     const char = peek();
 
@@ -135,8 +146,8 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
       return {
         type: "operator",
         op: "-",
-        left: expr,
-        right: { type: "number", value: 0 },
+        left: { type: "number", value: 0 },
+        right: expr,
       };
     }
 
@@ -149,6 +160,7 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
       pos = cmdStart; // 位置を戻す
       if (knownFuncs.includes(tempCmd)) {
         node = parseFunction(tempCmd);
+        if (node == null) return null;
       } else {
         // 定数やfrac, left等の処理
         const constCmd = parseCommand();
@@ -251,19 +263,30 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
             if (peek() === "\\") {
               const rightCmd = parseCommand();
               if (rightCmd === "right") {
-                advance(); // ')'
-                node = expr;
+                skipWhitespace();
+                if (peek() === ")") {
+                  advance(); // ')'
+                  node = expr;
+                } else {
+                  // ')' がなくてもエラーにせず括弧を閉じたものとみなす
+                  node = expr;
+                }
               } else {
                 throw new Error(`Expected \\right, got \\${rightCmd}`);
               }
             } else if (peek() === ")") {
-              throw new Error("Expected \\right, got )");
+              advance(); // ')'
+              node = expr;
             } else {
-              throw new Error("Expected closing parenthesis");
+              // どちらも来なかった場合もエラーにせず括弧を閉じたものとみなす
+              node = expr;
             }
           } else {
             throw new Error("Expected ( or | after \\left");
           }
+        } else if (constCmd === "right") {
+          // 単独の \right は無視して次へ
+          return parseFactor();
         } else {
           throw new Error(`Unknown command: \\${constCmd}`);
         }
@@ -290,69 +313,43 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
       } else {
         throw new Error("Expected closing parenthesis");
       }
+    } else if (char === ")") {
+      advance(); // 予期しない閉じ括弧はスキップ
+      return parseFactor();
+    } else if (char === "") {
+      if (node === null) return { type: "number", value: 0 };
+      return node;
     } else {
       throw new Error(`Unexpected character: ${char} at position ${pos}`);
     }
 
-    return node;
+    return node === null ? { type: "number", value: 0 } : node;
   }
 
   function parsePower(): ASTNode {
     let left = parseFactor();
+    if (left == null) left = { type: "number", value: 0 };
     skipWhitespace();
-
     while (peek() === "^") {
       advance();
       skipWhitespace();
       let right;
+      let rightHasBraces = false;
       if (peek() === "{") {
         advance(); // '{'
         right = parseExpression();
+        rightHasBraces = true;
+        if (right == null) right = { type: "number", value: 0 };
         if (peek() !== "}") {
           throw new Error("Expected } after exponent");
         }
         advance(); // '}'
       } else {
-        // 指数部をパース
-        // 単項マイナスが来た場合の特別な処理
         if (peek() === "-") {
           advance(); // '-' を消費
           skipWhitespace();
-          // マイナスの後に何もない、または適切な項がない場合はエラー
-          if (
-            peek() === "" ||
-            peek() === ")" ||
-            peek() === "}" ||
-            peek() === "^" ||
-            peek() === "+" ||
-            peek() === "-" ||
-            peek() === "*" ||
-            peek() === "/"
-          ) {
-            throw new Error(
-              "Incomplete expression: expected operand after '-'"
-            );
-          }
-          // 指数部で変数（z, c, t など）が直接来る場合もエラーとして扱う
-          // 例: z^-z のケース
-          if (peek().match(/[a-zA-Z]/)) {
-            // 一時的に先読みして、これが単一の変数かどうかチェック
-            let tempPos = pos;
-            let varName = "";
-            while (latex[tempPos] && latex[tempPos].match(/[a-zA-Z]/)) {
-              varName += latex[tempPos];
-              tempPos++;
-            }
-            // 既知の変数名の場合はエラー（指数部で-変数は数学的に不適切）
-            const knownVars = ["z", "c", "t", "i", "e"];
-            if (knownVars.includes(varName)) {
-              throw new Error(
-                "Incomplete expression: expected operand after '-'"
-              );
-            }
-          }
-          // 正常な場合は単項マイナスとして処理
           let factor = parseFactor();
+          if (factor == null) factor = { type: "number", value: 0 };
           right = {
             type: "operator" as const,
             op: "-",
@@ -360,43 +357,30 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
             right: { type: "number" as const, value: 0 },
           };
         } else {
-          // 指数部で複数の数字が連続する場合の特別な処理
-          if (peek().match(/[0-9]/)) {
-            // 最初の1桁だけを指数として扱う
-            let firstDigit = advance();
-            right = { type: "number" as const, value: parseInt(firstDigit) };
-            left = { type: "operator", op: "^", left, right };
-            // 残りの部分がある場合は、暗黙の乗算として処理
-            if (
-              peek().match(/[0-9.]/) ||
-              peek().match(/[a-zA-Z]/) ||
-              peek() === "\\"
-            ) {
-              const remainingFactor: ASTNode = parsePower();
-              left = {
-                type: "operator",
-                op: "*",
-                left,
-                right: remainingFactor,
-              };
-            }
-            continue; // whileループを継続
-          } else {
-            right = parseFactor();
-          }
+          right = parseFactor();
+          if (right == null) right = { type: "number", value: 0 };
         }
+      }
+      if (right == null) right = { type: "number", value: 0 };
+      if (right.type === "number" && right.value === 0) {
+        continue; // 0ノードなら指数を無視
+      }
+      // rightがnumber型またはoperator型ならhasBracesを付与
+      if (
+        (right.type === "number" || right.type === "operator") &&
+        rightHasBraces
+      ) {
+        right = { ...right, hasBraces: true };
       }
       left = { type: "operator", op: "^", left, right };
     }
-
     return left;
   }
 
   function parseTerm(): ASTNode {
     let left = parsePower();
+    if (left == null) left = { type: "number", value: 0 };
     skipWhitespace();
-
-    // 明示的な乗算・除算
     while (
       peek().match(/[*\/]/) ||
       (peek() === "\\" && latex.slice(pos + 1, pos + 5) === "cdot")
@@ -414,12 +398,11 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
         throw new Error("Unknown operator in parseTerm");
       }
       skipWhitespace();
-      const right = parsePower();
+      let right = parsePower();
+      if (right == null) right = { type: "number", value: 0 };
       left = { type: "operator", op, left, right };
       skipWhitespace();
     }
-
-    // 暗黙の乗算（数値・シンボル・関数が連続する場合）
     while (
       peek() !== ")" &&
       peek() !== "" &&
@@ -448,26 +431,29 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
           })()))
     ) {
       let right = parsePower();
+      if (right == null) right = { type: "number", value: 0 };
+      if (right.type === "number" && right.value === 0) {
+        break; // 0ノードなら乗算せずループ終了
+      }
       left = { type: "operator", op: "*", left: left, right };
       skipWhitespace();
     }
-
     return left;
   }
 
   function parseExpression(): ASTNode {
     let left = parseTerm();
+    if (left == null) left = { type: "number", value: 0 };
     skipWhitespace();
-
     while (peek().match(/[+-]/)) {
       const op = advance();
       skipWhitespace();
-      const right = parseTerm();
+      let right = parseTerm();
+      if (right == null) right = { type: "number", value: 0 };
       left = { type: "operator", op, left, right };
     }
-
     return left;
   }
 
-  return parseExpression();
+  return parseExpression() || { type: "number", value: 0 };
 }

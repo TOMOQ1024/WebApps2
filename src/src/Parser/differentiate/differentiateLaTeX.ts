@@ -25,6 +25,11 @@ export function differentiateLaTeX(
   ]
 ): string {
   const ast = parseLatex(latex, knownFuncs);
+  if (/sin|cos|x\\cos|x\^2/.test(latex)) {
+    // デバッグ用: AST構造を出力
+    // eslint-disable-next-line no-console
+    console.log("DEBUG AST:", latex, JSON.stringify(ast, null, 2));
+  }
   const diffAst = differentiateASTNode(ast, variable);
   return ASTToLatex(diffAst, true, true);
 }
