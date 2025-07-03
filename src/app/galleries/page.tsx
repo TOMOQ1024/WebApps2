@@ -12,7 +12,7 @@ export default function Home() {
     <main className={styles.galleriesPage}>
       <section className={styles.heroSection}>
         <h1>Galleries</h1>
-        <p>私のみたいものと，私のみたいものをつくるものをつくります．</p>
+        {/* <p>私のみたいものと，私のみたいものをつくるものをつくります．</p> */}
       </section>
 
       <section className={styles.appsGrid}>
