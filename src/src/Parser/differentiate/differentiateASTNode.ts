@@ -1,7 +1,10 @@
-import { ASTNode } from "../../../../src/Parser/ASTNode";
+import { ASTNode } from "../ASTNode";
 
 // 変数名はx固定
-export function differentiate(node: ASTNode, variable: string = "x"): ASTNode {
+export function differentiateASTNode(
+  node: ASTNode,
+  variable: string = "x"
+): ASTNode {
   switch (node.type) {
     case "number":
       return { type: "number", value: 0 };
@@ -13,8 +16,8 @@ export function differentiate(node: ASTNode, variable: string = "x"): ASTNode {
         return {
           type: "operator",
           op,
-          left: differentiate(left, variable),
-          right: differentiate(right, variable),
+          left: differentiateASTNode(left, variable),
+          right: differentiateASTNode(right, variable),
         };
       } else if (op === "*") {
         // 積の微分
@@ -24,14 +27,14 @@ export function differentiate(node: ASTNode, variable: string = "x"): ASTNode {
           left: {
             type: "operator",
             op: "*",
-            left: differentiate(left, variable),
+            left: differentiateASTNode(left, variable),
             right,
           },
           right: {
             type: "operator",
             op: "*",
             left,
-            right: differentiate(right, variable),
+            right: differentiateASTNode(right, variable),
           },
         };
       } else if (op === "/") {
@@ -45,14 +48,14 @@ export function differentiate(node: ASTNode, variable: string = "x"): ASTNode {
             left: {
               type: "operator",
               op: "*",
-              left: differentiate(left, variable),
+              left: differentiateASTNode(left, variable),
               right,
             },
             right: {
               type: "operator",
               op: "*",
               left,
-              right: differentiate(right, variable),
+              right: differentiateASTNode(right, variable),
             },
           },
           right: {
@@ -64,6 +67,25 @@ export function differentiate(node: ASTNode, variable: string = "x"): ASTNode {
         };
       } else if (op === "^") {
         // 冪関数の微分
+        // x^n型のときは (x^n)' = n x^{n-1}
+        if (
+          left.type === "symbol" &&
+          left.name === variable &&
+          right.type === "number"
+        ) {
+          // (x^n)' = n * x^(n-1)
+          return {
+            type: "operator",
+            op: "*",
+            left: { type: "number", value: right.value },
+            right: {
+              type: "operator",
+              op: "^",
+              left,
+              right: { type: "number", value: right.value - 1 },
+            },
+          };
+        }
         // f(x)^g(x) の場合
         // d/dx f^g = f^g * (g' * ln f + g * f'/f)
         return {
@@ -76,7 +98,7 @@ export function differentiate(node: ASTNode, variable: string = "x"): ASTNode {
             left: {
               type: "operator",
               op: "*",
-              left: differentiate(right, variable),
+              left: differentiateASTNode(right, variable),
               right: {
                 type: "function",
                 name: "ln",
@@ -90,7 +112,7 @@ export function differentiate(node: ASTNode, variable: string = "x"): ASTNode {
               right: {
                 type: "operator",
                 op: "/",
-                left: differentiate(left, variable),
+                left: differentiateASTNode(left, variable),
                 right: left,
               },
             },
@@ -108,7 +130,7 @@ export function differentiate(node: ASTNode, variable: string = "x"): ASTNode {
             type: "operator",
             op: "*",
             left: { type: "function", name: "cos", args: [u] },
-            right: differentiate(u, variable),
+            right: differentiateASTNode(u, variable),
           };
         case "cos":
           return {
@@ -119,14 +141,14 @@ export function differentiate(node: ASTNode, variable: string = "x"): ASTNode {
               type: "operator",
               op: "*",
               left: { type: "function", name: "sin", args: [u] },
-              right: differentiate(u, variable),
+              right: differentiateASTNode(u, variable),
             },
           };
         case "tan":
           return {
             type: "operator",
             op: "/",
-            left: differentiate(u, variable),
+            left: differentiateASTNode(u, variable),
             right: {
               type: "operator",
               op: "*",
@@ -139,21 +161,21 @@ export function differentiate(node: ASTNode, variable: string = "x"): ASTNode {
             type: "operator",
             op: "*",
             left: node,
-            right: differentiate(u, variable),
+            right: differentiateASTNode(u, variable),
           };
         case "log":
         case "ln":
           return {
             type: "operator",
             op: "/",
-            left: differentiate(u, variable),
+            left: differentiateASTNode(u, variable),
             right: u,
           };
         case "sqrt":
           return {
             type: "operator",
             op: "/",
-            left: differentiate(u, variable),
+            left: differentiateASTNode(u, variable),
             right: {
               type: "operator",
               op: "*",

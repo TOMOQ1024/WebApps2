@@ -1,40 +1,33 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { EditableMathField, StaticMathField } from "@/components/MathFields";
-import { parseLatex } from "@/src/Parser/parseLatex";
-import { differentiate } from "./differentiate";
-import { ASTToLatex } from "./ASTToLatex";
 import styles from "./page.module.scss";
+import { differentiateLaTeX } from "@/src/Parser/differentiate/differentiateLaTeX";
 
-const KNOWN_FUNCS = [
-  "sin",
-  "cos",
-  "tan",
-  "log",
-  "exp",
-  "sqrt",
-  "ln",
-  // 必要に応じて追加
-];
+const KNOWN_FUNCS = ["sin", "cos", "tan", "log", "exp", "sqrt", "ln"];
 
 export default function DifferentialPage() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [error, setError] = useState("");
 
-  const handleDifferentiate = () => {
-    setError("");
+  useEffect(() => {
+    if (!input) {
+      setOutput("");
+      setError("");
+      return;
+    }
     try {
-      const ast = parseLatex(input, KNOWN_FUNCS);
-      console.log(ASTToLatex(ast, true));
-      const diffAst = differentiate(ast, "x"); // 変数はx固定
-      const latex = ASTToLatex(diffAst, true);
+      setError("");
+      console.log(input);
+      const latex = differentiateLaTeX(input, "x", KNOWN_FUNCS);
       console.log(latex);
       setOutput(latex);
     } catch (e: any) {
+      setOutput("");
       setError(e.message || "エラーが発生しました");
     }
-  };
+  }, [input]);
 
   return (
     <main className={styles.main}>
@@ -44,33 +37,13 @@ export default function DifferentialPage() {
         <EditableMathField
           latex={input}
           onChange={(mf: any) => setInput(mf.latex())}
-          style={{
-            minHeight: 40,
-            fontSize: 24,
-            background: "#f9f9f9",
-            padding: 8,
-            borderRadius: 4,
-          }}
+          className={styles.input}
         />
       </div>
-      <button
-        onClick={handleDifferentiate}
-        style={{ padding: "8px 24px", fontSize: 18 }}
-      >
-        微分
-      </button>
       {error && <div style={{ color: "red", marginTop: 12 }}>{error}</div>}
       <div style={{ marginTop: 32 }}>
         <label>微分結果（LaTeX形式）</label>
-        <div
-          style={{
-            minHeight: 40,
-            fontSize: 24,
-            background: "#f0f0f0",
-            padding: 8,
-            borderRadius: 4,
-          }}
-        >
+        <div className={styles.output}>
           <StaticMathField>{output}</StaticMathField>
         </div>
       </div>

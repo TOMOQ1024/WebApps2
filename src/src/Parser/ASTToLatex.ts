@@ -25,7 +25,7 @@ export function ASTToLatex(node: ASTNode, optimize: boolean = false): string {
             return `-${wrapIfNeeded(rest, op, optimize)}`;
           } else {
             return `${coef}${
-              wrapIfNeeded(rest, op, optimize).startsWith("\\") ? "" : "\\cdot "
+              wrapIfNeeded(rest, op, optimize).startsWith("\\") ? "" : ""
             }${wrapIfNeeded(rest, op, optimize)}`;
           }
         }

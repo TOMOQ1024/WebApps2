@@ -29,8 +29,8 @@ vec3 g_mul(float r, vec3 p) {
 }
 
 void main() {
-  vec3 origin = vec3(0., 0., 0.);
-  // vec3 origin = g_mul(time, vec3(0., 0., .1));
+  // vec3 origin = vec3(0., 0., 0.);
+  vec3 origin = g_mul(time, vec3(0., 0., .1));
   vec3 S = g_add(origin, position);
   float l = 1.;
   vec3 P = S * l / (dot(S, S) * (l - 1.) + l);
