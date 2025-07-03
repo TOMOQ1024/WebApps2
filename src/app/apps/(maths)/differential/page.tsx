@@ -4,8 +4,6 @@ import { EditableMathField, StaticMathField } from "@/components/MathFields";
 import styles from "./page.module.scss";
 import { differentiateLaTeX } from "@/src/Parser/differentiate/differentiateLaTeX";
 
-const KNOWN_FUNCS = ["sin", "cos", "tan", "log", "exp", "sqrt", "ln"];
-
 export default function DifferentialPage() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
@@ -20,7 +18,7 @@ export default function DifferentialPage() {
     try {
       setError("");
       console.log(input);
-      const latex = differentiateLaTeX(input, "x", KNOWN_FUNCS);
+      const latex = differentiateLaTeX(input, "x");
       console.log(latex);
       setOutput(latex);
     } catch (e: any) {

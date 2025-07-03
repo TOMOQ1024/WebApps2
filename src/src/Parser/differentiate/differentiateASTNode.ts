@@ -119,6 +119,15 @@ export function differentiateASTNode(
           },
         };
       }
+      // 単項マイナスの微分: d/dx(-f(x)) = -f'(x)
+      if (op === "-") {
+        return {
+          type: "operator",
+          op: "*",
+          left: { type: "number", value: -1 },
+          right: differentiateASTNode(right, variable),
+        };
+      }
       break;
     }
     case "function": {
@@ -154,6 +163,127 @@ export function differentiateASTNode(
               op: "*",
               left: { type: "function", name: "cos", args: [u] },
               right: { type: "function", name: "cos", args: [u] },
+            },
+          };
+        case "cot":
+          return {
+            type: "operator",
+            op: "*",
+            left: { type: "number", value: -1 },
+            right: {
+              type: "operator",
+              op: "/",
+              left: differentiateASTNode(u, variable),
+              right: {
+                type: "operator",
+                op: "*",
+                left: { type: "function", name: "sin", args: [u] },
+                right: { type: "function", name: "sin", args: [u] },
+              },
+            },
+          };
+        case "sec":
+          return {
+            type: "operator",
+            op: "*",
+            left: { type: "function", name: "sec", args: [u] },
+            right: {
+              type: "operator",
+              op: "*",
+              left: { type: "function", name: "tan", args: [u] },
+              right: differentiateASTNode(u, variable),
+            },
+          };
+        case "csc":
+          return {
+            type: "operator",
+            op: "*",
+            left: { type: "number", value: -1 },
+            right: {
+              type: "operator",
+              op: "*",
+              left: { type: "function", name: "csc", args: [u] },
+              right: {
+                type: "operator",
+                op: "*",
+                left: { type: "function", name: "cot", args: [u] },
+                right: differentiateASTNode(u, variable),
+              },
+            },
+          };
+        case "sinh":
+          return {
+            type: "operator",
+            op: "*",
+            left: { type: "function", name: "cosh", args: [u] },
+            right: differentiateASTNode(u, variable),
+          };
+        case "cosh":
+          return {
+            type: "operator",
+            op: "*",
+            left: { type: "function", name: "sinh", args: [u] },
+            right: differentiateASTNode(u, variable),
+          };
+        case "tanh":
+          return {
+            type: "operator",
+            op: "/",
+            left: differentiateASTNode(u, variable),
+            right: {
+              type: "operator",
+              op: "*",
+              left: { type: "function", name: "cosh", args: [u] },
+              right: { type: "function", name: "cosh", args: [u] },
+            },
+          };
+        case "coth":
+          return {
+            type: "operator",
+            op: "*",
+            left: { type: "number", value: -1 },
+            right: {
+              type: "operator",
+              op: "/",
+              left: differentiateASTNode(u, variable),
+              right: {
+                type: "operator",
+                op: "*",
+                left: { type: "function", name: "sinh", args: [u] },
+                right: { type: "function", name: "sinh", args: [u] },
+              },
+            },
+          };
+        case "sech":
+          return {
+            type: "operator",
+            op: "*",
+            left: { type: "number", value: -1 },
+            right: {
+              type: "operator",
+              op: "*",
+              left: { type: "function", name: "sech", args: [u] },
+              right: {
+                type: "function",
+                name: "tanh",
+                args: [u],
+              },
+            },
+          };
+        case "csch":
+          return {
+            type: "operator",
+            op: "*",
+            left: { type: "number", value: -1 },
+            right: {
+              type: "operator",
+              op: "*",
+              left: { type: "function", name: "csch", args: [u] },
+              right: {
+                type: "function",
+                name: "coth",
+                args: [u],
+              },
             },
           };
         case "exp":
