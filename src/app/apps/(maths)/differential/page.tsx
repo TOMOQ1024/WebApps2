@@ -26,8 +26,10 @@ export default function DifferentialPage() {
     setError("");
     try {
       const ast = parseLatex(input, KNOWN_FUNCS);
+      console.log(ASTToLatex(ast, true));
       const diffAst = differentiate(ast, "x"); // 変数はx固定
-      const latex = ASTToLatex(diffAst);
+      const latex = ASTToLatex(diffAst, true);
+      console.log(latex);
       setOutput(latex);
     } catch (e: any) {
       setError(e.message || "エラーが発生しました");
