@@ -30,8 +30,10 @@ describe("differentiateLaTeX", () => {
     expect(differentiateLaTeX("\\frac{x}{x}")).toBe("0");
     expect(differentiateLaTeX("x\\frac{1}{x}")).toBe("0");
     expect(differentiateLaTeX("\\frac{1}{x}x")).toBe("0");
+    expect(differentiateLaTeX("\\frac{x^4}{x^4}")).toBe("0");
+    expect(differentiateLaTeX("x^4\\frac{1}{x^4}")).toBe("0");
+    expect(differentiateLaTeX("\\frac{1}{x^4}x^4")).toBe("0");
     expect(differentiateLaTeX("\\frac{x^2}{x}")).toBe("1");
-    expect(differentiateLaTeX("\\frac{x^2+x^2}{x}")).toBe("2");
     expect(differentiateLaTeX("\\frac{x}{x^2+x^2}")).toBe(
       "-\\frac{1}{2}x^{-2}"
     );

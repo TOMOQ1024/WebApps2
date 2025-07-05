@@ -49,6 +49,73 @@ export function differentiateASTNode(
           right: differentiateASTNode(right, variable),
         };
       } else if (op === "*") {
+        // x * (1/x) の形なら微分は0
+        if (
+          left.type === "symbol" &&
+          left.name === variable &&
+          right.type === "operator" &&
+          right.op === "/" &&
+          right.left.type === "number" &&
+          right.left.value === 1 &&
+          right.right.type === "symbol" &&
+          right.right.name === variable
+        ) {
+          return { type: "number", value: 0 };
+        }
+        // (1/x) * x の形なら微分は0
+        if (
+          left.type === "operator" &&
+          left.op === "/" &&
+          left.left.type === "number" &&
+          left.left.value === 1 &&
+          left.right.type === "symbol" &&
+          left.right.name === variable &&
+          right.type === "symbol" &&
+          right.name === variable
+        ) {
+          return { type: "number", value: 0 };
+        }
+        // x^a * (1/x^a) の形なら微分は0
+        if (
+          left.type === "operator" &&
+          left.op === "^" &&
+          left.left.type === "symbol" &&
+          left.left.name === variable &&
+          left.right.type === "number" &&
+          right.type === "operator" &&
+          right.op === "/" &&
+          right.left.type === "number" &&
+          right.left.value === 1 &&
+          right.right.type === "operator" &&
+          right.right.op === "^" &&
+          right.right.left.type === "symbol" &&
+          right.right.left.name === variable &&
+          right.right.right.type === "number" &&
+          left.right.value === right.right.right.value
+        ) {
+          return { type: "number", value: 0 };
+        }
+        // (1/x^a) * x^a の形なら微分は0
+        if (
+          left.type === "operator" &&
+          left.op === "/" &&
+          left.left.type === "number" &&
+          left.left.value === 1 &&
+          left.right.type === "operator" &&
+          left.right.op === "^" &&
+          left.right.left.type === "symbol" &&
+          left.right.left.name === variable &&
+          left.right.right.type === "number" &&
+          right.type === "operator" &&
+          right.op === "^" &&
+          right.left.type === "symbol" &&
+          right.left.name === variable &&
+          right.right.type === "number" &&
+          left.right.right.value === right.right.value
+        ) {
+          return { type: "number", value: 0 };
+        }
+
         // x*x*x... の形なら簡約化
         const simp = simplifyProductToPower(node, variable);
         if (simp) {
@@ -280,6 +347,15 @@ export function differentiateASTNode(
             op: "^",
             left,
             right,
+          };
+        }
+        // e^{f(x)} の場合は e^{f(x)} * f'(x) を返す
+        if (left.type === "symbol" && left.name === "e") {
+          return {
+            type: "operator",
+            op: "*",
+            left: node,
+            right: differentiateASTNode(right, variable),
           };
         }
         // f(x)^g(x) の場合

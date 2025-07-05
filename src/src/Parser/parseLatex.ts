@@ -426,7 +426,8 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
               cmd === "operatorname" ||
               cmd === "overline" ||
               cmd === "left" ||
-              cmd === "pi"
+              cmd === "pi" ||
+              cmd === "frac"
             );
           })()))
     ) {
