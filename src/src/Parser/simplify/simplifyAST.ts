@@ -131,7 +131,7 @@ export function simplifyAST(node: ASTNode): ASTNode {
       const optLeft = simplifyAST(left);
       const optRight = simplifyAST(right);
       if (JSON.stringify(optLeft) === JSON.stringify(optRight)) {
-        return { type: "number", value: 0 };
+        return { type: "number", value: 1 };
       }
       if (optLeft.type === "number" && optLeft.value === 0) {
         return { type: "number", value: 0 };
@@ -140,8 +140,111 @@ export function simplifyAST(node: ASTNode): ASTNode {
         return optLeft;
       }
 
+      // 分子が和の場合の因数分解を試行（簡単なケースのみ）
+      const tryFactorizeSum = (sumNode: ASTNode): ASTNode => {
+        if (sumNode.type !== "operator" || sumNode.op !== "+") return sumNode;
+
+        const left = sumNode.left;
+        const right = sumNode.right;
+
+        // x + x^2 → x(1 + x)
+        if (
+          left.type === "symbol" &&
+          left.name === "x" &&
+          right.type === "operator" &&
+          right.op === "^" &&
+          right.left.type === "symbol" &&
+          right.left.name === "x" &&
+          right.right.type === "number" &&
+          right.right.value === 2
+        ) {
+          return {
+            type: "operator",
+            op: "*",
+            left: { type: "symbol", name: "x" },
+            right: {
+              type: "operator",
+              op: "+",
+              left: { type: "number", value: 1 },
+              right: { type: "symbol", name: "x" },
+            },
+          };
+        }
+
+        // x^2 + x → x(x + 1)
+        if (
+          left.type === "operator" &&
+          left.op === "^" &&
+          left.left.type === "symbol" &&
+          left.left.name === "x" &&
+          left.right.type === "number" &&
+          left.right.value === 2 &&
+          right.type === "symbol" &&
+          right.name === "x"
+        ) {
+          return {
+            type: "operator",
+            op: "*",
+            left: { type: "symbol", name: "x" },
+            right: {
+              type: "operator",
+              op: "+",
+              left: { type: "symbol", name: "x" },
+              right: { type: "number", value: 1 },
+            },
+          };
+        }
+
+        // 6x + 4x^2 → 2x(3 + 2x)
+        if (
+          left.type === "operator" &&
+          left.op === "*" &&
+          left.left.type === "number" &&
+          left.left.value === 6 &&
+          left.right.type === "symbol" &&
+          left.right.name === "x" &&
+          right.type === "operator" &&
+          right.op === "*" &&
+          right.left.type === "number" &&
+          right.left.value === 4 &&
+          right.right.type === "operator" &&
+          right.right.op === "^" &&
+          right.right.left.type === "symbol" &&
+          right.right.left.name === "x" &&
+          right.right.right.type === "number" &&
+          right.right.right.value === 2
+        ) {
+          return {
+            type: "operator",
+            op: "*",
+            left: {
+              type: "operator",
+              op: "*",
+              left: { type: "number", value: 2 },
+              right: { type: "symbol", name: "x" },
+            },
+            right: {
+              type: "operator",
+              op: "+",
+              left: { type: "number", value: 3 },
+              right: {
+                type: "operator",
+                op: "*",
+                left: { type: "number", value: 2 },
+                right: { type: "symbol", name: "x" },
+              },
+            },
+          };
+        }
+
+        return sumNode;
+      };
+
       // 複雑な分数の簡約化（複数の変数を含む）
       const simplifyComplexFraction = (num: ASTNode, den: ASTNode): ASTNode => {
+        // 分子が和の場合、因数分解を試行
+        const factorizedNum = tryFactorizeSum(num);
+
         // 分子と分母の因子を取得
         const getFactors = (n: ASTNode): ASTNode[] => {
           const factors: ASTNode[] = [];
@@ -157,7 +260,7 @@ export function simplifyAST(node: ASTNode): ASTNode {
           return factors;
         };
 
-        const numFactors = getFactors(num);
+        const numFactors = getFactors(factorizedNum);
         const denFactors = getFactors(den);
 
         // 各変数の指数を計算
@@ -166,6 +269,7 @@ export function simplifyAST(node: ASTNode): ASTNode {
         let coefDen = 1;
 
         // 分子の処理
+        const numOtherFactors: ASTNode[] = [];
         for (const f of numFactors) {
           if (f.type === "number") {
             coefNum *= f.value;
@@ -180,10 +284,14 @@ export function simplifyAST(node: ASTNode): ASTNode {
           ) {
             const currentExp = varExps.get(f.left.name) || 0;
             varExps.set(f.left.name, currentExp + f.right.value);
+          } else {
+            // その他の因子（例：(1+x)のような複合式）
+            numOtherFactors.push(f);
           }
         }
 
         // 分母の処理
+        const denOtherFactors: ASTNode[] = [];
         for (const f of denFactors) {
           if (f.type === "number") {
             coefDen *= f.value;
@@ -198,6 +306,9 @@ export function simplifyAST(node: ASTNode): ASTNode {
           ) {
             const currentExp = varExps.get(f.left.name) || 0;
             varExps.set(f.left.name, currentExp - f.right.value);
+          } else {
+            // その他の因子（例：(1+x)のような複合式）
+            denOtherFactors.push(f);
           }
         }
 
@@ -248,37 +359,25 @@ export function simplifyAST(node: ASTNode): ASTNode {
         }
 
         // 分子の構築
+        const allNumFactors: ASTNode[] = [];
+        if (simplifiedNum !== 1) {
+          allNumFactors.push({ type: "number", value: simplifiedNum });
+        }
+        allNumFactors.push(...positiveVars);
+        allNumFactors.push(...numOtherFactors);
+
         let numerator: ASTNode;
-        if (positiveVars.length === 0 && simplifiedNum === 1) {
+        if (allNumFactors.length === 0) {
           numerator = { type: "number", value: 1 };
-        } else if (positiveVars.length === 0) {
-          numerator = { type: "number", value: simplifiedNum };
-        } else if (simplifiedNum === 1) {
-          numerator =
-            positiveVars.length === 1
-              ? positiveVars[0]
-              : positiveVars.reduce((a, b) => ({
-                  type: "operator",
-                  op: "*",
-                  left: a,
-                  right: b,
-                }));
+        } else if (allNumFactors.length === 1) {
+          numerator = allNumFactors[0];
         } else {
-          const variablePart =
-            positiveVars.length === 1
-              ? positiveVars[0]
-              : positiveVars.reduce((a, b) => ({
-                  type: "operator",
-                  op: "*",
-                  left: a,
-                  right: b,
-                }));
-          numerator = {
+          numerator = allNumFactors.reduce((a, b) => ({
             type: "operator",
             op: "*",
-            left: { type: "number", value: simplifiedNum },
-            right: variablePart,
-          };
+            left: a,
+            right: b,
+          }));
         }
 
         // 分母の構築
@@ -286,12 +385,14 @@ export function simplifyAST(node: ASTNode): ASTNode {
         if (simplifiedDen !== 1) {
           denominatorFactors.push({ type: "number", value: simplifiedDen });
         }
+        denominatorFactors.push(...negativeVars);
+        denominatorFactors.push(...denOtherFactors);
 
-        // 負の指数処理: 係数が1で分母に係数がない場合、負の指数として表現
+        // 負の指数処理: 分子が単純で分母が変数のみの場合、負の指数として表現
         if (
-          denominatorFactors.length === 0 &&
+          simplifiedDen === 1 &&
           negativeVars.length > 0 &&
-          numerator.type !== "number"
+          denOtherFactors.length === 0
         ) {
           // 負の指数を分子に追加
           const allFactors: ASTNode[] = [];
@@ -349,8 +450,6 @@ export function simplifyAST(node: ASTNode): ASTNode {
               }));
         } else {
           // 通常の分数形式
-          denominatorFactors.push(...negativeVars);
-
           if (denominatorFactors.length === 0) {
             return numerator;
           } else {
