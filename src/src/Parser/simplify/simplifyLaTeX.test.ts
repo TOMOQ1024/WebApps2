@@ -17,6 +17,8 @@ describe("simplifyLaTeX", () => {
     expect(simplifyLaTeX("\\frac{x-x+x+x}{2x^2\\cdot 3}")).toBe(
       "\\frac{1}{3x}"
     );
+    expect(simplifyLaTeX("\\frac{\\frac{x^2}{2}}{x^3}")).toBe("\\frac{1}{2x}");
+    expect(simplifyLaTeX("\\frac{\\frac{x^2}{2}}{x^3}x")).toBe("\\frac{1}{2}");
   });
 
   test("一般の変数名", () => {

@@ -49,83 +49,6 @@ export function simplifyAST(node: ASTNode): ASTNode {
       }
     }
 
-    // 文字列の連続を指数形に変換（例: xxyyyzzzz → x^2y^3z^4）
-    if (node.op === "*") {
-      const factors: ASTNode[] = [];
-      const collectFactors = (n: ASTNode) => {
-        if (n.type === "operator" && n.op === "*") {
-          collectFactors(n.left);
-          collectFactors(n.right);
-        } else {
-          factors.push(n);
-        }
-      };
-      collectFactors(left);
-      collectFactors(right);
-
-      // 各変数の出現回数をカウント
-      const varCounts = new Map<string, number>();
-      let coef = 1;
-      const rest: ASTNode[] = [];
-
-      for (const f of factors) {
-        if (f.type === "number") {
-          coef *= f.value;
-        } else if (f.type === "symbol") {
-          const count = varCounts.get(f.name) || 0;
-          varCounts.set(f.name, count + 1);
-        } else if (
-          f.type === "operator" &&
-          f.op === "^" &&
-          f.left.type === "symbol" &&
-          f.right.type === "number"
-        ) {
-          const count = varCounts.get(f.left.name) || 0;
-          varCounts.set(f.left.name, count + f.right.value);
-        } else {
-          rest.push(f);
-        }
-      }
-
-      // 結果を構築
-      const results: ASTNode[] = [];
-
-      if (coef !== 1) {
-        results.push({ type: "number", value: coef });
-      }
-
-      // 変数を指数形で追加
-      for (const [varName, count] of varCounts.entries()) {
-        if (count > 0) {
-          if (count === 1) {
-            results.push({ type: "symbol", name: varName });
-          } else {
-            results.push({
-              type: "operator",
-              op: "^",
-              left: { type: "symbol", name: varName },
-              right: { type: "number", value: count },
-            });
-          }
-        }
-      }
-
-      // その他のノードを追加
-      results.push(...rest);
-
-      if (results.length === 0) {
-        return { type: "number", value: 1 };
-      } else if (results.length === 1) {
-        return results[0];
-      } else {
-        return results.reduce((a, b) => ({
-          type: "operator",
-          op: "*",
-          left: a,
-          right: b,
-        }));
-      }
-    }
     // 分数ノードのとき、分子分母が等しい場合は0、分子が0なら0、分母が1なら分子のみ返す（再帰的に簡単化）
     if (node.op === "/") {
       const optLeft = simplifyAST(left);
@@ -138,6 +61,129 @@ export function simplifyAST(node: ASTNode): ASTNode {
       }
       if (optRight.type === "number" && optRight.value === 1) {
         return optLeft;
+      }
+
+      // 分子が分母の倍数の場合の約分: ax / bx → a/b
+      if (
+        optLeft.type === "operator" &&
+        optLeft.op === "*" &&
+        optRight.type === "operator" &&
+        optRight.op === "*"
+      ) {
+        // 分子と分母の共通因子を見つけて約分
+        const leftFactors: ASTNode[] = [];
+        const rightFactors: ASTNode[] = [];
+
+        const collectFactors = (node: ASTNode, factors: ASTNode[]) => {
+          if (node.type === "operator" && node.op === "*") {
+            collectFactors(node.left, factors);
+            collectFactors(node.right, factors);
+          } else {
+            factors.push(node);
+          }
+        };
+
+        collectFactors(optLeft, leftFactors);
+        collectFactors(optRight, rightFactors);
+
+        // 共通因子を探す
+        const remainingLeft = [...leftFactors];
+        const remainingRight = [...rightFactors];
+
+        for (let i = 0; i < leftFactors.length; i++) {
+          for (let j = 0; j < rightFactors.length; j++) {
+            if (
+              JSON.stringify(leftFactors[i]) === JSON.stringify(rightFactors[j])
+            ) {
+              remainingLeft.splice(remainingLeft.indexOf(leftFactors[i]), 1);
+              remainingRight.splice(remainingRight.indexOf(rightFactors[j]), 1);
+              break;
+            }
+          }
+        }
+
+        // 共通因子があれば約分
+        if (
+          remainingLeft.length < leftFactors.length ||
+          remainingRight.length < rightFactors.length
+        ) {
+          const buildProduct = (factors: ASTNode[]): ASTNode => {
+            if (factors.length === 0) return { type: "number", value: 1 };
+            if (factors.length === 1) return factors[0];
+            return factors.reduce((a, b) => ({
+              type: "operator",
+              op: "*",
+              left: a,
+              right: b,
+            }));
+          };
+
+          const newNumerator = buildProduct(remainingLeft);
+          const newDenominator = buildProduct(remainingRight);
+
+          // 分母が1の場合は分子だけ返す
+          if (newDenominator.type === "number" && newDenominator.value === 1) {
+            return newNumerator;
+          }
+
+          return {
+            type: "operator",
+            op: "/",
+            left: newNumerator,
+            right: newDenominator,
+          };
+        }
+      }
+
+      // 単純な変数の約分: x / (c*x) → 1/c
+      if (
+        optLeft.type === "symbol" &&
+        optRight.type === "operator" &&
+        optRight.op === "*" &&
+        optRight.left.type === "number" &&
+        optRight.right.type === "symbol" &&
+        optLeft.name === optRight.right.name
+      ) {
+        return {
+          type: "operator",
+          op: "/",
+          left: { type: "number", value: 1 },
+          right: { type: "number", value: optRight.left.value },
+        };
+      }
+
+      // 単純な変数の約分: x / (x*c) → 1/c
+      if (
+        optLeft.type === "symbol" &&
+        optRight.type === "operator" &&
+        optRight.op === "*" &&
+        optRight.left.type === "symbol" &&
+        optRight.right.type === "number" &&
+        optLeft.name === optRight.left.name
+      ) {
+        return {
+          type: "operator",
+          op: "/",
+          left: { type: "number", value: 1 },
+          right: { type: "number", value: optRight.right.value },
+        };
+      }
+
+      // 二重分数の処理: (a/b)/c → a/(b*c)
+      if (optLeft.type === "operator" && optLeft.op === "/") {
+        const numerator = optLeft.left;
+        const denominator = {
+          type: "operator" as const,
+          op: "*",
+          left: optLeft.right,
+          right: optRight,
+        };
+        return simplifyAST({
+          type: "operator" as const,
+          op: "/",
+          left: numerator,
+          right: denominator,
+        });
       }
 
       // 分子が和の場合の因数分解を試行（簡単なケースのみ）
@@ -1085,6 +1131,38 @@ export function simplifyAST(node: ASTNode): ASTNode {
     }
     // 積
     if (node.op === "*") {
+      // 分数 * 項 → 分子に項を掛ける: (a/b) * c → (a*c)/b
+      if (left.type === "operator" && left.op === "/") {
+        const newNumerator = simplifyAST({
+          type: "operator" as const,
+          op: "*",
+          left: left.left,
+          right: right,
+        });
+        return simplifyAST({
+          type: "operator" as const,
+          op: "/",
+          left: newNumerator,
+          right: left.right,
+        });
+      }
+
+      // 項 * 分数 → 分子に項を掛ける: c * (a/b) → (c*a)/b
+      if (right.type === "operator" && right.op === "/") {
+        const newNumerator = simplifyAST({
+          type: "operator" as const,
+          op: "*",
+          left: left,
+          right: right.left,
+        });
+        return simplifyAST({
+          type: "operator" as const,
+          op: "/",
+          left: newNumerator,
+          right: right.right,
+        });
+      }
+
       // x * (1/x) = 1 の簡約化
       if (
         left.type === "symbol" &&
@@ -1165,9 +1243,9 @@ export function simplifyAST(node: ASTNode): ASTNode {
       collectFactors(left);
       collectFactors(right);
 
-      // 係数とxの指数をまとめる
+      // 係数と各変数の指数をまとめる
       let coef = 1;
-      let xexp = 0;
+      const varExps = new Map<string, number>();
       const rest: ASTNode[] = [];
       for (const f of factors) {
         if (f.type === "number") {
@@ -1176,124 +1254,60 @@ export function simplifyAST(node: ASTNode): ASTNode {
           f.type === "operator" &&
           f.op === "^" &&
           f.left.type === "symbol" &&
-          f.left.name === "x" &&
           f.right.type === "number"
         ) {
-          xexp += f.right.value;
-        } else if (f.type === "symbol" && f.name === "x") {
-          xexp += 1;
+          const varName = f.left.name;
+          const currentExp = varExps.get(varName) || 0;
+          varExps.set(varName, currentExp + f.right.value);
+        } else if (f.type === "symbol") {
+          const varName = f.name;
+          const currentExp = varExps.get(varName) || 0;
+          varExps.set(varName, currentExp + 1);
         } else {
           rest.push(f);
         }
       }
 
-      // x^0 = 1 の場合は係数のみ
-      if (xexp === 0) {
-        if (rest.length === 0) {
-          return { type: "number", value: coef };
-        } else if (coef === 1) {
-          return rest.length === 1
-            ? rest[0]
-            : rest.reduce((a, b) => ({
-                type: "operator" as const,
-                op: "*",
-                left: a,
-                right: b,
-              }));
-        } else {
-          const restNode =
-            rest.length === 1
-              ? rest[0]
-              : rest.reduce((a, b) => ({
-                  type: "operator" as const,
-                  op: "*",
-                  left: a,
-                  right: b,
-                }));
-          return {
-            type: "operator" as const,
-            op: "*",
-            left: { type: "number" as const, value: coef },
-            right: restNode,
-          };
+      // 結果を構築
+      const allFactors: ASTNode[] = [];
+
+      // 係数を追加
+      if (coef !== 1) {
+        allFactors.push({ type: "number", value: coef });
+      }
+
+      // 各変数を指数形で追加
+      for (const [varName, exp] of varExps.entries()) {
+        if (exp > 0) {
+          if (exp === 1) {
+            allFactors.push({ type: "symbol", name: varName });
+          } else {
+            allFactors.push({
+              type: "operator",
+              op: "^",
+              left: { type: "symbol", name: varName },
+              right: { type: "number", value: exp },
+            });
+          }
         }
       }
 
-      let node_: ASTNode | null = null;
-      if (xexp !== 0) {
-        if (xexp === 1) {
-          node_ = { type: "symbol" as const, name: "x" };
-        } else {
-          node_ = {
-            type: "operator" as const,
-            op: "^",
-            left: { type: "symbol" as const, name: "x" },
-            right: { type: "number" as const, value: xexp },
-          };
-        }
-      }
+      // その他の因子を追加
+      allFactors.push(...rest);
 
-      if (node_ && rest.length > 0) {
-        rest.unshift(node_);
-        node_ = null;
-      }
-      if (rest.length > 0) {
-        if (rest.length === 1) {
-          node_ = rest[0];
-        } else {
-          node_ = rest.reduce((a, b) => ({
-            type: "operator" as const,
-            op: "*",
-            left: a,
-            right: b,
-          }));
-        }
-      }
-
-      // 係数が-1なら必ず -node_ の形に
-      if (coef === -1) {
-        if (!node_ && rest.length > 0) {
-          node_ =
-            rest.length === 1
-              ? rest[0]
-              : rest.reduce((a, b) => ({
-                  type: "operator" as const,
-                  op: "*",
-                  left: a,
-                  right: b,
-                }));
-        }
-        if (!node_) node_ = { type: "number" as const, value: 1 };
-        node_ = {
-          type: "operator" as const,
-          op: "-",
-          left: { type: "number" as const, value: 0 },
-          right: node_,
-        };
-      } else if (coef !== 1 && coef !== 0) {
-        if (!node_ && rest.length > 1) {
-          node_ = rest.reduce((a, b) => ({
-            type: "operator" as const,
-            op: "*",
-            left: a,
-            right: b,
-          }));
-        }
-        if (!node_ && rest.length === 1) {
-          node_ = rest[0];
-        }
-        if (!node_) node_ = { type: "number" as const, value: 1 };
-        node_ = {
-          type: "operator" as const,
+      // 結果を構築
+      if (allFactors.length === 0) {
+        return { type: "number", value: 1 };
+      } else if (allFactors.length === 1) {
+        return allFactors[0];
+      } else {
+        return allFactors.reduce((a, b) => ({
+          type: "operator",
           op: "*",
-          left: { type: "number" as const, value: coef },
-          right: node_,
-        };
-      } else if (coef === 0) {
-        node_ = { type: "number" as const, value: 0 };
+          left: a,
+          right: b,
+        }));
       }
-      if (!node_) node_ = { type: "number" as const, value: 1 };
-      return node_;
     }
     // 商
     if (node.op === "/") {
