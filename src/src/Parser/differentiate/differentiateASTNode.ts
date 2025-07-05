@@ -33,11 +33,11 @@ export function differentiateASTNode(
         ) {
           return d.right;
         }
-        // それ以外は -1 * d
+        // それ以外は単項マイナスで返す
         return {
           type: "operator",
-          op: "*",
-          left: { type: "number", value: -1 },
+          op: "-",
+          left: { type: "number", value: 0 },
           right: d,
         };
       }
@@ -73,7 +73,12 @@ export function differentiateASTNode(
           right: { type: "operator", op: "*", left, right: dRight },
         };
       } else if (op === "/") {
-        // 商の微分
+        // 商の微分: (f/g)' = (f'g - fg')/g^2
+        const f = left;
+        const g = right;
+        const df = differentiateASTNode(f, variable);
+        const dg = differentiateASTNode(g, variable);
+
         return {
           type: "operator",
           op: "/",
@@ -83,65 +88,125 @@ export function differentiateASTNode(
             left: {
               type: "operator",
               op: "*",
-              left: differentiateASTNode(left, variable),
-              right,
+              left: df,
+              right: g,
             },
             right: {
               type: "operator",
               op: "*",
-              left,
-              right: differentiateASTNode(right, variable),
+              left: f,
+              right: dg,
             },
           },
           right: {
             type: "operator",
-            op: "*",
-            left: right,
-            right: right,
+            op: "^",
+            left: g,
+            right: { type: "number", value: 2 },
           },
         };
       } else if (op === "^") {
-        // 冪関数の微分
-        // x^n型のときは (x^n)' = n x^{n-1}
+        // x^n の場合（n<0でもn*x^{n-1}の形で返す）
         if (
           left.type === "symbol" &&
           left.name === variable &&
-          (right.type === "number" ||
-            (right.type === "operator" &&
-              right.op === "/" &&
-              right.left.type === "number" &&
-              right.right.type === "number"))
+          right.type === "number"
         ) {
-          // 分数表現をnumberに変換
-          let expValue: number;
-          if (right.type === "number") {
-            expValue = right.value;
-          } else {
-            expValue = right.left.value / right.right.value;
-          }
-          const newExp = expValue - 1;
-          let expNode: any;
-          if (newExp < 0) {
-            expNode = {
-              type: "number",
-              value: newExp,
-            };
-          } else {
-            expNode = {
-              type: "number",
-              value: newExp,
-            };
-          }
+          // n === -1 のときもpow形式（-x^{-2}）のみ返す。指数は必ずnumber型で返す。
+          const n = right.value;
           return {
             type: "operator",
             op: "*",
-            left: { type: "number", value: expValue },
+            left: { type: "number", value: n },
             right: {
               type: "operator",
               op: "^",
-              left,
-              right: expNode,
+              left: { type: "symbol", name: variable },
+              right: { type: "number", value: n - 1 },
             },
+          };
+        }
+        // x^{f/g} の場合も分数ノードを返さず、number型（小数）でpowノードを返す
+        if (
+          left.type === "symbol" &&
+          left.name === variable &&
+          right.type === "operator" &&
+          right.op === "/" &&
+          right.left.type === "number" &&
+          right.right.type === "number"
+        ) {
+          const n = right.left.value / right.right.value;
+          return {
+            type: "operator",
+            op: "*",
+            left: { type: "number", value: n },
+            right: {
+              type: "operator",
+              op: "^",
+              left: { type: "symbol", name: variable },
+              right: { type: "number", value: n - 1 },
+            },
+          };
+        }
+        // x^{f(x)} の場合も分数ノードを返さずpowノードのみで構成。指数が単なるnumberでない場合は式ノードのまま。
+        if (
+          left.type === "symbol" &&
+          left.name === variable &&
+          right.type !== "number"
+        ) {
+          return {
+            type: "operator",
+            op: "+",
+            left: {
+              type: "operator",
+              op: "*",
+              left: {
+                type: "operator",
+                op: "*",
+                left: {
+                  type: "operator",
+                  op: "^",
+                  left: { type: "symbol", name: variable },
+                  right: right,
+                },
+                right: differentiateASTNode(right, variable),
+              },
+              right: {
+                type: "function",
+                name: "ln",
+                args: [{ type: "symbol", name: variable }],
+              },
+            },
+            right: {
+              type: "operator",
+              op: "*",
+              left: {
+                type: "operator",
+                op: "^",
+                left: { type: "symbol", name: variable },
+                right: {
+                  type: "operator",
+                  op: "-",
+                  left: right,
+                  right: { type: "number", value: 1 },
+                },
+              },
+              right: right,
+            },
+          };
+        }
+        // e^x の場合は e^x のみ返す
+        if (
+          left.type === "symbol" &&
+          left.name === "e" &&
+          right.type === "symbol" &&
+          right.name === variable
+        ) {
+          return {
+            type: "operator",
+            op: "^",
+            left,
+            right,
           };
         }
         // f(x)^g(x) の場合
@@ -200,24 +265,24 @@ export function differentiateASTNode(
           return {
             type: "operator",
             op: "*",
-            left: { type: "number", value: -1 },
+            left: differentiateASTNode(u, variable),
             right: {
               type: "operator",
-              op: "*",
-              left: { type: "function", name: "sin", args: [u] },
-              right: differentiateASTNode(u, variable),
+              op: "-",
+              left: { type: "number", value: 0 },
+              right: { type: "function", name: "sin", args: [u] },
             },
           };
         case "tan":
           return {
             type: "operator",
-            op: "/",
+            op: "*",
             left: differentiateASTNode(u, variable),
             right: {
               type: "operator",
-              op: "*",
-              left: { type: "function", name: "cos", args: [u] },
-              right: { type: "function", name: "cos", args: [u] },
+              op: "^",
+              left: { type: "function", name: "sec", args: [u] },
+              right: { type: "number", value: 2 },
             },
           };
         case "cot":
@@ -227,13 +292,13 @@ export function differentiateASTNode(
             left: { type: "number", value: -1 },
             right: {
               type: "operator",
-              op: "/",
+              op: "*",
               left: differentiateASTNode(u, variable),
               right: {
                 type: "operator",
-                op: "*",
-                left: { type: "function", name: "sin", args: [u] },
-                right: { type: "function", name: "sin", args: [u] },
+                op: "^",
+                left: { type: "function", name: "csc", args: [u] },
+                right: { type: "number", value: 2 },
               },
             },
           };
