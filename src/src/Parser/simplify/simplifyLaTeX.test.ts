@@ -3,6 +3,16 @@ import { simplifyLaTeX } from "./simplifyLaTeX";
 describe("simplifyLaTeX", () => {
   console.log("NOTE: 同じ意味であれば，空白や括弧の有無は無視して良い．");
 
+  test("約分できない場合はそのままにする", () => {
+    expect(simplifyLaTeX("x^{\\frac{254}{3}}")).toBe("x^{\\frac{254}{3}}");
+    expect(simplifyLaTeX("x^{\\frac{102}{398157}}")).toBe(
+      "x^{\\frac{2}{7807}}"
+    );
+    expect(simplifyLaTeX("x^{\\frac{25467}{378173}}")).toBe(
+      "x^{\\frac{25467}{378173}}"
+    );
+  });
+
   test("有理式の変換", () => {
     expect(simplifyLaTeX("x^2x^5")).toBe("x^{7}");
     expect(simplifyLaTeX("\\left(x^3\\right)^2")).toBe("x^{6}");
@@ -19,6 +29,7 @@ describe("simplifyLaTeX", () => {
     );
     expect(simplifyLaTeX("\\frac{\\frac{x^2}{2}}{x^3}")).toBe("\\frac{1}{2x}");
     expect(simplifyLaTeX("\\frac{\\frac{x^2}{2}}{x^3}x")).toBe("\\frac{1}{2}");
+    expect(simplifyLaTeX("\\frac{x^2}{2}+x^2")).toBe("\\frac{3x^{2}}{2}");
   });
 
   test("一般の変数名", () => {

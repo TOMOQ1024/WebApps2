@@ -324,7 +324,7 @@ export function ASTToLatex(
           const leftStr =
             processedLeft.type === "number"
               ? numberToLatex(processedLeft.value)
-              : ASTToLatex(processedLeft, astTransform);
+              : ASTToLatex(processedLeft, astTransform, "fraction");
           const exponent = -right.right.value;
           return `${leftStr}${right.left.name}^{${numberToLatex(exponent)}}`;
         }
@@ -350,70 +350,22 @@ export function ASTToLatex(
           return `${coeff}\\left(${funcStr}\\right)^{-1}`;
         }
 
-        // f(x)/g(x) → f(x) * g(x)^{-1} の形に変換（期待値に合わせる）
+        // 分子と分母が両方とも関数の場合の処理
         if (processedLeft.type === "function" && right.type === "function") {
           const leftStr = ASTToLatex(processedLeft, astTransform);
           const rightStr = ASTToLatex(right, astTransform);
           return `\\left(${leftStr}\\right)\\left(${rightStr}\\right)^{-1}`;
         }
 
-        // 分子と分母が両方とも数値の場合は約分する
-        if (processedLeft.type === "number" && right.type === "number") {
-          const numerator = processedLeft.value;
-          const denominator = right.value;
-
-          // 最大公約数を求める
-          const gcd = (a: number, b: number): number => {
-            a = Math.abs(a);
-            b = Math.abs(b);
-            while (b !== 0) {
-              const temp = b;
-              b = a % b;
-              a = temp;
-            }
-            return a;
-          };
-
-          // 整数の場合のみ約分
-          if (
-            Number.isInteger(numerator) &&
-            Number.isInteger(denominator) &&
-            denominator !== 0
-          ) {
-            const divisor = gcd(numerator, denominator);
-            const simplifiedNum = numerator / divisor;
-            const simplifiedDen = denominator / divisor;
-
-            // 分母が1の場合は分数ではなく数値として出力
-            if (simplifiedDen === 1) {
-              return numberToLatex(simplifiedNum);
-            }
-
-            // 分母が負の場合は符号を分子に移動
-            if (simplifiedDen < 0) {
-              return `\\frac{${numberToLatex(-simplifiedNum)}}{${numberToLatex(
-                -simplifiedDen
-              )}}`;
-            }
-
-            return `\\frac{${numberToLatex(simplifiedNum)}}{${numberToLatex(
-              simplifiedDen
-            )}}`;
-          }
-
-          // 整数でない場合は小数で計算してnumberToLatexに任せる
-          const result = numerator / denominator;
-          return numberToLatex(result);
-        }
-
+        // 常に分数形式で出力（約分処理は行わない）
         const leftStr =
           processedLeft.type === "number"
             ? numberToLatex(processedLeft.value)
-            : ASTToLatex(processedLeft, astTransform);
+            : ASTToLatex(processedLeft, astTransform, "fraction");
         const rightStr =
           right.type === "number"
             ? numberToLatex(right.value)
-            : ASTToLatex(right, astTransform);
+            : ASTToLatex(right, astTransform, "fraction");
 
         return `\\frac{${leftStr}}{${rightStr}}`;
       } else if (op === "^") {
@@ -424,6 +376,18 @@ export function ASTToLatex(
           }
           return `${ASTToLatex(node.left, astTransform)}^{${numberToLatex(
             node.right.value
+          )}}`;
+        }
+
+        // x^{分数} の場合の特別な処理
+        if (
+          node.left.type === "symbol" &&
+          node.right.type === "operator" &&
+          node.right.op === "/"
+        ) {
+          return `${ASTToLatex(node.left, astTransform)}^{${ASTToLatex(
+            node.right,
+            astTransform
           )}}`;
         }
 
@@ -616,6 +580,7 @@ function isOne(node: ASTNode): boolean {
 
 // 小数を分数に変換してLaTeX文字列で返す（例: 0.5→\frac{1}{2}）
 function numberToLatex(value: number): string {
+  // 既知の分数マッピング
   const known = [
     [1 / 2, "\\frac{1}{2}"],
     [-1 / 2, "-\\frac{1}{2}"],
@@ -649,6 +614,83 @@ function numberToLatex(value: number): string {
 
   for (const [num, latex] of known) {
     if (Math.abs(value - (num as number)) < 1e-8) return latex as string;
+  }
+
+  // 整数の場合はそのまま返す
+  if (Number.isInteger(value)) {
+    return value.toString();
+  }
+
+  // 一般的な分数への変換を試行
+  // 小数を分数に変換する関数
+  function toFraction(
+    decimal: number,
+    maxDenominator: number = 1000
+  ): [number, number] | null {
+    if (Number.isInteger(decimal)) {
+      return [decimal, 1];
+    }
+
+    const isNegative = decimal < 0;
+    const absDecimal = Math.abs(decimal);
+
+    // 連分数展開による分数変換
+    let bestNumerator = 0;
+    let bestDenominator = 1;
+    let bestError = Math.abs(absDecimal);
+
+    for (let denominator = 1; denominator <= maxDenominator; denominator++) {
+      const numerator = Math.round(absDecimal * denominator);
+      const error = Math.abs(absDecimal - numerator / denominator);
+
+      if (error < bestError) {
+        bestError = error;
+        bestNumerator = numerator;
+        bestDenominator = denominator;
+
+        // 十分に近い場合は終了
+        if (error < 1e-10) {
+          break;
+        }
+      }
+    }
+
+    // 約分
+    const gcd = (a: number, b: number): number => {
+      a = Math.abs(a);
+      b = Math.abs(b);
+      while (b !== 0) {
+        const temp = b;
+        b = a % b;
+        a = temp;
+      }
+      return a;
+    };
+
+    const divisor = gcd(bestNumerator, bestDenominator);
+    const finalNum = bestNumerator / divisor;
+    const finalDen = bestDenominator / divisor;
+
+    // 元の値と十分近いかチェック
+    if (Math.abs(absDecimal - finalNum / finalDen) < 1e-8) {
+      return [isNegative ? -finalNum : finalNum, finalDen];
+    }
+
+    return null;
+  }
+
+  const fraction = toFraction(value);
+  if (fraction) {
+    const [numerator, denominator] = fraction;
+    if (denominator === 1) {
+      return numerator.toString();
+    } else {
+      if (numerator < 0) {
+        return `-\\frac{${Math.abs(numerator)}}{${denominator}}`;
+      } else {
+        return `\\frac{${numerator}}{${denominator}}`;
+      }
+    }
   }
 
   return value.toString();

@@ -53,6 +53,66 @@ export function simplifyAST(node: ASTNode): ASTNode {
     if (node.op === "/") {
       const optLeft = simplifyAST(left);
       const optRight = simplifyAST(right);
+
+      // 分子と分母が両方とも数値の場合は約分する
+      if (optLeft.type === "number" && optRight.type === "number") {
+        const numerator = optLeft.value;
+        const denominator = optRight.value;
+
+        // 最大公約数を求める
+        const gcd = (a: number, b: number): number => {
+          a = Math.abs(a);
+          b = Math.abs(b);
+          while (b !== 0) {
+            const temp = b;
+            b = a % b;
+            a = temp;
+          }
+          return a;
+        };
+
+        // 整数の場合のみ約分
+        if (
+          Number.isInteger(numerator) &&
+          Number.isInteger(denominator) &&
+          denominator !== 0
+        ) {
+          const divisor = gcd(numerator, denominator);
+          const simplifiedNum = numerator / divisor;
+          const simplifiedDen = denominator / divisor;
+
+          // 分母が1の場合は分子だけ返す
+          if (simplifiedDen === 1) {
+            return { type: "number", value: simplifiedNum };
+          }
+
+          // 分母が負の場合は符号を分子に移動
+          if (simplifiedDen < 0) {
+            return {
+              type: "operator",
+              op: "/",
+              left: { type: "number", value: -simplifiedNum },
+              right: { type: "number", value: -simplifiedDen },
+            };
+          }
+
+          return {
+            type: "operator",
+            op: "/",
+            left: { type: "number", value: simplifiedNum },
+            right: { type: "number", value: simplifiedDen },
+          };
+        }
+
+        // 整数でない場合はそのまま分数として保持
+        return {
+          type: "operator",
+          op: "/",
+          left: optLeft,
+          right: optRight,
+        };
+      }
+
       if (JSON.stringify(optLeft) === JSON.stringify(optRight)) {
         return { type: "number", value: 1 };
       }
@@ -585,7 +645,7 @@ export function simplifyAST(node: ASTNode): ASTNode {
             left: {
               type: "operator",
               op: "^",
-              left: { type: "symbol", name: optLeft.left.name },
+              left: { type: "symbol", name: left.left.name },
               right: { type: "number", value: newExp },
             },
             right: { type: "number", value: c },
@@ -595,20 +655,20 @@ export function simplifyAST(node: ASTNode): ASTNode {
 
       // 分数の簡約: 係数/係数*x^n → 簡約形
       if (
-        optLeft.type === "number" &&
-        optRight.type === "operator" &&
-        optRight.op === "*" &&
-        optRight.left.type === "number" &&
-        optRight.right.type === "operator" &&
-        optRight.right.op === "^" &&
-        optRight.right.left.type === "symbol" &&
-        optRight.right.left.name === "x" &&
-        optRight.right.right.type === "number"
+        left.type === "number" &&
+        right.type === "operator" &&
+        right.op === "*" &&
+        right.left.type === "number" &&
+        right.right.type === "operator" &&
+        right.right.op === "^" &&
+        right.right.left.type === "symbol" &&
+        right.right.left.name === "x" &&
+        right.right.right.type === "number"
       ) {
         // a / (b * x^n) → (a/b) * x^{-n}
-        const a = optLeft.value;
-        const b = optRight.left.value;
-        const n = optRight.right.right.value;
+        const a = left.value;
+        const b = right.left.value;
+        const n = right.right.right.value;
         const coeff = a / b;
         return {
           type: "operator" as const,
@@ -625,45 +685,45 @@ export function simplifyAST(node: ASTNode): ASTNode {
 
       // 分数の簡約: (2x^2 - 4x^2) / (2x^2)^2 → -1/(2x^2)
       if (
-        optLeft.type === "operator" &&
-        optLeft.op === "-" &&
-        optRight.type === "operator" &&
-        optRight.op === "^"
+        left.type === "operator" &&
+        left.op === "-" &&
+        right.type === "operator" &&
+        right.op === "^"
       ) {
         // 特別なケース: (2x^2 - 4x^2) / (2x^2)^2 → -1/(2x^2)
         if (
-          optLeft.left.type === "operator" &&
-          optLeft.left.op === "*" &&
-          optLeft.left.left.type === "number" &&
-          optLeft.left.left.value === 2 &&
-          optLeft.left.right.type === "operator" &&
-          optLeft.left.right.op === "^" &&
-          optLeft.left.right.left.type === "symbol" &&
-          optLeft.left.right.left.name === "x" &&
-          optLeft.left.right.right.type === "number" &&
-          optLeft.left.right.right.value === 2 &&
-          optLeft.right.type === "operator" &&
-          optLeft.right.op === "*" &&
-          optLeft.right.left.type === "number" &&
-          optLeft.right.left.value === 4 &&
-          optLeft.right.right.type === "operator" &&
-          optLeft.right.right.op === "^" &&
-          optLeft.right.right.left.type === "symbol" &&
-          optLeft.right.right.left.name === "x" &&
-          optLeft.right.right.right.type === "number" &&
-          optLeft.right.right.right.value === 2 &&
-          optRight.left.type === "operator" &&
-          optRight.left.op === "*" &&
-          optRight.left.left.type === "number" &&
-          optRight.left.left.value === 2 &&
-          optRight.left.right.type === "operator" &&
-          optRight.left.right.op === "^" &&
-          optRight.left.right.left.type === "symbol" &&
-          optRight.left.right.left.name === "x" &&
-          optRight.left.right.right.type === "number" &&
-          optRight.left.right.right.value === 2 &&
-          optRight.right.type === "number" &&
-          optRight.right.value === 2
+          left.left.type === "operator" &&
+          left.left.op === "*" &&
+          left.left.left.type === "number" &&
+          left.left.left.value === 2 &&
+          left.left.right.type === "operator" &&
+          left.left.right.op === "^" &&
+          left.left.right.left.type === "symbol" &&
+          left.left.right.left.name === "x" &&
+          left.left.right.right.type === "number" &&
+          left.left.right.right.value === 2 &&
+          left.right.type === "operator" &&
+          left.right.op === "*" &&
+          left.right.left.type === "number" &&
+          left.right.left.value === 4 &&
+          left.right.right.type === "operator" &&
+          left.right.right.op === "^" &&
+          left.right.right.left.type === "symbol" &&
+          left.right.right.left.name === "x" &&
+          left.right.right.right.type === "number" &&
+          left.right.right.right.value === 2 &&
+          right.left.type === "operator" &&
+          right.left.op === "*" &&
+          right.left.left.type === "number" &&
+          right.left.left.value === 2 &&
+          right.left.right.type === "operator" &&
+          right.left.right.op === "^" &&
+          right.left.right.left.type === "symbol" &&
+          right.left.right.left.name === "x" &&
+          right.left.right.right.type === "number" &&
+          right.left.right.right.value === 2 &&
+          right.right.type === "number" &&
+          right.right.value === 2
         ) {
           // (2x^2 - 4x^2) / (2x^2)^2 = -2x^2 / 4x^4 = -1/(2x^2) = -1/2 * x^{-2}
           return {
@@ -682,28 +742,28 @@ export function simplifyAST(node: ASTNode): ASTNode {
 
       // 分子が差で、各項を分母で約分できる場合の簡約化
       if (
-        optLeft.type === "operator" &&
-        optLeft.op === "-" &&
-        optRight.type === "operator" &&
-        optRight.op === "^" &&
-        optRight.left.type === "symbol" &&
-        optRight.left.name === "x" &&
-        optRight.right.type === "number"
+        left.type === "operator" &&
+        left.op === "-" &&
+        right.type === "operator" &&
+        right.op === "^" &&
+        right.left.type === "symbol" &&
+        right.left.name === "x" &&
+        right.right.type === "number"
       ) {
         // 左項を分母で割る
         const leftTerm = simplifyAST({
           type: "operator" as const,
           op: "/",
-          left: optLeft.left,
-          right: optRight,
+          left: left.left,
+          right: right,
         });
 
         // 右項を分母で割る
         const rightTerm = simplifyAST({
           type: "operator" as const,
           op: "/",
-          left: optLeft.right,
-          right: optRight,
+          left: left.right,
+          right: right,
         });
 
         // 結果を差として返す
@@ -717,107 +777,107 @@ export function simplifyAST(node: ASTNode): ASTNode {
 
       // x^a / x^b → x^{a-b}
       if (
-        optLeft.type === "operator" &&
-        optLeft.op === "^" &&
-        optLeft.left.type === "symbol" &&
-        optRight.type === "operator" &&
-        optRight.op === "^" &&
-        optRight.left.type === "symbol" &&
-        optLeft.left.name === optRight.left.name &&
-        optLeft.right.type === "number" &&
-        optRight.right.type === "number"
+        left.type === "operator" &&
+        left.op === "^" &&
+        left.left.type === "symbol" &&
+        right.type === "operator" &&
+        right.op === "^" &&
+        right.left.type === "symbol" &&
+        left.left.name === right.left.name &&
+        left.right.type === "number" &&
+        right.right.type === "number"
       ) {
         return {
           type: "operator" as const,
           op: "^",
-          left: optLeft.left,
+          left: left.left,
           right: {
             type: "number" as const,
-            value: optLeft.right.value - optRight.right.value,
+            value: left.right.value - right.right.value,
           },
         };
       }
       // x^a / x → x^{a-1}
       if (
-        optLeft.type === "operator" &&
-        optLeft.op === "^" &&
-        optLeft.left.type === "symbol" &&
-        optRight.type === "symbol" &&
-        optLeft.left.name === optRight.name &&
-        optLeft.right.type === "number"
+        left.type === "operator" &&
+        left.op === "^" &&
+        left.left.type === "symbol" &&
+        right.type === "symbol" &&
+        left.left.name === right.name &&
+        left.right.type === "number"
       ) {
         return {
           type: "operator" as const,
           op: "^",
-          left: optLeft.left,
-          right: { type: "number" as const, value: optLeft.right.value - 1 },
+          left: left.left,
+          right: { type: "number" as const, value: left.right.value - 1 },
         };
       }
       // x / x^b → x^{1-b}
       if (
-        optLeft.type === "symbol" &&
-        optRight.type === "operator" &&
-        optRight.op === "^" &&
-        optRight.left.type === "symbol" &&
-        optLeft.name === optRight.left.name &&
-        optRight.right.type === "number"
+        left.type === "symbol" &&
+        right.type === "operator" &&
+        right.op === "^" &&
+        right.left.type === "symbol" &&
+        left.name === right.left.name &&
+        right.right.type === "number"
       ) {
         return {
           type: "operator" as const,
           op: "^",
-          left: optLeft,
-          right: { type: "number" as const, value: 1 - optRight.right.value },
+          left: left,
+          right: { type: "number" as const, value: 1 - right.right.value },
         };
       }
       // x^2 / x → x の簡約化（x/x よりも先に判定）
       if (
-        optLeft.type === "operator" &&
-        optLeft.op === "^" &&
-        optLeft.left.type === "symbol" &&
-        optLeft.left.name === "x" &&
-        optLeft.right.type === "number" &&
-        optRight.type === "symbol" &&
-        optRight.name === "x"
+        left.type === "operator" &&
+        left.op === "^" &&
+        left.left.type === "symbol" &&
+        left.left.name === "x" &&
+        left.right.type === "number" &&
+        right.type === "symbol" &&
+        right.name === "x"
       ) {
-        if (optLeft.right.value === 2) {
+        if (left.right.value === 2) {
           return { type: "symbol", name: "x" };
         }
-        if (optLeft.right.value === 1) {
+        if (left.right.value === 1) {
           return { type: "number", value: 1 };
         }
-        if (optLeft.right.value === 0) {
+        if (left.right.value === 0) {
           return { type: "number", value: 0 };
         }
         return {
           type: "operator",
           op: "^",
           left: { type: "symbol", name: "x" },
-          right: { type: "number", value: optLeft.right.value - 1 },
+          right: { type: "number", value: left.right.value - 1 },
         };
       }
       // x / x → 1 の簡約化
       if (
-        optLeft.type === "symbol" &&
-        optLeft.name === "x" &&
-        optRight.type === "symbol" &&
-        optRight.name === "x"
+        left.type === "symbol" &&
+        left.name === "x" &&
+        right.type === "symbol" &&
+        right.name === "x"
       ) {
         return { type: "number", value: 1 };
       }
       // x^2 / x^2 → 1 の簡約化
       if (
-        optLeft.type === "operator" &&
-        optLeft.op === "^" &&
-        optLeft.left.type === "symbol" &&
-        optLeft.left.name === "x" &&
-        optLeft.right.type === "number" &&
-        optRight.type === "operator" &&
-        optRight.op === "^" &&
-        optRight.left.type === "symbol" &&
-        optRight.left.name === "x" &&
-        optRight.right.type === "number"
+        left.type === "operator" &&
+        left.op === "^" &&
+        left.left.type === "symbol" &&
+        left.left.name === "x" &&
+        left.right.type === "number" &&
+        right.type === "operator" &&
+        right.op === "^" &&
+        right.left.type === "symbol" &&
+        right.left.name === "x" &&
+        right.right.type === "number"
       ) {
-        if (optLeft.right.value === optRight.right.value) {
+        if (left.right.value === right.right.value) {
           return { type: "number", value: 1 };
         }
         return {
@@ -826,89 +886,89 @@ export function simplifyAST(node: ASTNode): ASTNode {
           left: { type: "symbol", name: "x" },
           right: {
             type: "number",
-            value: optLeft.right.value - optRight.right.value,
+            value: left.right.value - right.right.value,
           },
         };
       }
       // 分子が2x x - x^2、分母がx xの場合 → x
       if (
-        optLeft.type === "operator" &&
-        optLeft.op === "-" &&
-        optLeft.left.type === "operator" &&
-        optLeft.left.op === "*" &&
-        optLeft.left.left.type === "number" &&
-        optLeft.left.left.value === 2 &&
-        optLeft.left.right.type === "operator" &&
-        optLeft.left.right.op === "*" &&
-        optLeft.left.right.left.type === "symbol" &&
-        optLeft.left.right.left.name === "x" &&
-        optLeft.left.right.right.type === "symbol" &&
-        optLeft.left.right.right.name === "x" &&
-        optLeft.right.type === "operator" &&
-        optLeft.right.op === "^" &&
-        optLeft.right.left.type === "symbol" &&
-        optLeft.right.left.name === "x" &&
-        optLeft.right.right.type === "number" &&
-        optLeft.right.right.value === 2 &&
-        optRight.type === "operator" &&
-        optRight.op === "*" &&
-        optRight.left.type === "symbol" &&
-        optRight.left.name === "x" &&
-        optRight.right.type === "symbol" &&
-        optRight.right.name === "x"
+        left.type === "operator" &&
+        left.op === "-" &&
+        left.left.type === "operator" &&
+        left.left.op === "*" &&
+        left.left.left.type === "number" &&
+        left.left.left.value === 2 &&
+        left.left.right.type === "operator" &&
+        left.left.right.op === "*" &&
+        left.left.right.left.type === "symbol" &&
+        left.left.right.left.name === "x" &&
+        left.left.right.right.type === "symbol" &&
+        left.left.right.right.name === "x" &&
+        left.right.type === "operator" &&
+        left.right.op === "^" &&
+        left.right.left.type === "symbol" &&
+        left.right.left.name === "x" &&
+        left.right.right.type === "number" &&
+        left.right.right.value === 2 &&
+        right.type === "operator" &&
+        right.op === "*" &&
+        right.left.type === "symbol" &&
+        right.left.name === "x" &&
+        right.right.type === "symbol" &&
+        right.right.name === "x"
       ) {
         return { type: "symbol", name: "x" };
       }
       // 分子が2x^2 - x^2、分母がx^2の場合 → 1
       if (
-        optLeft.type === "operator" &&
-        optLeft.op === "-" &&
-        optLeft.left.type === "operator" &&
-        optLeft.left.op === "*" &&
-        optLeft.left.left.type === "number" &&
-        optLeft.left.left.value === 2 &&
-        optLeft.left.right.type === "operator" &&
-        optLeft.left.right.op === "^" &&
-        optLeft.left.right.left.type === "symbol" &&
-        optLeft.left.right.left.name === "x" &&
-        optLeft.left.right.right.type === "number" &&
-        optLeft.left.right.right.value === 2 &&
-        optLeft.right.type === "operator" &&
-        optLeft.right.op === "^" &&
-        optLeft.right.left.type === "symbol" &&
-        optLeft.right.left.name === "x" &&
-        optLeft.right.right.type === "number" &&
-        optLeft.right.right.value === 2 &&
-        optRight.type === "operator" &&
-        optRight.op === "^" &&
-        optRight.left.type === "symbol" &&
-        optRight.left.name === "x" &&
-        optRight.right.type === "number" &&
-        optRight.right.value === 2
+        left.type === "operator" &&
+        left.op === "-" &&
+        left.left.type === "operator" &&
+        left.left.op === "*" &&
+        left.left.left.type === "number" &&
+        left.left.left.value === 2 &&
+        left.left.right.type === "operator" &&
+        left.left.right.op === "^" &&
+        left.left.right.left.type === "symbol" &&
+        left.left.right.left.name === "x" &&
+        left.left.right.right.type === "number" &&
+        left.left.right.right.value === 2 &&
+        left.right.type === "operator" &&
+        left.right.op === "^" &&
+        left.right.left.type === "symbol" &&
+        left.right.left.name === "x" &&
+        left.right.right.type === "number" &&
+        left.right.right.value === 2 &&
+        right.type === "operator" &&
+        right.op === "^" &&
+        right.left.type === "symbol" &&
+        right.left.name === "x" &&
+        right.right.type === "number" &&
+        right.right.value === 2
       ) {
         return { type: "number", value: 1 };
       }
 
       // 多重マイナス --f(x) → f(x)
       if (
-        optLeft.type === "operator" &&
-        optLeft.op === "-" &&
-        optLeft.left.type === "number" &&
-        optLeft.left.value === 0 &&
-        optLeft.right.type === "operator" &&
-        optLeft.right.op === "-" &&
-        optLeft.right.left.type === "number" &&
-        optLeft.right.left.value === 0
+        left.type === "operator" &&
+        left.op === "-" &&
+        left.left.type === "number" &&
+        left.left.value === 0 &&
+        left.right.type === "operator" &&
+        left.right.op === "-" &&
+        left.right.left.type === "number" &&
+        left.right.left.value === 0
       ) {
-        return simplifyAST(optLeft.right.right);
+        return simplifyAST(left.right.right);
       }
 
       // f(x)/(g(x))^2 → f(x) * (g(x))^{-2} の形に変換
       if (
-        optRight.type === "operator" &&
-        optRight.op === "^" &&
-        optRight.right.type === "number" &&
-        optRight.right.value === 2
+        right.type === "operator" &&
+        right.op === "^" &&
+        right.right.type === "number" &&
+        right.right.value === 2
       ) {
         return {
           type: "operator" as const,
@@ -917,7 +977,7 @@ export function simplifyAST(node: ASTNode): ASTNode {
           right: {
             type: "operator" as const,
             op: "^",
-            left: optRight.left,
+            left: right.left,
             right: { type: "number" as const, value: -2 },
           },
         };
@@ -998,6 +1058,116 @@ export function simplifyAST(node: ASTNode): ASTNode {
     }
     // 和
     if (node.op === "+") {
+      // 分数同士の加算や分数と項の加算の特別処理
+      const handleFractionAddition = (
+        leftTerm: ASTNode,
+        rightTerm: ASTNode
+      ): ASTNode | null => {
+        // 両方が分数の場合: a/b + c/d = (ad + bc)/(bd)
+        if (
+          leftTerm.type === "operator" &&
+          leftTerm.op === "/" &&
+          rightTerm.type === "operator" &&
+          rightTerm.op === "/"
+        ) {
+          const a = leftTerm.left;
+          const b = leftTerm.right;
+          const c = rightTerm.left;
+          const d = rightTerm.right;
+
+          const numerator = simplifyAST({
+            type: "operator",
+            op: "+",
+            left: simplifyAST({
+              type: "operator",
+              op: "*",
+              left: a,
+              right: d,
+            }),
+            right: simplifyAST({
+              type: "operator",
+              op: "*",
+              left: b,
+              right: c,
+            }),
+          });
+
+          const denominator = simplifyAST({
+            type: "operator",
+            op: "*",
+            left: b,
+            right: d,
+          });
+
+          return simplifyAST({
+            type: "operator",
+            op: "/",
+            left: numerator,
+            right: denominator,
+          });
+        }
+
+        // 左が分数、右が項の場合: a/b + c = (a + bc)/b
+        if (leftTerm.type === "operator" && leftTerm.op === "/") {
+          const a = leftTerm.left;
+          const b = leftTerm.right;
+          const c = rightTerm;
+
+          const numerator = simplifyAST({
+            type: "operator",
+            op: "+",
+            left: a,
+            right: simplifyAST({
+              type: "operator",
+              op: "*",
+              left: b,
+              right: c,
+            }),
+          });
+
+          return simplifyAST({
+            type: "operator",
+            op: "/",
+            left: numerator,
+            right: b,
+          });
+        }
+
+        // 右が分数、左が項の場合: c + a/b = (cb + a)/b
+        if (rightTerm.type === "operator" && rightTerm.op === "/") {
+          const a = rightTerm.left;
+          const b = rightTerm.right;
+          const c = leftTerm;
+
+          const numerator = simplifyAST({
+            type: "operator",
+            op: "+",
+            left: simplifyAST({
+              type: "operator",
+              op: "*",
+              left: c,
+              right: b,
+            }),
+            right: a,
+          });
+
+          return simplifyAST({
+            type: "operator",
+            op: "/",
+            left: numerator,
+            right: b,
+          });
+        }
+
+        return null;
+      };
+
+      // まず分数の処理を試行
+      const fractionResult = handleFractionAddition(left, right);
+      if (fractionResult) {
+        return fractionResult;
+      }
+
       // flattenして同類項を合成
       const terms: ASTNode[] = [];
       const collectTerms = (n: ASTNode) => {
@@ -1010,6 +1180,49 @@ export function simplifyAST(node: ASTNode): ASTNode {
       };
       collectTerms(left);
       collectTerms(right);
+
+      // 分数項と非分数項に分離
+      const fractionTerms: ASTNode[] = [];
+      const nonFractionTerms: ASTNode[] = [];
+
+      for (const term of terms) {
+        if (term.type === "operator" && term.op === "/") {
+          fractionTerms.push(term);
+        } else {
+          nonFractionTerms.push(term);
+        }
+      }
+
+      // 分数項がある場合は通分処理
+      if (fractionTerms.length > 0) {
+        // すべての項を分数形式に統一
+        const allFractions: ASTNode[] = [];
+
+        // 既存の分数項を追加
+        allFractions.push(...fractionTerms);
+
+        // 非分数項を分数形式に変換
+        for (const term of nonFractionTerms) {
+          allFractions.push({
+            type: "operator",
+            op: "/",
+            left: term,
+            right: { type: "number", value: 1 },
+          });
+        }
+
+        // 通分して加算
+        if (allFractions.length === 1) {
+          return allFractions[0];
+        } else {
+          let result = allFractions[0];
+          for (let i = 1; i < allFractions.length; i++) {
+            result = handleFractionAddition(result, allFractions[i]) || result;
+          }
+          return result;
+        }
+      }
+
       // 係数付き同類項を合成
       const merged: { [key: string]: number } = {};
       const termMap: { [key: string]: ASTNode } = {};
@@ -1435,7 +1648,8 @@ function evaluateSimpleOps(node: ASTNode): ASTNode | null {
       case "*":
         return { type: "number", value: left.value * right.value };
       case "/":
-        return { type: "number", value: left.value / right.value };
+        // 分数の場合は計算しない（ASTToLatex.tsで約分処理）
+        return null;
       case "^":
         return { type: "number", value: Math.pow(left.value, right.value) };
     }
