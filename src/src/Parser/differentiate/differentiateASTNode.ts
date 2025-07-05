@@ -73,6 +73,79 @@ export function differentiateASTNode(
           right: { type: "operator", op: "*", left, right: dRight },
         };
       } else if (op === "/") {
+        // x^m / x^n の場合は x^{m-n} の形に変換して微分
+        if (
+          left.type === "operator" &&
+          left.op === "^" &&
+          left.left.type === "symbol" &&
+          left.left.name === variable &&
+          left.right.type === "number" &&
+          right.type === "operator" &&
+          right.op === "^" &&
+          right.left.type === "symbol" &&
+          right.left.name === variable &&
+          right.right.type === "number"
+        ) {
+          const m = left.right.value;
+          const n = right.right.value;
+          const newExponent = m - n;
+          const powerNode = {
+            type: "operator" as const,
+            op: "^" as const,
+            left: { type: "symbol" as const, name: variable },
+            right: { type: "number" as const, value: newExponent },
+          };
+          return differentiateASTNode(powerNode, variable);
+        }
+        // x^m / x の場合
+        if (
+          left.type === "operator" &&
+          left.op === "^" &&
+          left.left.type === "symbol" &&
+          left.left.name === variable &&
+          left.right.type === "number" &&
+          right.type === "symbol" &&
+          right.name === variable
+        ) {
+          const m = left.right.value;
+          const newExponent = m - 1;
+          const powerNode = {
+            type: "operator" as const,
+            op: "^" as const,
+            left: { type: "symbol" as const, name: variable },
+            right: { type: "number" as const, value: newExponent },
+          };
+          return differentiateASTNode(powerNode, variable);
+        }
+        // x / x^n の場合
+        if (
+          left.type === "symbol" &&
+          left.name === variable &&
+          right.type === "operator" &&
+          right.op === "^" &&
+          right.left.type === "symbol" &&
+          right.left.name === variable &&
+          right.right.type === "number"
+        ) {
+          const n = right.right.value;
+          const newExponent = 1 - n;
+          const powerNode = {
+            type: "operator" as const,
+            op: "^" as const,
+            left: { type: "symbol" as const, name: variable },
+            right: { type: "number" as const, value: newExponent },
+          };
+          return differentiateASTNode(powerNode, variable);
+        }
+        // x / x の場合
+        if (
+          left.type === "symbol" &&
+          left.name === variable &&
+          right.type === "symbol" &&
+          right.name === variable
+        ) {
+          return { type: "number", value: 0 };
+        }
         // 商の微分: (f/g)' = (f'g - fg')/g^2
         const f = left;
         const g = right;
@@ -169,13 +242,13 @@ export function differentiateASTNode(
                   left: { type: "symbol", name: variable },
                   right: right,
                 },
-                right: differentiateASTNode(right, variable),
+                right: {
+                  type: "function",
+                  name: "ln",
+                  args: [{ type: "symbol", name: variable }],
+                },
               },
-              right: {
-                type: "function",
-                name: "ln",
-                args: [{ type: "symbol", name: variable }],
-              },
+              right: differentiateASTNode(right, variable),
             },
             right: {
               type: "operator",
@@ -255,6 +328,20 @@ export function differentiateASTNode(
       if (!u) return { type: "number", value: 0 };
       switch (name) {
         case "sin":
+          // sin(-x) の場合は特別に処理
+          if (
+            u.type === "operator" &&
+            u.op === "-" &&
+            u.left.type === "number" &&
+            u.left.value === 0
+          ) {
+            return {
+              type: "operator",
+              op: "-",
+              left: { type: "number", value: 0 },
+              right: { type: "function", name: "cos", args: [u.right] },
+            };
+          }
           return {
             type: "operator",
             op: "*",
@@ -262,6 +349,20 @@ export function differentiateASTNode(
             right: { type: "function", name: "cos", args: [u] },
           };
         case "cos":
+          // cos(-x) の場合は特別に処理
+          if (
+            u.type === "operator" &&
+            u.op === "-" &&
+            u.left.type === "number" &&
+            u.left.value === 0
+          ) {
+            return {
+              type: "operator",
+              op: "-",
+              left: { type: "number", value: 0 },
+              right: { type: "function", name: "sin", args: [u.right] },
+            };
+          }
           return {
             type: "operator",
             op: "*",
@@ -288,8 +389,8 @@ export function differentiateASTNode(
         case "cot":
           return {
             type: "operator",
-            op: "*",
-            left: { type: "number", value: -1 },
+            op: "-",
+            left: { type: "number", value: 0 },
             right: {
               type: "operator",
               op: "*",
@@ -317,8 +418,8 @@ export function differentiateASTNode(
         case "csc":
           return {
             type: "operator",
-            op: "*",
-            left: { type: "number", value: -1 },
+            op: "-",
+            left: { type: "number", value: 0 },
             right: {
               type: "operator",
               op: "*",
