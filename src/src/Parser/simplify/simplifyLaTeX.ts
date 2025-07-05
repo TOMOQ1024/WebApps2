@@ -1,11 +1,9 @@
 import { ASTToLatex } from "../ASTToLatex";
 import { parseLatex } from "../parseLatex";
-import { differentiateASTNode } from "./differentiateASTNode";
 import { simplifyAST } from "../simplify/simplifyAST";
 
-export function differentiateLaTeX(
+export function simplifyLaTeX(
   latex: string,
-  variable: string = "x",
   knownFuncs: string[] = [
     "sin",
     "cos",
@@ -26,8 +24,6 @@ export function differentiateLaTeX(
   ]
 ): string {
   const ast = parseLatex(latex, knownFuncs);
-
-  const diffAst = differentiateASTNode(ast, variable);
-  const simplifiedAst = simplifyAST(diffAst);
+  const simplifiedAst = simplifyAST(ast);
   return ASTToLatex(simplifiedAst, true);
 }

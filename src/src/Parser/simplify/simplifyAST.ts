@@ -1,15 +1,32 @@
-import { ASTNode } from "./ASTNode";
+import { ASTNode } from "../ASTNode";
 
-// ASTの最適化
-export function optimizeAST(node: ASTNode): ASTNode {
+// ASTの簡約化
+export function simplifyAST(node: ASTNode): ASTNode {
   if (node.type === "operator") {
-    // まず左右を再帰的に最適化
-    const left = optimizeAST(node.left);
-    const right = optimizeAST(node.right);
+    // まず左右を再帰的に簡単化
+    const left = simplifyAST(node.left);
+    const right = simplifyAST(node.right);
 
     // 数値計算の評価を先に行う
     const numericResult = evaluateSimpleOps({ ...node, left, right });
     if (numericResult) return numericResult;
+
+    // (x^a)^b → x^{a*b} の簡約化
+    if (
+      node.op === "^" &&
+      left.type === "operator" &&
+      left.op === "^" &&
+      left.right.type === "number" &&
+      right.type === "number"
+    ) {
+      return {
+        type: "operator",
+        op: "^",
+        left: left.left,
+        right: { type: "number", value: left.right.value * right.value },
+      };
+    }
+
     // powノードの指数がoperator(-)で多重マイナスもnumber型に簡約
     if (node.op === "^" && right.type === "operator" && right.op === "-") {
       const evalMinus = (r: any): number | null => {
@@ -31,10 +48,88 @@ export function optimizeAST(node: ASTNode): ASTNode {
         };
       }
     }
-    // 分数ノードのとき、分子分母が等しい場合は0、分子が0なら0、分母が1なら分子のみ返す（再帰的に最適化）
+
+    // 文字列の連続を指数形に変換（例: xxyyyzzzz → x^2y^3z^4）
+    if (node.op === "*") {
+      const factors: ASTNode[] = [];
+      const collectFactors = (n: ASTNode) => {
+        if (n.type === "operator" && n.op === "*") {
+          collectFactors(n.left);
+          collectFactors(n.right);
+        } else {
+          factors.push(n);
+        }
+      };
+      collectFactors(left);
+      collectFactors(right);
+
+      // 各変数の出現回数をカウント
+      const varCounts = new Map<string, number>();
+      let coef = 1;
+      const rest: ASTNode[] = [];
+
+      for (const f of factors) {
+        if (f.type === "number") {
+          coef *= f.value;
+        } else if (f.type === "symbol") {
+          const count = varCounts.get(f.name) || 0;
+          varCounts.set(f.name, count + 1);
+        } else if (
+          f.type === "operator" &&
+          f.op === "^" &&
+          f.left.type === "symbol" &&
+          f.right.type === "number"
+        ) {
+          const count = varCounts.get(f.left.name) || 0;
+          varCounts.set(f.left.name, count + f.right.value);
+        } else {
+          rest.push(f);
+        }
+      }
+
+      // 結果を構築
+      const results: ASTNode[] = [];
+
+      if (coef !== 1) {
+        results.push({ type: "number", value: coef });
+      }
+
+      // 変数を指数形で追加
+      for (const [varName, count] of varCounts.entries()) {
+        if (count > 0) {
+          if (count === 1) {
+            results.push({ type: "symbol", name: varName });
+          } else {
+            results.push({
+              type: "operator",
+              op: "^",
+              left: { type: "symbol", name: varName },
+              right: { type: "number", value: count },
+            });
+          }
+        }
+      }
+
+      // その他のノードを追加
+      results.push(...rest);
+
+      if (results.length === 0) {
+        return { type: "number", value: 1 };
+      } else if (results.length === 1) {
+        return results[0];
+      } else {
+        return results.reduce((a, b) => ({
+          type: "operator",
+          op: "*",
+          left: a,
+          right: b,
+        }));
+      }
+    }
+    // 分数ノードのとき、分子分母が等しい場合は0、分子が0なら0、分母が1なら分子のみ返す（再帰的に簡単化）
     if (node.op === "/") {
-      const optLeft = optimizeAST(left);
-      const optRight = optimizeAST(right);
+      const optLeft = simplifyAST(left);
+      const optRight = simplifyAST(right);
       if (JSON.stringify(optLeft) === JSON.stringify(optRight)) {
         return { type: "number", value: 0 };
       }
@@ -43,6 +138,314 @@ export function optimizeAST(node: ASTNode): ASTNode {
       }
       if (optRight.type === "number" && optRight.value === 1) {
         return optLeft;
+      }
+
+      // 複雑な分数の簡約化（複数の変数を含む）
+      const simplifyComplexFraction = (num: ASTNode, den: ASTNode): ASTNode => {
+        // 分子と分母の因子を取得
+        const getFactors = (n: ASTNode): ASTNode[] => {
+          const factors: ASTNode[] = [];
+          const collect = (node: ASTNode) => {
+            if (node.type === "operator" && node.op === "*") {
+              collect(node.left);
+              collect(node.right);
+            } else {
+              factors.push(node);
+            }
+          };
+          collect(n);
+          return factors;
+        };
+
+        const numFactors = getFactors(num);
+        const denFactors = getFactors(den);
+
+        // 各変数の指数を計算
+        const varExps = new Map<string, number>();
+        let coefNum = 1;
+        let coefDen = 1;
+
+        // 分子の処理
+        for (const f of numFactors) {
+          if (f.type === "number") {
+            coefNum *= f.value;
+          } else if (f.type === "symbol") {
+            const currentExp = varExps.get(f.name) || 0;
+            varExps.set(f.name, currentExp + 1);
+          } else if (
+            f.type === "operator" &&
+            f.op === "^" &&
+            f.left.type === "symbol" &&
+            f.right.type === "number"
+          ) {
+            const currentExp = varExps.get(f.left.name) || 0;
+            varExps.set(f.left.name, currentExp + f.right.value);
+          }
+        }
+
+        // 分母の処理
+        for (const f of denFactors) {
+          if (f.type === "number") {
+            coefDen *= f.value;
+          } else if (f.type === "symbol") {
+            const currentExp = varExps.get(f.name) || 0;
+            varExps.set(f.name, currentExp - 1);
+          } else if (
+            f.type === "operator" &&
+            f.op === "^" &&
+            f.left.type === "symbol" &&
+            f.right.type === "number"
+          ) {
+            const currentExp = varExps.get(f.left.name) || 0;
+            varExps.set(f.left.name, currentExp - f.right.value);
+          }
+        }
+
+        // 係数の約分
+        const gcd = (a: number, b: number): number => {
+          a = Math.abs(a);
+          b = Math.abs(b);
+          while (b !== 0) {
+            const temp = b;
+            b = a % b;
+            a = temp;
+          }
+          return a;
+        };
+
+        const commonDivisor = gcd(Math.abs(coefNum), Math.abs(coefDen));
+        const simplifiedNum = coefNum / commonDivisor;
+        const simplifiedDen = coefDen / commonDivisor;
+
+        // 変数を正の指数と負の指数に分ける
+        const positiveVars: ASTNode[] = [];
+        const negativeVars: ASTNode[] = [];
+
+        for (const [varName, exp] of varExps.entries()) {
+          if (exp > 0) {
+            if (exp === 1) {
+              positiveVars.push({ type: "symbol", name: varName });
+            } else {
+              positiveVars.push({
+                type: "operator",
+                op: "^",
+                left: { type: "symbol", name: varName },
+                right: { type: "number", value: exp },
+              });
+            }
+          } else if (exp < 0) {
+            if (exp === -1) {
+              negativeVars.push({ type: "symbol", name: varName });
+            } else {
+              negativeVars.push({
+                type: "operator",
+                op: "^",
+                left: { type: "symbol", name: varName },
+                right: { type: "number", value: -exp },
+              });
+            }
+          }
+        }
+
+        // 分子の構築
+        let numerator: ASTNode;
+        if (positiveVars.length === 0 && simplifiedNum === 1) {
+          numerator = { type: "number", value: 1 };
+        } else if (positiveVars.length === 0) {
+          numerator = { type: "number", value: simplifiedNum };
+        } else if (simplifiedNum === 1) {
+          numerator =
+            positiveVars.length === 1
+              ? positiveVars[0]
+              : positiveVars.reduce((a, b) => ({
+                  type: "operator",
+                  op: "*",
+                  left: a,
+                  right: b,
+                }));
+        } else {
+          const variablePart =
+            positiveVars.length === 1
+              ? positiveVars[0]
+              : positiveVars.reduce((a, b) => ({
+                  type: "operator",
+                  op: "*",
+                  left: a,
+                  right: b,
+                }));
+          numerator = {
+            type: "operator",
+            op: "*",
+            left: { type: "number", value: simplifiedNum },
+            right: variablePart,
+          };
+        }
+
+        // 分母の構築
+        const denominatorFactors: ASTNode[] = [];
+        if (simplifiedDen !== 1) {
+          denominatorFactors.push({ type: "number", value: simplifiedDen });
+        }
+
+        // 負の指数処理: 係数が1で分母に係数がない場合、負の指数として表現
+        if (
+          denominatorFactors.length === 0 &&
+          negativeVars.length > 0 &&
+          numerator.type !== "number"
+        ) {
+          // 負の指数を分子に追加
+          const allFactors: ASTNode[] = [];
+
+          if (numerator.type === "operator" && numerator.op === "*") {
+            // 分子が乗算の場合、getFactorsで分解
+            const getFactors = (n: ASTNode): ASTNode[] => {
+              const factors: ASTNode[] = [];
+              const collect = (node: ASTNode) => {
+                if (node.type === "operator" && node.op === "*") {
+                  collect(node.left);
+                  collect(node.right);
+                } else {
+                  factors.push(node);
+                }
+              };
+              collect(n);
+              return factors;
+            };
+            allFactors.push(...getFactors(numerator));
+          } else {
+            allFactors.push(numerator);
+          }
+
+          // 負の指数を追加
+          for (const negVar of negativeVars) {
+            if (negVar.type === "symbol") {
+              allFactors.push({
+                type: "operator",
+                op: "^",
+                left: negVar,
+                right: { type: "number", value: -1 },
+              });
+            } else if (
+              negVar.type === "operator" &&
+              negVar.op === "^" &&
+              negVar.right.type === "number"
+            ) {
+              allFactors.push({
+                type: "operator",
+                op: "^",
+                left: negVar.left,
+                right: { type: "number", value: -negVar.right.value },
+              });
+            }
+          }
+
+          return allFactors.length === 1
+            ? allFactors[0]
+            : allFactors.reduce((a, b) => ({
+                type: "operator",
+                op: "*",
+                left: a,
+                right: b,
+              }));
+        } else {
+          // 通常の分数形式
+          denominatorFactors.push(...negativeVars);
+
+          if (denominatorFactors.length === 0) {
+            return numerator;
+          } else {
+            const denominator =
+              denominatorFactors.length === 1
+                ? denominatorFactors[0]
+                : denominatorFactors.reduce((a, b) => ({
+                    type: "operator",
+                    op: "*",
+                    left: a,
+                    right: b,
+                  }));
+
+            return {
+              type: "operator",
+              op: "/",
+              left: numerator,
+              right: denominator,
+            };
+          }
+        }
+      };
+
+      // 複数の変数を含む分数に対して簡約化を試行
+      const hasMultipleVariables = (node: ASTNode): boolean => {
+        const vars = new Set<string>();
+        const collectVars = (n: ASTNode) => {
+          if (n.type === "symbol") {
+            vars.add(n.name);
+          } else if (n.type === "operator") {
+            collectVars(n.left);
+            collectVars(n.right);
+          }
+        };
+        collectVars(node);
+        return vars.size > 1;
+      };
+
+      // より多くのケースで複雑分数簡約化を試行
+      const complexResult = simplifyComplexFraction(optLeft, optRight);
+
+      // 複雑分数簡約化が元の分数と異なる結果を返した場合、それを使用
+      if (
+        !(
+          complexResult.type === "operator" &&
+          complexResult.op === "/" &&
+          JSON.stringify(complexResult.left) === JSON.stringify(optLeft) &&
+          JSON.stringify(complexResult.right) === JSON.stringify(optRight)
+        )
+      ) {
+        return complexResult;
+      }
+
+      // 分数の簡約: x^a / (c * x^b) → x^{a-b} / c
+      if (
+        optLeft.type === "operator" &&
+        optLeft.op === "^" &&
+        optLeft.left.type === "symbol" &&
+        optLeft.right.type === "number" &&
+        optRight.type === "operator" &&
+        optRight.op === "*" &&
+        optRight.left.type === "number" &&
+        optRight.right.type === "operator" &&
+        optRight.right.op === "^" &&
+        optRight.right.left.type === "symbol" &&
+        optRight.right.left.name === optLeft.left.name &&
+        optRight.right.right.type === "number"
+      ) {
+        const a = optLeft.right.value;
+        const b = optRight.right.right.value;
+        const c = optRight.left.value;
+        const newExp = a - b;
+
+        if (newExp === 0) {
+          return { type: "number", value: 1 / c };
+        } else if (newExp === 1) {
+          return {
+            type: "operator",
+            op: "/",
+            left: { type: "symbol", name: optLeft.left.name },
+            right: { type: "number", value: c },
+          };
+        } else {
+          return {
+            type: "operator",
+            op: "/",
+            left: {
+              type: "operator",
+              op: "^",
+              left: { type: "symbol", name: optLeft.left.name },
+              right: { type: "number", value: newExp },
+            },
+            right: { type: "number", value: c },
+          };
+        }
       }
 
       // 分数の簡約: 係数/係数*x^n → 簡約形
@@ -143,7 +546,7 @@ export function optimizeAST(node: ASTNode): ASTNode {
         optRight.right.type === "number"
       ) {
         // 左項を分母で割る
-        const leftTerm = optimizeAST({
+        const leftTerm = simplifyAST({
           type: "operator" as const,
           op: "/",
           left: optLeft.left,
@@ -151,7 +554,7 @@ export function optimizeAST(node: ASTNode): ASTNode {
         });
 
         // 右項を分母で割る
-        const rightTerm = optimizeAST({
+        const rightTerm = simplifyAST({
           type: "operator" as const,
           op: "/",
           left: optLeft.right,
@@ -159,7 +562,7 @@ export function optimizeAST(node: ASTNode): ASTNode {
         });
 
         // 結果を差として返す
-        return optimizeAST({
+        return simplifyAST({
           type: "operator" as const,
           op: "-",
           left: leftTerm,
@@ -352,7 +755,7 @@ export function optimizeAST(node: ASTNode): ASTNode {
         optLeft.right.left.type === "number" &&
         optLeft.right.left.value === 0
       ) {
-        return optimizeAST(optLeft.right.right);
+        return simplifyAST(optLeft.right.right);
       }
 
       // f(x)/(g(x))^2 → f(x) * (g(x))^{-2} の形に変換
@@ -365,7 +768,7 @@ export function optimizeAST(node: ASTNode): ASTNode {
         return {
           type: "operator" as const,
           op: "*",
-          left: optimizeAST(left),
+          left: simplifyAST(left),
           right: {
             type: "operator" as const,
             op: "^",
@@ -379,8 +782,8 @@ export function optimizeAST(node: ASTNode): ASTNode {
       return {
         type: "operator" as const,
         op: "/",
-        left: optimizeAST(left),
-        right: optimizeAST(right),
+        left: simplifyAST(left),
+        right: simplifyAST(right),
       };
     }
     // 多重マイナス -1 * -1 * ... * f(x) → f(x)
@@ -406,13 +809,13 @@ export function optimizeAST(node: ASTNode): ASTNode {
         r = r.right;
       }
       if (minusCount % 2 === 0) {
-        return optimizeAST(r);
+        return simplifyAST(r);
       } else if (minusCount > 1) {
         return {
           type: "operator",
           op: "-",
           left: { type: "number", value: 0 },
-          right: optimizeAST(r),
+          right: simplifyAST(r),
         };
       }
     }
@@ -426,7 +829,7 @@ export function optimizeAST(node: ASTNode): ASTNode {
       right.left.type === "number" &&
       right.left.value === 0
     ) {
-      return optimizeAST(right.right);
+      return simplifyAST(right.right);
     }
 
     // -f(x) * (-g(x)) → f(x) * g(x) (二重負号の処理)
@@ -441,7 +844,7 @@ export function optimizeAST(node: ASTNode): ASTNode {
       right.left.type === "number" &&
       right.left.value === 0
     ) {
-      return optimizeAST({
+      return simplifyAST({
         type: "operator",
         op: "*",
         left: left.right,

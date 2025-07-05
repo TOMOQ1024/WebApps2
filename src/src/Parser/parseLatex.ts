@@ -147,7 +147,7 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
         type: "operator",
         op: "-",
         left: { type: "number", value: 0 },
-        right: expr,
+        right: expr || { type: "number", value: 0 },
       };
     }
 
@@ -215,7 +215,11 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
               skipWhitespace();
               // 次の要素をパースして引数とする
               const arg = parseFactor();
-              node = { type: "function", name: operatorName, args: [arg] };
+              node = {
+                type: "function",
+                name: operatorName,
+                args: [arg || { type: "number", value: 0 }],
+              };
             }
           } else {
             throw new Error(`Unknown operator: ${operatorName}`);
@@ -287,6 +291,11 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
         } else if (constCmd === "right") {
           // 単独の \right は無視して次へ
           return parseFactor();
+        } else if (constCmd === "cdot") {
+          // \cdot は暗黙の乗算記号として機能するが、parseFactor()レベルでは次の要素を返す
+          skipWhitespace();
+          const nextFactor = parseFactor();
+          return nextFactor || { type: "number", value: 1 };
         } else {
           throw new Error(`Unknown command: \\${constCmd}`);
         }
@@ -333,7 +342,7 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
     while (peek() === "^") {
       advance();
       skipWhitespace();
-      let right;
+      let right: ASTNode;
       let rightHasBraces = false;
       if (peek() === "{") {
         advance(); // '{'
@@ -357,11 +366,10 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
             right: { type: "number" as const, value: 0 },
           };
         } else {
-          right = parseFactor();
-          if (right == null) right = { type: "number", value: 0 };
+          const factorResult = parseFactor();
+          right = factorResult || { type: "number", value: 0 };
         }
       }
-      if (right == null) right = { type: "number", value: 0 };
       if (right.type === "number" && right.value === 0) {
         continue; // 0ノードなら指数を無視
       }
@@ -370,7 +378,11 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
         (right.type === "number" || right.type === "operator") &&
         rightHasBraces
       ) {
-        right = { ...right, hasBraces: true };
+        if (right.type === "number") {
+          right = { ...right, hasBraces: true };
+        } else if (right.type === "operator") {
+          right = { ...right, hasBraces: true };
+        }
       }
       left = { type: "operator", op: "^", left, right };
     }
@@ -427,7 +439,8 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
               cmd === "overline" ||
               cmd === "left" ||
               cmd === "pi" ||
-              cmd === "frac"
+              cmd === "frac" ||
+              cmd === "cdot"
             );
           })()))
     ) {

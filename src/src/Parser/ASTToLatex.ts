@@ -2,7 +2,6 @@ import { ASTNode } from "@/src/Parser/ASTNode";
 
 export function ASTToLatex(
   node: ASTNode,
-  optimize: boolean = true,
   astTransform: boolean = false,
   parentOp: string = ""
 ): string {
@@ -28,7 +27,7 @@ export function ASTToLatex(
             collectTerms(n.left);
             collectTerms(n.right);
           } else {
-            terms.push(ASTToLatex(n, optimize, astTransform));
+            terms.push(ASTToLatex(n, astTransform));
           }
         };
         collectTerms(left);
@@ -59,9 +58,9 @@ export function ASTToLatex(
           return term;
         });
 
-        // + - を - に変換
-        const result = processedTerms.join(" + ");
-        return result.replace(/\+ -/g, "- ");
+        // + - を - に変換（空白なしで結合）
+        const result = processedTerms.join("+");
+        return result.replace(/\+\-/g, "-");
       } else if (op === "-") {
         // 多重マイナスの正規化: -(-f(x)) → f(x) （ただし 0 - (a - b) の場合は除く）
         if (
@@ -69,7 +68,7 @@ export function ASTToLatex(
           right.op === "-" &&
           !(left.type === "number" && left.value === 0)
         ) {
-          return ASTToLatex(right.right, optimize, astTransform);
+          return ASTToLatex(right.right, astTransform);
         }
 
         // -(-1 * f(x)) → f(x)
@@ -79,7 +78,7 @@ export function ASTToLatex(
           right.left.type === "number" &&
           right.left.value === -1
         ) {
-          return ASTToLatex(right.right, optimize, astTransform);
+          return ASTToLatex(right.right, astTransform);
         }
 
         // leftが-1の減算ノードの場合
@@ -91,15 +90,15 @@ export function ASTToLatex(
           left.right.type === "number" &&
           left.right.value === 1
         ) {
-          return `-${ASTToLatex(right, optimize, astTransform)}`;
+          return `-${ASTToLatex(right, astTransform)}`;
         }
 
         // left.value===0なら単項マイナス
         if (left.type === "number" && left.value === 0) {
           // 0 - (a - b) → -a + b の特別処理
           if (right.type === "operator" && right.op === "-") {
-            const rightLeft = ASTToLatex(right.left, optimize, astTransform);
-            const rightRight = ASTToLatex(right.right, optimize, astTransform);
+            const rightLeft = ASTToLatex(right.left, astTransform);
+            const rightRight = ASTToLatex(right.right, astTransform);
             // -0 + b → b の簡約
             if (rightLeft === "0") {
               return rightRight;
@@ -107,7 +106,7 @@ export function ASTToLatex(
             return `-${rightLeft}+${rightRight}`;
           }
 
-          const rightStr = ASTToLatex(right, optimize, astTransform);
+          const rightStr = ASTToLatex(right, astTransform);
           // 二重否定の処理: --f(x) → f(x)
           if (rightStr.startsWith("--")) {
             return rightStr.substring(2);
@@ -127,8 +126,8 @@ export function ASTToLatex(
         }
 
         // 0 - a の形を -a に簡約
-        const leftStr = ASTToLatex(left, optimize, astTransform);
-        const rightStr = ASTToLatex(right, optimize, astTransform);
+        const leftStr = ASTToLatex(left, astTransform);
+        const rightStr = ASTToLatex(right, astTransform);
         if (leftStr === "0") {
           return `-${rightStr}`;
         }
@@ -168,7 +167,7 @@ export function ASTToLatex(
           right.left.type === "number" &&
           right.left.value === -1
         ) {
-          return ASTToLatex(right.right, optimize, astTransform);
+          return ASTToLatex(right.right, astTransform);
         }
 
         // -1 * (...) → -( ... )
@@ -177,7 +176,7 @@ export function ASTToLatex(
           left.value === -1 &&
           right.type === "operator"
         ) {
-          return `-${ASTToLatex(right, optimize, astTransform)}`;
+          return `-${ASTToLatex(right, astTransform)}`;
         }
 
         // 両辺がnumberの場合は数値計算
@@ -189,44 +188,37 @@ export function ASTToLatex(
         // 係数 * 本体 の形に正規化（左右どちらがnumberでも対応）
         if (left.type === "number") {
           if (left.value === 0) return "0";
-          if (left.value === 1)
-            return ASTToLatex(right, optimize, astTransform);
-          if (left.value === -1)
-            return `-${ASTToLatex(right, optimize, astTransform)}`;
+          if (left.value === 1) return ASTToLatex(right, astTransform);
+          if (left.value === -1) return `-${ASTToLatex(right, astTransform)}`;
 
           // 関数の場合はスペースを入れる
           if (right.type === "function") {
             return `${numberToLatex(left.value)} ${ASTToLatex(
               right,
-              optimize,
               astTransform
             )}`;
           }
 
           return `${numberToLatex(left.value)}${ASTToLatex(
             right,
-            optimize,
             astTransform
           )}`;
         }
 
         if (right.type === "number") {
           if (right.value === 0) return "0";
-          if (right.value === 1)
-            return ASTToLatex(left, optimize, astTransform);
-          if (right.value === -1)
-            return `-${ASTToLatex(left, optimize, astTransform)}`;
+          if (right.value === 1) return ASTToLatex(left, astTransform);
+          if (right.value === -1) return `-${ASTToLatex(left, astTransform)}`;
 
           // 関数の場合はスペースを入れる
           if (left.type === "function") {
-            return `${ASTToLatex(left, optimize, astTransform)} ${numberToLatex(
+            return `${ASTToLatex(left, astTransform)} ${numberToLatex(
               right.value
             )}`;
           }
 
           return `${numberToLatex(right.value)}${ASTToLatex(
             left,
-            optimize,
             astTransform
           )}`;
         }
@@ -238,9 +230,8 @@ export function ASTToLatex(
           right.left.type === "number" &&
           right.left.value === 0
         ) {
-          return `${ASTToLatex(left, optimize, astTransform)}(${ASTToLatex(
+          return `${ASTToLatex(left, astTransform)}(${ASTToLatex(
             right,
-            optimize,
             astTransform
           )})`;
         }
@@ -259,13 +250,11 @@ export function ASTToLatex(
           ) {
             return `\\left(${ASTToLatex(
               left,
-              optimize,
               astTransform
-            )}\\right)${ASTToLatex(right, optimize, astTransform)}`;
+            )}\\right)${ASTToLatex(right, astTransform)}`;
           }
-          return `${ASTToLatex(left, optimize, astTransform)} ${ASTToLatex(
+          return `${ASTToLatex(left, astTransform)} ${ASTToLatex(
             right,
-            optimize,
             astTransform
           )}`;
         }
@@ -276,16 +265,15 @@ export function ASTToLatex(
           left.op === "/" &&
           right.type === "function"
         ) {
-          return `${ASTToLatex(left, optimize, astTransform)} ${ASTToLatex(
+          return `${ASTToLatex(left, astTransform)} ${ASTToLatex(
             right,
-            optimize,
             astTransform
           )}`;
         }
 
         // それ以外は連結
-        const leftStr = ASTToLatex(left, optimize, astTransform);
-        const rightStr = ASTToLatex(right, optimize, astTransform);
+        const leftStr = ASTToLatex(left, astTransform);
+        const rightStr = ASTToLatex(right, astTransform);
 
         // 関数とべき乗の積の場合は、最初の関数に括弧をつける
         if (
@@ -336,7 +324,7 @@ export function ASTToLatex(
           const leftStr =
             processedLeft.type === "number"
               ? numberToLatex(processedLeft.value)
-              : ASTToLatex(processedLeft, optimize, astTransform);
+              : ASTToLatex(processedLeft, astTransform);
           const exponent = -right.right.value;
           return `${leftStr}${right.left.name}^{${numberToLatex(exponent)}}`;
         }
@@ -347,7 +335,7 @@ export function ASTToLatex(
           processedLeft.value === 1 &&
           right.type === "function"
         ) {
-          const funcStr = ASTToLatex(right, optimize, astTransform);
+          const funcStr = ASTToLatex(right, astTransform);
           return `\\left(${funcStr}\\right)^{-1}`;
         }
 
@@ -358,14 +346,14 @@ export function ASTToLatex(
           right.type === "function"
         ) {
           const coeff = numberToLatex(processedLeft.value);
-          const funcStr = ASTToLatex(right, optimize, astTransform);
+          const funcStr = ASTToLatex(right, astTransform);
           return `${coeff}\\left(${funcStr}\\right)^{-1}`;
         }
 
         // f(x)/g(x) → f(x) * g(x)^{-1} の形に変換（期待値に合わせる）
         if (processedLeft.type === "function" && right.type === "function") {
-          const leftStr = ASTToLatex(processedLeft, optimize, astTransform);
-          const rightStr = ASTToLatex(right, optimize, astTransform);
+          const leftStr = ASTToLatex(processedLeft, astTransform);
+          const rightStr = ASTToLatex(right, astTransform);
           return `\\left(${leftStr}\\right)\\left(${rightStr}\\right)^{-1}`;
         }
 
@@ -421,39 +409,35 @@ export function ASTToLatex(
         const leftStr =
           processedLeft.type === "number"
             ? numberToLatex(processedLeft.value)
-            : ASTToLatex(processedLeft, optimize, astTransform);
+            : ASTToLatex(processedLeft, astTransform);
         const rightStr =
           right.type === "number"
             ? numberToLatex(right.value)
-            : ASTToLatex(right, optimize, astTransform);
+            : ASTToLatex(right, astTransform);
 
         return `\\frac{${leftStr}}{${rightStr}}`;
       } else if (op === "^") {
         // x^n の出力（nがnumber型でも常にx^{n}形式で出力）
         if (node.left.type === "symbol" && node.right.type === "number") {
           if (node.right.value === 1) {
-            return `${ASTToLatex(node.left, optimize, astTransform)}`;
+            return `${ASTToLatex(node.left, astTransform)}`;
           }
-          return `${ASTToLatex(
-            node.left,
-            optimize,
-            astTransform
-          )}^{${numberToLatex(node.right.value)}}`;
+          return `${ASTToLatex(node.left, astTransform)}^{${numberToLatex(
+            node.right.value
+          )}}`;
         }
 
         // 関数のべき乗は \left(関数\right)^{指数} の形式で出力
         if (node.left.type === "function") {
           return `\\left(${ASTToLatex(
             node.left,
-            optimize,
             astTransform
-          )}\\right)^{${ASTToLatex(node.right, optimize, astTransform)}}`;
+          )}\\right)^{${ASTToLatex(node.right, astTransform)}}`;
         }
 
         // 通常のpow
-        return `${ASTToLatex(node.left, optimize, astTransform)}^{${ASTToLatex(
+        return `${ASTToLatex(node.left, astTransform)}^{${ASTToLatex(
           node.right,
-          optimize,
           astTransform
         )}}`;
       }
@@ -462,14 +446,9 @@ export function ASTToLatex(
     case "function": {
       const { name, args } = node;
       if (name === "sqrt") {
-        return `\\sqrt{${ASTToLatex(args[0], optimize, astTransform)}}`;
+        return `\\sqrt{${ASTToLatex(args[0], astTransform)}}`;
       } else if (name === "ln" || name === "log") {
-        return `\\${name} ${wrapIfNeeded(
-          args[0],
-          "func",
-          optimize,
-          astTransform
-        )}`;
+        return `\\${name} ${wrapIfNeeded(args[0], "func", astTransform)}`;
       } else if (name === "sin" || name === "cos") {
         // sin(-x) → -sin x, cos(-x) → cos x のような処理
         const arg = args[0];
@@ -481,19 +460,15 @@ export function ASTToLatex(
           arg.left.value === 0
         ) {
           if (name === "sin") {
-            return `-\\sin ${ASTToLatex(arg.right, optimize, astTransform)}`;
+            return `-\\sin ${ASTToLatex(arg.right, astTransform)}`;
           } else if (name === "cos") {
-            return `\\cos ${ASTToLatex(arg.right, optimize, astTransform)}`;
+            return `\\cos ${ASTToLatex(arg.right, astTransform)}`;
           }
         }
 
         // 引数が分数の場合は\left(\right)で囲む
         if (arg && arg.type === "operator" && arg.op === "/") {
-          return `\\${name} \\left(${ASTToLatex(
-            arg,
-            optimize,
-            astTransform
-          )}\\right)`;
+          return `\\${name} \\left(${ASTToLatex(arg, astTransform)}\\right)`;
         }
 
         // 引数が乗算（係数×変数）の場合も\left(\right)で囲む
@@ -504,20 +479,12 @@ export function ASTToLatex(
           arg.left.type === "number" &&
           arg.right.type === "symbol"
         ) {
-          return `\\${name} \\left(${ASTToLatex(
-            arg,
-            optimize,
-            astTransform
-          )}\\right)`;
+          return `\\${name} \\left(${ASTToLatex(arg, astTransform)}\\right)`;
         }
 
         // 引数が関数の場合は\left(\right)で囲む
         if (arg && arg.type === "function") {
-          return `\\${name} \\left(${ASTToLatex(
-            arg,
-            optimize,
-            astTransform
-          )}\\right)`;
+          return `\\${name} \\left(${ASTToLatex(arg, astTransform)}\\right)`;
         }
 
         // 引数が複雑な場合は\left(\right)で囲む（ただし単純な冪は除く）
@@ -530,26 +497,12 @@ export function ASTToLatex(
             arg.right.type === "number"
           )
         ) {
-          return `\\${name} \\left(${ASTToLatex(
-            arg,
-            optimize,
-            astTransform
-          )}\\right)`;
+          return `\\${name} \\left(${ASTToLatex(arg, astTransform)}\\right)`;
         }
 
-        return `\\${name} ${wrapIfNeeded(
-          args[0],
-          "func",
-          optimize,
-          astTransform
-        )}`;
+        return `\\${name} ${wrapIfNeeded(args[0], "func", astTransform)}`;
       } else {
-        return `\\${name} ${wrapIfNeeded(
-          args[0],
-          "func",
-          optimize,
-          astTransform
-        )}`;
+        return `\\${name} ${wrapIfNeeded(args[0], "func", astTransform)}`;
       }
     }
   }
@@ -559,18 +512,17 @@ export function ASTToLatex(
 function wrapIfNeeded(
   node: ASTNode,
   parentOp: string,
-  optimize: boolean,
   astTransform: boolean
 ): string {
   if (node.type === "operator") {
     if (parentOp === "*" && (node.op === "+" || node.op === "-")) {
-      return `(${ASTToLatex(node, optimize, astTransform)})`;
+      return `(${ASTToLatex(node, astTransform)})`;
     }
     if (parentOp === "func" && (node.op === "+" || node.op === "-")) {
-      return `(${ASTToLatex(node, optimize, astTransform)})`;
+      return `(${ASTToLatex(node, astTransform)})`;
     }
   }
-  return ASTToLatex(node, optimize, astTransform);
+  return ASTToLatex(node, astTransform);
 }
 
 // --- ASTの構造変換（期待値に合わせる） ---
