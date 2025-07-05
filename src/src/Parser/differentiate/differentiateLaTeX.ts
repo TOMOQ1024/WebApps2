@@ -1,7 +1,7 @@
 import { ASTToLatex } from "../ASTToLatex";
 import { parseLatex } from "../parseLatex";
 import { differentiateASTNode } from "./differentiateASTNode";
-import { optimizeAST } from "../ASTToLatex";
+import { optimizeAST } from "../optimizeAST";
 
 export function differentiateLaTeX(
   latex: string,
