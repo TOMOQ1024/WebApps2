@@ -1,20 +1,143 @@
 import { ASTNode } from "../ASTNode";
 import { SimplifyOptions } from "./simplifyLaTeX";
 import { tryFactorization } from "./tryFactorization";
+import { simplifyFraction } from "./helpers";
+
+// 係数を分数形式に統一して通分処理を行う
+function unifyFractionCoefficients(
+  groups: Map<string, { coefficient: number; base: ASTNode }>,
+  options?: SimplifyOptions
+): Map<string, { coefficient: number; base: ASTNode }> {
+  if (options?.rationalMode !== "fraction") {
+    return groups;
+  }
+
+  const result = new Map<string, { coefficient: number; base: ASTNode }>();
+
+  for (const [key, { coefficient, base }] of groups.entries()) {
+    if (coefficient === 0) continue;
+
+    // 係数を分数として処理
+    let numerator = coefficient;
+    let denominator = 1;
+
+    if (!Number.isInteger(coefficient)) {
+      // 小数を分数に変換
+      const tolerance = 1e-10;
+      let found = false;
+      for (let den = 2; den <= 1000; den++) {
+        const num = Math.round(coefficient * den);
+        if (Math.abs(coefficient - num / den) < tolerance) {
+          const { num: simplifiedNum, den: simplifiedDen } = simplifyFraction(
+            num,
+            den
+          );
+          numerator = simplifiedNum;
+          denominator = simplifiedDen;
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        numerator = coefficient;
+        denominator = 1;
+      }
+    }
+
+    // 分数として統一された係数で更新
+    const unifiedCoefficient = numerator / denominator;
+    result.set(key, { coefficient: unifiedCoefficient, base });
+  }
+
+  return result;
+}
+
+// 分数係数を適切なASTノードに変換
+function createCoefficientNode(
+  coefficient: number,
+  options?: SimplifyOptions
+): ASTNode {
+  if (Number.isInteger(coefficient)) {
+    return { type: "number", value: coefficient };
+  }
+
+  // 分数係数の場合
+  if (options?.rationalMode === "fraction") {
+    // 分数として表現
+    const tolerance = 1e-10;
+    for (let denominator = 2; denominator <= 1000; denominator++) {
+      const numerator = Math.round(coefficient * denominator);
+      if (Math.abs(coefficient - numerator / denominator) < tolerance) {
+        const { num, den } = simplifyFraction(numerator, denominator);
+        if (den === 1) {
+          return { type: "number", value: num };
+        } else {
+          return {
+            type: "operator",
+            op: "/",
+            left: { type: "number", value: num },
+            right: { type: "number", value: den },
+          };
+        }
+      }
+    }
+  }
+
+  // 指数形式として表現（デフォルト）
+  const tolerance = 1e-10;
+  for (let denominator = 2; denominator <= 1000; denominator++) {
+    const numerator = Math.round(coefficient * denominator);
+    if (Math.abs(coefficient - numerator / denominator) < tolerance) {
+      const { num, den } = simplifyFraction(numerator, denominator);
+      if (den === 1) {
+        return { type: "number", value: num };
+      } else {
+        // 指数形式: num * den^{-1}
+        if (num === 1) {
+          return {
+            type: "operator",
+            op: "^",
+            left: { type: "number", value: den },
+            right: { type: "number", value: -1 },
+          };
+        } else {
+          return {
+            type: "operator",
+            op: "*",
+            left: { type: "number", value: num },
+            right: {
+              type: "operator",
+              op: "^",
+              left: { type: "number", value: den },
+              right: { type: "number", value: -1 },
+            },
+          };
+        }
+      }
+    }
+  }
+
+  // フォールバック: 元の数値
+  return { type: "number", value: coefficient };
+}
 
 // 加算を構築
 export function buildAddition(
   groups: Map<string, { coefficient: number; base: ASTNode }>,
   options?: SimplifyOptions
 ): ASTNode {
+  // 分数モードの場合は係数を統一
+  const unifiedGroups = unifyFractionCoefficients(groups, options);
+
   const terms: ASTNode[] = [];
 
-  for (const { coefficient, base } of groups.values()) {
+  for (const { coefficient, base } of unifiedGroups.values()) {
     if (coefficient === 0) continue;
 
     if (base.type === "number" && base.value === 1) {
       // 定数項
-      terms.push({ type: "number", value: coefficient });
+      const coeffNode = createCoefficientNode(coefficient, options);
+      terms.push(coeffNode);
     } else if (coefficient === 1) {
       terms.push(base);
     } else if (coefficient === -1) {
@@ -26,19 +149,21 @@ export function buildAddition(
       });
     } else {
       // 係数と複合式の組み合わせを適切に処理
+      const coeffNode = createCoefficientNode(coefficient, options);
+
       if (base.type === "operator" && (base.op === "+" || base.op === "-")) {
         // 複合式の場合は \\left(\\right) で囲む形式にする
         terms.push({
           type: "operator",
           op: "*",
-          left: { type: "number", value: coefficient },
+          left: coeffNode,
           right: base,
         });
       } else {
         terms.push({
           type: "operator",
           op: "*",
-          left: { type: "number", value: coefficient },
+          left: coeffNode,
           right: base,
         });
       }

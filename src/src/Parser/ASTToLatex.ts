@@ -366,6 +366,72 @@ export function ASTToLatex(
           )}}{${ASTToLatex(left.right, astTransform, "", options)}}`;
         }
 
+        // (a/b) * c → \frac{ac}{b} の変換（一般的な分数と変数の乗算）
+        if (
+          left.type === "operator" &&
+          left.op === "/" &&
+          left.left.type === "number" &&
+          left.right.type === "number"
+        ) {
+          const numerator = left.left.value;
+          const denominator = left.right.value;
+
+          // 右側が変数またはべき乗の場合
+          if (
+            right.type === "symbol" ||
+            (right.type === "operator" && right.op === "^")
+          ) {
+            if (numerator === 1) {
+              return `\\frac{${ASTToLatex(
+                right,
+                astTransform,
+                "",
+                options
+              )}}{${denominator}}`;
+            } else {
+              return `\\frac{${numerator}${ASTToLatex(
+                right,
+                astTransform,
+                "",
+                options
+              )}}{${denominator}}`;
+            }
+          }
+        }
+
+        // a * (c/d) → \frac{ac}{d} の変換（右側が分数の場合）
+        if (
+          right.type === "operator" &&
+          right.op === "/" &&
+          right.left.type === "number" &&
+          right.right.type === "number"
+        ) {
+          const numerator = right.left.value;
+          const denominator = right.right.value;
+
+          // 左側が変数またはべき乗の場合
+          if (
+            left.type === "symbol" ||
+            (left.type === "operator" && left.op === "^")
+          ) {
+            if (numerator === 1) {
+              return `\\frac{${ASTToLatex(
+                left,
+                astTransform,
+                "",
+                options
+              )}}{${denominator}}`;
+            } else {
+              return `\\frac{${numerator}${ASTToLatex(
+                left,
+                astTransform,
+                "",
+                options
+              )}}{${denominator}}`;
+            }
+          }
+        }
+
         // それ以外は連結
         const leftStr = ASTToLatex(left, astTransform, "", options);
         const rightStr = ASTToLatex(right, astTransform, "", options);

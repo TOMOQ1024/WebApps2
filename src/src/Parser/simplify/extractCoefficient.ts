@@ -30,6 +30,24 @@ export function extractCoefficient(term: ASTNode): {
     for (const factor of factors) {
       if (factor.type === "number") {
         coefficient *= factor.value;
+      } else if (
+        factor.type === "operator" &&
+        factor.op === "^" &&
+        factor.left.type === "number" &&
+        factor.right.type === "number" &&
+        factor.right.value === -1
+      ) {
+        // n^{-1} の形の因子は係数として扱う（分数の分母の逆数）
+        coefficient *= 1 / factor.left.value;
+      } else if (
+        factor.type === "operator" &&
+        factor.op === "^" &&
+        factor.left.type === "number" &&
+        factor.right.type === "number" &&
+        factor.right.value < 0
+      ) {
+        // n^{-k} の形の因子は係数として扱う
+        coefficient *= Math.pow(factor.left.value, factor.right.value);
       } else {
         nonNumericFactors.push(factor);
       }
