@@ -16,6 +16,9 @@ export function ASTToLatex(
       }
       return numberToLatex(node.value);
     case "symbol":
+      if (node.name === "pi") {
+        return "\\pi";
+      }
       return node.name;
     case "operator": {
       const { op, left, right } = node;
@@ -294,6 +297,15 @@ export function ASTToLatex(
           )}`;
         }
 
+        // 変数と括弧付きの式の積の場合は、\\left(\\right)で囲む
+        if (
+          left.type === "symbol" &&
+          right.type === "operator" &&
+          (right.op === "+" || right.op === "-")
+        ) {
+          return `${leftStr}\\left(${rightStr}\\right)`;
+        }
+
         return `${leftStr}${rightStr}`;
       } else if (op === "/") {
         // 分数ノードは必ずstringで返す
@@ -314,12 +326,43 @@ export function ASTToLatex(
           };
         }
 
+        // 1/exp(x) → e^{-x} の特別な変換
+        if (
+          processedLeft.type === "number" &&
+          processedLeft.value === 1 &&
+          right.type === "function" &&
+          right.name === "exp" &&
+          right.args &&
+          right.args.length === 1
+        ) {
+          const arg = ASTToLatex(right.args[0], astTransform);
+          return `e^{-${arg}}`;
+        }
+
+        // 1/e^x → e^{-x} の特別な変換（e^x が operator として解析される場合）
+        if (
+          processedLeft.type === "number" &&
+          processedLeft.value === 1 &&
+          right.type === "operator" &&
+          right.op === "^" &&
+          right.left.type === "symbol" &&
+          right.left.name === "e" &&
+          right.right.type === "symbol"
+        ) {
+          return `e^{-${right.right.name}}`;
+        }
+
         // a/b^n → a * b^{-n} の形に変換（期待値に合わせる）
+        // ただし、分子が和の場合は分数形式を保持
         if (
           right.type === "operator" &&
           right.op === "^" &&
           right.left.type === "symbol" &&
-          right.right.type === "number"
+          right.right.type === "number" &&
+          !(
+            processedLeft.type === "operator" &&
+            (processedLeft.op === "+" || processedLeft.op === "-")
+          )
         ) {
           const leftStr =
             processedLeft.type === "number"
@@ -337,6 +380,19 @@ export function ASTToLatex(
         ) {
           const funcStr = ASTToLatex(right, astTransform);
           return `\\left(${funcStr}\\right)^{-1}`;
+        }
+
+        // 1/f(x)^n → f(x)^{-n} の形に変換
+        if (
+          processedLeft.type === "number" &&
+          processedLeft.value === 1 &&
+          right.type === "operator" &&
+          right.op === "^" &&
+          right.right.type === "symbol"
+        ) {
+          const base = ASTToLatex(right.left, astTransform);
+          const exp = right.right.name;
+          return `\\left(${base}\\right)^{-${exp}}`;
         }
 
         // a/f(x) → a * f(x)^{-1} の形に変換（期待値に合わせる）
@@ -399,6 +455,17 @@ export function ASTToLatex(
           )}\\right)^{${ASTToLatex(node.right, astTransform)}}`;
         }
 
+        // 累乗の底が加減のノードである場合は括弧をつける
+        if (
+          node.left.type === "operator" &&
+          (node.left.op === "+" || node.left.op === "-")
+        ) {
+          return `\\left(${ASTToLatex(
+            node.left,
+            astTransform
+          )}\\right)^{${ASTToLatex(node.right, astTransform)}}`;
+        }
+
         // 通常のpow
         return `${ASTToLatex(node.left, astTransform)}^{${ASTToLatex(
           node.right,
@@ -413,6 +480,8 @@ export function ASTToLatex(
         return `\\sqrt{${ASTToLatex(args[0], astTransform)}}`;
       } else if (name === "ln" || name === "log") {
         return `\\${name} ${wrapIfNeeded(args[0], "func", astTransform)}`;
+      } else if (name === "exp") {
+        return `e^{${ASTToLatex(args[0], astTransform)}}`;
       } else if (name === "sin" || name === "cos") {
         // sin(-x) → -sin x, cos(-x) → cos x のような処理
         const arg = args[0];

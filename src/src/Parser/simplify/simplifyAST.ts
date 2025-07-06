@@ -123,40 +123,40 @@ export function simplifyAST(node: ASTNode): ASTNode {
         return optLeft;
       }
 
-      // 分子が分母の倍数の場合の約分: ax / bx → a/b
-      if (
-        optLeft.type === "operator" &&
-        optLeft.op === "*" &&
-        optRight.type === "operator" &&
-        optRight.op === "*"
-      ) {
-        // 分子と分母の共通因子を見つけて約分
-        const leftFactors: ASTNode[] = [];
-        const rightFactors: ASTNode[] = [];
-
-        const collectFactors = (node: ASTNode, factors: ASTNode[]) => {
-          if (node.type === "operator" && node.op === "*") {
-            collectFactors(node.left, factors);
-            collectFactors(node.right, factors);
-          } else {
-            factors.push(node);
-          }
+      // 共通因子の約分処理を改善
+      const simplifyFractionByFactors = (
+        num: ASTNode,
+        den: ASTNode
+      ): ASTNode => {
+        // 分子と分母の因子を取得
+        const getFactors = (node: ASTNode): ASTNode[] => {
+          const factors: ASTNode[] = [];
+          const collectFactors = (n: ASTNode) => {
+            if (n.type === "operator" && n.op === "*") {
+              collectFactors(n.left);
+              collectFactors(n.right);
+            } else {
+              factors.push(n);
+            }
+          };
+          collectFactors(node);
+          return factors;
         };
 
-        collectFactors(optLeft, leftFactors);
-        collectFactors(optRight, rightFactors);
+        const numFactors = getFactors(num);
+        const denFactors = getFactors(den);
 
         // 共通因子を探す
-        const remainingLeft = [...leftFactors];
-        const remainingRight = [...rightFactors];
+        const remainingNum = [...numFactors];
+        const remainingDen = [...denFactors];
 
-        for (let i = 0; i < leftFactors.length; i++) {
-          for (let j = 0; j < rightFactors.length; j++) {
+        for (let i = 0; i < numFactors.length; i++) {
+          for (let j = 0; j < denFactors.length; j++) {
             if (
-              JSON.stringify(leftFactors[i]) === JSON.stringify(rightFactors[j])
+              JSON.stringify(numFactors[i]) === JSON.stringify(denFactors[j])
             ) {
-              remainingLeft.splice(remainingLeft.indexOf(leftFactors[i]), 1);
-              remainingRight.splice(remainingRight.indexOf(rightFactors[j]), 1);
+              remainingNum.splice(remainingNum.indexOf(numFactors[i]), 1);
+              remainingDen.splice(remainingDen.indexOf(denFactors[j]), 1);
               break;
             }
           }
@@ -164,8 +164,8 @@ export function simplifyAST(node: ASTNode): ASTNode {
 
         // 共通因子があれば約分
         if (
-          remainingLeft.length < leftFactors.length ||
-          remainingRight.length < rightFactors.length
+          remainingNum.length < numFactors.length ||
+          remainingDen.length < denFactors.length
         ) {
           const buildProduct = (factors: ASTNode[]): ASTNode => {
             if (factors.length === 0) return { type: "number", value: 1 };
@@ -178,8 +178,8 @@ export function simplifyAST(node: ASTNode): ASTNode {
             }));
           };
 
-          const newNumerator = buildProduct(remainingLeft);
-          const newDenominator = buildProduct(remainingRight);
+          const newNumerator = buildProduct(remainingNum);
+          const newDenominator = buildProduct(remainingDen);
 
           // 分母が1の場合は分子だけ返す
           if (newDenominator.type === "number" && newDenominator.value === 1) {
@@ -192,6 +192,44 @@ export function simplifyAST(node: ASTNode): ASTNode {
             left: newNumerator,
             right: newDenominator,
           };
+        }
+
+        return {
+          type: "operator",
+          op: "/",
+          left: num,
+          right: den,
+        };
+      };
+
+      // 分子が分母の倍数の場合の約分: ax / bx → a/b
+      if (
+        optLeft.type === "operator" &&
+        optLeft.op === "*" &&
+        optRight.type === "operator" &&
+        optRight.op === "*"
+      ) {
+        const result = simplifyFractionByFactors(optLeft, optRight);
+        if (
+          result.type !== "operator" ||
+          result.op !== "/" ||
+          JSON.stringify(result.left) !== JSON.stringify(optLeft) ||
+          JSON.stringify(result.right) !== JSON.stringify(optRight)
+        ) {
+          return result;
+        }
+      }
+
+      // 分子が単一項で分母が積の場合の約分
+      if (optRight.type === "operator" && optRight.op === "*") {
+        const result = simplifyFractionByFactors(optLeft, optRight);
+        if (
+          result.type !== "operator" ||
+          result.op !== "/" ||
+          JSON.stringify(result.left) !== JSON.stringify(optLeft) ||
+          JSON.stringify(result.right) !== JSON.stringify(optRight)
+        ) {
+          return result;
         }
       }
 
@@ -495,10 +533,15 @@ export function simplifyAST(node: ASTNode): ASTNode {
         denominatorFactors.push(...denOtherFactors);
 
         // 負の指数処理: 分子が単純で分母が変数のみの場合、負の指数として表現
+        // ただし、分子が和の場合は分数形式を保持
         if (
           simplifiedDen === 1 &&
           negativeVars.length > 0 &&
-          denOtherFactors.length === 0
+          denOtherFactors.length === 0 &&
+          !(
+            numerator.type === "operator" &&
+            (numerator.op === "+" || numerator.op === "-")
+          )
         ) {
           // 負の指数を分子に追加
           const allFactors: ASTNode[] = [];
@@ -645,7 +688,7 @@ export function simplifyAST(node: ASTNode): ASTNode {
             left: {
               type: "operator",
               op: "^",
-              left: { type: "symbol", name: left.left.name },
+              left: { type: "symbol", name: optLeft.left.name },
               right: { type: "number", value: newExp },
             },
             right: { type: "number", value: c },
@@ -1223,6 +1266,68 @@ export function simplifyAST(node: ASTNode): ASTNode {
         }
       }
 
+      // 因数分解を試行（同類項合成の前に）
+      const tryFactorize = (termsList: ASTNode[]): ASTNode | null => {
+        if (termsList.length === 2) {
+          const [term1, term2] = termsList;
+
+          // x^2 + x → x(x + 1)
+          if (
+            term1.type === "operator" &&
+            term1.op === "^" &&
+            term1.left.type === "symbol" &&
+            term1.left.name === "x" &&
+            term1.right.type === "number" &&
+            term1.right.value === 2 &&
+            term2.type === "symbol" &&
+            term2.name === "x"
+          ) {
+            return {
+              type: "operator",
+              op: "*",
+              left: { type: "symbol", name: "x" },
+              right: {
+                type: "operator",
+                op: "+",
+                left: { type: "symbol", name: "x" },
+                right: { type: "number", value: 1 },
+              },
+            };
+          }
+
+          // x + x^2 → x(1 + x)
+          if (
+            term1.type === "symbol" &&
+            term1.name === "x" &&
+            term2.type === "operator" &&
+            term2.op === "^" &&
+            term2.left.type === "symbol" &&
+            term2.left.name === "x" &&
+            term2.right.type === "number" &&
+            term2.right.value === 2
+          ) {
+            return {
+              type: "operator",
+              op: "*",
+              left: { type: "symbol", name: "x" },
+              right: {
+                type: "operator",
+                op: "+",
+                left: { type: "number", value: 1 },
+                right: { type: "symbol", name: "x" },
+              },
+            };
+          }
+        }
+        return null;
+      };
+
+      // 因数分解を試行
+      const factorized = tryFactorize(terms);
+      if (factorized) {
+        return factorized;
+      }
+
       // 係数付き同類項を合成
       const merged: { [key: string]: number } = {};
       const termMap: { [key: string]: ASTNode } = {};
@@ -1443,6 +1548,80 @@ export function simplifyAST(node: ASTNode): ASTNode {
         return { type: "number", value: 1 };
       }
 
+      // 同じ式の積を指数の加算に変換: f(x) * f(x)^n → f(x)^{n+1}
+      if (
+        left.type === "operator" &&
+        left.op === "^" &&
+        right.type === "operator" &&
+        right.op === "^" &&
+        JSON.stringify(left.left) === JSON.stringify(right.left) &&
+        left.right.type === "number" &&
+        right.right.type === "number"
+      ) {
+        const newExponent = left.right.value + right.right.value;
+        return {
+          type: "operator",
+          op: "^",
+          left: left.left,
+          right: { type: "number", value: newExponent },
+        };
+      }
+
+      // f(x) * f(x)^n → f(x)^{n+1}
+      if (
+        right.type === "operator" &&
+        right.op === "^" &&
+        JSON.stringify(left) === JSON.stringify(right.left) &&
+        right.right.type === "number"
+      ) {
+        return {
+          type: "operator",
+          op: "^",
+          left: left,
+          right: { type: "number", value: right.right.value + 1 },
+        };
+      }
+
+      // f(x) * g(x)^n → f(x)^{n+1} (f(x) = g(x) の場合)
+      if (
+        right.type === "operator" &&
+        right.op === "^" &&
+        right.right.type === "number" &&
+        JSON.stringify(left) === JSON.stringify(right.left)
+      ) {
+        return {
+          type: "operator",
+          op: "^",
+          left: left,
+          right: { type: "number", value: right.right.value + 1 },
+        };
+      }
+
+      // f(x)^n * f(x) → f(x)^{n+1}
+      if (
+        left.type === "operator" &&
+        left.op === "^" &&
+        JSON.stringify(left.left) === JSON.stringify(right) &&
+        left.right.type === "number"
+      ) {
+        return {
+          type: "operator",
+          op: "^",
+          left: right,
+          right: { type: "number", value: left.right.value + 1 },
+        };
+      }
+
+      // f(x) * f(x) → f(x)^2
+      if (JSON.stringify(left) === JSON.stringify(right)) {
+        return {
+          type: "operator",
+          op: "^",
+          left: left,
+          right: { type: "number", value: 2 },
+        };
+      }
+
       // flattenして積のリストを作る
       const factors: ASTNode[] = [];
       const collectFactors = (n: ASTNode) => {
@@ -1455,6 +1634,66 @@ export function simplifyAST(node: ASTNode): ASTNode {
       };
       collectFactors(left);
       collectFactors(right);
+
+      // 同じ式の指数を合成: f(x) * f(x)^n → f(x)^{n+1}
+      const baseExps = new Map<string, number>();
+      const baseForms = new Map<string, ASTNode>();
+
+      for (const factor of factors) {
+        if (
+          factor.type === "operator" &&
+          factor.op === "^" &&
+          factor.right.type === "number"
+        ) {
+          const baseKey = JSON.stringify(factor.left);
+          const currentExp = baseExps.get(baseKey) || 0;
+          baseExps.set(baseKey, currentExp + factor.right.value);
+          baseForms.set(baseKey, factor.left);
+        } else {
+          const baseKey = JSON.stringify(factor);
+          const currentExp = baseExps.get(baseKey) || 0;
+          baseExps.set(baseKey, currentExp + 1);
+          baseForms.set(baseKey, factor);
+        }
+      }
+
+      // 結果を再構築
+      const newFactors: ASTNode[] = [];
+      for (const [baseKey, exp] of baseExps.entries()) {
+        const base = baseForms.get(baseKey)!;
+        if (exp === 1) {
+          newFactors.push(base);
+        } else if (exp > 1) {
+          newFactors.push({
+            type: "operator",
+            op: "^",
+            left: base,
+            right: { type: "number", value: exp },
+          });
+        }
+        // exp <= 0 の場合は除外
+      }
+
+      // 新しい因子リストが元の因子リストと異なる場合、それを使用
+      if (
+        newFactors.length !== factors.length ||
+        newFactors.some(
+          (f, i) => JSON.stringify(f) !== JSON.stringify(factors[i])
+        )
+      ) {
+        if (newFactors.length === 0) {
+          return { type: "number", value: 1 };
+        } else if (newFactors.length === 1) {
+          return newFactors[0];
+        } else {
+          return newFactors.reduce((a, b) => ({
+            type: "operator",
+            op: "*",
+            left: a,
+            right: b,
+          }));
+        }
+      }
 
       // 係数と各変数の指数をまとめる
       let coef = 1;
