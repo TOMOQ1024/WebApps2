@@ -47,7 +47,6 @@ function applyDistributiveLaw(terms: ASTNode[]): ASTNode[] {
       term.right.op === "+"
     ) {
       // 9(π^x + sin x) → 9π^x + 9sin x
-      // ただし、係数が整数でない場合や複合式の場合は適用しない
       const coefficient = term.left.value;
       if (Number.isInteger(coefficient) && Math.abs(coefficient) <= 100) {
         const innerTerms = flattenAddition(term.right.left, term.right.right);
@@ -62,6 +61,31 @@ function applyDistributiveLaw(terms: ASTNode[]): ASTNode[] {
         }
       } else {
         result.push(term);
+      }
+    } else if (
+      term.type === "operator" &&
+      term.op === "*" &&
+      term.left.type === "operator" &&
+      term.left.op === "+" &&
+      term.right.type === "operator" &&
+      (term.right.op === "+" || term.right.type !== "operator")
+    ) {
+      // (A+B)(C+D) → AC + AD + BC + BD の展開
+      const leftTerms = flattenAddition(term.left.left, term.left.right);
+      const rightTerms =
+        term.right.op === "+"
+          ? flattenAddition(term.right.left, term.right.right)
+          : [term.right];
+
+      for (const leftTerm of leftTerms) {
+        for (const rightTerm of rightTerms) {
+          result.push({
+            type: "operator",
+            op: "*",
+            left: leftTerm,
+            right: rightTerm,
+          });
+        }
       }
     } else {
       result.push(term);

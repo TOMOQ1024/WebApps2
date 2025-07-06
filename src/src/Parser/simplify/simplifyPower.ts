@@ -128,7 +128,9 @@ export function simplifyPower(
   if (
     base.type === "operator" &&
     base.op === "*" &&
-    exponent.type === "number"
+    exponent.type === "number" &&
+    Number.isInteger(exponent.value) &&
+    Math.abs(exponent.value) <= 3 // 展開は小さな指数のみに制限
   ) {
     const leftPower = simplifyPower(base.left, exponent, options);
     const rightPower = simplifyPower(base.right, exponent, options);

@@ -19,7 +19,7 @@ describe("simplifyLaTeX", () => {
       simplifyLaTeX(
         "\\left(9+\\tan x\\right)\\left(\\pi^{x}+\\sin x\\right)+\\pi^{x}+\\sin x"
       )
-    ).toBe("\\left(10+\\tan x\\right)\\left(\\pi^{x}+\\sin x\\right)");
+    ).toBe("\\left(\\tan x+10\\right)\\left(\\pi^{x}+\\sin x\\right)");
   });
 
   test("乗法に関する簡単化", () => {

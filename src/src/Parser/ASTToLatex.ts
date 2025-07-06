@@ -359,16 +359,24 @@ export function ASTToLatex(
           )}`;
         }
 
-        // 変数と括弧付きの式の積の場合は、\\left(\\right)で囲む
+        // 加減ノードを含む積の場合は、加減ノードを括弧で囲む
+        let finalLeftStr = leftStr;
+        let finalRightStr = rightStr;
+
+        // 左の子が加減ノードの場合は括弧で囲む
+        if (left.type === "operator" && (left.op === "+" || left.op === "-")) {
+          finalLeftStr = `\\left(${leftStr}\\right)`;
+        }
+
+        // 右の子が加減ノードの場合は括弧で囲む
         if (
-          left.type === "symbol" &&
           right.type === "operator" &&
           (right.op === "+" || right.op === "-")
         ) {
-          return `${leftStr}\\left(${rightStr}\\right)`;
+          finalRightStr = `\\left(${rightStr}\\right)`;
         }
 
-        return `${leftStr}${rightStr}`;
+        return `${finalLeftStr}${finalRightStr}`;
       } else if (op === "/") {
         // 分数ノードは必ずstringで返す
 
