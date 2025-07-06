@@ -6,6 +6,20 @@ import { groupLikeTerms } from "./groupLikeTerms";
 import { buildAddition } from "./buildAddition";
 import { extractCoefficient } from "./extractCoefficient";
 
+// ASTノードを文字列化（比較用）
+function astToString(node: ASTNode): string {
+  if (node.type === "number") {
+    return node.value.toString();
+  } else if (node.type === "symbol") {
+    return node.name;
+  } else if (node.type === "operator") {
+    return `(${astToString(node.left)}${node.op}${astToString(node.right)})`;
+  } else if (node.type === "function") {
+    return `${node.name}(${node.args.map(astToString).join(",")})`;
+  }
+  return "";
+}
+
 // 加算の簡約化
 export function simplifyAddition(
   left: ASTNode,
@@ -71,21 +85,37 @@ function applyDistributiveLaw(terms: ASTNode[]): ASTNode[] {
       (term.right.op === "+" || term.right.type !== "operator")
     ) {
       // (A+B)(C+D) → AC + AD + BC + BD の展開
-      const leftTerms = flattenAddition(term.left.left, term.left.right);
+      // ただし、C や D が他の項として既に存在する場合は展開を避ける
       const rightTerms =
         term.right.op === "+"
           ? flattenAddition(term.right.left, term.right.right)
           : [term.right];
 
-      for (const leftTerm of leftTerms) {
-        for (const rightTerm of rightTerms) {
-          result.push({
-            type: "operator",
-            op: "*",
-            left: leftTerm,
-            right: rightTerm,
-          });
+      // 他の項をチェックして、rightTerms のいずれかが既に存在するかを確認
+      const hasConflictingTerms = rightTerms.some((rightTerm) =>
+        terms.some((otherTerm) => {
+          if (otherTerm === term) return false; // 同じ項は除外
+          return astToString(rightTerm) === astToString(otherTerm);
+        })
+      );
+
+      if (!hasConflictingTerms) {
+        // 安全に展開できる場合のみ実行
+        const leftTerms = flattenAddition(term.left.left, term.left.right);
+
+        for (const leftTerm of leftTerms) {
+          for (const rightTerm of rightTerms) {
+            result.push({
+              type: "operator",
+              op: "*",
+              left: leftTerm,
+              right: rightTerm,
+            });
+          }
         }
+      } else {
+        // 展開を避けて元の形を保持
+        result.push(term);
       }
     } else {
       result.push(term);

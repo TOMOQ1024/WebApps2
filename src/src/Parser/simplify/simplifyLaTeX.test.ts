@@ -59,6 +59,10 @@ describe("simplifyLaTeX", () => {
     ).toBe(
       "\\left(5+\\cos x\\right)^{2}\\left(1+\\left(5+\\cos x\\right)^{4}\\right)^{-1}"
     );
+    expect(simplifyLaTeX("\\frac{1+x}{1+x}")).toBe("1");
+    expect(simplifyLaTeX("\\frac{1+x}{1+2x+x^2}")).toBe(
+      "\\left(1+x\\right)^{-1}"
+    );
   });
 
   test("指数に関する簡単化", () => {
@@ -140,7 +144,10 @@ describe("simplifyLaTeX", () => {
 
   test("一般の変数名", () => {
     expect(simplifyLaTeX("xxyyyzzzz+wwwww")).toBe("w^{5}+x^{2}y^{3}z^{4}");
+    expect(simplifyLaTeX("\\frac{a^4b^7c}{bc^2}")).toBe("a^{4}b^{6}c^{-1}");
     expect(simplifyLaTeX("\\frac{x^4y^7z}{yz^2}")).toBe("x^{4}y^{6}z^{-1}");
+    expect(simplifyLaTeX("\\frac{x^3+x^3y}{x^3}")).toBe("1+y");
+    expect(simplifyLaTeX("\\frac{xxz+xxxy}{xx}")).toBe("x y+z");
   });
 
   test("辞書順でのソート", () => {

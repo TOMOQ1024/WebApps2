@@ -21,6 +21,19 @@ export function extractCoefficient(term: ASTNode): {
     return { coefficient: term.left.value, base: term.right };
   }
 
+  // 複合式と複合式の乗算を処理（例：(9+tan x)(π^x + sin x)）
+  if (
+    term.type === "operator" &&
+    term.op === "*" &&
+    term.left.type === "operator" &&
+    term.left.op === "+" &&
+    term.right.type === "operator" &&
+    term.right.op === "+"
+  ) {
+    // この場合は特別扱いせず、通常の処理に委ねる
+    return { coefficient: 1, base: term };
+  }
+
   // 乗算の場合、数値因子と非数値因子に分ける
   if (term.type === "operator" && term.op === "*") {
     const factors = flattenMultiplication(term.left, term.right);

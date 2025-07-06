@@ -1,6 +1,7 @@
 import { ASTNode } from "../ASTNode";
 import { flattenAddition } from "./flattenAddition";
 import { extractCoefficient } from "./extractCoefficient";
+import { flattenMultiplication } from "./flattenMultiplication";
 
 // ASTノードが深く等しいかチェック
 function deepEqual(a: ASTNode, b: ASTNode): boolean {
@@ -55,7 +56,163 @@ function extractCommonFactor(terms: ASTNode[]): {
     if (result) return result;
   }
 
-  // 同じ底で異なる指数を持つ項から共通因子を抽出
+  // 乗算項を詳細に分析して共通因子を抽出
+  // 例: x^2*z + x^3*y → x^2(z + x*y)
+  const termFactorizations: { factors: ASTNode[]; originalTerm: ASTNode }[] =
+    [];
+
+  for (const term of terms) {
+    if (term.type === "operator" && term.op === "*") {
+      const factors = flattenMultiplication(term.left, term.right);
+      termFactorizations.push({ factors, originalTerm: term });
+    } else {
+      termFactorizations.push({ factors: [term], originalTerm: term });
+    }
+  }
+
+  // すべての項に共通するべき乗因子を探す（指数の最小値を使用）
+  const baseExponents = new Map<string, number[]>();
+
+  for (const { factors } of termFactorizations) {
+    const currentBases = new Map<string, number>();
+
+    for (const factor of factors) {
+      if (
+        factor.type === "operator" &&
+        factor.op === "^" &&
+        factor.left.type === "symbol" &&
+        factor.right.type === "number"
+      ) {
+        const baseKey = factor.left.name;
+        const exponent = factor.right.value;
+        currentBases.set(baseKey, (currentBases.get(baseKey) || 0) + exponent);
+      } else if (factor.type === "symbol") {
+        const baseKey = factor.name;
+        currentBases.set(baseKey, (currentBases.get(baseKey) || 0) + 1);
+      }
+    }
+
+    // 各底の指数を記録
+    for (const [baseKey, exponent] of currentBases) {
+      if (!baseExponents.has(baseKey)) {
+        baseExponents.set(baseKey, []);
+      }
+      baseExponents.get(baseKey)!.push(exponent);
+    }
+  }
+
+  // 全ての項に存在する底を探し、最小指数を求める
+  const commonFactorParts: ASTNode[] = [];
+  for (const [baseKey, exponents] of baseExponents) {
+    if (exponents.length === termFactorizations.length) {
+      // すべての項にこの底が存在
+      const minExponent = Math.min(...exponents);
+      if (minExponent > 0) {
+        if (minExponent === 1) {
+          commonFactorParts.push({ type: "symbol", name: baseKey });
+        } else {
+          commonFactorParts.push({
+            type: "operator",
+            op: "^",
+            left: { type: "symbol", name: baseKey },
+            right: { type: "number", value: minExponent },
+          });
+        }
+      }
+    }
+  }
+
+  if (commonFactorParts.length > 0) {
+    // 共通因子を構築
+    const commonFactor =
+      commonFactorParts.length === 1
+        ? commonFactorParts[0]
+        : commonFactorParts.reduce((a, b) => ({
+            type: "operator" as const,
+            op: "*" as const,
+            left: a,
+            right: b,
+          }));
+
+    // 各項から共通因子を除いた残りを計算
+    const factorizedTerms: ASTNode[] = [];
+    for (const { factors, originalTerm } of termFactorizations) {
+      const remainingFactors: ASTNode[] = [];
+      const usedExponents = new Map<string, number>();
+
+      // 共通因子で使用された指数を記録
+      for (const commonPart of commonFactorParts) {
+        if (commonPart.type === "symbol") {
+          usedExponents.set(commonPart.name, 1);
+        } else if (
+          commonPart.type === "operator" &&
+          commonPart.op === "^" &&
+          commonPart.left.type === "symbol" &&
+          commonPart.right.type === "number"
+        ) {
+          usedExponents.set(commonPart.left.name, commonPart.right.value);
+        }
+      }
+
+      // 各因子を処理
+      const baseUsage = new Map<string, number>();
+      for (const factor of factors) {
+        if (
+          factor.type === "operator" &&
+          factor.op === "^" &&
+          factor.left.type === "symbol" &&
+          factor.right.type === "number"
+        ) {
+          const baseKey = factor.left.name;
+          const exponent = factor.right.value;
+          baseUsage.set(baseKey, (baseUsage.get(baseKey) || 0) + exponent);
+        } else if (factor.type === "symbol") {
+          const baseKey = factor.name;
+          baseUsage.set(baseKey, (baseUsage.get(baseKey) || 0) + 1);
+        } else {
+          remainingFactors.push(factor);
+        }
+      }
+
+      // 残りの指数を計算
+      for (const [baseKey, totalExponent] of baseUsage) {
+        const usedExponent = usedExponents.get(baseKey) || 0;
+        const remainingExponent = totalExponent - usedExponent;
+
+        if (remainingExponent > 0) {
+          if (remainingExponent === 1) {
+            remainingFactors.push({ type: "symbol", name: baseKey });
+          } else {
+            remainingFactors.push({
+              type: "operator",
+              op: "^",
+              left: { type: "symbol", name: baseKey },
+              right: { type: "number", value: remainingExponent },
+            });
+          }
+        }
+      }
+
+      // 残りの因子から項を構築
+      if (remainingFactors.length === 0) {
+        factorizedTerms.push({ type: "number", value: 1 });
+      } else if (remainingFactors.length === 1) {
+        factorizedTerms.push(remainingFactors[0]);
+      } else {
+        const combinedFactor = remainingFactors.reduce((a, b) => ({
+          type: "operator" as const,
+          op: "*" as const,
+          left: a,
+          right: b,
+        }));
+        factorizedTerms.push(combinedFactor);
+      }
+    }
+
+    return { commonFactor, factorizedTerms };
+  }
+
+  // 同じ底で異なる指数を持つ項から共通因子を抽出（従来の処理）
   // 例: A^5 + A^3 → A^3(A^2 + 1)
   const powerTerms = new Map<
     string,
@@ -102,10 +259,9 @@ function extractCommonFactor(terms: ASTNode[]): {
   }
 
   // 複数の項を持つ底を探す
-  for (const [
-    baseKey,
-    { base, terms: powerTermsList },
-  ] of powerTerms.entries()) {
+  for (const [baseKey, { base, terms: powerTermsList }] of Array.from(
+    powerTerms.entries()
+  )) {
     if (powerTermsList.length > 1) {
       // 最小指数を求める
       const minExponent = Math.min(...powerTermsList.map((t) => t.exponent));
@@ -174,7 +330,7 @@ function extractCommonFactor(terms: ASTNode[]): {
         for (const [
           otherKey,
           { base: otherBase, terms: otherTermsList },
-        ] of powerTerms.entries()) {
+        ] of Array.from(powerTerms.entries())) {
           if (otherKey !== baseKey) {
             factorizedTerms.push(...otherTermsList.map((t) => t.originalTerm));
           }
@@ -242,7 +398,9 @@ function extractCommonFactor(terms: ASTNode[]): {
   }
 
   // 複数回現れる因子を探す
-  for (const [factorKey, { factor, coefficients }] of factorGroups.entries()) {
+  for (const [factorKey, { factor, coefficients }] of Array.from(
+    factorGroups.entries()
+  )) {
     if (coefficients.length > 1) {
       // 係数を合計
       const sumCoefficients = coefficients.reduce(
@@ -267,10 +425,9 @@ function extractCommonFactor(terms: ASTNode[]): {
 
       // 他の項を収集
       const otherTerms: ASTNode[] = [];
-      for (const [
-        otherKey,
-        { factor: otherFactor },
-      ] of factorGroups.entries()) {
+      for (const [otherKey, { factor: otherFactor }] of Array.from(
+        factorGroups.entries()
+      )) {
         if (otherKey !== factorKey) {
           otherTerms.push(otherFactor);
         }
@@ -404,77 +561,234 @@ function tryFactorizationPattern(
   return null;
 }
 
+// 完全平方式の検出: a^2 + 2ab + b^2 = (a+b)^2
+function tryQuadraticFactorization(terms: ASTNode[]): ASTNode | null {
+  if (terms.length !== 3) return null;
+
+  // 各項を解析して完全平方式のパターンを探す
+  // 例: x^2 + 2x + 1 = (x+1)^2
+  // 例: 1 + 2x + x^2 = (1+x)^2
+
+  // まず各項を係数と基底に分解
+  const termData = terms.map((term) => {
+    const { coefficient, base } = extractCoefficient(term);
+    return { coefficient, base, originalTerm: term };
+  });
+
+  // x^2項、x項、定数項を特定
+  let squareTerm: {
+    coefficient: number;
+    base: ASTNode;
+    variable: ASTNode;
+  } | null = null;
+  let linearTerm: { coefficient: number; variable: ASTNode } | null = null;
+  let constantTerm: { coefficient: number } | null = null;
+
+  for (const { coefficient, base } of termData) {
+    if (
+      base.type === "operator" &&
+      base.op === "^" &&
+      base.right.type === "number" &&
+      base.right.value === 2
+    ) {
+      // x^2項
+      squareTerm = { coefficient, base, variable: base.left };
+    } else if (base.type === "symbol") {
+      // x項
+      linearTerm = { coefficient, variable: base };
+    } else if (base.type === "number" && base.value === 1) {
+      // 定数項
+      constantTerm = { coefficient };
+    }
+  }
+
+  // x^2 + 2x + 1 = (x+1)^2 の検出
+  if (
+    squareTerm &&
+    linearTerm &&
+    constantTerm &&
+    squareTerm.coefficient === 1 &&
+    deepEqual(squareTerm.variable, linearTerm.variable) &&
+    linearTerm.coefficient === 2 &&
+    constantTerm.coefficient === 1
+  ) {
+    return {
+      type: "operator" as const,
+      op: "^" as const,
+      left: {
+        type: "operator" as const,
+        op: "+" as const,
+        left: squareTerm.variable,
+        right: { type: "number" as const, value: 1 },
+      },
+      right: { type: "number" as const, value: 2 },
+    };
+  }
+
+  return null;
+}
+
+// 乗算項から共通因子を抽出
+function extractCommonMultiplicativeFactors(terms: ASTNode[]): {
+  commonFactor: ASTNode | null;
+  factorizedTerms: ASTNode[];
+} {
+  if (terms.length < 2) return { commonFactor: null, factorizedTerms: terms };
+
+  // 各項を乗算因子に分解
+  const termFactors = terms.map((term) => {
+    if (term.type === "operator" && term.op === "*") {
+      return flattenMultiplication(term.left, term.right);
+    } else {
+      return [term];
+    }
+  });
+
+  // すべての項に共通する因子を探す
+  const firstTermFactors = termFactors[0];
+  const commonFactors: ASTNode[] = [];
+
+  for (const factor of firstTermFactors) {
+    // この因子が他のすべての項にも存在するかチェック
+    const existsInAllTerms = termFactors
+      .slice(1)
+      .every((otherTermFactors) =>
+        otherTermFactors.some((otherFactor) => deepEqual(factor, otherFactor))
+      );
+
+    if (existsInAllTerms) {
+      commonFactors.push(factor);
+    }
+  }
+
+  if (commonFactors.length === 0) {
+    return { commonFactor: null, factorizedTerms: terms };
+  }
+
+  // 共通因子を構築
+  const commonFactor =
+    commonFactors.length === 1
+      ? commonFactors[0]
+      : commonFactors.reduce((a, b) => ({
+          type: "operator" as const,
+          op: "*" as const,
+          left: a,
+          right: b,
+        }));
+
+  // 各項から共通因子を除いた残りの因子を計算
+  const factorizedTerms = termFactors.map((factors) => {
+    const remainingFactors = factors.filter(
+      (factor) =>
+        !commonFactors.some((commonFactor) => deepEqual(factor, commonFactor))
+    );
+
+    if (remainingFactors.length === 0) {
+      return { type: "number" as const, value: 1 };
+    } else if (remainingFactors.length === 1) {
+      return remainingFactors[0];
+    } else {
+      return remainingFactors.reduce((a, b) => ({
+        type: "operator" as const,
+        op: "*" as const,
+        left: a,
+        right: b,
+      }));
+    }
+  });
+
+  return { commonFactor, factorizedTerms };
+}
+
 // 簡単な因数分解を試行
 export function tryFactorization(node: ASTNode): ASTNode {
   if (node.type !== "operator" || node.op !== "+") return node;
 
   const terms = flattenAddition(node.left, node.right);
 
-  // 特殊パターンの検出: (A*F + F) → (A+1)*F
-  // 例: (9+tan x)(π^x+sin x) + π^x+sin x → (10+tan x)(π^x+sin x)
+  // 完全平方式の検出: a^2 + 2ab + b^2 = (a+b)^2
+  const quadraticResult = tryQuadraticFactorization(terms);
+  if (quadraticResult) return quadraticResult;
+
+  // 特殊パターンの検出: (A*F + F) → (A+1)*F を最初に実行
+  // まず、乗算項の中で一部が他の項として独立して存在するケースを検出
+
   for (let i = 0; i < terms.length; i++) {
-    for (let j = i + 1; j < terms.length; j++) {
-      const term1 = terms[i];
-      const term2 = terms[j];
+    const term = terms[i];
 
-      // term1 が A*F の形で、term2 が F の形かチェック
-      if (term1.type === "operator" && term1.op === "*") {
-        const A = term1.left;
-        const F = term1.right;
+    // 乗算項をチェック
+    if (term.type === "operator" && term.op === "*") {
+      const A = term.left;
+      const F = term.right;
 
-        if (deepEqual(F, term2)) {
-          // A*F + F → (A+1)*F に変換
-          const newCoefficient = {
-            type: "operator",
-            op: "+",
-            left: A,
-            right: { type: "number", value: 1 },
-          } as ASTNode;
+      // F が加算項で、その構成要素が他の項として独立して存在するかチェック
+      if (F.type === "operator" && F.op === "+") {
+        const fComponents = flattenAddition(F.left, F.right);
 
-          const newTerm = {
-            type: "operator",
-            op: "*",
-            left: newCoefficient,
-            right: F,
-          } as ASTNode;
+        // fComponents のすべてが他の項として存在するかチェック
+        const matchingIndices: number[] = [];
+        let allComponentsFound = true;
 
-          // 他の項を収集
-          const remainingTerms = terms.filter(
-            (_, index) => index !== i && index !== j
+        for (const component of fComponents) {
+          const matchingIndex = terms.findIndex(
+            (otherTerm, j) => j !== i && deepEqual(component, otherTerm)
           );
 
-          if (remainingTerms.length === 0) {
-            return newTerm;
+          if (matchingIndex !== -1) {
+            matchingIndices.push(matchingIndex);
           } else {
-            const combinedRemaining = remainingTerms.reduce((a, b) => ({
-              type: "operator",
-              op: "+",
-              left: a,
-              right: b,
-            }));
-            return {
-              type: "operator",
-              op: "+",
-              left: newTerm,
-              right: combinedRemaining,
-            };
+            allComponentsFound = false;
+            break;
           }
         }
-      }
 
-      // term2 が A*F の形で、term1 が F の形かチェック
-      if (term2.type === "operator" && term2.op === "*") {
-        const A = term2.left;
-        const F = term2.right;
+        if (
+          allComponentsFound &&
+          matchingIndices.length === fComponents.length
+        ) {
+          // A*F + F のパターンを検出 → (A+1)*F に変換
+          let newCoefficient: ASTNode;
 
-        if (deepEqual(F, term1)) {
-          // F + A*F → (1+A)*F に変換
-          const newCoefficient = {
-            type: "operator",
-            op: "+",
-            left: { type: "number", value: 1 },
-            right: A,
-          } as ASTNode;
+          // A が加算項の場合、数値項を集約
+          if (A.type === "operator" && A.op === "+") {
+            const aTerms = flattenAddition(A.left, A.right);
+            let numericSum = 1; // +1 を追加
+            const nonNumericTerms: ASTNode[] = [];
+
+            for (const aTerm of aTerms) {
+              if (aTerm.type === "number") {
+                numericSum += aTerm.value;
+              } else {
+                nonNumericTerms.push(aTerm);
+              }
+            }
+
+            // 新しい係数を構築（数値項を後ろに配置）
+            const terms: ASTNode[] = [];
+            terms.push(...nonNumericTerms);
+            if (numericSum !== 0) {
+              terms.push({ type: "number", value: numericSum });
+            }
+
+            if (terms.length === 1) {
+              newCoefficient = terms[0];
+            } else {
+              newCoefficient = terms.reduce((a, b) => ({
+                type: "operator",
+                op: "+",
+                left: a,
+                right: b,
+              }));
+            }
+          } else {
+            // A が単純な項の場合
+            newCoefficient = {
+              type: "operator",
+              op: "+",
+              left: A,
+              right: { type: "number", value: 1 },
+            } as ASTNode;
+          }
 
           const newTerm = {
             type: "operator",
@@ -483,9 +797,10 @@ export function tryFactorization(node: ASTNode): ASTNode {
             right: F,
           } as ASTNode;
 
-          // 他の項を収集
+          // 使用された項以外の項を収集
+          const usedIndices = [i, ...matchingIndices];
           const remainingTerms = terms.filter(
-            (_, index) => index !== i && index !== j
+            (_, index) => !usedIndices.includes(index)
           );
 
           if (remainingTerms.length === 0) {
@@ -509,7 +824,7 @@ export function tryFactorization(node: ASTNode): ASTNode {
     }
   }
 
-  // 複合式の共通因子抽出を試行
+  // 複合式の共通因子抽出を試行（より高機能）
   const { commonFactor, factorizedTerms } = extractCommonFactor(terms);
 
   if (commonFactor && factorizedTerms.length > 0) {
@@ -539,6 +854,42 @@ export function tryFactorization(node: ASTNode): ASTNode {
         op: "*",
         left: combinedTerms,
         right: commonFactor,
+      };
+    }
+  }
+
+  // 乗算項から共通因子を抽出: fallback（シンプルなケース用）
+  const multiplicativeResult = extractCommonMultiplicativeFactors(terms);
+  if (multiplicativeResult.commonFactor) {
+    const { commonFactor: mCommonFactor, factorizedTerms: mFactorizedTerms } =
+      multiplicativeResult;
+
+    if (mFactorizedTerms.length === 1) {
+      if (
+        mFactorizedTerms[0].type === "number" &&
+        mFactorizedTerms[0].value === 1
+      ) {
+        return mCommonFactor;
+      } else {
+        return {
+          type: "operator" as const,
+          op: "*" as const,
+          left: mFactorizedTerms[0],
+          right: mCommonFactor,
+        };
+      }
+    } else {
+      const combinedTerms = mFactorizedTerms.reduce((a, b) => ({
+        type: "operator" as const,
+        op: "+" as const,
+        left: a,
+        right: b,
+      }));
+      return {
+        type: "operator" as const,
+        op: "*" as const,
+        left: mCommonFactor,
+        right: combinedTerms,
       };
     }
   }

@@ -346,14 +346,8 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
     const result = parseExpression();
     return result;
   } catch (error) {
-    console.error(
-      "Parse error:",
-      (error as Error).message,
-      "at position",
-      pos,
-      "in:",
-      latex
+    throw new Error(
+      `Parse error: ${(error as Error).message} at position ${pos} in: ${latex}`
     );
-    return { type: "number", value: 0 };
   }
 }
