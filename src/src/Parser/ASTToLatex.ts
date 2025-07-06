@@ -182,12 +182,6 @@ export function ASTToLatex(
           return `-${ASTToLatex(right, astTransform)}`;
         }
 
-        // 両辺がnumberの場合は数値計算
-        if (left.type === "number" && right.type === "number") {
-          const result = left.value * right.value;
-          return numberToLatex(result);
-        }
-
         // 係数 * 本体 の形に正規化（左右どちらがnumberでも対応）
         if (left.type === "number") {
           if (left.value === 0) return "0";
@@ -200,6 +194,17 @@ export function ASTToLatex(
               right,
               astTransform
             )}`;
+          }
+
+          // 加減算の場合は括弧で囲む
+          if (
+            right.type === "operator" &&
+            (right.op === "+" || right.op === "-")
+          ) {
+            return `${numberToLatex(left.value)}\\left(${ASTToLatex(
+              right,
+              astTransform
+            )}\\right)`;
           }
 
           return `${numberToLatex(left.value)}${ASTToLatex(
@@ -218,6 +223,17 @@ export function ASTToLatex(
             return `${ASTToLatex(left, astTransform)} ${numberToLatex(
               right.value
             )}`;
+          }
+
+          // 加減算の場合は括弧で囲む
+          if (
+            left.type === "operator" &&
+            (left.op === "+" || left.op === "-")
+          ) {
+            return `${numberToLatex(right.value)}\\left(${ASTToLatex(
+              left,
+              astTransform
+            )}\\right)`;
           }
 
           return `${numberToLatex(right.value)}${ASTToLatex(
