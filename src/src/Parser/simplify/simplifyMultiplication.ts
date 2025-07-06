@@ -13,6 +13,29 @@ export function simplifyMultiplication(left: ASTNode, right: ASTNode): ASTNode {
   if (isOne(left)) return right;
   if (isOne(right)) return left;
 
+  // 分数の約分処理
+  if (
+    left.type === "operator" &&
+    left.op === "/" &&
+    right.type === "operator" &&
+    right.op === "^" &&
+    right.right.type === "number" &&
+    right.right.value === -1
+  ) {
+    // (a/b) * c^(-1) → a/(b*c)
+    return {
+      type: "operator",
+      op: "/",
+      left: left.left,
+      right: {
+        type: "operator",
+        op: "*",
+        left: left.right,
+        right: right.left,
+      },
+    };
+  }
+
   // 乗算項を平坦化
   const factors = flattenMultiplication(left, right);
 

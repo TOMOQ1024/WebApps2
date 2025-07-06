@@ -1,10 +1,15 @@
 import { ASTNode } from "../ASTNode";
+import { SimplifyOptions } from "./simplifyLaTeX";
+import { flattenMultiplication } from "./flattenMultiplication";
 
 // 正規化されたASTを元の形式に戻す
-export function denormalizeAST(node: ASTNode): ASTNode {
+export function denormalizeAST(
+  node: ASTNode,
+  options?: SimplifyOptions
+): ASTNode {
   if (node.type === "operator") {
-    const left = denormalizeAST(node.left);
-    const right = denormalizeAST(node.right);
+    const left = denormalizeAST(node.left, options);
+    const right = denormalizeAST(node.right, options);
 
     // (-1) * a → -a に変換
     if (node.op === "*" && left.type === "number" && left.value === -1) {
@@ -16,8 +21,9 @@ export function denormalizeAST(node: ASTNode): ASTNode {
       };
     }
 
-    // a * (b^(-1)) → a / b に変換
+    // a * (b^(-1)) → a / b に変換（rationalModeに基づく）
     if (
+      options?.rationalMode === "fraction" &&
       node.op === "*" &&
       right.type === "operator" &&
       right.op === "^" &&
@@ -32,11 +38,11 @@ export function denormalizeAST(node: ASTNode): ASTNode {
       };
     }
 
-    // 乗算の中で負の指数を持つ因子を分数に変換
-    if (node.op === "*") {
+    // 乗算の中で負の指数を持つ因子を処理（rationalModeに基づく）
+    if (options?.rationalMode === "fraction" && node.op === "*") {
       const factors = flattenMultiplication(left, right);
-      const positiveFactors: ASTNode[] = [];
-      const negativeFactors: ASTNode[] = [];
+      const numeratorFactors: ASTNode[] = [];
+      const denominatorFactors: ASTNode[] = [];
 
       for (const factor of factors) {
         if (
@@ -45,44 +51,41 @@ export function denormalizeAST(node: ASTNode): ASTNode {
           factor.right.type === "number" &&
           factor.right.value < 0
         ) {
-          // 負の指数を正の指数に変換して分母に移動
-          negativeFactors.push({
+          // 負の指数を持つ因子は分母に
+          denominatorFactors.push({
             type: "operator",
             op: "^",
             left: factor.left,
             right: { type: "number", value: -factor.right.value },
           });
         } else {
-          positiveFactors.push(factor);
+          numeratorFactors.push(factor);
         }
       }
 
-      // 分数形式に変換
-      if (negativeFactors.length > 0) {
+      if (denominatorFactors.length > 0) {
         const numerator =
-          positiveFactors.length === 0
-            ? { type: "number" as const, value: 1 }
-            : positiveFactors.length === 1
-            ? positiveFactors[0]
-            : positiveFactors.reduce((a, b) => ({
-                type: "operator" as const,
+          numeratorFactors.length === 1
+            ? numeratorFactors[0]
+            : numeratorFactors.reduce((a, b) => ({
+                type: "operator",
                 op: "*",
                 left: a,
                 right: b,
               }));
 
         const denominator =
-          negativeFactors.length === 1
-            ? negativeFactors[0]
-            : negativeFactors.reduce((a, b) => ({
-                type: "operator" as const,
+          denominatorFactors.length === 1
+            ? denominatorFactors[0]
+            : denominatorFactors.reduce((a, b) => ({
+                type: "operator",
                 op: "*",
                 left: a,
                 right: b,
               }));
 
         return {
-          type: "operator" as const,
+          type: "operator",
           op: "/",
           left: numerator,
           right: denominator,
@@ -92,7 +95,10 @@ export function denormalizeAST(node: ASTNode): ASTNode {
 
     return { ...node, left, right };
   } else if (node.type === "function") {
-    return { ...node, args: node.args.map(denormalizeAST) };
+    return {
+      ...node,
+      args: node.args.map((arg) => denormalizeAST(arg, options)),
+    };
   }
 
   return node;

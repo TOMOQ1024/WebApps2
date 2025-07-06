@@ -10,6 +10,17 @@ export function extractCoefficient(term: ASTNode): {
     return { coefficient: term.value, base: { type: "number", value: 1 } };
   }
 
+  // 係数と複合式の組み合わせを処理（例：9(π^x + sin x)）
+  if (
+    term.type === "operator" &&
+    term.op === "*" &&
+    term.left.type === "number" &&
+    term.right.type === "operator" &&
+    (term.right.op === "+" || term.right.op === "-")
+  ) {
+    return { coefficient: term.left.value, base: term.right };
+  }
+
   // 乗算の場合、数値因子と非数値因子に分ける
   if (term.type === "operator" && term.op === "*") {
     const factors = flattenMultiplication(term.left, term.right);
@@ -49,6 +60,11 @@ export function extractCoefficient(term: ASTNode): {
     return { coefficient: -1, base: term.right };
   }
 
-  // その他の場合は係数1、基底は項そのもの
+  // 複合式そのもの（係数なし）の場合 - 加算・減算・べき乗・関数など
+  if (term.type === "operator" || term.type === "function") {
+    return { coefficient: 1, base: term };
+  }
+
+  // その他の場合（symbol など）は係数1、基底は項そのもの
   return { coefficient: 1, base: term };
 }

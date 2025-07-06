@@ -1,9 +1,31 @@
 import { ASTNode } from "@/src/Parser/ASTNode";
+import { SimplifyOptions } from "./simplify/simplifyLaTeX";
+import { gcd } from "@/src/Parser/simplify/helpers";
+
+// flattenMultiplication関数を追加
+function flattenMultiplication(left: ASTNode, right: ASTNode): ASTNode[] {
+  const factors: ASTNode[] = [];
+
+  const collect = (node: ASTNode) => {
+    if (node.type === "operator" && node.op === "*") {
+      collect(node.left);
+      collect(node.right);
+    } else {
+      factors.push(node);
+    }
+  };
+
+  collect(left);
+  collect(right);
+
+  return factors;
+}
 
 export function ASTToLatex(
   node: ASTNode,
   astTransform: boolean = false,
-  parentOp: string = ""
+  parentOp: string = "",
+  options?: SimplifyOptions
 ): string {
   if (astTransform) {
     node = transformASTForLatex(node);
@@ -12,9 +34,9 @@ export function ASTToLatex(
   switch (node.type) {
     case "number":
       if (parentOp === "braced") {
-        return `{${numberToLatex(node.value)}}`;
+        return `{${numberToLatex(node.value, options)}}`;
       }
-      return numberToLatex(node.value);
+      return numberToLatex(node.value, options);
     case "symbol":
       if (node.name === "pi") {
         return "\\pi";
@@ -148,7 +170,7 @@ export function ASTToLatex(
           right.left.name === "x" &&
           right.right.type === "number"
         ) {
-          return `-x^{${numberToLatex(right.right.value)}}`;
+          return `-x^{${numberToLatex(right.right.value, options)}}`;
         }
 
         // -1 * x → -x
@@ -188,11 +210,13 @@ export function ASTToLatex(
           if (left.value === 1) return ASTToLatex(right, astTransform);
           if (left.value === -1) return `-${ASTToLatex(right, astTransform)}`;
 
-          // 関数の場合はスペースを入れる
+          // 関数の場合はスペースを入れない（LaTeX標準に従う）
           if (right.type === "function") {
-            return `${numberToLatex(left.value)} ${ASTToLatex(
+            return `${numberToLatex(left.value, options)}${ASTToLatex(
               right,
-              astTransform
+              astTransform,
+              "",
+              options
             )}`;
           }
 
@@ -201,28 +225,37 @@ export function ASTToLatex(
             right.type === "operator" &&
             (right.op === "+" || right.op === "-")
           ) {
-            return `${numberToLatex(left.value)}\\left(${ASTToLatex(
+            return `${numberToLatex(left.value, options)}\\left(${ASTToLatex(
               right,
-              astTransform
+              astTransform,
+              "",
+              options
             )}\\right)`;
           }
 
-          return `${numberToLatex(left.value)}${ASTToLatex(
+          return `${numberToLatex(left.value, options)}${ASTToLatex(
             right,
-            astTransform
+            astTransform,
+            "",
+            options
           )}`;
         }
 
         if (right.type === "number") {
           if (right.value === 0) return "0";
-          if (right.value === 1) return ASTToLatex(left, astTransform);
-          if (right.value === -1) return `-${ASTToLatex(left, astTransform)}`;
+          if (right.value === 1)
+            return ASTToLatex(left, astTransform, "", options);
+          if (right.value === -1)
+            return `-${ASTToLatex(left, astTransform, "", options)}`;
 
-          // 関数の場合はスペースを入れる
+          // 関数の場合はスペースを入れない（LaTeX標準に従う）
           if (left.type === "function") {
-            return `${ASTToLatex(left, astTransform)} ${numberToLatex(
-              right.value
-            )}`;
+            return `${ASTToLatex(
+              left,
+              astTransform,
+              "",
+              options
+            )}${numberToLatex(right.value, options)}`;
           }
 
           // 加減算の場合は括弧で囲む
@@ -230,15 +263,19 @@ export function ASTToLatex(
             left.type === "operator" &&
             (left.op === "+" || left.op === "-")
           ) {
-            return `${numberToLatex(right.value)}\\left(${ASTToLatex(
+            return `${numberToLatex(right.value, options)}\\left(${ASTToLatex(
               left,
-              astTransform
+              astTransform,
+              "",
+              options
             )}\\right)`;
           }
 
-          return `${numberToLatex(right.value)}${ASTToLatex(
+          return `${numberToLatex(right.value, options)}${ASTToLatex(
             left,
-            astTransform
+            astTransform,
+            "",
+            options
           )}`;
         }
 
@@ -249,13 +286,15 @@ export function ASTToLatex(
           right.left.type === "number" &&
           right.left.value === 0
         ) {
-          return `${ASTToLatex(left, astTransform)}(${ASTToLatex(
+          return `${ASTToLatex(left, astTransform, "", options)}(${ASTToLatex(
             right,
-            astTransform
+            astTransform,
+            "",
+            options
           )})`;
         }
 
-        // 両辺が関数やシンボルの場合はスペース区切り
+        // 両辺が関数やシンボルの場合の処理
         const isFuncOrSymb = (n: ASTNode) =>
           n.type === "function" || n.type === "symbol";
         if (isFuncOrSymb(left) && isFuncOrSymb(right)) {
@@ -272,27 +311,34 @@ export function ASTToLatex(
               astTransform
             )}\\right)${ASTToLatex(right, astTransform)}`;
           }
+          // 関数同士の場合はスペースなし、シンボル同士の場合はスペースあり
+          if (left.type === "function" && right.type === "function") {
+            return `${ASTToLatex(left, astTransform)}${ASTToLatex(
+              right,
+              astTransform
+            )}`;
+          }
           return `${ASTToLatex(left, astTransform)} ${ASTToLatex(
             right,
             astTransform
           )}`;
         }
 
-        // 分数と関数の積の場合もスペースを入れる
+        // 分数と関数の積の場合もスペースを入れない
         if (
           left.type === "operator" &&
           left.op === "/" &&
           right.type === "function"
         ) {
-          return `${ASTToLatex(left, astTransform)} ${ASTToLatex(
+          return `${ASTToLatex(left, astTransform)}${ASTToLatex(
             right,
             astTransform
           )}`;
         }
 
         // それ以外は連結
-        const leftStr = ASTToLatex(left, astTransform);
-        const rightStr = ASTToLatex(right, astTransform);
+        const leftStr = ASTToLatex(left, astTransform, "", options);
+        const rightStr = ASTToLatex(right, astTransform, "", options);
 
         // 関数とべき乗の積の場合は、最初の関数に括弧をつける
         if (
@@ -368,8 +414,111 @@ export function ASTToLatex(
           return `e^{-${right.right.name}}`;
         }
 
+        // 分数の約分処理を改善
+        if (
+          processedLeft.type === "operator" &&
+          processedLeft.op === "*" &&
+          right.type === "operator" &&
+          right.op === "*"
+        ) {
+          // 分子と分母の因子を取得
+          const numeratorFactors = flattenMultiplication(
+            processedLeft.left,
+            processedLeft.right
+          );
+          const denominatorFactors = flattenMultiplication(
+            right.left,
+            right.right
+          );
+
+          // 共通因子を見つけて約分
+          const remainingNumerator: ASTNode[] = [];
+          const remainingDenominator: ASTNode[] = [];
+
+          for (const numFactor of numeratorFactors) {
+            let found = false;
+            for (let i = 0; i < remainingDenominator.length; i++) {
+              if (
+                JSON.stringify(numFactor) ===
+                JSON.stringify(remainingDenominator[i])
+              ) {
+                remainingDenominator.splice(i, 1);
+                found = true;
+                break;
+              }
+            }
+            if (!found) {
+              remainingNumerator.push(numFactor);
+            }
+          }
+
+          for (const denFactor of denominatorFactors) {
+            let found = false;
+            for (let i = 0; i < remainingNumerator.length; i++) {
+              if (
+                JSON.stringify(denFactor) ===
+                JSON.stringify(remainingNumerator[i])
+              ) {
+                remainingNumerator.splice(i, 1);
+                found = true;
+                break;
+              }
+            }
+            if (!found) {
+              remainingDenominator.push(denFactor);
+            }
+          }
+
+          // 約分後の結果を構築
+          const finalNumerator =
+            remainingNumerator.length === 0
+              ? { type: "number" as const, value: 1 }
+              : remainingNumerator.length === 1
+              ? remainingNumerator[0]
+              : remainingNumerator.reduce((a, b) => ({
+                  type: "operator" as const,
+                  op: "*",
+                  left: a,
+                  right: b,
+                }));
+
+          const finalDenominator =
+            remainingDenominator.length === 0
+              ? { type: "number" as const, value: 1 }
+              : remainingDenominator.length === 1
+              ? remainingDenominator[0]
+              : remainingDenominator.reduce((a, b) => ({
+                  type: "operator" as const,
+                  op: "*",
+                  left: a,
+                  right: b,
+                }));
+
+          // 分母が1の場合は分子のみ返す
+          if (
+            finalDenominator.type === "number" &&
+            finalDenominator.value === 1
+          ) {
+            return ASTToLatex(finalNumerator, astTransform);
+          }
+
+          // 係数を前に出す形式で返す
+          if (finalNumerator.type === "number" && finalNumerator.value !== 1) {
+            const denStr = ASTToLatex(
+              finalDenominator,
+              astTransform,
+              "fraction"
+            );
+            return `\\frac{${ASTToLatex(
+              finalNumerator,
+              astTransform
+            )}}{${denStr}}`;
+          }
+        }
+
         // a/b^n → a * b^{-n} の形に変換（期待値に合わせる）
         // ただし、分子が和の場合は分数形式を保持
+        // 分母が数値の場合は分数形式を保持
         if (
           right.type === "operator" &&
           right.op === "^" &&
@@ -378,7 +527,8 @@ export function ASTToLatex(
           !(
             processedLeft.type === "operator" &&
             (processedLeft.op === "+" || processedLeft.op === "-")
-          )
+          ) &&
+          !right.left.name.match(/^[0-9]+$/) // 数値でない場合のみ
         ) {
           const leftStr =
             processedLeft.type === "number"
@@ -427,6 +577,152 @@ export function ASTToLatex(
           const leftStr = ASTToLatex(processedLeft, astTransform);
           const rightStr = ASTToLatex(right, astTransform);
           return `\\left(${leftStr}\\right)\\left(${rightStr}\\right)^{-1}`;
+        }
+
+        // 有理式の約分処理
+        // x^a / (c * x^b) → x^{a-b} / c の形に変換
+        if (
+          processedLeft.type === "operator" &&
+          processedLeft.op === "^" &&
+          processedLeft.left.type === "symbol" &&
+          processedLeft.right.type === "number" &&
+          right.type === "operator" &&
+          right.op === "*" &&
+          right.left.type === "number" &&
+          right.right.type === "operator" &&
+          right.right.op === "^" &&
+          right.right.left.type === "symbol" &&
+          right.right.right.type === "number" &&
+          processedLeft.left.name === right.right.left.name
+        ) {
+          // x^a / (c * x^b) → x^{a-b} / c
+          const exponentDiff =
+            processedLeft.right.value - right.right.right.value;
+          const coefficient = right.left.value;
+
+          if (exponentDiff === 0) {
+            // 指数が同じ場合は x^a / (c * x^a) = 1/c
+            return `\\frac{1}{${numberToLatex(coefficient)}}`;
+          } else if (exponentDiff > 0) {
+            // 分子の指数が大きい場合は x^{a-b} / c（分数形式で出力）
+            return `\\frac{${processedLeft.left.name}^{${numberToLatex(
+              exponentDiff
+            )}}}{${numberToLatex(coefficient)}}`;
+          } else {
+            // 分母の指数が大きい場合は 1 / (c * x^{b-a})
+            return `\\frac{1}{${numberToLatex(coefficient)}${
+              processedLeft.left.name
+            }^{${numberToLatex(-exponentDiff)}}}`;
+          }
+        }
+
+        // 複数変数の有理式の約分処理（例：x^4y^7z / yz^2）
+        if (
+          processedLeft.type === "operator" &&
+          processedLeft.op === "*" &&
+          right.type === "operator" &&
+          right.op === "*"
+        ) {
+          // 分子と分母の因子を取得
+          const numeratorFactors = flattenMultiplication(
+            processedLeft.left,
+            processedLeft.right
+          );
+          const denominatorFactors = flattenMultiplication(
+            right.left,
+            right.right
+          );
+
+          // 変数ごとの指数を集計
+          const numeratorVars: { [key: string]: number } = {};
+          const denominatorVars: { [key: string]: number } = {};
+          let numeratorCoeff = 1;
+          let denominatorCoeff = 1;
+
+          // 分子の因子を解析
+          for (const factor of numeratorFactors) {
+            if (factor.type === "number") {
+              numeratorCoeff *= factor.value;
+            } else if (factor.type === "symbol") {
+              numeratorVars[factor.name] =
+                (numeratorVars[factor.name] || 0) + 1;
+            } else if (
+              factor.type === "operator" &&
+              factor.op === "^" &&
+              factor.left.type === "symbol" &&
+              factor.right.type === "number"
+            ) {
+              numeratorVars[factor.left.name] =
+                (numeratorVars[factor.left.name] || 0) + factor.right.value;
+            }
+          }
+
+          // 分母の因子を解析
+          for (const factor of denominatorFactors) {
+            if (factor.type === "number") {
+              denominatorCoeff *= factor.value;
+            } else if (factor.type === "symbol") {
+              denominatorVars[factor.name] =
+                (denominatorVars[factor.name] || 0) + 1;
+            } else if (
+              factor.type === "operator" &&
+              factor.op === "^" &&
+              factor.left.type === "symbol" &&
+              factor.right.type === "number"
+            ) {
+              denominatorVars[factor.left.name] =
+                (denominatorVars[factor.left.name] || 0) + factor.right.value;
+            }
+          }
+
+          // 約分後の指数を計算
+          const allVars = new Set([
+            ...Object.keys(numeratorVars),
+            ...Object.keys(denominatorVars),
+          ]);
+          const resultTerms: string[] = [];
+
+          for (const varName of Array.from(allVars).sort()) {
+            const numExp = numeratorVars[varName] || 0;
+            const denExp = denominatorVars[varName] || 0;
+            const finalExp = numExp - denExp;
+
+            if (finalExp === 1) {
+              resultTerms.push(varName);
+            } else if (finalExp !== 0) {
+              resultTerms.push(`${varName}^{${numberToLatex(finalExp)}}`);
+            }
+          }
+
+          // 係数の約分
+          const coeffGcd = gcd(
+            Math.abs(numeratorCoeff),
+            Math.abs(denominatorCoeff)
+          );
+          const finalNumCoeff = numeratorCoeff / coeffGcd;
+          const finalDenCoeff = denominatorCoeff / coeffGcd;
+
+          // 結果の構築（負の指数形式を保持）
+
+          if (finalDenCoeff === 1) {
+            // 分母が1の場合
+            if (finalNumCoeff === 1) {
+              return resultTerms.join("");
+            } else {
+              return `${numberToLatex(finalNumCoeff)}${resultTerms.join("")}`;
+            }
+          } else {
+            // 分母がある場合は分数形式で出力
+            if (finalNumCoeff === 1 && resultTerms.length === 0) {
+              return `\\frac{1}{${numberToLatex(finalDenCoeff)}}`;
+            } else {
+              const numeratorStr =
+                finalNumCoeff === 1
+                  ? resultTerms.join("")
+                  : `${numberToLatex(finalNumCoeff)}${resultTerms.join("")}`;
+              return `\\frac{${numeratorStr}}{${numberToLatex(finalDenCoeff)}}`;
+            }
+          }
         }
 
         // 常に分数形式で出力（約分処理は行わない）
@@ -663,120 +959,66 @@ function isOne(node: ASTNode): boolean {
   return node.type === "number" && node.value === 1;
 }
 
-// 小数を分数に変換してLaTeX文字列で返す（例: 0.5→\frac{1}{2}）
-function numberToLatex(value: number): string {
-  // 既知の分数マッピング
-  const known = [
-    [1 / 2, "\\frac{1}{2}"],
-    [-1 / 2, "-\\frac{1}{2}"],
-    [1 / 3, "\\frac{1}{3}"],
-    [-1 / 3, "-\\frac{1}{3}"],
-    [1 / 4, "\\frac{1}{4}"],
-    [-1 / 4, "-\\frac{1}{4}"],
-    [3 / 2, "\\frac{3}{2}"],
-    [-3 / 2, "-\\frac{3}{2}"],
-    [2 / 3, "\\frac{2}{3}"],
-    [-2 / 3, "-\\frac{2}{3}"],
-    [3 / 4, "\\frac{3}{4}"],
-    [-3 / 4, "-\\frac{3}{4}"],
-    [5 / 2, "\\frac{5}{2}"],
-    [-5 / 2, "-\\frac{5}{2}"],
-    [4 / 3, "\\frac{4}{3}"],
-    [-4 / 3, "-\\frac{4}{3}"],
-    [5 / 4, "\\frac{5}{4}"],
-    [-5 / 4, "-\\frac{5}{4}"],
-    [0.5, "\\frac{1}{2}"],
-    [-0.5, "-\\frac{1}{2}"],
-    [1.5, "\\frac{3}{2}"],
-    [-1.5, "-\\frac{3}{2}"],
-    [2.5, "\\frac{5}{2}"],
-    [-2.5, "-\\frac{5}{2}"],
-    [0.25, "\\frac{1}{4}"],
-    [-0.25, "-\\frac{1}{4}"],
-    [0.75, "\\frac{3}{4}"],
-    [-0.75, "-\\frac{3}{4}"],
-  ];
-
-  for (const [num, latex] of known) {
-    if (Math.abs(value - (num as number)) < 1e-8) return latex as string;
-  }
-
-  // 整数の場合はそのまま返す
+// 数値をLaTeX形式に変換（分数を適切に処理）
+function numberToLatex(value: number, options?: SimplifyOptions): string {
   if (Number.isInteger(value)) {
+    // 素因数分解モードの場合の処理
+    if (options?.numericMode === "factored") {
+      return factorizeNumber(value);
+    }
     return value.toString();
   }
 
-  // 一般的な分数への変換を試行
-  // 小数を分数に変換する関数
-  function toFraction(
-    decimal: number,
-    maxDenominator: number = 1000
-  ): [number, number] | null {
-    if (Number.isInteger(decimal)) {
-      return [decimal, 1];
-    }
-
-    const isNegative = decimal < 0;
-    const absDecimal = Math.abs(decimal);
-
-    // 連分数展開による分数変換
-    let bestNumerator = 0;
-    let bestDenominator = 1;
-    let bestError = Math.abs(absDecimal);
-
-    for (let denominator = 1; denominator <= maxDenominator; denominator++) {
-      const numerator = Math.round(absDecimal * denominator);
-      const error = Math.abs(absDecimal - numerator / denominator);
-
-      if (error < bestError) {
-        bestError = error;
-        bestNumerator = numerator;
-        bestDenominator = denominator;
-
-        // 十分に近い場合は終了
-        if (error < 1e-10) {
-          break;
-        }
-      }
-    }
-
-    // 約分
-    const gcd = (a: number, b: number): number => {
-      a = Math.abs(a);
-      b = Math.abs(b);
-      while (b !== 0) {
-        const temp = b;
-        b = a % b;
-        a = temp;
-      }
-      return a;
-    };
-
-    const divisor = gcd(bestNumerator, bestDenominator);
-    const finalNum = bestNumerator / divisor;
-    const finalDen = bestDenominator / divisor;
-
-    // 元の値と十分近いかチェック
-    if (Math.abs(absDecimal - finalNum / finalDen) < 1e-8) {
-      return [isNegative ? -finalNum : finalNum, finalDen];
-    }
-
-    return null;
-  }
-
-  const fraction = toFraction(value);
-  if (fraction) {
-    const [numerator, denominator] = fraction;
-    if (denominator === 1) {
-      return numerator.toString();
-    } else {
-      if (numerator < 0) {
-        return `-\\frac{${Math.abs(numerator)}}{${denominator}}`;
-      } else {
-        return `\\frac{${numerator}}{${denominator}}`;
-      }
-    }
-  }
-
+  // 小数を分数に変換しない（元の値をそのまま使用）
   return value.toString();
+}
+
+// 数値を素因数分解形式に変換
+function factorizeNumber(n: number): string {
+  if (n === 0) return "0";
+  if (n === 1) return "1";
+  if (n === -1) return "-1";
+
+  const isNegative = n < 0;
+  n = Math.abs(n);
+
+  // 小さい数値は計算結果を返す
+  if (n <= 10) {
+    return isNegative ? `-${n}` : n.toString();
+  }
+
+  const factors: Array<{ prime: number; power: number }> = [];
+  let temp = n;
+
+  // 素因数分解
+  for (let i = 2; i * i <= temp; i++) {
+    let count = 0;
+    while (temp % i === 0) {
+      temp /= i;
+      count++;
+    }
+    if (count > 0) {
+      factors.push({ prime: i, power: count });
+    }
+  }
+
+  if (temp > 1) {
+    factors.push({ prime: temp, power: 1 });
+  }
+
+  // 素因数分解の結果を文字列に変換
+  if (factors.length === 0) {
+    return isNegative ? `-${n}` : n.toString();
+  }
+
+  const factorStrings = factors.map(({ prime, power }) => {
+    if (power === 1) {
+      return prime.toString();
+    } else {
+      return `${prime}^{${power}}`;
+    }
+  });
+
+  const result = factorStrings.join(" \\cdot ");
+  return isNegative ? `-${result}` : result;
 }
