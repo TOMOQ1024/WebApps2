@@ -3,6 +3,43 @@ import { simplifyLaTeX } from "./simplifyLaTeX";
 describe("simplifyLaTeX", () => {
   console.log("NOTE: 同じ意味であれば，空白や括弧の有無は無視して良い．");
 
+  test("加法に関する簡単化", () => {
+    expect(
+      simplifyLaTeX(
+        "9\\left(\\pi^{x}+\\sin x\\right)+2\\left(\\pi^{x}+\\sin x\\right)"
+      )
+    ).toBe("11\\left(\\pi^{x}+\\sin x\\right)");
+    expect(
+      simplifyLaTeX("9\\left(\\pi^{x}+\\sin x\\right)+\\pi^{x}+\\sin x")
+    ).toBe("10\\left(\\pi^{x}+\\sin x\\right)");
+    expect(
+      simplifyLaTeX("9\\left(\\pi^{x}+\\sin x\\right)+34+\\pi^{x}+\\sin x")
+    ).toBe("10\\left(\\pi^{x}+\\sin x\\right)+34");
+  });
+  expect(
+    simplifyLaTeX(
+      "\\left(9+\\tan x\\right)\\left(\\pi^{x}+\\sin x\\right)+\\pi^{x}+\\sin x"
+    )
+  ).toBe("\\left(10+\\tan x\\right)\\left(\\pi^{x}+\\sin x\\right)");
+
+  test("乗法に関する簡単化", () => {
+    expect(
+      simplifyLaTeX(
+        "\\left(\\pi^{x}+\\sin x\\right)\\left(\\pi^{x}+\\sin x\\right)^7"
+      )
+    ).toBe("\\left(\\pi^{x}+\\sin x\\right)^{8}");
+    expect(
+      simplifyLaTeX(
+        "\\left(\\pi^{x}+\\sin x\\right)^7\\left(\\pi^{x}+\\sin x\\right)^2"
+      )
+    ).toBe("\\left(\\pi^{x}+\\sin x\\right)^{9}");
+    expect(
+      simplifyLaTeX(
+        "\\frac{\\left(\\pi^{x}+\\sin x\\right)^{3}\\left(\\pi^{x}+\\sin x\\right)}{\\left(\\pi^{x}+\\sin x\\right)^{5}}"
+      )
+    ).toBe("\\left(\\pi^{x}+\\sin x\\right)^{-1}");
+  });
+
   test("約分できない場合はそのままにする", () => {
     expect(simplifyLaTeX("x^{\\frac{254}{3}}")).toBe("x^{\\frac{254}{3}}");
     expect(simplifyLaTeX("x^{\\frac{102}{398157}}")).toBe(
@@ -10,6 +47,26 @@ describe("simplifyLaTeX", () => {
     );
     expect(simplifyLaTeX("x^{\\frac{25467}{378173}}")).toBe(
       "x^{\\frac{25467}{378173}}"
+    );
+  });
+
+  test("指数に関する簡単化", () => {
+    expect(
+      simplifyLaTeX(
+        "\\left(2\\left(\\pi^{x}+\\sin x\\right)^{3}\\left(\\pi^{x}+2\\sin x\\right)\\right)^{2}"
+      )
+    ).toBe(
+      "4\\left(\\pi^{x}+\\sin x\\right)^{6}\\left(\\pi^{x}+2\\sin x\\right)^{2}"
+    );
+    expect(
+      simplifyLaTeX(
+        "\\left(2\\left(\\pi^{x}+\\sin x\\right)^{3}\\left(\\pi^{x}+2\\sin x\\right)\\right)^{2}"
+      )
+    ).toBe(
+      "2^{2}\\left(\\pi^{x}+\\sin x\\right)^{6}\\left(\\pi^{x}+2\\sin x\\right)^{2}"
+    );
+    expect(simplifyLaTeX("\\left(\\pi^{x}+\\sin x\\right)^{-1}")).toBe(
+      "\\frac{1}{\\pi^{x}+\\sin x}"
     );
   });
 
