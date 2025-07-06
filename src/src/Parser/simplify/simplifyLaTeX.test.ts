@@ -51,6 +51,16 @@ describe("simplifyLaTeX", () => {
     );
   });
 
+  test("分数の簡単化", () => {
+    expect(
+      simplifyLaTeX(
+        "\\frac{\\left(5+\\cos x\\right)^{5}}{\\left(5+\\cos x\\right)^{7}+\\left(5+\\cos x\\right)^{3}}"
+      )
+    ).toBe(
+      "\\left(5+\\cos x\\right)^{2}\\left(1+\\left(5+\\cos x\\right)^{4}\\right)^{-1}"
+    );
+  });
+
   test("指数に関する簡単化", () => {
     expect(
       simplifyLaTeX(
@@ -76,7 +86,7 @@ describe("simplifyLaTeX", () => {
   });
 
   test("因数分解を行う", () => {
-    expect(simplifyLaTeX("x^2+x")).toBe("x\\left(x+1\\right)");
+    expect(simplifyLaTeX("x^2+x")).toBe("\\left(1+x\\right)x");
     expect(simplifyLaTeX("x^2+x^2")).toBe("2x^{2}");
     expect(simplifyLaTeX("x^2+x^2+2x^2+\\frac{x^3}{x}")).toBe("5x^{2}");
     expect(simplifyLaTeX("x\\left(x+1\\right)")).toBe("x\\left(1+x\\right)");

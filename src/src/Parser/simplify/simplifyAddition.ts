@@ -107,7 +107,7 @@ function factorizeCommonFactors(node: ASTNode): ASTNode {
   // 各項の係数を抽出
   const coefficientsAndBases = terms.map((term) => extractCoefficient(term));
 
-  // 定数項でない項のみを対象とする
+  // 定数項でない項のみを対象とする（従来の処理）
   const nonConstantTerms = coefficientsAndBases.filter(
     ({ base }) => !(base.type === "number" && base.value === 1)
   );

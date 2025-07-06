@@ -55,6 +55,136 @@ function extractCommonFactor(terms: ASTNode[]): {
     if (result) return result;
   }
 
+  // 同じ底で異なる指数を持つ項から共通因子を抽出
+  // 例: A^5 + A^3 → A^3(A^2 + 1)
+  const powerTerms = new Map<
+    string,
+    {
+      base: ASTNode;
+      terms: { exponent: number; coefficient: number; originalTerm: ASTNode }[];
+    }
+  >();
+  const otherTerms: ASTNode[] = [];
+
+  for (const term of terms) {
+    // 係数と基底を抽出
+    const { coefficient, base } = extractCoefficient(term);
+
+    // 基底がべき乗の場合
+    if (
+      base.type === "operator" &&
+      base.op === "^" &&
+      base.right.type === "number"
+    ) {
+      const powerBase = base.left;
+      const exponent = base.right.value;
+      const baseKey = astToString(powerBase);
+
+      if (!powerTerms.has(baseKey)) {
+        powerTerms.set(baseKey, { base: powerBase, terms: [] });
+      }
+      powerTerms
+        .get(baseKey)!
+        .terms.push({ exponent, coefficient, originalTerm: term });
+    }
+    // 基底が単純な式の場合（指数1として扱う）
+    else if (base.type !== "number" || base.value !== 1) {
+      const baseKey = astToString(base);
+      if (!powerTerms.has(baseKey)) {
+        powerTerms.set(baseKey, { base, terms: [] });
+      }
+      powerTerms
+        .get(baseKey)!
+        .terms.push({ exponent: 1, coefficient, originalTerm: term });
+    } else {
+      otherTerms.push(term);
+    }
+  }
+
+  // 複数の項を持つ底を探す
+  for (const [
+    baseKey,
+    { base, terms: powerTermsList },
+  ] of powerTerms.entries()) {
+    if (powerTermsList.length > 1) {
+      // 最小指数を求める
+      const minExponent = Math.min(...powerTermsList.map((t) => t.exponent));
+
+      if (minExponent > 0) {
+        // 共通因子を構築
+        let commonFactor: ASTNode;
+        if (minExponent === 1) {
+          commonFactor = base;
+        } else {
+          commonFactor = {
+            type: "operator",
+            op: "^",
+            left: base,
+            right: { type: "number", value: minExponent },
+          };
+        }
+
+        // 残りの項を構築
+        const factorizedTerms: ASTNode[] = [];
+
+        for (const { exponent, coefficient, originalTerm } of powerTermsList) {
+          const remainingExponent = exponent - minExponent;
+
+          let remainingTerm: ASTNode;
+          if (remainingExponent === 0) {
+            // 指数が0になる場合は係数のみ
+            if (coefficient === 1) {
+              remainingTerm = { type: "number", value: 1 };
+            } else {
+              remainingTerm = { type: "number", value: coefficient };
+            }
+          } else {
+            // 残りの指数がある場合
+            let baseTerm: ASTNode;
+            if (remainingExponent === 1) {
+              baseTerm = base;
+            } else {
+              baseTerm = {
+                type: "operator",
+                op: "^",
+                left: base,
+                right: { type: "number", value: remainingExponent },
+              };
+            }
+
+            if (coefficient === 1) {
+              remainingTerm = baseTerm;
+            } else {
+              remainingTerm = {
+                type: "operator",
+                op: "*",
+                left: { type: "number", value: coefficient },
+                right: baseTerm,
+              };
+            }
+          }
+
+          factorizedTerms.push(remainingTerm);
+        }
+
+        // 他の項も追加
+        factorizedTerms.push(...otherTerms);
+
+        // 他の底の項も追加
+        for (const [
+          otherKey,
+          { base: otherBase, terms: otherTermsList },
+        ] of powerTerms.entries()) {
+          if (otherKey !== baseKey) {
+            factorizedTerms.push(...otherTermsList.map((t) => t.originalTerm));
+          }
+        }
+
+        return { commonFactor, factorizedTerms };
+      }
+    }
+  }
+
   // 各項を分析して、乗算の形を展開
   const expandedTerms: { factor: ASTNode; coefficient: ASTNode | null }[] = [];
 

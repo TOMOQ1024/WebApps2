@@ -1,6 +1,7 @@
 import { ASTToLatex } from "../ASTToLatex";
 import { parseLatex } from "../parseLatex";
 import { simplifyAST } from "../simplify/simplifyAST";
+import { simplifyNumericFractions } from "../simplify/simplifyNumericFractions";
 
 export interface SimplifyOptions {
   /** 数値の計算方式: 'computed' = 計算結果, 'factored' = 素因数分解型 */
@@ -43,7 +44,12 @@ export function simplifyLaTeX(
 
   const ast = parseLatex(latex, knownFuncs);
 
-  const simplifiedAst = simplifyAST(ast, mergedOptions);
+  let simplifiedAst = simplifyAST(ast, mergedOptions);
+
+  // 追加的に分数の数値約分を行う（特に分数形式の場合）
+  if (mergedOptions.rationalMode === "fraction") {
+    simplifiedAst = simplifyNumericFractions(simplifiedAst);
+  }
 
   const result = ASTToLatex(simplifiedAst, true, "", mergedOptions);
 

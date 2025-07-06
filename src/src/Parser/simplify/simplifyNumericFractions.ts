@@ -1,7 +1,28 @@
 import { ASTNode } from "../ASTNode";
 import { simplifyFraction } from "./helpers";
 import { flattenMultiplication } from "./flattenMultiplication";
+import { flattenAddition } from "./flattenAddition";
 import { extractCoefficient } from "./extractCoefficient";
+
+// 最大公約数を計算
+function gcd(a: number, b: number): number {
+  a = Math.abs(a);
+  b = Math.abs(b);
+  while (b !== 0) {
+    const temp = b;
+    b = a % b;
+    a = temp;
+  }
+  return a;
+}
+
+// 複数の数値の最大公約数を計算
+function findGCD(numbers: number[]): number {
+  if (numbers.length === 0) return 1;
+  if (numbers.length === 1) return Math.abs(numbers[0]);
+
+  return numbers.reduce((acc, num) => gcd(acc, num), numbers[0]);
+}
 
 // 分数の数値約分を行う
 export function simplifyNumericFractions(node: ASTNode): ASTNode {
@@ -26,6 +47,96 @@ export function simplifyNumericFractions(node: ASTNode): ASTNode {
           left: { type: "number", value: num },
           right: { type: "number", value: den },
         };
+      }
+    }
+
+    // 分数で分子が加算の場合の係数約分
+    if (
+      node.op === "/" &&
+      left.type === "operator" &&
+      left.op === "+" &&
+      right.type === "number" &&
+      right.value !== 0
+    ) {
+      const terms = flattenAddition(left.left, left.right);
+      const coefficientsAndBases = terms.map((term) =>
+        extractCoefficient(term)
+      );
+
+      // すべての係数を取得
+      const coefficients = coefficientsAndBases.map((cb) => cb.coefficient);
+      const coeffGCD = findGCD(coefficients.filter((c) => c !== 0));
+
+      if (coeffGCD > 1) {
+        // 分子から共通因子を抽出
+        const newTerms = coefficientsAndBases.map(({ coefficient, base }) => {
+          const newCoeff = coefficient / coeffGCD;
+
+          if (newCoeff === 1) {
+            if (base.type === "number" && base.value === 1) {
+              return { type: "number", value: 1 } as ASTNode;
+            } else {
+              return base;
+            }
+          } else if (base.type === "number" && base.value === 1) {
+            return { type: "number", value: newCoeff } as ASTNode;
+          } else {
+            return {
+              type: "operator" as const,
+              op: "*" as const,
+              left: { type: "number" as const, value: newCoeff },
+              right: base,
+            };
+          }
+        });
+
+        // 新しい分子を構築
+        const newNumerator = newTerms.reduce((a, b) => ({
+          type: "operator" as const,
+          op: "+" as const,
+          left: a,
+          right: b,
+        }));
+
+        // 分母と約分
+        const { num: finalNum, den: finalDen } = simplifyFraction(
+          coeffGCD,
+          right.value
+        );
+
+        if (finalDen === 1) {
+          // 分母が1になる場合
+          if (finalNum === 1) {
+            return newNumerator;
+          } else {
+            return {
+              type: "operator",
+              op: "*",
+              left: { type: "number" as const, value: finalNum },
+              right: newNumerator,
+            };
+          }
+        } else {
+          // 分母が残る場合
+          let finalNumerator: ASTNode;
+          if (finalNum === 1) {
+            finalNumerator = newNumerator;
+          } else {
+            finalNumerator = {
+              type: "operator",
+              op: "*",
+              left: { type: "number" as const, value: finalNum },
+              right: newNumerator,
+            };
+          }
+
+          return {
+            type: "operator",
+            op: "/",
+            left: finalNumerator,
+            right: { type: "number" as const, value: finalDen },
+          };
+        }
       }
     }
 

@@ -1,6 +1,11 @@
 import { ASTNode } from "../ASTNode";
 
-// ASTを正規化する（a-b → a+(-b), a/b → a*(b^(-1))）
+/**
+ * ASTを正規化する（a-b → a+(-b), a/b → a*(b^(-1))）
+ * 減算を加算，除算を乗算に変換し，後の処理を簡単にする．
+ * @param node
+ * @returns
+ */
 export function normalizeAST(node: ASTNode): ASTNode {
   if (node.type === "operator") {
     // 係数と複合式の乗算は絶対に正規化しない（9(π^x + sin x) のような形）
