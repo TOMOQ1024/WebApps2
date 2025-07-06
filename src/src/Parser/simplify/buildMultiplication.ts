@@ -6,7 +6,7 @@ export function buildMultiplication(
 ): ASTNode {
   const factors: ASTNode[] = [];
 
-  for (const { exponent, base } of groups.values()) {
+  for (const [key, { exponent, base }] of groups.entries()) {
     if (exponent === 0) continue;
 
     if (exponent === 1) {

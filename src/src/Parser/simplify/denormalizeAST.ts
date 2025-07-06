@@ -21,6 +21,21 @@ export function denormalizeAST(
       };
     }
 
+    // a^{-1} → 1/a に変換（rationalModeに基づく）
+    if (
+      options?.rationalMode === "fraction" &&
+      node.op === "^" &&
+      right.type === "number" &&
+      right.value === -1
+    ) {
+      return {
+        type: "operator",
+        op: "/",
+        left: { type: "number", value: 1 },
+        right: left,
+      };
+    }
+
     // a * (b^(-1)) → a / b に変換（rationalModeに基づく）
     if (
       options?.rationalMode === "fraction" &&
@@ -52,12 +67,16 @@ export function denormalizeAST(
           factor.right.value < 0
         ) {
           // 負の指数を持つ因子は分母に
-          denominatorFactors.push({
-            type: "operator",
-            op: "^",
-            left: factor.left,
-            right: { type: "number", value: -factor.right.value },
-          });
+          if (factor.right.value === -1) {
+            denominatorFactors.push(factor.left);
+          } else {
+            denominatorFactors.push({
+              type: "operator",
+              op: "^",
+              left: factor.left,
+              right: { type: "number", value: -factor.right.value },
+            });
+          }
         } else {
           numeratorFactors.push(factor);
         }
@@ -65,10 +84,12 @@ export function denormalizeAST(
 
       if (denominatorFactors.length > 0) {
         const numerator =
-          numeratorFactors.length === 1
+          numeratorFactors.length === 0
+            ? { type: "number" as const, value: 1 }
+            : numeratorFactors.length === 1
             ? numeratorFactors[0]
             : numeratorFactors.reduce((a, b) => ({
-                type: "operator",
+                type: "operator" as const,
                 op: "*",
                 left: a,
                 right: b,

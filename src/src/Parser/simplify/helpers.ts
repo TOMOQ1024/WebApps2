@@ -25,18 +25,81 @@ export function evaluateNumericOps(
       case "*":
         return { type: "number", value: left.value * right.value };
       case "^":
-        // computedモードの場合のみ計算
-        if (options?.numericMode !== "computed") {
-          return null;
+        // computedモードの場合のみ、限定的なべき乗数値評価
+        if (options?.numericMode === "computed") {
+          return { type: "number", value: Math.pow(left.value, right.value) };
         }
-        // 分数の指数の場合は評価しない（分数形式を保持）
-        if (right.value < 0 || !Number.isInteger(right.value)) {
-          return null;
-        }
-        return { type: "number", value: Math.pow(left.value, right.value) };
-      case "/":
-        // 分数の場合は評価しない（分数形式を保持）
         return null;
+      case "/":
+        // 分数の場合は約分を試行
+        if (
+          Number.isInteger(left.value) &&
+          Number.isInteger(right.value) &&
+          right.value !== 0
+        ) {
+          const { num, den } = simplifyFraction(left.value, right.value);
+          if (den === 1) {
+            return { type: "number", value: num };
+          } else {
+            return {
+              type: "operator",
+              op: "/",
+              left: { type: "number", value: num },
+              right: { type: "number", value: den },
+            };
+          }
+        }
+        return null;
+    }
+  }
+
+  // 乗算での分数の簡約化 (a/b * c → ac/b)
+  if (
+    op === "*" &&
+    left.type === "operator" &&
+    left.op === "/" &&
+    left.left.type === "number" &&
+    left.right.type === "number" &&
+    right.type === "number"
+  ) {
+    const numerator = left.left.value * right.value;
+    const denominator = left.right.value;
+    const { num, den } = simplifyFraction(numerator, denominator);
+
+    if (den === 1) {
+      return { type: "number", value: num };
+    } else {
+      return {
+        type: "operator",
+        op: "/",
+        left: { type: "number", value: num },
+        right: { type: "number", value: den },
+      };
+    }
+  }
+
+  // 乗算での分数の簡約化 (a * b/c → ab/c)
+  if (
+    op === "*" &&
+    left.type === "number" &&
+    right.type === "operator" &&
+    right.op === "/" &&
+    right.left.type === "number" &&
+    right.right.type === "number"
+  ) {
+    const numerator = left.value * right.left.value;
+    const denominator = right.right.value;
+    const { num, den } = simplifyFraction(numerator, denominator);
+
+    if (den === 1) {
+      return { type: "number", value: num };
+    } else {
+      return {
+        type: "operator",
+        op: "/",
+        left: { type: "number", value: num },
+        right: { type: "number", value: den },
+      };
     }
   }
 

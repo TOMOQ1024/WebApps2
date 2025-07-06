@@ -40,7 +40,12 @@ export function simplifyLaTeX(
   options: SimplifyOptions = {}
 ): string {
   const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
+
   const ast = parseLatex(latex, knownFuncs);
+
   const simplifiedAst = simplifyAST(ast, mergedOptions);
-  return ASTToLatex(simplifiedAst, true, "", mergedOptions);
+
+  const result = ASTToLatex(simplifiedAst, true, "", mergedOptions);
+
+  return result;
 }

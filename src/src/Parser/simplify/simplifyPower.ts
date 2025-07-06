@@ -124,37 +124,30 @@ export function simplifyPower(
     };
   }
 
-  // (a * b)^n → a^n * b^n の展開
+  // (a * b)^n → a^n * b^n の展開 - より確実な展開
   if (
     base.type === "operator" &&
     base.op === "*" &&
     exponent.type === "number" &&
     Number.isInteger(exponent.value) &&
-    Math.abs(exponent.value) <= 3 // 展開は小さな指数のみに制限
+    Math.abs(exponent.value) <= 10
   ) {
+    // 再帰的にsimplifyPowerを適用
     const leftPower = simplifyPower(base.left, exponent, options);
     const rightPower = simplifyPower(base.right, exponent, options);
-    return {
-      type: "operator",
-      op: "*",
+
+    // 結果を乗算で組み合わせ - より確実に結合
+    const result = {
+      type: "operator" as const,
+      op: "*" as const,
       left: leftPower,
       right: rightPower,
     };
+
+    return result;
   }
 
-  // 小さな整数のべき乗のみ計算（computedモードの場合のみ）
-  if (
-    options?.numericMode === "computed" &&
-    base.type === "number" &&
-    exponent.type === "number" &&
-    Number.isInteger(base.value) &&
-    Number.isInteger(exponent.value) &&
-    Math.abs(base.value) <= 10 &&
-    Math.abs(exponent.value) <= 10 &&
-    exponent.value >= 0
-  ) {
-    return { type: "number", value: Math.pow(base.value, exponent.value) };
-  }
-
+  // 構造的な変換を全て試行した後も数値評価は行わない
+  // べき乗は常に構造変換のみを実行
   return { type: "operator", op: "^", left: base, right: exponent };
 }

@@ -336,6 +336,36 @@ export function ASTToLatex(
           )}`;
         }
 
+        // a * (1/b) → \frac{a}{b} の変換
+        if (
+          right.type === "operator" &&
+          right.op === "/" &&
+          right.left.type === "number" &&
+          right.left.value === 1
+        ) {
+          return `\\frac{${ASTToLatex(
+            left,
+            astTransform,
+            "",
+            options
+          )}}{${ASTToLatex(right.right, astTransform, "", options)}}`;
+        }
+
+        // (1/a) * b → \frac{b}{a} の変換
+        if (
+          left.type === "operator" &&
+          left.op === "/" &&
+          left.left.type === "number" &&
+          left.left.value === 1
+        ) {
+          return `\\frac{${ASTToLatex(
+            right,
+            astTransform,
+            "",
+            options
+          )}}{${ASTToLatex(left.right, astTransform, "", options)}}`;
+        }
+
         // それ以外は連結
         const leftStr = ASTToLatex(left, astTransform, "", options);
         const rightStr = ASTToLatex(right, astTransform, "", options);
@@ -379,6 +409,35 @@ export function ASTToLatex(
         return `${finalLeftStr}${finalRightStr}`;
       } else if (op === "/") {
         // 分数ノードは必ずstringで返す
+
+        // Nested fraction の特別処理: (a/b)/c → a/(b*c)
+        if (
+          left.type === "operator" &&
+          left.op === "/" &&
+          right.type === "number"
+        ) {
+          // (a/b)/c の構造を検出
+          const a = left.left;
+          const b = left.right;
+          const c = right;
+
+          // a/(b*c) に変換して再帰的に処理
+          const newDenominator: ASTNode = {
+            type: "operator",
+            op: "*",
+            left: b,
+            right: c,
+          };
+
+          const newNode: ASTNode = {
+            type: "operator",
+            op: "/",
+            left: a,
+            right: newDenominator,
+          };
+
+          return ASTToLatex(newNode, astTransform, parentOp, options);
+        }
 
         // 分子が 0 - a の形なら -a に簡約
         let processedLeft = left;
@@ -733,6 +792,38 @@ export function ASTToLatex(
           }
         }
 
+        // 分母が数値*変数の形の場合は連結して表示
+        if (
+          right.type === "operator" &&
+          right.op === "*" &&
+          right.left.type === "number" &&
+          right.right.type === "symbol"
+        ) {
+          const leftStr =
+            processedLeft.type === "number"
+              ? numberToLatex(processedLeft.value)
+              : ASTToLatex(processedLeft, astTransform, "fraction");
+          return `\\frac{${leftStr}}{${numberToLatex(right.left.value)}${
+            right.right.name
+          }}`;
+        }
+
+        // 分母が変数*数値の形の場合も連結して表示
+        if (
+          right.type === "operator" &&
+          right.op === "*" &&
+          right.left.type === "symbol" &&
+          right.right.type === "number"
+        ) {
+          const leftStr =
+            processedLeft.type === "number"
+              ? numberToLatex(processedLeft.value)
+              : ASTToLatex(processedLeft, astTransform, "fraction");
+          return `\\frac{${leftStr}}{${numberToLatex(right.right.value)}${
+            right.left.name
+          }}`;
+        }
+
         // 常に分数形式で出力（約分処理は行わない）
         const leftStr =
           processedLeft.type === "number"
@@ -867,6 +958,9 @@ function wrapIfNeeded(
   parentOp: string,
   astTransform: boolean
 ): string {
+  if (!node) {
+    return "";
+  }
   if (node.type === "operator") {
     if (parentOp === "*" && (node.op === "+" || node.op === "-")) {
       return `(${ASTToLatex(node, astTransform)})`;

@@ -2,6 +2,7 @@ import { simplifyLaTeX } from "./simplifyLaTeX";
 
 describe("simplifyLaTeX", () => {
   console.log("NOTE: 同じ意味であれば，空白や括弧の有無は無視して良い．");
+  console.log("NOTE: 同じ意味であれば，和や積の順番は無視して良い．");
 
   test("加法に関する簡単化", () => {
     expect(
@@ -97,9 +98,11 @@ describe("simplifyLaTeX", () => {
     expect(
       simplifyLaTeX("\\frac{x+x^2}{x^2}", [], { rationalMode: "fraction" })
     ).toBe("\\frac{1+x}{x}");
+
     expect(
       simplifyLaTeX("\\frac{6x+4x^2}{2x}", [], { rationalMode: "fraction" })
     ).toBe("3+2x");
+
     expect(
       simplifyLaTeX("\\frac{x^7 \\cdot 6x}{3x^3 \\cdot x^2}", [], {
         rationalMode: "fraction",

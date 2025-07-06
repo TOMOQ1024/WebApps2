@@ -93,21 +93,41 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
     if (peek() !== "(") throw new Error("Expected ( after \\left");
     advance(); // '('
 
-    const expr = parseExpression();
+    // ネストしたleft/rightを追跡しながら内容を収集
+    let content = "";
+    let leftCount = 1; // 既に一つの\leftを処理済み
 
-    skipWhitespace();
-    if (peek() === "\\" && latex.slice(pos, pos + 6) === "\\right") {
-      advance(); // '\'
-      advance();
-      advance();
-      advance();
-      advance();
-      advance();
-      advance(); // 'right'
-      if (peek() === ")") {
-        advance(); // ')'
+    while (pos < latex.length && leftCount > 0) {
+      const char = peek();
+
+      if (char === "\\" && latex.slice(pos, pos + 5) === "\\left") {
+        leftCount++;
+        content += latex.slice(pos, pos + 5);
+        pos += 5;
+      } else if (char === "\\" && latex.slice(pos, pos + 6) === "\\right") {
+        leftCount--;
+        if (leftCount === 0) {
+          // 対応する\rightを見つけた
+          pos += 6; // '\\right'をスキップ
+          if (peek() === ")") {
+            advance(); // ')'をスキップ
+          }
+          break;
+        } else {
+          content += latex.slice(pos, pos + 6);
+          pos += 6;
+        }
+      } else {
+        content += advance();
       }
     }
+
+    if (leftCount > 0) {
+      throw new Error("Unmatched \\left");
+    }
+
+    // 収集した内容を新しいパーサーインスタンスでパース
+    const expr = parseLatex(content, knownFuncs);
 
     return expr;
   }
@@ -140,6 +160,8 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
         return parseFunction(cmd);
       } else if (cmd === "pi") {
         return { type: "symbol", name: "pi" };
+      } else if (["sin", "cos", "tan", "log", "ln", "exp"].includes(cmd)) {
+        return parseFunction(cmd);
       } else if (cmd === "frac") {
         skipWhitespace();
         if (peek() !== "{") throw new Error("Expected { after \\frac");
@@ -151,9 +173,16 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
         skipWhitespace();
         if (peek() !== "{") throw new Error("Expected { before denominator");
         advance(); // '{'
+
+        // デバッグ用ログ
+
         const denominator = parseExpression();
+
         skipWhitespace();
-        if (peek() !== "}") throw new Error("Expected } after denominator");
+        if (peek() !== "}") {
+          console.log(`Expected }, but found "${peek()}" at position ${pos}`);
+          throw new Error("Expected } after denominator");
+        }
         advance(); // '}'
         return {
           type: "operator",
@@ -236,49 +265,59 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
     let left = parsePower();
     skipWhitespace();
 
-    // 明示的な乗算・除算
-    while (peek().match(/[*\/]/)) {
-      const op = advance();
-      skipWhitespace();
-      const right = parsePower();
-      left = { type: "operator", op, left, right };
-      skipWhitespace();
-    }
+    // 明示的な乗算・除算と\cdotの処理を統合
+    while (true) {
+      // 明示的な乗算・除算
+      if (peek().match(/[*\/]/)) {
+        const op = advance();
+        skipWhitespace();
+        const right = parsePower();
+        left = { type: "operator", op, left, right };
+        skipWhitespace();
+        continue;
+      }
 
-    // \cdot の処理
-    while (peek() === "\\" && latex.slice(pos + 1, pos + 5) === "cdot") {
-      advance(); // '\'
-      advance();
-      advance();
-      advance();
-      advance(); // 'cdot'
-      skipWhitespace();
-      const right = parsePower();
-      left = { type: "operator", op: "*", left, right };
-      skipWhitespace();
-    }
-
-    // 暗黙の乗算（隣接）
-    while (
-      peek() !== ")" &&
-      peek() !== "" &&
-      peek() !== "}" &&
-      peek() !== "+" &&
-      peek() !== "-" &&
-      peek() !== "*" &&
-      peek() !== "/" &&
-      peek() !== "^" &&
-      (peek().match(/[0-9a-zA-Z]/) || peek() === "\\" || peek() === "(")
-    ) {
-      const savePos = pos;
-      try {
+      // \cdot の処理
+      if (peek() === "\\" && latex.slice(pos + 1, pos + 5) === "cdot") {
+        advance(); // '\'
+        advance(); // 'c'
+        advance(); // 'd'
+        advance(); // 'o'
+        advance(); // 't'
+        skipWhitespace();
         const right = parsePower();
         left = { type: "operator", op: "*", left, right };
         skipWhitespace();
-      } catch (e) {
-        pos = savePos;
-        break;
+        continue;
       }
+
+      // 暗黙の乗算（隣接）のチェック
+      if (
+        peek() !== ")" &&
+        peek() !== "" &&
+        peek() !== "}" &&
+        peek() !== "+" &&
+        peek() !== "-" &&
+        peek() !== "*" &&
+        peek() !== "/" &&
+        peek() !== "^" &&
+        !(peek() === "\\" && latex.slice(pos, pos + 6) === "\\right") && // \right で停止
+        (peek().match(/[0-9a-zA-Z]/) || peek() === "\\" || peek() === "(")
+      ) {
+        const savePos = pos;
+        try {
+          const right = parsePower();
+          left = { type: "operator", op: "*", left, right };
+          skipWhitespace();
+          continue;
+        } catch (e) {
+          pos = savePos;
+          break;
+        }
+      }
+
+      // いずれの条件にも当てはまらない場合はループを終了
+      break;
     }
 
     return left;
