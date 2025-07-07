@@ -2,22 +2,18 @@ import styles from "./ControlButtons.module.scss";
 
 interface ControlButtonsProps {
   onResetGraph: () => void;
-  onRenderModeChange: (mode: number) => void;
-  currentRenderMode: number;
   onShareLink: () => void;
 }
 
 export default function ControlButtons({
   onResetGraph,
-  onRenderModeChange,
-  currentRenderMode,
   onShareLink,
 }: ControlButtonsProps) {
   return (
     <div className={styles.container}>
       <button
         className={styles.button}
-        onClick={() => onRenderModeChange((currentRenderMode + 1) % 2)}
+        onClick={() => {}}
         title="描画モード切り替え"
       >
         <svg

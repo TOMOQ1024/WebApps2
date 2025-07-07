@@ -9,17 +9,9 @@ interface CanvasProps {
   shader: string;
   graph: GraphMgr;
   onGraphChange: (graph: GraphMgr) => void;
-  iterations: number;
-  renderMode: number;
 }
 
-export default function Canvas({
-  shader,
-  graph,
-  onGraphChange,
-  iterations,
-  renderMode,
-}: CanvasProps) {
+export default function Canvas({ shader, graph, onGraphChange }: CanvasProps) {
   const [resolution, setResolution] = useState<THREE.Vector2>(() => {
     // サーバーサイドレンダリング時はデフォルト値を使用
     if (typeof window === "undefined") {
@@ -77,8 +69,6 @@ export default function Canvas({
             radius: 2,
           },
         },
-        uIterations: { value: iterations },
-        uRenderMode: { value: renderMode },
       },
       vertexShader: vertexShader,
       fragmentShader: shader,
@@ -105,7 +95,7 @@ export default function Canvas({
       material.dispose();
       geometry.dispose();
     };
-  }, [shader, resolution, iterations, renderMode, graph, onGraphChange]);
+  }, [shader, resolution, graph, onGraphChange]);
 
   // graphの変更を監視
   useEffect(() => {
@@ -113,13 +103,6 @@ export default function Canvas({
       canvasManagerRef.current.updateGraph(graph);
     }
   }, [graph]);
-
-  useEffect(() => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.uIterations.value = iterations;
-      materialRef.current.uniforms.uRenderMode.value = renderMode;
-    }
-  }, [iterations, renderMode]);
 
   return <div ref={containerRef} className={styles.canvasContainer} />;
 }

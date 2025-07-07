@@ -9,20 +9,9 @@
   z-index: 10;
 }
 
-.label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-}
-
-.input {
-  width: 100%;
-  padding: 0.5rem;
-  font-size: 1rem;
-}
-
-.mathContainer {
+.wrapper {
   display: flex;
+  flex-direction: column;
   align-items: center;
   font-size: 1.2rem;
   background: var(--background-color);
@@ -30,18 +19,98 @@
   padding: 1rem;
 }
 
-.iterations {
-  transform: translateY(-0.5rem) scale(0.7);
-  font-weight: 500;
-  user-select: none;
+.matrixContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.error {
-  color: #dc3545;
-  font-weight: 500;
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
+.bracket {
+  font-size: 2em;
+  transform: translateY(-10px) scaleY(3.5);
+  color: var(--text-color);
+}
+
+.matrix {
+  border-collapse: collapse;
+  width: auto;
+}
+
+.matrix td {
+  border: 2px solid var(--border-color);
+  width: 30px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.upperTriangular,
+.lowerTriangular {
+  color: var(--text-color);
+}
+
+.diagonal {
+  color: var(--text-color-secondary);
+}
+
+.input {
+  background-color: transparent;
+  border: none;
+  outline: none;
+  text-align: center;
+  width: 30px;
+  height: 30px;
+  color: inherit;
+  font-weight: bold;
+
+  &.invalid {
+    background-color: var(--error-color);
+  }
+
+  &:hover {
+    background-color: var(--background-color);
+  }
+
+  &:focus {
+    background-color: var(--background-color);
+  }
+}
+
+.nodeMarks {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.nodeMark {
+  width: 30px;
+  border: 2px solid var(--border-color);
+  text-align: center;
+  cursor: pointer;
+}
+
+.message {
+  margin-top: 10px;
+  height: 40px;
+  font-size: 0.8em;
+  padding: 5px;
   background: var(--background-color);
   border: 2px solid var(--border-color);
-  padding: 0.5rem;
+
+  &.info {
+    color: var(--text-color-secondary);
+  }
+
+  &.success {
+    color: var(--success-color);
+  }
+
+  &.error {
+    color: var(--error-color);
+  }
+
+  p {
+    margin: 0;
+    line-height: 1.2;
+  }
 }
