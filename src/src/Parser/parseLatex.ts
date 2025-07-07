@@ -67,21 +67,37 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
         advance(); // ')'
       }
     }
-    // 括弧がない場合は次の単純な要素を引数とする
+    // 括弧がない場合は次の要素から乗算項を構築する
     else {
-      if (peek().match(/[a-zA-Z]/)) {
-        args.push(parseSymbol());
-      } else if (peek().match(/[0-9.]/)) {
-        args.push(parseNumber());
-      } else if (peek() === "\\") {
+      // 最初の因子をパース
+      let arg = parsePower();
+
+      // 暗黙の乗算を続けてパース（2iz のような）
+      skipWhitespace();
+      while (
+        peek() !== ")" &&
+        peek() !== "" &&
+        peek() !== "}" &&
+        peek() !== "+" &&
+        peek() !== "-" &&
+        peek() !== "*" &&
+        peek() !== "/" &&
+        peek() !== "^" &&
+        !(peek() === "\\" && latex.slice(pos, pos + 6) === "\\right") &&
+        (peek().match(/[0-9a-zA-Z]/) || peek() === "\\" || peek() === "(")
+      ) {
         const savePos = pos;
-        const cmd = parseCommand();
-        if (cmd === "pi") {
-          args.push({ type: "symbol", name: "pi" });
-        } else {
-          pos = savePos; // 位置を戻す
+        try {
+          const right = parsePower();
+          arg = { type: "operator", op: "*", left: arg, right };
+          skipWhitespace();
+        } catch (e) {
+          pos = savePos;
+          break;
         }
       }
+
+      args.push(arg);
     }
 
     return { type: "function", name, args };
@@ -90,46 +106,90 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
   function parseLeftRight(): ASTNode {
     // \left を消費済み
     skipWhitespace();
-    if (peek() !== "(") throw new Error("Expected ( after \\left");
-    advance(); // '('
+    const delimiter = peek();
 
-    // ネストしたleft/rightを追跡しながら内容を収集
-    let content = "";
-    let leftCount = 1; // 既に一つの\leftを処理済み
+    if (delimiter === "|") {
+      // \left| の場合は絶対値として処理
+      advance(); // '|'
 
-    while (pos < latex.length && leftCount > 0) {
-      const char = peek();
+      // ネストしたleft/rightを追跡しながら内容を収集
+      let content = "";
+      let leftCount = 1; // 既に一つの\leftを処理済み
 
-      if (char === "\\" && latex.slice(pos, pos + 5) === "\\left") {
-        leftCount++;
-        content += latex.slice(pos, pos + 5);
-        pos += 5;
-      } else if (char === "\\" && latex.slice(pos, pos + 6) === "\\right") {
-        leftCount--;
-        if (leftCount === 0) {
-          // 対応する\rightを見つけた
-          pos += 6; // '\\right'をスキップ
-          if (peek() === ")") {
-            advance(); // ')'をスキップ
+      while (pos < latex.length && leftCount > 0) {
+        const char = peek();
+
+        if (char === "\\" && latex.slice(pos, pos + 5) === "\\left") {
+          leftCount++;
+          content += latex.slice(pos, pos + 5);
+          pos += 5;
+        } else if (char === "\\" && latex.slice(pos, pos + 6) === "\\right") {
+          leftCount--;
+          if (leftCount === 0) {
+            // 対応する\rightを見つけた
+            pos += 6; // '\\right'をスキップ
+            if (peek() === "|") {
+              advance(); // '|'をスキップ
+            }
+            break;
+          } else {
+            content += latex.slice(pos, pos + 6);
+            pos += 6;
           }
-          break;
         } else {
-          content += latex.slice(pos, pos + 6);
-          pos += 6;
+          content += advance();
         }
-      } else {
-        content += advance();
       }
+
+      if (leftCount > 0) {
+        throw new Error("Unmatched \\left");
+      }
+
+      // 収集した内容を新しいパーサーインスタンスでパースして絶対値関数として返す
+      const expr = parseLatex(content, knownFuncs);
+      return { type: "function", name: "abs", args: [expr] };
+    } else if (delimiter === "(") {
+      advance(); // '('
+
+      // ネストしたleft/rightを追跡しながら内容を収集
+      let content = "";
+      let leftCount = 1; // 既に一つの\leftを処理済み
+
+      while (pos < latex.length && leftCount > 0) {
+        const char = peek();
+
+        if (char === "\\" && latex.slice(pos, pos + 5) === "\\left") {
+          leftCount++;
+          content += latex.slice(pos, pos + 5);
+          pos += 5;
+        } else if (char === "\\" && latex.slice(pos, pos + 6) === "\\right") {
+          leftCount--;
+          if (leftCount === 0) {
+            // 対応する\rightを見つけた
+            pos += 6; // '\\right'をスキップ
+            if (peek() === ")") {
+              advance(); // ')'をスキップ
+            }
+            break;
+          } else {
+            content += latex.slice(pos, pos + 6);
+            pos += 6;
+          }
+        } else {
+          content += advance();
+        }
+      }
+
+      if (leftCount > 0) {
+        throw new Error("Unmatched \\left");
+      }
+
+      // 収集した内容を新しいパーサーインスタンスでパース
+      const expr = parseLatex(content, knownFuncs);
+      return expr;
+    } else {
+      throw new Error("Expected ( after \\left");
     }
-
-    if (leftCount > 0) {
-      throw new Error("Unmatched \\left");
-    }
-
-    // 収集した内容を新しいパーサーインスタンスでパース
-    const expr = parseLatex(content, knownFuncs);
-
-    return expr;
   }
 
   function parseFactor(): ASTNode {
@@ -160,7 +220,7 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
         return parseFunction(cmd);
       } else if (cmd === "pi") {
         return { type: "symbol", name: "pi" };
-      } else if (["sin", "cos", "tan", "log", "ln", "exp"].includes(cmd)) {
+      } else if (knownFuncs.includes(cmd)) {
         return parseFunction(cmd);
       } else if (cmd === "frac") {
         skipWhitespace();
@@ -192,6 +252,40 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
         };
       } else if (cmd === "left") {
         return parseLeftRight();
+      } else if (cmd === "operatorname") {
+        skipWhitespace();
+        if (peek() !== "{") throw new Error("Expected { after \\operatorname");
+        advance(); // '{'
+
+        // operatorname内の関数名を取得
+        let funcName = "";
+        while (peek() !== "}" && pos < latex.length) {
+          funcName += advance();
+        }
+
+        if (peek() !== "}") throw new Error("Expected } after function name");
+        advance(); // '}'
+
+        // operatorname内の関数名を検証
+        const validOperatornames = ["Re", "Im", "Log", "Arg", "conj"];
+        if (!validOperatornames.includes(funcName)) {
+          throw new Error(`Unsupported operatorname: ${funcName}`);
+        }
+
+        return parseFunction(funcName);
+      } else if (cmd === "overline") {
+        skipWhitespace();
+        if (peek() !== "{") throw new Error("Expected { after \\overline");
+        advance(); // '{'
+
+        const arg = parseExpression();
+
+        if (peek() !== "}")
+          throw new Error("Expected } after overline content");
+        advance(); // '}'
+
+        // overlineは複素共役として扱う
+        return { type: "function", name: "conj", args: [arg] };
       } else {
         throw new Error(`Unknown command: \\${cmd}`);
       }
@@ -252,7 +346,25 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
         }
         advance(); // '}'
       } else {
-        right = parseFactor();
+        // {}なしの指数は1文字または特定のシンボルのみ
+        if (peek().match(/[a-zA-Z]/)) {
+          right = parseSymbol();
+        } else if (peek().match(/[0-9]/)) {
+          // 数値の場合は1桁のみ
+          const digit = advance();
+          right = { type: "number", value: parseFloat(digit) };
+        } else if (peek() === "\\") {
+          const savePos = pos;
+          const cmd = parseCommand();
+          if (cmd === "pi") {
+            right = { type: "symbol", name: "pi" };
+          } else {
+            pos = savePos;
+            throw new Error("Invalid exponent");
+          }
+        } else {
+          throw new Error("Expected exponent");
+        }
       }
 
       left = { type: "operator", op: "^", left, right };

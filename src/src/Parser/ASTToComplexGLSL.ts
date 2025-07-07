@@ -1,6 +1,10 @@
 import { ASTNode } from "./ASTNode";
 
-export function ASTToComplexGLSL(node: ASTNode, knownVars: string[]): string {
+export function ASTToComplexGLSL(
+  node: ASTNode,
+  knownVars: string[],
+  knownFuncs: string[]
+): string {
   switch (node.type) {
     case "number":
       return `vec2(${
@@ -27,29 +31,8 @@ export function ASTToComplexGLSL(node: ASTNode, knownVars: string[]): string {
       if (node.op === "*" && node.left.type === "symbol") {
         const fnName = node.left.name;
         // 関数名リストに含まれているかチェック（関数名のリストを追加）
-        const functionNames = [
-          "sinh",
-          "cosh",
-          "tanh",
-          "coth",
-          "sech",
-          "csch",
-          "sin",
-          "cos",
-          "tan",
-          "cot",
-          "sec",
-          "csc",
-          "exp",
-          "abs",
-          "Re",
-          "Im",
-          "conj",
-          "Arg",
-          "Log",
-        ];
-        if (functionNames.includes(fnName)) {
-          const arg = ASTToComplexGLSL(node.right, knownVars);
+        if (knownFuncs.indexOf(fnName) !== -1) {
+          const arg = ASTToComplexGLSL(node.right, knownVars, knownFuncs);
           switch (fnName) {
             case "sinh":
               return `csinh(${arg})`;
@@ -95,16 +78,16 @@ export function ASTToComplexGLSL(node: ASTNode, knownVars: string[]): string {
         }
       }
 
-      const left = ASTToComplexGLSL(node.left, knownVars);
-      const right = ASTToComplexGLSL(node.right, knownVars);
+      const left = ASTToComplexGLSL(node.left, knownVars, knownFuncs);
+      const right = ASTToComplexGLSL(node.right, knownVars, knownFuncs);
 
       switch (node.op) {
         case "+":
           return `${left} + ${right}`;
         case "-":
           // 単項マイナスの場合
-          if (right === "vec2(0.0, 0.0)") {
-            return `-${left}`;
+          if (left === "vec2(0.0, 0.0)") {
+            return `-${right}`;
           }
           return `${left} - ${right}`;
         case "*":
@@ -118,7 +101,9 @@ export function ASTToComplexGLSL(node: ASTNode, knownVars: string[]): string {
       }
 
     case "function":
-      const args = node.args.map((arg) => ASTToComplexGLSL(arg, knownVars));
+      const args = node.args.map((arg) =>
+        ASTToComplexGLSL(arg, knownVars, knownFuncs)
+      );
       const fnName = node.name;
 
       switch (fnName) {

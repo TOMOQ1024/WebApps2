@@ -34,7 +34,7 @@ export function latexToComplexGLSL(
     const ast = parseLatex(latex, knownFuncs);
 
     // 抽象構文木をGLSLコードに変換
-    let glslCode = ASTToComplexGLSL(ast, knownVars);
+    let glslCode = ASTToComplexGLSL(ast, knownVars, knownFuncs);
 
     return glslCode;
   } catch (error) {
