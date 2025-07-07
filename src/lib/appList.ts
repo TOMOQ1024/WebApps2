@@ -105,6 +105,10 @@ export const appList = {
     appName: "CompDynam",
     tags: new Set(["maths", "fractal"]),
   },
+  "gmowski-mira-attractor": {
+    appName: "Gmowski-Mira Attractor",
+    tags: new Set(["maths"]),
+  },
   "graph-2d": {
     appName: "Graph 2D",
     tags: new Set(["maths"]),

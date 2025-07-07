@@ -8,3 +8,7 @@ https://ja.wikipedia.org/wiki/%E3%82%B0%E3%83%A2%E3%82%A6%E3%82%B9%E3%82%AD%E3%8
 
 - 各点は Three.js の `GPUComputationRenderer` を用いて独立に計算される
 - 頂点は Three.js を用いて描画される
+
+## 今後の実装予定
+
+- スライダーコンポーネント

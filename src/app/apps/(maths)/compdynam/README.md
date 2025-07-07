@@ -59,6 +59,11 @@
 
 - スマートフォンでのピンチ操作テスト
 
+- `floor`, `ceil`, `round` の実装
+
+- 描画方法の追加
+  [参考](https://qiita.com/T-STAR/items/11229df2b6db462fb743)
+
 - 多倍精度浮動小数点数の実装([前提条件 🔗](/README.md#今後の実装予定))
 
 - GPGPU の実装([前提条件 🔗](/README.md#今後の実装予定))

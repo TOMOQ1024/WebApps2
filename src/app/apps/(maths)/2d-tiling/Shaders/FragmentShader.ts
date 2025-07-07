@@ -18,6 +18,6 @@ ${mobiusGyrovector2Shader}
 
 void main() {
   vec2 v0 = vPosition / min(uResolution.x, uResolution.y) * uGraph.radius + uGraph.origin;
-
+  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
 }
 `;
