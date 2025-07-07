@@ -6,7 +6,6 @@ export interface ControlPanelProps {
   diagram: CoxeterDynkinDiagram;
   onDiagramChange: (diagram: CoxeterDynkinDiagram) => void;
   error: string | null;
-  buildTime: number;
   onBuild: () => Promise<void>;
 }
 
@@ -14,7 +13,6 @@ export default function ControlPanel({
   diagram,
   onDiagramChange,
   error,
-  buildTime,
   onBuild,
 }: ControlPanelProps) {
   const [localError, setLocalError] = useState<string>("");
@@ -132,18 +130,12 @@ export default function ControlPanel({
     <div className={styles.controlPanel}>
       <div
         className={`${styles.message} ${
-          localError
-            ? styles.error
-            : buildTime > 0
-            ? styles.success
-            : styles.info
+          localError ? styles.error : styles.success
         }`}
       >
         {localError
           ? localError.split("\n").map((line, i) => <p key={i}>{line}</p>)
-          : buildTime > 0
-          ? `タイリングの生成に成功しました(${buildTime.toFixed(2)}ms)`
-          : "タイリングの生成中..."}
+          : "タイリングの生成に成功しました"}
       </div>
       <div className={styles.wrapper}>
         <div className={styles.nodeMarks}>

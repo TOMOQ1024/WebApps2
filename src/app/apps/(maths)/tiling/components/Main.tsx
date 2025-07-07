@@ -10,12 +10,14 @@ import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
 
 export default function Main() {
   const [shader, setShader] = useState(fragmentShader);
-  const [graph, setGraph] = useState<GraphMgr>(new GraphMgr());
+  const [graph, setGraph] = useState<GraphMgr>(
+    new GraphMgr(new Vector2(0, 0), 1)
+  );
   const [diagram, setDiagram] = useState<CoxeterDynkinDiagram>(
     new CoxeterDynkinDiagram(
       {
-        ab: [2, 1],
-        ba: [2, 1],
+        ab: [7, 1],
+        ba: [7, 1],
         bc: [3, 1],
         cb: [3, 1],
         ac: [2, 1],
@@ -72,7 +74,7 @@ export default function Main() {
   }, [searchParams, hasLoadedFromParams]);
 
   const handleResetGraph = () => {
-    setGraph(new GraphMgr());
+    setGraph(new GraphMgr(new Vector2(0, 0), 1));
   };
 
   const handleShareLink = useCallback(async () => {
@@ -84,7 +86,7 @@ export default function Main() {
         params.set("origin", `${graph.origin.x},${graph.origin.y}`);
       }
 
-      if (graph.radius !== 2) {
+      if (graph.radius !== 1) {
         params.set("radius", graph.radius.toString());
       }
 
@@ -108,12 +110,16 @@ export default function Main() {
 
   return (
     <main className="relative">
-      <Canvas shader={shader} graph={graph} onGraphChange={setGraph} />
+      <Canvas
+        shader={shader}
+        graph={graph}
+        diagram={diagram}
+        onGraphChange={setGraph}
+      />
       <ControlPanel
         diagram={diagram}
         onDiagramChange={setDiagram}
         error={error}
-        buildTime={0}
         onBuild={() => Promise.resolve()}
       />
       <ControlButtons

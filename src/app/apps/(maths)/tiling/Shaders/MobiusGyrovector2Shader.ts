@@ -18,14 +18,10 @@ const float E = 2.71828182846;
 
 #define GNOMONIC_PROJ !true
 #define STEREO_PROJ !true
-#define DRAW_MIRRORS !true
+#define DRAW_MIRRORS true
 #define DUAL !true
-#define CN  111
 
-#define ma 3.
-#define mb 5.
-#define mc 2.
-#define cv (sign(mb*mc+mc*ma+ma*mb-ma*mb*mc))
+#define cv (sign(uDiagram.mb*uDiagram.mc+uDiagram.mc*uDiagram.ma+uDiagram.ma*uDiagram.mb-uDiagram.ma*uDiagram.mb*uDiagram.mc))
 #define cr 1.
 // #define cr (1./sqrt(abs(cv)))
 
