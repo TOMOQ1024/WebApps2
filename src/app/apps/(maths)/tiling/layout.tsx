@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "R2 Tiling",
+  title: "Tiling",
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

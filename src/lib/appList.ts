@@ -117,8 +117,8 @@ export const appList = {
     appName: "3D Graphing Calculator",
     tags: new Set(["maths", "wip"]),
   },
-  "2d-tiling": {
-    appName: "2D Tiling",
+  tiling: {
+    appName: "Tiling",
     tags: new Set(["maths", "geometry"]),
   },
   h2tiling: {
@@ -139,7 +139,7 @@ export const appList = {
   },
   polyhedra: {
     appName: "Polyhedra",
-    tags: new Set(["maths", "geometry"]),
+    tags: new Set(["maths", "geometry", "wip"]),
   },
   recursivetree: {
     appName: "Recursive Tree",

@@ -1,8 +1,8 @@
-# 2D Tiling
+# Tiling
 
-2 次元平面充填を描画するページ．
+平面充填を描画するページ．
 
-リンク: [https://www.tomoq.net/apps/2d-tiling](https://www.tomoq.net/apps/2d-tiling)
+リンク: [https://www.tomoq.net/apps/tiling](https://www.tomoq.net/apps/tiling)
 
 ![スクリーンショット](./ss.png)
 
