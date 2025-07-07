@@ -969,5 +969,34 @@ export const galleryData: CompDynamGalleryItem[] = [
     center: [0, 0],
     radius: 2,
   },
+  {
+    functionLatex:
+      "\\frac{1}{\\left(0.15+0.15i\\right)z^5+z^3+\\left(-3+3i\\right)z}",
+    initialValueLatex: "c",
+    iterations: 100,
+    center: [0, 0],
+    radius: 3,
+  },
+  {
+    functionLatex: "\\frac{1}{6z^5+z^3+5iz}",
+    initialValueLatex: "c",
+    iterations: 50,
+    center: [0, 0],
+    radius: 1.5,
+  },
+  {
+    functionLatex: "\\frac{1}{z^3-2iz}",
+    initialValueLatex: "c",
+    iterations: 50,
+    center: [0, 0],
+    radius: 2,
+  },
+  {
+    functionLatex: "\\frac{i}{z\\left(2-iz\\right)}",
+    initialValueLatex: "c",
+    iterations: 100,
+    center: [0, -1],
+    radius: 2.5,
+  },
   // https://x.com/TOMOQ8192/status/1748551565932216410
 ];
