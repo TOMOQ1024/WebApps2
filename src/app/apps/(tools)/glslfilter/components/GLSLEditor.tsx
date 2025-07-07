@@ -3,6 +3,7 @@ import AceEditor, { IMarker } from "react-ace";
 import "brace/mode/glsl";
 import "brace/theme/ambiance";
 import Core from "../Core";
+import styles from "../styles.module.scss";
 
 const markers: IMarker[] = [
   {
@@ -23,7 +24,7 @@ export default function GLSLEditor({ core }: { core: Core | null }) {
   };
 
   return (
-    <div className="glsl-editor">
+    <div className={styles.glslEditor}>
       {core && (
         <AceEditor
           mode="glsl"

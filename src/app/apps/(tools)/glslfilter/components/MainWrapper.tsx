@@ -7,6 +7,7 @@ import Core from "../Core";
 import InteractiveViewport from "@/components/InteractiveViewport";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
+import styles from "../styles.module.scss";
 
 export default function MainWrapper() {
   const [core, setCore] = useState<Core | null>(null);
@@ -40,9 +41,9 @@ export default function MainWrapper() {
   }, [core, searchParams]);
 
   return (
-    <main>
+    <main className={styles.main}>
       <Split
-        className="split"
+        className={styles.split}
         sizes={[50, 50]}
         minSize={100}
         expandToMin={false}
@@ -53,12 +54,14 @@ export default function MainWrapper() {
         direction="horizontal"
         cursor="col-resize"
         onDrag={() => {
-          const wr = document.querySelector(".canvas-wrapper") as HTMLElement;
+          const wr = document.querySelector(
+            styles.canvasWrapper
+          ) as HTMLElement;
         }}
       >
         <GLSLEditor core={isReady ? core : null} />
         <InteractiveViewport>
-          <div className="canvas-wrapper"></div>
+          <div className={styles.canvasWrapper}></div>
         </InteractiveViewport>
       </Split>
     </main>

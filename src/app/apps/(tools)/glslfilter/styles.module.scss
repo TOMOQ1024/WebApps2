@@ -1,19 +1,19 @@
-main {
-  height: var(--main-full-height);
+.main {
+  height: calc(100vh - var(--header-height));
   overflow: hidden;
   .split {
     display: flex;
     height: 100%;
-    .gutter-horizontal {
+    .gutterHorizontal {
       cursor: col-resize;
     }
-    & > *:not(.gutter-horizontal) {
-      padding: 2px;
-    }
-    .glsl-editor {
+    // & > *:not(.gutter-horizontal) {
+    //   padding: 2px;
+    // }
+    .glslEditor {
       height: 100%;
     }
-    .canvas-wrapper {
+    .canvasWrapper {
       height: 100%;
       canvas {
         max-width: 100%;

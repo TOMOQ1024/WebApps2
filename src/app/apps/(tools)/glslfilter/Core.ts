@@ -7,6 +7,7 @@ import {
   Sprite,
   Texture,
 } from "pixi.js";
+import styles from "./styles.module.scss";
 
 export default class Core {
   vert: string = `in vec2 aPosition;
@@ -86,7 +87,9 @@ void main ()
 
   constructor() {
     (async () => {
-      const wr = document.querySelector(".canvas-wrapper") as HTMLElement;
+      const wr = document.querySelector(
+        `.${styles.canvasWrapper}`
+      ) as HTMLElement;
       await this.app.init({
         preference: "webgl",
       });
@@ -106,8 +109,8 @@ void main ()
       this.app.stage.addChild(sp);
       this.resize(sp.width, sp.height);
 
-      this.app.ticker.maxFPS = 0.1;
-      this.app.ticker.minFPS = 0.1;
+      // this.app.ticker.maxFPS = 0.1;
+      // this.app.ticker.minFPS = 0.1;
 
       this.app.ticker.add((tck) => {
         this.filter.resources.uniforms.uniforms.uTime =
