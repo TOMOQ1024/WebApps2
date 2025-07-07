@@ -3,6 +3,7 @@
   --font-family: "Roboto Mono", monospace;
 
   --background-color: white;
+  --primary-color: black;
   --text-color: black;
   --text-color-secondary: #aaa;
   --border-color: black;
@@ -13,6 +14,7 @@
   &[data-theme="auto"] {
     @media (prefers-color-scheme: dark) {
       --background-color: black;
+      --primary-color: white;
       --text-color: white;
       --border-color: white;
     }

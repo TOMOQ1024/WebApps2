@@ -8,6 +8,7 @@ import { vertexShader } from "./shaders/vertexShader";
 import styles from "./page.module.scss";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { Slider } from "./components/Slider";
+import ControlButtons from "./components/ControlButtons";
 
 const TEX_SIZE = 128;
 
@@ -16,7 +17,7 @@ const DEFAULT_PARAMS = {
   alpha: 0.009,
   sigma: 0.05,
   mu: -0.801,
-  pointSize: 0.05,
+  pointSize: 0.1,
   xMin: -2,
   xMax: 2,
   yMin: -2,
@@ -24,22 +25,23 @@ const DEFAULT_PARAMS = {
   numPoints: TEX_SIZE * TEX_SIZE,
 };
 
-function generateInitialTexture(
-  texture: THREE.DataTexture,
-  xMin: number,
-  xMax: number,
-  yMin: number,
-  yMax: number
-) {
+function createOriginTexture(gpuCompute: GPUComputationRenderer) {
+  const texture = gpuCompute.createTexture();
   const data = (texture.image as any).data as Float32Array;
+
   for (let i = 0; i < TEX_SIZE * TEX_SIZE; i++) {
-    const x = Math.random() * (xMax - xMin) + xMin;
-    const y = Math.random() * (yMax - yMin) + yMin;
-    data[i * 4 + 0] = x;
-    data[i * 4 + 1] = y;
+    // 原点周辺にわずかなランダムな初期値を設定
+    // これによりアトラクターの軌道が描かれるようになる
+    const randomX = Math.random() - 0.5; // -0.5 ~ 0.5
+    const randomY = Math.random() - 0.5; // -0.5 ~ 0.5
+
+    data[i * 4 + 0] = randomX;
+    data[i * 4 + 1] = randomY;
     data[i * 4 + 2] = 0;
     data[i * 4 + 3] = 1;
   }
+
+  return texture;
 }
 
 export default function GmowskiMiraAttractorPage() {
@@ -51,7 +53,43 @@ export default function GmowskiMiraAttractorPage() {
   const pointsRef = useRef<THREE.Points>(null);
   const gpuComputeRef = useRef<GPUComputationRenderer>(null);
   const positionVariableRef = useRef<any>(null);
+  const orbitControlsRef = useRef<OrbitControls>(null);
 
+  // 点群を原点に初期化する関数
+  const initializeToOrigin = () => {
+    if (!gpuComputeRef.current || !rendererRef.current) return;
+
+    // 現在のGPUComputationRendererを削除し、新しく作成
+    const renderer = rendererRef.current;
+    const gpuCompute = new GPUComputationRenderer(TEX_SIZE, TEX_SIZE, renderer);
+    gpuComputeRef.current = gpuCompute;
+
+    // 原点テクスチャを作成
+    const originTexture = createOriginTexture(gpuCompute);
+
+    // 新しいpositionVariableを作成
+    const positionVariable = gpuCompute.addVariable(
+      "texturePosition",
+      computeFragmentShader,
+      originTexture
+    );
+    gpuCompute.setVariableDependencies(positionVariable, [positionVariable]);
+
+    // ユニフォームを設定
+    positionVariable.material.uniforms.alpha = { value: params.alpha };
+    positionVariable.material.uniforms.sigma = { value: params.sigma };
+    positionVariable.material.uniforms.mu = { value: params.mu };
+
+    // GPGPU初期化
+    const err = gpuCompute.init();
+    if (err) {
+      alert("GPGPU初期化エラー: " + err);
+      return;
+    }
+
+    // 変数の参照を更新
+    positionVariableRef.current = positionVariable;
+  };
   // 初期化
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -75,7 +113,7 @@ export default function GmowskiMiraAttractorPage() {
       0.1,
       100
     );
-    camera.position.set(0, 0, 8);
+    camera.position.set(0, 0, 25);
     cameraRef.current = camera;
 
     // orbit controls
@@ -85,19 +123,12 @@ export default function GmowskiMiraAttractorPage() {
     orbitControls.enableZoom = true;
     orbitControls.enablePan = true;
     orbitControls.enableRotate = true;
-
+    orbitControlsRef.current = orbitControls;
     // GPGPUセットアップ
     const gpuCompute = new GPUComputationRenderer(TEX_SIZE, TEX_SIZE, renderer);
     gpuComputeRef.current = gpuCompute;
     // 初期位置テクスチャ
-    const posTex = gpuCompute.createTexture();
-    generateInitialTexture(
-      posTex,
-      params.xMin,
-      params.xMax,
-      params.yMin,
-      params.yMax
-    );
+    const posTex = createOriginTexture(gpuCompute);
     // 変数登録
     const positionVariable = gpuCompute.addVariable(
       "texturePosition",
@@ -153,11 +184,16 @@ export default function GmowskiMiraAttractorPage() {
     // アニメーションループ
     let animId: number;
     const animate = () => {
-      // GPGPU計算
-      gpuCompute.compute();
-      // 最新の位置テクスチャを渡す
-      material.uniforms.positionTexture.value =
-        gpuCompute.getCurrentRenderTarget(positionVariable).texture;
+      // 現在のGPUComputationRendererとpositionVariableを使用
+      if (gpuComputeRef.current && positionVariableRef.current) {
+        // GPGPU計算
+        gpuComputeRef.current.compute();
+        // 最新の位置テクスチャを渡す
+        material.uniforms.positionTexture.value =
+          gpuComputeRef.current.getCurrentRenderTarget(
+            positionVariableRef.current
+          ).texture;
+      }
       renderer.render(scene, camera);
       animId = requestAnimationFrame(animate);
     };
@@ -200,6 +236,17 @@ export default function GmowskiMiraAttractorPage() {
 
   return (
     <main className={styles.main}>
+      <ControlButtons
+        onResetControl={() => {
+          if (orbitControlsRef.current) {
+            orbitControlsRef.current.reset();
+          }
+        }}
+        onReset={() => {
+          setParams(DEFAULT_PARAMS);
+        }}
+        onInitializeToOrigin={initializeToOrigin}
+      />
       <div className={styles.controls}>
         <Slider
           label="α (alpha)"

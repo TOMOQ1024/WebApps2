@@ -1,0 +1,28 @@
+.container {
+  position: absolute;
+  top: calc(var(--header-height) + 1rem);
+  right: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.button {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 2px solid var(--border-color);
+  background: var(--background-color);
+  color: var(--text-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    transform: scale(0.95);
+  }
+
+  &:active {
+    filter: invert(1);
+  }
+}

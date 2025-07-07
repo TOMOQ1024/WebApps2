@@ -12,7 +12,7 @@ export const Slider = ({ label, min, max, step, value, onChange }: any) => (
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
       />{" "}
-      {value}
+      <span className={styles.value}>{value}</span>
     </label>
   </div>
 );
