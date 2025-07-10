@@ -12,11 +12,11 @@ import ControlButtons from "./components/ControlButtons";
 import { RealNumberInput } from "./components/Slider/RealNumberInput";
 import { MatrixInput } from "./components/Slider/MatrixInput";
 
-const TEX_SIZE = 128;
+const TEX_SIZE = 256;
 
 // パラメータ
 const DEFAULT_PARAMS = {
-  pointSize: 0.1,
+  pointSize: 0.03,
   xMin: -2,
   xMax: 2,
   yMin: -2,
@@ -30,74 +30,74 @@ const DEFAULT_PARAMS = {
     0.5,
     0.0,
     0.0,
+    0.5,
     0.0,
+    0.5,
     0.0,
     0.5,
     0.0,
     0.0,
-    0.0,
-    0.0,
     0.5,
-    0.0,
-    +0.5,
-    +0.5,
-    +0.5,
-    1.0
-  ).transpose(),
+    0.5,
+    0,
+    0,
+    0,
+    1
+  ),
   transform1: new THREE.Matrix4(
     0.5,
     0.0,
     0.0,
-    0.0,
-    0.0,
-    0.5,
-    0.0,
-    0.0,
-    0.0,
+    -0.5,
     0.0,
     0.5,
     0.0,
     -0.5,
-    -0.5,
-    +0.5,
-    1.0
-  ).transpose(),
+    0.0,
+    0.0,
+    0.5,
+    0.5,
+    0,
+    0,
+    0,
+    1
+  ),
   transform2: new THREE.Matrix4(
     0.5,
     0.0,
     0.0,
+    -0.5,
     0.0,
+    0.5,
     0.0,
     0.5,
     0.0,
     0.0,
-    0.0,
-    0.0,
     0.5,
-    0.0,
     -0.5,
-    +0.5,
-    -0.5,
-    1.0
-  ).transpose(),
+    0,
+    0,
+    0,
+    1
+  ),
   transform3: new THREE.Matrix4(
     0.5,
     0.0,
     0.0,
-    0.0,
+    0.5,
     0.0,
     0.5,
     0.0,
-    0.0,
+    -0.5,
     0.0,
     0.0,
     0.5,
-    0.0,
-    +0.5,
     -0.5,
-    -0.5,
-    1.0
-  ).transpose(),
+    0,
+    0,
+    0,
+    1
+  ),
 };
 
 function createOriginTexture(gpuCompute: GPUComputationRenderer) {
@@ -126,6 +126,7 @@ export default function GmowskiMiraAttractorPage() {
   const positionVariableRef = useRef<any>(null);
   const orbitControlsRef = useRef<OrbitControls>(null);
   const [error, setError] = useState<string>("");
+  const [controlsVisible, setControlsVisible] = useState(true); // 追加
 
   // paramsの最新値をrefに反映
   useEffect(() => {
@@ -217,7 +218,7 @@ export default function GmowskiMiraAttractorPage() {
       0.1,
       100
     );
-    camera.position.set(0, 0, 25);
+    camera.position.set(0, 0, 4);
     cameraRef.current = camera;
 
     // orbit controls
@@ -382,76 +383,81 @@ export default function GmowskiMiraAttractorPage() {
           setParams({ ...DEFAULT_PARAMS });
         }}
         onInitializeToOrigin={initializeToOrigin}
+        onToggleControlsVisible={() => setControlsVisible((v) => !v)} // 追加
       />
-      <div className={styles.controlsWrapper}>
-        {error && (
-          <div className={styles.errorContainer}>
-            <div className={styles.error}>{error}</div>
-          </div>
-        )}
-        <div
-          className={styles.controls}
-          style={{ display: "flex", flexDirection: "row", gap: 16 }}
-        >
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                minWidth: 220,
-              }}
-            >
-              <RealNumberInput
-                label={`閾値${i + 1}`}
-                value={params[`threshold${i}` as keyof typeof params] as number}
-                onChange={(v: number) =>
-                  setParams((prev) => ({
-                    ...prev,
-                    [`threshold${i}`]: v,
-                  }))
-                }
-                onError={(err: string) => {
-                  setError(err);
-                }}
-              />
-              <MatrixInput
-                label={`変換行列${i}`}
-                value={
-                  params[
-                    `transform${i}` as keyof typeof params
-                  ] as THREE.Matrix4
-                }
-                onChange={(m: THREE.Matrix4) =>
-                  setParams((prev) => ({
-                    ...prev,
-                    [`transform${i}`]: m,
-                  }))
-                }
-                onError={(err: string) => {
-                  setError(err);
-                }}
-              />
+      {controlsVisible && (
+        <div className={styles.controlsWrapper}>
+          {error && (
+            <div className={styles.errorContainer}>
+              <div className={styles.error}>{error}</div>
             </div>
-          ))}
+          )}
+          <div className={styles.controls}>
+            <Slider
+              label="頂点サイズ"
+              min={0.005}
+              max={0.2}
+              step={0.001}
+              value={params.pointSize}
+              onChange={(v: number) =>
+                setParams((prev) => ({
+                  ...prev,
+                  pointSize: v,
+                }))
+              }
+            />
+          </div>
+          <div
+            className={styles.controls}
+            style={{ display: "flex", flexDirection: "row", gap: 16 }}
+          >
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  minWidth: 220,
+                }}
+              >
+                <RealNumberInput
+                  label={`閾値${i}`}
+                  value={
+                    params[`threshold${i}` as keyof typeof params] as number
+                  }
+                  onChange={(v: number) =>
+                    setParams((prev) => ({
+                      ...prev,
+                      [`threshold${i}`]: v,
+                    }))
+                  }
+                  onError={(err: string) => {
+                    setError(err);
+                  }}
+                />
+                <MatrixInput
+                  label={`変換行列${i}`}
+                  value={
+                    params[
+                      `transform${i}` as keyof typeof params
+                    ] as THREE.Matrix4
+                  }
+                  onChange={(m: THREE.Matrix4) =>
+                    setParams((prev) => ({
+                      ...prev,
+                      [`transform${i}`]: m,
+                    }))
+                  }
+                  onError={(err: string) => {
+                    setError(err);
+                  }}
+                />
+              </div>
+            ))}
+          </div>
         </div>
-        <div className={styles.controls}>
-          <Slider
-            label="頂点サイズ"
-            min={0.005}
-            max={0.2}
-            step={0.001}
-            value={params.pointSize}
-            onChange={(v: number) =>
-              setParams((prev) => ({
-                ...prev,
-                pointSize: v,
-              }))
-            }
-          />
-        </div>
-      </div>
+      )}
       <canvas className={styles.canvas} ref={canvasRef} />
     </main>
   );
