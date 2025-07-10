@@ -20,6 +20,82 @@ const DEFAULT_PARAMS = {
   yMin: -2,
   yMax: 2,
   numPoints: TEX_SIZE * TEX_SIZE,
+  threshold0: 1 / 4,
+  threshold1: 2 / 4,
+  threshold2: 3 / 4,
+  threshold3: 1,
+  transform0: new THREE.Matrix4(
+    0.5,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.5,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.5,
+    0.0,
+    +0.5,
+    +0.5,
+    +0.5,
+    1.0
+  ),
+  transform1: new THREE.Matrix4(
+    0.5,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.5,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.5,
+    0.0,
+    -0.5,
+    -0.5,
+    +0.5,
+    1.0
+  ),
+  transform2: new THREE.Matrix4(
+    0.5,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.5,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.5,
+    0.0,
+    -0.5,
+    +0.5,
+    -0.5,
+    1.0
+  ),
+  transform3: new THREE.Matrix4(
+    0.5,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.5,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.5,
+    0.0,
+    +0.5,
+    -0.5,
+    -0.5,
+    1.0
+  ),
 };
 
 function createOriginTexture(gpuCompute: GPUComputationRenderer) {
@@ -47,6 +123,34 @@ export default function GmowskiMiraAttractorPage() {
   const positionVariableRef = useRef<any>(null);
   const orbitControlsRef = useRef<OrbitControls>(null);
 
+  const initializeUniforms = (positionVariable: any) => {
+    positionVariable.material.uniforms.uTime = { value: 0 };
+    positionVariable.material.uniforms.uThreshold0 = {
+      value: params.threshold0,
+    };
+    positionVariable.material.uniforms.uThreshold1 = {
+      value: params.threshold1,
+    };
+    positionVariable.material.uniforms.uThreshold2 = {
+      value: params.threshold2,
+    };
+    positionVariable.material.uniforms.uThreshold3 = {
+      value: params.threshold3,
+    };
+    positionVariable.material.uniforms.uTransform0 = {
+      value: params.transform0.transpose(),
+    };
+    positionVariable.material.uniforms.uTransform1 = {
+      value: params.transform1.transpose(),
+    };
+    positionVariable.material.uniforms.uTransform2 = {
+      value: params.transform2.transpose(),
+    };
+    positionVariable.material.uniforms.uTransform3 = {
+      value: params.transform3.transpose(),
+    };
+  };
+
   // 点群を原点に初期化する関数
   const initializeToOrigin = () => {
     if (!gpuComputeRef.current || !rendererRef.current) return;
@@ -68,7 +172,7 @@ export default function GmowskiMiraAttractorPage() {
     gpuCompute.setVariableDependencies(positionVariable, [positionVariable]);
 
     // ユニフォームを設定
-    positionVariable.material.uniforms.uTime = { value: 0 };
+    initializeUniforms(positionVariable);
 
     // GPGPU初期化
     const err = gpuCompute.init();
@@ -87,8 +191,8 @@ export default function GmowskiMiraAttractorPage() {
     const renderer = new THREE.WebGLRenderer({
       canvas: canvasRef.current,
       antialias: true,
+      alpha: true,
     });
-    renderer.setClearColor(0x111111);
     renderer.setSize(window.innerWidth, window.innerHeight, false);
     rendererRef.current = renderer;
 
@@ -127,7 +231,7 @@ export default function GmowskiMiraAttractorPage() {
     );
     gpuCompute.setVariableDependencies(positionVariable, [positionVariable]);
     // ユニフォーム
-    positionVariable.material.uniforms.uTime = { value: 0 };
+    initializeUniforms(positionVariable);
     // 初期化
     const err = gpuCompute.init();
     if (err) {
