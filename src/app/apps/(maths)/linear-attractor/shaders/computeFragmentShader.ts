@@ -20,13 +20,13 @@ void main() {
   vec4 prev = texture2D(texturePosition, uv);
   vec4 v;
 
-  float r = random(uv + uTime);
+  float r = random(uv + uTime) * (uThreshold0 + uThreshold1 + uThreshold2 + uThreshold3);
 
-  if (r < uThreshold0) {
+  if ((r -= uThreshold0) < 0.0) {
     v = uTransform0 * prev;
-  } else if (r < uThreshold1) {
+  } else if ((r -= uThreshold1) < 0.0) {
     v = uTransform1 * prev;
-  } else if (r < uThreshold2) {
+  } else if ((r -= uThreshold2) < 0.0) {
     v = uTransform2 * prev;
   } else {
     v = uTransform3 * prev;

@@ -11,6 +11,7 @@ import { Slider } from "./components/Slider";
 import ControlButtons from "./components/ControlButtons";
 import { RealNumberInput } from "./components/Slider/RealNumberInput";
 import { MatrixInput } from "./components/Slider/MatrixInput";
+import { sampleParams } from "./SampleParams";
 
 const TEX_SIZE = 256;
 
@@ -22,82 +23,7 @@ const DEFAULT_PARAMS = {
   yMin: -2,
   yMax: 2,
   numPoints: TEX_SIZE * TEX_SIZE,
-  threshold0: 1 / 4,
-  threshold1: 2 / 4,
-  threshold2: 3 / 4,
-  threshold3: 1,
-  transform0: new THREE.Matrix4(
-    0.5,
-    0.0,
-    0.0,
-    0.5,
-    0.0,
-    0.5,
-    0.0,
-    0.5,
-    0.0,
-    0.0,
-    0.5,
-    0.5,
-    0,
-    0,
-    0,
-    1
-  ),
-  transform1: new THREE.Matrix4(
-    0.5,
-    0.0,
-    0.0,
-    -0.5,
-    0.0,
-    0.5,
-    0.0,
-    -0.5,
-    0.0,
-    0.0,
-    0.5,
-    0.5,
-    0,
-    0,
-    0,
-    1
-  ),
-  transform2: new THREE.Matrix4(
-    0.5,
-    0.0,
-    0.0,
-    -0.5,
-    0.0,
-    0.5,
-    0.0,
-    0.5,
-    0.0,
-    0.0,
-    0.5,
-    -0.5,
-    0,
-    0,
-    0,
-    1
-  ),
-  transform3: new THREE.Matrix4(
-    0.5,
-    0.0,
-    0.0,
-    0.5,
-    0.0,
-    0.5,
-    0.0,
-    -0.5,
-    0.0,
-    0.0,
-    0.5,
-    -0.5,
-    0,
-    0,
-    0,
-    1
-  ),
+  ...sampleParams.sierpinski_tetrahedron,
 };
 
 function createOriginTexture(gpuCompute: GPUComputationRenderer) {
@@ -384,6 +310,16 @@ export default function GmowskiMiraAttractorPage() {
         }}
         onInitializeToOrigin={initializeToOrigin}
         onToggleControlsVisible={() => setControlsVisible((v) => !v)} // 追加
+        onRandomSample={() => {
+          const keys = Object.keys(
+            sampleParams
+          ) as (keyof typeof sampleParams)[];
+          const randomKey = keys[Math.floor(Math.random() * keys.length)];
+          setParams((prev) => ({
+            ...prev,
+            ...sampleParams[randomKey],
+          }));
+        }}
       />
       {controlsVisible && (
         <div className={styles.controlsWrapper}>
@@ -422,7 +358,7 @@ export default function GmowskiMiraAttractorPage() {
                 }}
               >
                 <RealNumberInput
-                  label={`閾値${i}`}
+                  label={`重み${i}`}
                   value={
                     params[`threshold${i}` as keyof typeof params] as number
                   }

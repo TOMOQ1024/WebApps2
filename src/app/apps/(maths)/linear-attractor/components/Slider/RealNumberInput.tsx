@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { EditableMathField } from "@/components/MathFields";
 
 export const RealNumberInput = ({
@@ -14,13 +14,21 @@ export const RealNumberInput = ({
 }) => {
   const [latex, setLatex] = useState(value.toString());
   const [error, setError] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+
+  // valueプロップの変更を監視し、編集中でない場合のみlatex状態を更新
+  useEffect(() => {
+    if (!isEditing) {
+      setLatex(value.toString());
+    }
+  }, [value, isEditing]);
 
   const handleChange = (mf: any) => {
     const str = mf.latex().replace(/\\,/g, "").replace(/\\ /g, "");
     setLatex(str);
     const num = parseFloat(str);
-    if (isNaN(num) || num < 0 || num > 1) {
-      const errorMsg = "0〜1の実数を入力してください";
+    if (isNaN(num)) {
+      const errorMsg = "実数を入力してください";
       setError(errorMsg);
       onError?.(errorMsg);
       return;
@@ -36,6 +44,8 @@ export const RealNumberInput = ({
       <EditableMathField
         latex={latex}
         onChange={handleChange}
+        onFocus={() => setIsEditing(true)}
+        onBlur={() => setIsEditing(false)}
         style={{ minWidth: 60, border: error ? "1px solid red" : undefined }}
       />
     </div>
