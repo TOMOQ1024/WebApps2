@@ -48,6 +48,7 @@
     "eslint-config-next": "15.1.7",
     "lil-gui": "^0.20.0",
     "mathjs": "^14.5.2",
+    "mathquill": "^0.10.1-a",
     "matter-js": "^0.20.0",
     "mime": "^4.0.3",
     "next": "^15.1.7",

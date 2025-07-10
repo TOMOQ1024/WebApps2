@@ -9,6 +9,8 @@ import styles from "./page.module.scss";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { Slider } from "./components/Slider";
 import ControlButtons from "./components/ControlButtons";
+import { RealNumberInput } from "./components/Slider/RealNumberInput";
+import { MatrixInput } from "./components/Slider/MatrixInput";
 
 const TEX_SIZE = 128;
 
@@ -41,7 +43,7 @@ const DEFAULT_PARAMS = {
     +0.5,
     +0.5,
     1.0
-  ),
+  ).transpose(),
   transform1: new THREE.Matrix4(
     0.5,
     0.0,
@@ -59,7 +61,7 @@ const DEFAULT_PARAMS = {
     -0.5,
     +0.5,
     1.0
-  ),
+  ).transpose(),
   transform2: new THREE.Matrix4(
     0.5,
     0.0,
@@ -77,7 +79,7 @@ const DEFAULT_PARAMS = {
     +0.5,
     -0.5,
     1.0
-  ),
+  ).transpose(),
   transform3: new THREE.Matrix4(
     0.5,
     0.0,
@@ -95,7 +97,7 @@ const DEFAULT_PARAMS = {
     -0.5,
     -0.5,
     1.0
-  ),
+  ).transpose(),
 };
 
 function createOriginTexture(gpuCompute: GPUComputationRenderer) {
@@ -114,6 +116,7 @@ function createOriginTexture(gpuCompute: GPUComputationRenderer) {
 
 export default function GmowskiMiraAttractorPage() {
   const [params, setParams] = useState(DEFAULT_PARAMS);
+  const paramsRef = useRef(params);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer>(null);
   const sceneRef = useRef<THREE.Scene>(null);
@@ -122,32 +125,38 @@ export default function GmowskiMiraAttractorPage() {
   const gpuComputeRef = useRef<GPUComputationRenderer>(null);
   const positionVariableRef = useRef<any>(null);
   const orbitControlsRef = useRef<OrbitControls>(null);
+  const [error, setError] = useState<string>("");
+
+  // paramsの最新値をrefに反映
+  useEffect(() => {
+    paramsRef.current = params;
+  }, [params]);
 
   const initializeUniforms = (positionVariable: any) => {
     positionVariable.material.uniforms.uTime = { value: 0 };
     positionVariable.material.uniforms.uThreshold0 = {
-      value: params.threshold0,
+      value: paramsRef.current.threshold0,
     };
     positionVariable.material.uniforms.uThreshold1 = {
-      value: params.threshold1,
+      value: paramsRef.current.threshold1,
     };
     positionVariable.material.uniforms.uThreshold2 = {
-      value: params.threshold2,
+      value: paramsRef.current.threshold2,
     };
     positionVariable.material.uniforms.uThreshold3 = {
-      value: params.threshold3,
+      value: paramsRef.current.threshold3,
     };
     positionVariable.material.uniforms.uTransform0 = {
-      value: params.transform0.transpose(),
+      value: paramsRef.current.transform0,
     };
     positionVariable.material.uniforms.uTransform1 = {
-      value: params.transform1.transpose(),
+      value: paramsRef.current.transform1,
     };
     positionVariable.material.uniforms.uTransform2 = {
-      value: params.transform2.transpose(),
+      value: paramsRef.current.transform2,
     };
     positionVariable.material.uniforms.uTransform3 = {
-      value: params.transform3.transpose(),
+      value: paramsRef.current.transform3,
     };
   };
 
@@ -184,6 +193,7 @@ export default function GmowskiMiraAttractorPage() {
     // 変数の参照を更新
     positionVariableRef.current = positionVariable;
   };
+
   // 初期化
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -262,7 +272,7 @@ export default function GmowskiMiraAttractorPage() {
     const material = new THREE.ShaderMaterial({
       uniforms: {
         positionTexture: { value: null },
-        pointSize: { value: params.pointSize },
+        pointSize: { value: paramsRef.current.pointSize },
       },
       vertexShader,
       fragmentShader,
@@ -281,6 +291,22 @@ export default function GmowskiMiraAttractorPage() {
         // GPGPU計算
         positionVariableRef.current.material.uniforms.uTime.value =
           performance.now() / 1000;
+        positionVariableRef.current.material.uniforms.uThreshold0.value =
+          paramsRef.current.threshold0;
+        positionVariableRef.current.material.uniforms.uThreshold1.value =
+          paramsRef.current.threshold1;
+        positionVariableRef.current.material.uniforms.uThreshold2.value =
+          paramsRef.current.threshold2;
+        positionVariableRef.current.material.uniforms.uThreshold3.value =
+          paramsRef.current.threshold3;
+        positionVariableRef.current.material.uniforms.uTransform0.value =
+          paramsRef.current.transform0;
+        positionVariableRef.current.material.uniforms.uTransform1.value =
+          paramsRef.current.transform1;
+        positionVariableRef.current.material.uniforms.uTransform2.value =
+          paramsRef.current.transform2;
+        positionVariableRef.current.material.uniforms.uTransform3.value =
+          paramsRef.current.transform3;
         gpuComputeRef.current.compute();
         // 最新の位置テクスチャを渡す
         material.uniforms.positionTexture.value =
@@ -326,6 +352,24 @@ export default function GmowskiMiraAttractorPage() {
     }
   }, [params.pointSize]);
 
+  // threshold変更時のuniform更新
+  useEffect(() => {
+    if (!positionVariableRef.current) return;
+    positionVariableRef.current.material.uniforms.uThreshold0.value =
+      params.threshold0;
+    positionVariableRef.current.material.uniforms.uThreshold1.value =
+      params.threshold1;
+    positionVariableRef.current.material.uniforms.uThreshold2.value =
+      params.threshold2;
+    positionVariableRef.current.material.uniforms.uThreshold3.value =
+      params.threshold3;
+  }, [
+    params.threshold0,
+    params.threshold1,
+    params.threshold2,
+    params.threshold3,
+  ]);
+
   return (
     <main className={styles.main}>
       <ControlButtons
@@ -335,19 +379,78 @@ export default function GmowskiMiraAttractorPage() {
           }
         }}
         onReset={() => {
-          setParams(DEFAULT_PARAMS);
+          setParams({ ...DEFAULT_PARAMS });
         }}
         onInitializeToOrigin={initializeToOrigin}
       />
-      <div className={styles.controls}>
-        <Slider
-          label="点サイズ (pointSize)"
-          min={0.005}
-          max={0.2}
-          step={0.001}
-          value={params.pointSize}
-          onChange={(v: number) => setParams((p) => ({ ...p, pointSize: v }))}
-        />
+      <div className={styles.controlsWrapper}>
+        {error && (
+          <div className={styles.errorContainer}>
+            <div className={styles.error}>{error}</div>
+          </div>
+        )}
+        <div
+          className={styles.controls}
+          style={{ display: "flex", flexDirection: "row", gap: 16 }}
+        >
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                minWidth: 220,
+              }}
+            >
+              <RealNumberInput
+                label={`閾値${i + 1}`}
+                value={params[`threshold${i}` as keyof typeof params] as number}
+                onChange={(v: number) =>
+                  setParams((prev) => ({
+                    ...prev,
+                    [`threshold${i}`]: v,
+                  }))
+                }
+                onError={(err: string) => {
+                  setError(err);
+                }}
+              />
+              <MatrixInput
+                label={`変換行列${i}`}
+                value={
+                  params[
+                    `transform${i}` as keyof typeof params
+                  ] as THREE.Matrix4
+                }
+                onChange={(m: THREE.Matrix4) =>
+                  setParams((prev) => ({
+                    ...prev,
+                    [`transform${i}`]: m,
+                  }))
+                }
+                onError={(err: string) => {
+                  setError(err);
+                }}
+              />
+            </div>
+          ))}
+        </div>
+        <div className={styles.controls}>
+          <Slider
+            label="頂点サイズ"
+            min={0.005}
+            max={0.2}
+            step={0.001}
+            value={params.pointSize}
+            onChange={(v: number) =>
+              setParams((prev) => ({
+                ...prev,
+                pointSize: v,
+              }))
+            }
+          />
+        </div>
       </div>
       <canvas className={styles.canvas} ref={canvasRef} />
     </main>

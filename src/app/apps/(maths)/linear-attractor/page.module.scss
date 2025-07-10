@@ -3,14 +3,39 @@
   height: calc(100vh - var(--header-height));
 }
 
-.controls {
+.controlsWrapper {
   position: absolute;
   bottom: 10px;
   left: 10px;
   z-index: 10;
+}
+
+.controls {
   background: var(--background-color);
   padding: 10px;
   border: 2px solid var(--border-color);
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.errorContainer {
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid red;
+  padding: 8px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+}
+
+.error {
+  color: red;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.error:last-child {
+  margin-bottom: 0;
 }
 
 .canvas {
