@@ -141,7 +141,7 @@ export default function GmowskiMiraAttractorPage() {
     const camera = new THREE.PerspectiveCamera(
       60,
       window.innerWidth / window.innerHeight,
-      0.1,
+      0.01,
       100
     );
     camera.position.set(0, 0, 4);
