@@ -95,6 +95,14 @@ export class Hyperplane3 {
   distance(P: Vector3) {
     return P.dot(this.i) * 2 - this.k * (P.lengthSq() - 1);
   }
+
+  angleTo(h: Hyperplane3) {
+    return Math.acos(
+      (this.k * h.k - this.i.dot(h.i)) /
+        (Math.sqrt(this.i.lengthSq() + this.k * this.k) *
+          Math.sqrt(h.i.lengthSq() + h.k * h.k))
+    );
+  }
 }
 
 export class MobiusGyrovectorSphericalSpace3 {

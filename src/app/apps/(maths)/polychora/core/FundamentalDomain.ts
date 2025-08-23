@@ -17,15 +17,18 @@ export function GetFundamentalDomain(labels: {
   const angleCD = Math.PI - (Math.PI / labels.cd[0]) * labels.cd[1];
   const angleDB = Math.PI - (Math.PI / labels.bd[0]) * labels.bd[1];
   const angleBC = Math.PI - (Math.PI / labels.bc[0]) * labels.bc[1];
-  console.log(angleCD, angleDB, angleBC);
   const planeB = new Vector3(1, 0, 0);
   const planeC = new Vector3(Math.cos(angleBC), Math.sin(angleBC), 0);
-  const planeD = new Vector3(Math.cos(angleDB), 0, Math.sin(angleDB));
-  planeD.applyAxisAngle(
-    planeB,
-    Math.asin(
-      (Math.cos(angleCD) - Math.cos(angleDB) * Math.cos(angleBC)) /
-        (Math.sin(angleDB) * Math.sin(angleBC))
+  const planeD = new Vector3(
+    Math.cos(angleDB),
+    (Math.cos(angleCD) - Math.cos(angleDB) * Math.cos(angleBC)) /
+      Math.sin(angleBC),
+    -Math.sqrt(
+      1 -
+        Math.cos(angleDB) ** 2 -
+        ((Math.cos(angleCD) - Math.cos(angleDB) * Math.cos(angleBC)) /
+          Math.sin(angleBC)) **
+          2
     )
   );
 

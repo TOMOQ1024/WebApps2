@@ -4,15 +4,15 @@
 
 ## ページの分類
 
-- [maths](<(maths)/README.md>)
+- [maths](</src/app/apps/(maths)/README.md>)
   数学関連のページ
-- [games](<(games)/README.md>)
+- [games](</src/app/apps/(games)/README.md>)
   ゲーム関連のページ
-- [experiments](<(experiments)/README.md>)
+- [experiments](</src/app/apps/(experiments)/README.md>)
   実験的なページ
-- [tools](<(tools)/README.md>)
+- [tools](</src/app/apps/(tools)/README.md>)
   ツール関連のページ
-- [other](<(other)/README.md>)
+- [other](</src/app/apps/(other)/README.md>)
   その他のページ
 
 ## 今後の実装予定
