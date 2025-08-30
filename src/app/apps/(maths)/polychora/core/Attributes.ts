@@ -168,7 +168,7 @@ function createFrameAttributes(
 /**
  * 立体フレーム属性を作成する
  */
-function createSolidFrameAttributes(
+function createSolidFrameFAttributes(
   polytope: Polytope,
   polygons: Set<Polytope>,
   positionMap: { [key: string]: Vector3 }
@@ -292,12 +292,138 @@ function createSolidFrameAttributes(
 }
 
 /**
+ * 立体フレーム属性を作成する
+ */
+function createSolidFrameCAttributes(
+  polytope: Polytope,
+  polyhedra: Set<Polytope>,
+  positionMap: { [key: string]: Vector3 }
+) {
+  const indexMap = new Map<Polytope, Map<CoxeterNode, number>>();
+  const indices: number[] = [];
+  const positions: number[] = [];
+  const colors: number[] = [];
+
+  // 頂点とインデックスの初期化
+  for (const polyhedron of polyhedra) {
+    indexMap.set(polyhedron, new Map());
+    const meanPos = getMeanPosition(polyhedron.identicalNodeSets, positionMap);
+    const color = SOLID_COLORS[
+      polyhedron.diagram.gens.join("") as keyof typeof SOLID_COLORS
+    ] ?? [1, 1, 1];
+
+    for (const nodeSet of polyhedron.identicalNodeSets) {
+      const node = nodeSet.values().next().value!;
+      const vertex = positionMap[node.coordinate];
+      indexMap.get(polyhedron)!.set(node, positions.length / 3);
+      positions.push(
+        ...MobiusGyrovectorSphericalSpace3.mix(vertex, meanPos, 0.1).toArray()
+      );
+      colors.push(...color, 1);
+    }
+  }
+
+  // エッジの処理
+  for (const polyhedron of polytope.children) {
+    const searchedEdges = new Set<Polytope>();
+    for (const polygon of polyhedron.children) {
+      for (const [sibling, edge] of polygon.siblings) {
+        if (searchedEdges.has(edge)) continue;
+        if (
+          sibling.identicalNodeSets.difference(polyhedron.identicalNodeSets)
+            .size > 0
+        )
+          continue;
+
+        searchedEdges.add(edge);
+        const [s, e] = [...edge.identicalNodeSets.values()].map(
+          (n) => n.values().next().value!
+        );
+        indices.push(
+          indexMap.get(polyhedron)!.get(s)!,
+          indexMap.get(sibling)!.get(s)!,
+          indexMap.get(polyhedron)!.get(e)!,
+          indexMap.get(sibling)!.get(s)!,
+          indexMap.get(sibling)!.get(e)!,
+          indexMap.get(polyhedron)!.get(e)!
+        );
+      }
+    }
+  }
+
+  // 頂点の処理
+  for (const polyhedron of polytope.children) {
+    const searchedVertices = new Set<Polytope>();
+    for (const polygon of polyhedron.children) {
+      for (const edge of polygon.children) {
+        for (const vertex of edge.children) {
+          if (searchedVertices.has(vertex)) continue;
+          if (
+            vertex.identicalNodeSets.difference(polyhedron.identicalNodeSets)
+              .size > 0
+          )
+            continue;
+
+          searchedVertices.add(vertex);
+          const faces = new Set<Polytope>([polygon]);
+          const edges = new Set<Polytope>();
+          let currentFace: Polytope | undefined = polygon;
+
+          while (true) {
+            const nextEdgeAndFace: [Polytope, Polytope] | undefined = [
+              ...currentFace!.siblings,
+            ].find(
+              ([sibling, joint]) =>
+                !edges.has(joint) &&
+                joint.children.has(vertex) &&
+                sibling.identicalNodeSets.difference(
+                  polyhedron.identicalNodeSets
+                ).size === 0
+            );
+
+            if (!nextEdgeAndFace) break;
+            const [nextFace, nextEdge]: [Polytope, Polytope] = nextEdgeAndFace;
+
+            if (faces.has(nextFace)) break;
+            if (nextFace.visibility) faces.add(nextFace);
+            edges.add(nextEdge);
+            currentFace = nextFace;
+          }
+
+          const vertexIndices = [...faces].map(
+            (f) =>
+              indexMap
+                .get(f)!
+                .get(
+                  [...vertex.identicalNodeSets.values()][0].values().next()
+                    .value!
+                )!
+          );
+
+          indices.push(
+            ...createPolygonIndices(vertexIndices.length, 0).map(
+              (i) => vertexIndices[i]
+            )
+          );
+        }
+      }
+    }
+  }
+
+  return {
+    position: new BufferAttribute(new Float32Array(positions), 3),
+    color: new BufferAttribute(new Float32Array(colors), 4),
+    indices: new BufferAttribute(new Uint32Array(indices), 1),
+  };
+}
+
+/**
  * 属性を作成する
  */
 export function CreateAttributes(
   positionMap: { [key: string]: Vector3 },
   polytope: Polytope,
-  mode: "transparent" | "frame" | "solidframe"
+  mode: "transparent" | "frame" | "solidframe-f" | "solidframe-c"
 ) {
   const polygons = new Set<Polytope>();
   for (const node of polytope.nodes) {
@@ -313,7 +439,18 @@ export function CreateAttributes(
       return createTransparentAttributes(polygons, positionMap);
     case "frame":
       return createFrameAttributes(polygons, positionMap);
-    case "solidframe":
-      return createSolidFrameAttributes(polytope, polygons, positionMap);
+    case "solidframe-f":
+      return createSolidFrameFAttributes(polytope, polygons, positionMap);
+    case "solidframe-c": {
+      const cells = new Set<Polytope>();
+      for (const node of polytope.nodes) {
+        for (const polytope of node.polytopes) {
+          if (polytope.diagram.getDimension() === 3 && polytope.visibility) {
+            cells.add(polytope);
+          }
+        }
+      }
+      return createSolidFrameCAttributes(polytope, cells, positionMap);
+    }
   }
 }

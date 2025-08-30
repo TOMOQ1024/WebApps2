@@ -2,6 +2,7 @@ import axios from "axios";
 import {
   AmbientLight,
   BufferGeometry,
+  CullFaceBack,
   DirectionalLight,
   DoubleSide,
   LineSegments,
@@ -51,6 +52,7 @@ export default class Core {
   buildTime: number = 0;
   material = new RawShaderMaterial({
     side: DoubleSide,
+    // side: CullFaceBack,
     uniforms: {
       time: { value: 0 },
     },
