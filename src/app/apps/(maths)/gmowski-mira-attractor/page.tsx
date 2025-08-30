@@ -98,7 +98,7 @@ export default function GmowskiMiraAttractorPage() {
       canvas: canvasRef.current,
       antialias: true,
     });
-    renderer.setClearColor(0x111111);
+    renderer.setClearColor(0x000000, 0);
     renderer.setSize(window.innerWidth, window.innerHeight, false);
     rendererRef.current = renderer;
 
