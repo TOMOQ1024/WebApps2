@@ -300,13 +300,13 @@ export default class Core {
 
     // 近接チェック（任意）：コントローラが多胞体に近い時のみ掴む
     const grip: Object3D = this.controllerGrips[index];
-    const controllerPos = new Vector3();
-    controllerPos.setFromMatrixPosition(grip.matrixWorld);
-    const polyPos = new Vector3();
-    polyPos.setFromMatrixPosition(this.polyGroup.matrixWorld);
-    const distance = controllerPos.distanceTo(polyPos);
-    const maxGrabDistance = 1.0; // 1m以内なら掴める
-    if (distance > maxGrabDistance) return;
+    // const controllerPos = new Vector3();
+    // controllerPos.setFromMatrixPosition(grip.matrixWorld);
+    // const polyPos = new Vector3();
+    // polyPos.setFromMatrixPosition(this.polyGroup.matrixWorld);
+    // const distance = controllerPos.distanceTo(polyPos);
+    // const maxGrabDistance = 1.0; // 1m以内なら掴める
+    // if (distance > maxGrabDistance) return;
 
     // 片手掴み開始
     const offsetMatrix = new Matrix4()
