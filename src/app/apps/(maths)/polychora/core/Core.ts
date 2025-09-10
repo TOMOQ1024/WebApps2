@@ -9,11 +9,16 @@ import {
   Mesh,
   MeshBasicMaterial,
   OrthographicCamera,
+  PerspectiveCamera,
   RawShaderMaterial,
   Scene,
   WebGLRenderer,
 } from "three";
-import { GLTFExporter, OrbitControls } from "three/examples/jsm/Addons";
+import {
+  GLTFExporter,
+  OrbitControls,
+  VRButton,
+} from "three/examples/jsm/Addons";
 import { CreatePolychoronGeometry } from "./Geometry";
 import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
 import { vertexShader } from "../Shaders/VertexShader";
@@ -24,7 +29,10 @@ export default class Core {
   interval: NodeJS.Timeout | null = null;
   renderer: WebGLRenderer;
   camera: OrthographicCamera;
+  vrCamera: PerspectiveCamera;
   scene: Scene;
+  isVRMode: boolean = false;
+  vrButton: HTMLElement | null = null;
   diagram = new CoxeterDynkinDiagram(
     {
       ab: [2, 1],
@@ -70,15 +78,23 @@ export default class Core {
       this.cvs.height = 200;
     }
     this.scene = new Scene();
+
+    // OrthographicCameraをデフォルトに設定
     this.camera = new OrthographicCamera();
     this.camera.position.z = 1;
+
+    // VR用のPerspectiveCamera
+    this.vrCamera = new PerspectiveCamera(75, 1, 0.1, 1000);
+    this.vrCamera.position.set(0, 0, 5);
 
     this.renderer = new WebGLRenderer({
       canvas: this.cvs,
       antialias: true,
       alpha: true,
     });
-    // this.renderer.setSize(this.cvs.width, this.cvs.height);
+
+    // WebXRを有効化
+    this.renderer.xr.enabled = true;
     this.renderer.setPixelRatio(devicePixelRatio);
     this.ctrls = new OrbitControls(this.camera, this.renderer.domElement);
     const light = new DirectionalLight(0xffffff, 0.5);
@@ -88,7 +104,12 @@ export default class Core {
     // this.scene.add(new AxesHelper(10));
 
     this.scene.add(this.camera);
+    this.scene.add(this.vrCamera);
     this.isCompiled = true;
+
+    // VRButtonを作成して一時的に保存（後で表示させる）
+    this.vrButton = VRButton.createButton(this.renderer);
+    this.vrButton.style.display = "none"; // 最初は非表示
   }
 
   init(beginLoop = true) {
@@ -123,20 +144,36 @@ export default class Core {
 
   beginLoop() {
     this.setPolychoron();
-    this.interval = setInterval(() => {
-      this.loop(1 / 20);
-    }, 1000 / 20);
+
+    if (this.renderer.xr.isPresenting) {
+      // WebXRモードではレンダラーのアニメーションループを使用
+      this.renderer.setAnimationLoop((time) => {
+        this.loop(1 / 90); // WebXRは90fpsを目指す
+      });
+    } else {
+      // 通常モード
+      this.interval = setInterval(() => {
+        this.loop(1 / 20);
+      }, 1000 / 20);
+    }
   }
 
   endLoop() {
-    if (!this.interval) return;
-    clearInterval(this.interval);
+    if (this.interval) {
+      clearInterval(this.interval);
+      this.interval = null;
+    }
+    if (this.renderer.xr.isPresenting) {
+      this.renderer.setAnimationLoop(null);
+    }
   }
 
   loop(deltaTime: number) {
     // console.log("loop");
-    if (this.renderer && this.isCompiled)
-      this.renderer.render(this.scene, this.camera);
+    if (this.renderer && this.isCompiled) {
+      const currentCamera = this.isVRMode ? this.vrCamera : this.camera;
+      this.renderer.render(this.scene, currentCamera);
+    }
     this.material.uniforms.time.value += deltaTime;
   }
 
@@ -185,5 +222,108 @@ export default class Core {
       this.mesh = new Mesh(geometry, this.material);
       this.scene.add(this.mesh);
     }
+  }
+
+  // WebXRのVRモードを開始/停止
+  async toggleVRMode(): Promise<void> {
+    if (!this.renderer.xr.isPresenting) {
+      // VRモードを開始
+      try {
+        // Mixed Reality (passthrough)をリクエスト
+        const session = await navigator.xr?.requestSession("immersive-vr", {
+          requiredFeatures: ["local-floor"],
+          optionalFeatures: ["mixed-reality-passthrough"],
+        });
+
+        if (session) {
+          // セッションイベントハンドラーを設定
+          session.addEventListener("end", () => {
+            this.isVRMode = false;
+            this.restoreNormalMode();
+            console.log("VRセッションが終了しました");
+          });
+
+          await this.renderer.xr.setSession(session);
+          this.isVRMode = true;
+
+          // パススルーモードを有効化（対応している場合）
+          await this.enablePassthrough(session);
+
+          // VRモード用にカメラを調整
+          this.vrCamera.aspect = window.innerWidth / window.innerHeight;
+          this.vrCamera.updateProjectionMatrix();
+
+          console.log("VRモードを開始しました");
+        }
+      } catch (error) {
+        console.error("VRモードの開始に失敗しました:", error);
+      }
+    } else {
+      // VRモードを停止
+      await this.renderer.xr.getSession()?.end();
+      this.isVRMode = false;
+      this.restoreNormalMode();
+      console.log("VRモードを終了しました");
+    }
+  }
+
+  // パススルーモードを有効化
+  private async enablePassthrough(session: any): Promise<void> {
+    try {
+      // パススルー機能の確認と有効化
+      if ("requestPassthrough" in session) {
+        await session.requestPassthrough();
+        console.log("パススルーモードを有効化しました");
+
+        // 背景を透明にしてパススルーを見えるようにする
+        this.scene.background = null;
+
+        // マテリアルの透明度を調整（多胞体を半透明にして現実世界と重ねる）
+        this.material.transparent = true;
+        this.material.opacity = 0.8;
+      } else if (
+        "environmentBlendMode" in session &&
+        session.environmentBlendMode === "additive"
+      ) {
+        console.log("Additive blending パススルーモードが利用可能です");
+        this.scene.background = null;
+      } else {
+        console.log(
+          "パススルーモードは利用できませんが、VRモードは正常に動作します"
+        );
+      }
+    } catch (error) {
+      console.log(
+        "パススルーモードの有効化に失敗しましたが、VRモードは継続されます:",
+        error
+      );
+    }
+  }
+
+  // 通常モードに戻す
+  private restoreNormalMode(): void {
+    // 背景を元に戻す（必要に応じて）
+    // this.scene.background = new THREE.Color(0x000000);
+
+    // マテリアルの透明度を元に戻す
+    this.material.transparent = false;
+    this.material.opacity = 1.0;
+
+    console.log("通常モードに戻しました");
+  }
+
+  // WebXRの可用性をチェック
+  async checkWebXRSupport(): Promise<boolean> {
+    if ("xr" in navigator) {
+      try {
+        const supported = await navigator.xr?.isSessionSupported(
+          "immersive-vr"
+        );
+        return supported || false;
+      } catch {
+        return false;
+      }
+    }
+    return false;
   }
 }

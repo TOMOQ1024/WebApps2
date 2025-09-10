@@ -127,6 +127,29 @@ export default function Main() {
     }
   }, [core]);
 
+  const handleToggleVR = useCallback(async () => {
+    if (!core) {
+      console.warn("Core が初期化されていません");
+      return;
+    }
+
+    // WebXR対応の確認
+    const isWebXRSupported = await core.checkWebXRSupport();
+    if (!isWebXRSupported) {
+      alert("お使いのブラウザまたはデバイスはWebXRをサポートしていません。");
+      return;
+    }
+
+    try {
+      await core.toggleVRMode();
+    } catch (error) {
+      console.error("VRモードの切り替えに失敗しました:", error);
+      alert(
+        "VRモードの切り替えに失敗しました。WebXR対応のヘッドセットが接続されているかご確認ください。"
+      );
+    }
+  }, [core]);
+
   // coreが初期化された後に初期の多胞体生成を実行
   useEffect(() => {
     if (core) {
@@ -145,7 +168,11 @@ export default function Main() {
         onBuild={handleBuild}
       />
       <Canvas core={core} setCore={setCore} diagram={diagram} />
-      <ControlButtons onDownloadGLB={handleDownloadGLB} onReset={handleReset} />
+      <ControlButtons
+        onDownloadGLB={handleDownloadGLB}
+        onReset={handleReset}
+        onToggleVR={handleToggleVR}
+      />
     </main>
   );
 }
