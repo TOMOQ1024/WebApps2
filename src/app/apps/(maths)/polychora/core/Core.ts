@@ -5,13 +5,18 @@ import {
   CullFaceBack,
   DirectionalLight,
   DoubleSide,
+  Group,
   LineSegments,
   Mesh,
   MeshBasicMaterial,
+  Matrix4,
   OrthographicCamera,
+  Object3D,
   PerspectiveCamera,
   RawShaderMaterial,
   Scene,
+  Quaternion,
+  Vector3,
   WebGLRenderer,
 } from "three";
 import {
@@ -36,6 +41,25 @@ export default class Core {
   vrButton: HTMLElement | null = null;
   vrControllers: any[] = [];
   controllerGrips: any[] = [];
+  polyGroup: Group = new Group();
+
+  // 片手/両手掴み用の状態
+  controllerStates: {
+    [index: number]:
+      | {
+          grabbing: boolean;
+          offsetMatrix: Matrix4; // controller^-1 * polyWorld
+        }
+      | undefined;
+  } = {};
+  twoHandInitial: {
+    aIndex: number;
+    bIndex: number;
+    midpoint0: Vector3;
+    abDir0: Vector3;
+    abLen0: number;
+    polyWorld0: Matrix4;
+  } | null = null;
   diagram = new CoxeterDynkinDiagram(
     {
       ab: [2, 1],
@@ -100,20 +124,13 @@ export default class Core {
     this.renderer.xr.enabled = true;
     this.renderer.setPixelRatio(devicePixelRatio);
     this.ctrls = new OrbitControls(this.camera, this.renderer.domElement);
-    // 強いライティングを設定（VRモードでも良く見えるように）
-    const light = new DirectionalLight(0xffffff, 1.0);
-    light.position.set(5, 10, 5);
-    this.scene.add(light);
-
-    const light2 = new DirectionalLight(0xffffff, 0.8);
-    light2.position.set(-5, 5, -5);
-    this.scene.add(light2);
-
-    this.scene.add(new AmbientLight(0xffffff, 0.6));
+    // ライティング（見た目に必要最低限。オブジェクトは多胞体とコントローラのみ）
+    this.scene.add(new AmbientLight());
     // this.scene.add(new AxesHelper(10));
 
     this.scene.add(this.camera);
     this.scene.add(this.vrCamera);
+    this.scene.add(this.polyGroup);
     this.isCompiled = true;
 
     // VRButtonを作成して一時的に保存（後で表示させる）
@@ -238,7 +255,7 @@ export default class Core {
       this.mesh = new Mesh(geometry, this.material);
       // メッシュを適切なサイズにスケール
       this.mesh.scale.set(0.5, 0.5, 0.5);
-      this.scene.add(this.mesh);
+      this.polyGroup.add(this.mesh);
     }
   }
 
@@ -277,17 +294,155 @@ export default class Core {
 
   // コントローラのイベントハンドラ
   private onSelectStart(event: any): void {
-    console.log("Controller select start");
+    const controller: Object3D = event.target;
+    const index = this.vrControllers.indexOf(controller);
+    if (index === -1) return;
+
+    // 近接チェック（任意）：コントローラが多胞体に近い時のみ掴む
+    const grip: Object3D = this.controllerGrips[index];
+    const controllerPos = new Vector3();
+    controllerPos.setFromMatrixPosition(grip.matrixWorld);
+    const polyPos = new Vector3();
+    polyPos.setFromMatrixPosition(this.polyGroup.matrixWorld);
+    const distance = controllerPos.distanceTo(polyPos);
+    const maxGrabDistance = 1.0; // 1m以内なら掴める
+    if (distance > maxGrabDistance) return;
+
+    // 片手掴み開始
+    const offsetMatrix = new Matrix4()
+      .copy(grip.matrixWorld)
+      .invert()
+      .multiply(this.polyGroup.matrixWorld.clone());
+
+    this.controllerStates[index] = {
+      grabbing: true,
+      offsetMatrix,
+    };
+
+    // 両手掴みの初期化
+    const grabbingIndices = Object.keys(this.controllerStates)
+      .map((k) => +k)
+      .filter((i) => this.controllerStates[i]?.grabbing);
+    if (grabbingIndices.length === 2) {
+      const aIndex = grabbingIndices[0];
+      const bIndex = grabbingIndices[1];
+      const gripA = this.controllerGrips[aIndex];
+      const gripB = this.controllerGrips[bIndex];
+      const posA0 = new Vector3().setFromMatrixPosition(gripA.matrixWorld);
+      const posB0 = new Vector3().setFromMatrixPosition(gripB.matrixWorld);
+      const ab0 = new Vector3().subVectors(posB0, posA0);
+      const midpoint0 = new Vector3()
+        .addVectors(posA0, posB0)
+        .multiplyScalar(0.5);
+
+      this.twoHandInitial = {
+        aIndex,
+        bIndex,
+        midpoint0,
+        abDir0: ab0.clone().normalize(),
+        abLen0: Math.max(ab0.length(), 1e-6),
+        polyWorld0: this.polyGroup.matrixWorld.clone(),
+      };
+    }
   }
 
   private onSelectEnd(event: any): void {
-    console.log("Controller select end");
+    const controller: Object3D = event.target;
+    const index = this.vrControllers.indexOf(controller);
+    if (index === -1) return;
+
+    if (this.controllerStates[index]) {
+      this.controllerStates[index]!.grabbing = false;
+    }
+
+    // 両手掴み解除時に片手掴みへスムーズに移行できるよう再計算
+    const grabbingIndices = Object.keys(this.controllerStates)
+      .map((k) => +k)
+      .filter((i) => this.controllerStates[i]?.grabbing);
+    if (grabbingIndices.length === 1) {
+      const i = grabbingIndices[0];
+      const grip = this.controllerGrips[i];
+      const offsetMatrix = new Matrix4()
+        .copy(grip.matrixWorld)
+        .invert()
+        .multiply(this.polyGroup.matrixWorld.clone());
+      this.controllerStates[i] = { grabbing: true, offsetMatrix };
+    }
+
+    // 0本になったら初期状態に戻す
+    if (grabbingIndices.length === 0) {
+      this.twoHandInitial = null;
+    }
   }
 
   // VRコントローラを更新
   private updateVRControllers(): void {
-    // コントローラの状態を更新する処理が必要な場合はここに記述
-    // 例: コントローラの位置や向きに基づいた処理
+    // 掴んでいる本数に応じて変換
+    const grabbingIndices = Object.keys(this.controllerStates)
+      .map((k) => +k)
+      .filter((i) => this.controllerStates[i]?.grabbing);
+
+    if (grabbingIndices.length === 1) {
+      // 片手掴み：コントローラ姿勢に追従
+      const i = grabbingIndices[0];
+      const grip: Object3D = this.controllerGrips[i];
+      const state = this.controllerStates[i]!;
+      const newPolyWorld = new Matrix4()
+        .copy(grip.matrixWorld)
+        .multiply(state.offsetMatrix);
+      this.applyWorldMatrixToGroup(this.polyGroup, newPolyWorld);
+    }
+
+    if (grabbingIndices.length === 2 && this.twoHandInitial) {
+      // 両手掴み：スケール + 回転（AB方向合わせ） + 並進（中点合わせ）
+      const { aIndex, bIndex, midpoint0, abDir0, abLen0, polyWorld0 } =
+        this.twoHandInitial;
+      const gripA = this.controllerGrips[aIndex];
+      const gripB = this.controllerGrips[bIndex];
+      const posA1 = new Vector3().setFromMatrixPosition(gripA.matrixWorld);
+      const posB1 = new Vector3().setFromMatrixPosition(gripB.matrixWorld);
+      const ab1 = new Vector3().subVectors(posB1, posA1);
+      const midpoint1 = new Vector3()
+        .addVectors(posA1, posB1)
+        .multiplyScalar(0.5);
+
+      const dir1 = ab1.clone().normalize();
+      const scale = Math.max(ab1.length() / abLen0, 1e-6);
+      const qRot = new Quaternion().setFromUnitVectors(abDir0, dir1);
+
+      const T1 = new Matrix4().makeTranslation(
+        midpoint1.x,
+        midpoint1.y,
+        midpoint1.z
+      );
+      const R = new Matrix4().makeRotationFromQuaternion(qRot);
+      const S = new Matrix4().makeScale(scale, scale, scale);
+      const T0inv = new Matrix4().makeTranslation(
+        -midpoint0.x,
+        -midpoint0.y,
+        -midpoint0.z
+      );
+
+      const m = new Matrix4()
+        .multiply(T1)
+        .multiply(R)
+        .multiply(S)
+        .multiply(T0inv)
+        .multiply(polyWorld0.clone());
+
+      this.applyWorldMatrixToGroup(this.polyGroup, m);
+    }
+  }
+
+  // Groupにワールド行列を適用（position/rotation/scaleへ分解）
+  private applyWorldMatrixToGroup(group: Group, world: Matrix4): void {
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
+    world.decompose(pos, quat, scl);
+    group.position.copy(pos);
+    group.quaternion.copy(quat);
+    group.scale.copy(scl);
   }
 
   // WebXRのVRモードを開始/停止
@@ -319,13 +474,8 @@ export default class Core {
           this.vrCamera.aspect = window.innerWidth / window.innerHeight;
           this.vrCamera.updateProjectionMatrix();
 
-          // VRモードではメッシュを適切な位置に配置
-          if (this.mesh) {
-            this.mesh.position.set(0, 0, -2); // ユーザーの前方に配置
-          }
-
-          // デバッグ用の参考オブジェクトを追加
-          this.addDebugObjects();
+          // VRモードでは多胞体グループをユーザー前方に配置
+          this.polyGroup.position.set(0, 0, -2);
 
           console.log("VRモードを開始しました");
         }

@@ -13,3 +13,7 @@
 - Polychora Gallery
 
 - Piet Program Gallery
+
+- Uniform Tiling Gallery
+
+  https://en.wikipedia.org/wiki/Uniform_tiling
