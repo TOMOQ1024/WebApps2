@@ -111,7 +111,7 @@ export default class Core {
     this.camera.position.z = 1;
 
     // VR用のPerspectiveCamera
-    this.vrCamera = new PerspectiveCamera(75, 1, 0.1, 1000);
+    this.vrCamera = new PerspectiveCamera(75, 1, 0.01, 1000);
     this.vrCamera.position.set(0, 1.6, 3); // 人間の目線の高さ(1.6m)と適切な距離
 
     this.renderer = new WebGLRenderer({
@@ -208,6 +208,19 @@ export default class Core {
       }
     }
     this.material.uniforms.time.value += deltaTime;
+  }
+
+  // 多胞体の位置・回転・スケールを初期化
+  resetPolyTransform(): void {
+    // 現在のモードに応じた初期位置
+    const initialZ = this.isVRMode ? -2 : 0;
+    this.polyGroup.position.set(0, 0, initialZ);
+    this.polyGroup.quaternion.identity();
+    this.polyGroup.scale.set(1, 1, 1);
+
+    // 掴み状態をクリア
+    this.controllerStates = {};
+    this.twoHandInitial = null;
   }
 
   // メッシュをglbとしてエクスポート

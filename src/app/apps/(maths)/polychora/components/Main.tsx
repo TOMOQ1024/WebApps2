@@ -124,6 +124,7 @@ export default function Main() {
   const handleReset = useCallback(() => {
     if (core) {
       core.ctrls.reset();
+      core.resetPolyTransform();
     }
   }, [core]);
 
