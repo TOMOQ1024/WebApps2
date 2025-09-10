@@ -136,7 +136,7 @@ export default function Main() {
   }, [core, diagram, handleBuild]);
 
   return (
-    <main className="relative w-full h-screen">
+    <main className="relative w-screen h-[calc(100vh-var(--header-height))] overflow-hidden">
       <ControlPanel
         diagram={diagram}
         onDiagramChange={handleDiagramChange}

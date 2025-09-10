@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
-import styles from "./ControlPanel.module.scss";
 
 export interface ControlPanelProps {
   diagram: CoxeterDynkinDiagram;
@@ -18,6 +17,15 @@ export default function ControlPanel({
   onBuild,
 }: ControlPanelProps) {
   const [localError, setLocalError] = useState<string>("");
+
+  // 共通のスタイルクラスを定義
+  const inputStyles =
+    "!bg-transparent !border-none !outline-none text-center w-[30px] h-[30px] text-inherit font-bold hover:!bg-[var(--background-color)] focus:!bg-[var(--background-color)]";
+  const tdStyles =
+    "border-2 border-[var(--border-color)] w-[30px] text-center font-bold";
+  const diagonalTdStyles = `${tdStyles} text-[var(--text-color-secondary)]`;
+  const regularTdStyles = `${tdStyles} text-[var(--text-color)]`;
+  const nodeMarkTdStyles = `${tdStyles} cursor-pointer`;
 
   useEffect(() => {
     if (error) {
@@ -74,7 +82,7 @@ export default function ControlPanel({
     if (labelKey[0] === labelKey[1]) {
       return (
         <input
-          className={`${styles.input} ${labelKey}`}
+          className={inputStyles}
           type="string"
           defaultValue="1"
           readOnly
@@ -95,8 +103,8 @@ export default function ControlPanel({
 
     return (
       <input
-        className={`${styles.input} ${
-          !isValidValue ? styles.invalid : ""
+        className={`${inputStyles} ${
+          !isValidValue ? "!bg-[var(--error-color)]" : ""
         } ${labelKey}`}
         type="string"
         defaultValue={displayValue}
@@ -108,7 +116,7 @@ export default function ControlPanel({
   const renderMarkupButton = (nodeKey: string) => {
     return (
       <input
-        className={styles.input}
+        className={inputStyles}
         type="button"
         value={diagram.nodeMarks[nodeKey]}
         onClick={async (e) => {
@@ -129,66 +137,74 @@ export default function ControlPanel({
   };
 
   return (
-    <div className={styles.controlPanel}>
+    <div className="absolute bottom-4 left-4 flex flex-col gap-4 items-start z-10">
       <div
-        className={`${styles.message} ${
+        className={`mt-2.5 h-10 text-xs p-1.5 bg-[var(--background-color)] border-2 border-[var(--border-color)] ${
           localError
-            ? styles.error
+            ? "text-[var(--error-color)]"
             : buildTime > 0
-            ? styles.success
-            : styles.info
+            ? "text-[var(--success-color)]"
+            : "text-[var(--text-color-secondary)]"
         }`}
       >
         {localError
-          ? localError.split("\n").map((line, i) => <p key={i}>{line}</p>)
+          ? localError.split("\n").map((line, i) => (
+              <p key={i} className="m-0 leading-tight">
+                {line}
+              </p>
+            ))
           : buildTime > 0
           ? `多胞体の生成に成功しました(${buildTime.toFixed(2)}ms)`
           : "多胞体の生成中..."}
       </div>
-      <div className={styles.wrapper}>
-        <div className={styles.nodeMarks}>
+      <div className="flex flex-col items-center text-xl bg-[var(--background-color)] border-2 border-[var(--border-color)] p-4">
+        <div className="flex items-center justify-center mb-2.5">
           <table>
             <tbody>
               <tr>
-                <td className={styles.nodeMark}>{renderMarkupButton("a")}</td>
-                <td className={styles.nodeMark}>{renderMarkupButton("b")}</td>
-                <td className={styles.nodeMark}>{renderMarkupButton("c")}</td>
-                <td className={styles.nodeMark}>{renderMarkupButton("d")}</td>
+                <td className={nodeMarkTdStyles}>{renderMarkupButton("a")}</td>
+                <td className={nodeMarkTdStyles}>{renderMarkupButton("b")}</td>
+                <td className={nodeMarkTdStyles}>{renderMarkupButton("c")}</td>
+                <td className={nodeMarkTdStyles}>{renderMarkupButton("d")}</td>
               </tr>
             </tbody>
           </table>
         </div>
-        <div className={styles.matrixContainer}>
-          <span className={styles.bracket}>(</span>
-          <table className={styles.matrix}>
+        <div className="flex items-center justify-center">
+          <span className="text-3xl -translate-y-2.5 scale-y-[4.5] text-[var(--text-color)]">
+            (
+          </span>
+          <table className="border-collapse w-auto">
             <tbody>
               <tr>
-                <td className={styles.diagonal}>{renderInput("aa")}</td>
-                <td className={styles.upperTriangular}>{renderInput("ab")}</td>
-                <td className={styles.upperTriangular}>{renderInput("ac")}</td>
-                <td className={styles.upperTriangular}>{renderInput("ad")}</td>
+                <td className={diagonalTdStyles}>{renderInput("aa")}</td>
+                <td className={regularTdStyles}>{renderInput("ab")}</td>
+                <td className={regularTdStyles}>{renderInput("ac")}</td>
+                <td className={regularTdStyles}>{renderInput("ad")}</td>
               </tr>
               <tr>
-                <td className={styles.lowerTriangular}>{renderInput("ba")}</td>
-                <td className={styles.diagonal}>{renderInput("bb")}</td>
-                <td className={styles.upperTriangular}>{renderInput("bc")}</td>
-                <td className={styles.upperTriangular}>{renderInput("bd")}</td>
+                <td className={regularTdStyles}>{renderInput("ba")}</td>
+                <td className={diagonalTdStyles}>{renderInput("bb")}</td>
+                <td className={regularTdStyles}>{renderInput("bc")}</td>
+                <td className={regularTdStyles}>{renderInput("bd")}</td>
               </tr>
               <tr>
-                <td className={styles.lowerTriangular}>{renderInput("ca")}</td>
-                <td className={styles.lowerTriangular}>{renderInput("cb")}</td>
-                <td className={styles.diagonal}>{renderInput("cc")}</td>
-                <td className={styles.upperTriangular}>{renderInput("cd")}</td>
+                <td className={regularTdStyles}>{renderInput("ca")}</td>
+                <td className={regularTdStyles}>{renderInput("cb")}</td>
+                <td className={diagonalTdStyles}>{renderInput("cc")}</td>
+                <td className={regularTdStyles}>{renderInput("cd")}</td>
               </tr>
               <tr>
-                <td className={styles.lowerTriangular}>{renderInput("da")}</td>
-                <td className={styles.lowerTriangular}>{renderInput("db")}</td>
-                <td className={styles.lowerTriangular}>{renderInput("dc")}</td>
-                <td className={styles.diagonal}>{renderInput("dd")}</td>
+                <td className={regularTdStyles}>{renderInput("da")}</td>
+                <td className={regularTdStyles}>{renderInput("db")}</td>
+                <td className={regularTdStyles}>{renderInput("dc")}</td>
+                <td className={diagonalTdStyles}>{renderInput("dd")}</td>
               </tr>
             </tbody>
           </table>
-          <span className={styles.bracket}>)</span>
+          <span className="text-3xl -translate-y-2.5 scale-y-[4.5] text-[var(--text-color)]">
+            )
+          </span>
         </div>
       </div>
     </div>

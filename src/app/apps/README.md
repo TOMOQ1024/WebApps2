@@ -27,6 +27,8 @@
 
   実装ができたら，[CompDynam](</src/app/apps/(maths)/compdynam/README.md#gpgpu-の実装>) にも導入する
 
+  [ライフゲーム](https://qiita.com/aa_debdeb/items/95162f7389d685976b98)
+
 - WebGPU の実験
 
 - 反応拡散系の実験

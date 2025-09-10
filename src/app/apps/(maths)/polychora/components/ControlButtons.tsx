@@ -1,5 +1,3 @@
-import styles from "./ControlButtons.module.scss";
-
 export interface ControlButtonsProps {
   onDownloadGLB: () => void;
   onReset: () => void;
@@ -10,9 +8,9 @@ export default function ControlButtons({
   onReset,
 }: ControlButtonsProps) {
   return (
-    <div className={styles.container}>
+    <div className="absolute top-4 right-4 flex flex-col gap-2">
       <button
-        className={styles.button}
+        className="w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] cursor-pointer flex items-center justify-center hover:scale-95 active:invert"
         onClick={onDownloadGLB}
         title="GLBファイルとしてダウンロード"
       >
@@ -32,7 +30,7 @@ export default function ControlButtons({
         </svg>
       </button>
       <button
-        className={styles.button}
+        className="w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] cursor-pointer flex items-center justify-center hover:scale-95 active:invert"
         onClick={onReset}
         title="描画設定をリセット"
       >

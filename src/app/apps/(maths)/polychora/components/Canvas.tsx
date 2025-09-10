@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Core from "../core/Core";
 import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
-import styles from "./Canvas.module.scss";
 
 export interface CanvasProps {
   core: Core | undefined;
@@ -70,12 +69,12 @@ export default function Canvas({ core, setCore, diagram }: CanvasProps) {
   }, [core, diagram]);
 
   return (
-    <div className={styles.canvasContainer}>
+    <div className="fixed top-[var(--header-height)] left-0 w-screen h-[calc(100vh-var(--header-height))] z-0">
       <canvas
         ref={canvasRef}
         width={800}
         height={600}
-        className={styles.canvas}
+        className="max-w-full max-h-full block"
       />
     </div>
   );

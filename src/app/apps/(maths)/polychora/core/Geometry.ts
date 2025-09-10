@@ -67,7 +67,7 @@ export function CreatePolychoronGeometry(
   const { indices, ...attributes } = CreateAttributes(
     positions,
     polytope,
-    "solidframe-c"
+    "solidframe-f"
   );
   const geometry = new BufferGeometry();
   geometry.setIndex(indices);

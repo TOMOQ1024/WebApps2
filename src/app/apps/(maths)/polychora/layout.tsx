@@ -1,5 +1,3 @@
-import "./app.scss";
-
 export const metadata = {
   title: "Polychora",
 };
