@@ -111,7 +111,7 @@ export default class Core {
     this.camera.position.z = 1;
 
     // VR用のPerspectiveCamera
-    this.vrCamera = new PerspectiveCamera(75, 1, 0.01, 1000);
+    this.vrCamera = new PerspectiveCamera(75, 1, 0.1, 1000);
     this.vrCamera.position.set(0, 1.6, 3); // 人間の目線の高さ(1.6m)と適切な距離
 
     this.renderer = new WebGLRenderer({
