@@ -111,14 +111,17 @@ export default class Core {
     this.camera.position.z = 1;
 
     // VR用のPerspectiveCamera
-    this.vrCamera = new PerspectiveCamera(75, 1, 0.1, 1000);
+    this.vrCamera = new PerspectiveCamera(75, 1, 0.01, 1000);
     this.vrCamera.position.set(0, 1.6, 3); // 人間の目線の高さ(1.6m)と適切な距離
 
     this.renderer = new WebGLRenderer({
       canvas: this.cvs,
       antialias: true,
       alpha: true,
+      logarithmicDepthBuffer: true,
     });
+    // WebXRの参照空間（床基準）
+    this.renderer.xr.setReferenceSpaceType?.("local-floor");
 
     // WebXRを有効化
     this.renderer.xr.enabled = true;
@@ -264,11 +267,13 @@ export default class Core {
     this.buildTime = buildTime;
     if (this.mesh) {
       this.mesh.geometry = geometry;
+      this.mesh.frustumCulled = false;
     } else {
       this.mesh = new Mesh(geometry, this.material);
       // メッシュを適切なサイズにスケール
       this.mesh.scale.set(0.5, 0.5, 0.5);
       this.polyGroup.add(this.mesh);
+      this.mesh.frustumCulled = false;
     }
   }
 
@@ -515,19 +520,38 @@ export default class Core {
         // 背景を透明にしてパススルーを見えるようにする
         this.scene.background = null;
 
-        // マテリアルの透明度を調整（多胞体を半透明にして現実世界と重ねる）
+        // マテリアル設定（パススルー時は半透明・両面・深度はテストのみ）
         this.material.transparent = true;
-        this.material.opacity = 0.8;
+        this.material.opacity = 0.85;
+        this.material.depthTest = true;
+        this.material.depthWrite = false;
+        this.material.side = 2; // DoubleSide
+        this.material.needsUpdate = true;
+        this.renderer.setClearAlpha(0);
       } else if (
         "environmentBlendMode" in session &&
         session.environmentBlendMode === "additive"
       ) {
         console.log("Additive blending パススルーモードが利用可能です");
         this.scene.background = null;
+        this.material.transparent = true;
+        this.material.opacity = 0.85;
+        this.material.depthTest = true;
+        this.material.depthWrite = false;
+        this.material.side = 2; // DoubleSide
+        this.material.needsUpdate = true;
       } else {
         console.log(
           "パススルーモードは利用できませんが、VRモードは正常に動作します"
         );
+        // 通常VRは不透明・両面・深度書き込みあり
+        this.material.transparent = false;
+        this.material.opacity = 1.0;
+        this.material.depthTest = true;
+        this.material.depthWrite = true;
+        this.material.side = 2; // DoubleSide
+        this.material.needsUpdate = true;
+        this.renderer.setClearAlpha(1);
       }
     } catch (error) {
       console.log(
@@ -562,9 +586,13 @@ export default class Core {
     // 背景を元に戻す（必要に応じて）
     // this.scene.background = new THREE.Color(0x000000);
 
-    // マテリアルの透明度を元に戻す
+    // マテリアルの設定を通常に戻す
     this.material.transparent = false;
     this.material.opacity = 1.0;
+    this.material.depthTest = true;
+    this.material.depthWrite = true;
+    this.material.side = 2; // DoubleSide（通常描画の互換のため）
+    this.material.needsUpdate = true;
 
     // メッシュの位置を元に戻す
     if (this.mesh) {

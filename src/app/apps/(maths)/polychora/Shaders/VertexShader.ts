@@ -34,8 +34,10 @@ void main() {
   vec3 S = g_add(origin, position);
   float l = 1.;
   vec3 P = S * l / (dot(S, S) * (l - 1.) + l);
-  vDepth = -(modelViewMatrix * vec4(P.xyz, 1.)).xyz;
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(P.xyz, 1.0);
+  // WebXRでの左右目・パススルーでも正しい深度/面向きとなるよう標準の座標変換を厳密に適用
+  vec4 mv = modelViewMatrix * vec4(P.xyz, 1.0);
+  vDepth = -mv.xyz;
+  gl_Position = projectionMatrix * mv;
   vUv = uv;
   vColor = color;
 }
