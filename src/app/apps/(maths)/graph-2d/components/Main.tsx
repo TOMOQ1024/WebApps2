@@ -155,7 +155,7 @@ export default function Main() {
   }, [currentFunctionLatex, graph, renderMode]);
 
   return (
-    <main className="relative">
+    <main className="relative w-screen h-[calc(100vh-var(--header-height))] overflow-hidden">
       <Canvas
         shader={shader}
         graph={graph}

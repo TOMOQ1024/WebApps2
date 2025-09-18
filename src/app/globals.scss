@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@use "tailwindcss";
 
 :root {
   --header-height: 50px;
@@ -75,4 +75,21 @@ a {
   html {
     color-scheme: dark;
   }
+}
+
+.border-default {
+  background: var(--background-color);
+  border: 2px solid var(--border-color);
+}
+
+.text-success {
+  color: var(--success-color);
+}
+
+.text-warning {
+  color: var(--warning-color);
+}
+
+.text-error {
+  color: var(--error-color);
 }

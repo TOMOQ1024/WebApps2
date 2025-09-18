@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { EditableMathField, StaticMathField } from "@/components/MathFields";
-import styles from "./ControlPanel.module.scss";
 
 export interface ControlPanelProps {
   onFunctionLatexChange: (latex: string) => void;
@@ -26,16 +25,18 @@ export default function ControlPanel({
   };
 
   return (
-    <div className={styles.controlPanel}>
-      {error && <div className={styles.error}>{error}</div>}
-      <div className={styles.mathContainer}>
-        <StaticMathField className={styles.staticText}>
-          f\left(x,y\right)=
-        </StaticMathField>
+    <div className="absolute bottom-4 left-4 flex flex-col gap-4 items-start z-10">
+      {error && (
+        <div className="text-[#dc3545] font-medium text-sm mt-2 bg-[var(--background-color)] border-2 border-[var(--border-color)] p-2">
+          {error}
+        </div>
+      )}
+      <div className="flex items-center text-[1.2rem] bg-[var(--background-color)] border-2 border-[var(--border-color)] p-4">
+        <StaticMathField className="">f\left(x,y\right)=</StaticMathField>
         <EditableMathField
           latex={functionExpr}
           onChange={handleFunctionChange}
-          className={styles.functionExpr}
+          className=""
           config={{
             restrictMismatchedBrackets: true,
             autoOperatorNames:
