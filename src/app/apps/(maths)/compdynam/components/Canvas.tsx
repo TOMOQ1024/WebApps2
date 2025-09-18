@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { vertexShader } from "../Shaders/VertexShader";
 import GraphMgr from "@/src/GraphMgr";
-import styles from "./Canvas.module.scss";
 import { CanvasManager } from "@/src/CanvasManager";
 
 interface CanvasProps {
@@ -121,5 +120,10 @@ export default function Canvas({
     }
   }, [iterations, renderMode]);
 
-  return <div ref={containerRef} className={styles.canvasContainer} />;
+  return (
+    <div
+      ref={containerRef}
+      className="left-0 w-full h-full z-0 touch-none select-none"
+    />
+  );
 }

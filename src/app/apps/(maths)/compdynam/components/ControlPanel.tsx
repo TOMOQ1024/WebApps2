@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { EditableMathField, StaticMathField } from "@/components/MathFields";
-import styles from "./ControlPanel.module.scss";
 
 export interface ControlPanelProps {
   onIterationsChange: (iterations: number) => void;
@@ -64,33 +63,37 @@ export default function ControlPanel({
   };
 
   return (
-    <div className={styles.controlPanel}>
-      {error && <div className={styles.error}>{error}</div>}
-      <div className={styles.mathContainer}>
-        <StaticMathField className={styles.staticText}>f</StaticMathField>
+    <div className="absolute bottom-4 left-4 flex flex-col gap-4 items-start z-10">
+      {error && (
+        <div className="text-[#dc3545] font-medium text-sm mt-2 bg-[var(--background-color)] border-2 border-[var(--border-color)] p-2">
+          {error}
+        </div>
+      )}
+      <div className="flex items-center text-[1.2rem] bg-[var(--background-color)] border-2 border-[var(--border-color)] p-4">
+        <StaticMathField className="">f</StaticMathField>
         <EditableMathField
           latex={iterations}
           onChange={handleIterationsChange}
-          className={styles.iterations}
+          className="-translate-y-2 scale-[0.7] font-medium select-none"
           config={{
             restrictMismatchedBrackets: true,
             autoOperatorNames:
               "sin cos tan cot sec csc exp sinh cosh tanh coth sech csch Log Re Im conj Arg",
           }}
         />
-        <StaticMathField className={styles.staticText}>(</StaticMathField>
+        <StaticMathField className="">(</StaticMathField>
         <EditableMathField
           latex={initialValue}
           onChange={handleInitialValueChange}
-          className={styles.initialValue}
+          className=""
         />
-        <StaticMathField className={styles.staticText}>
+        <StaticMathField className="">
           ) \qquad \mid \qquad f(z)=
         </StaticMathField>
         <EditableMathField
           latex={functionExpr}
           onChange={handleFunctionChange}
-          className={styles.functionExpr}
+          className=""
           config={{
             restrictMismatchedBrackets: true,
             autoOperatorNames:

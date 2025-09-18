@@ -1,5 +1,3 @@
-import styles from "./ControlButtons.module.scss";
-
 interface ControlButtonsProps {
   onResetGraph: () => void;
   onRenderModeChange: (mode: number) => void;
@@ -14,9 +12,9 @@ export default function ControlButtons({
   onShareLink,
 }: ControlButtonsProps) {
   return (
-    <div className={styles.container}>
+    <div className="absolute top-4 right-4 flex flex-col gap-2">
       <button
-        className={styles.button}
+        className="w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] cursor-pointer flex items-center justify-center hover:scale-95 active:invert"
         onClick={() => onRenderModeChange((currentRenderMode + 1) % 2)}
         title="描画モード切り替え"
       >
@@ -38,7 +36,7 @@ export default function ControlButtons({
         </svg>
       </button>
       <button
-        className={styles.button}
+        className="w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] cursor-pointer flex items-center justify-center hover:scale-95 active:invert"
         onClick={onResetGraph}
         title="グラフをリセット"
       >
@@ -57,7 +55,7 @@ export default function ControlButtons({
         </svg>
       </button>
       <button
-        className={styles.button}
+        className="w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] cursor-pointer flex items-center justify-center hover:scale-95 active:invert"
         onClick={onShareLink}
         title="リンクをコピー"
       >
@@ -76,7 +74,7 @@ export default function ControlButtons({
         </svg>
       </button>
       {/* <button
-        className={styles.button}
+        className="w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] cursor-pointer flex items-center justify-center hover:scale-95 active:invert"
         onClick={() => {}}
         title="計算モード切り替え"
       >
