@@ -69,6 +69,41 @@ function getMeanPosition(
 }
 
 /**
+ * 置換の偶奇性を計算する
+ * @param from 元の配列
+ * @param to 変換後の配列
+ * @returns 0 なら偶置換、1 なら奇置換
+ */
+function calculatePermutationParity(from: string[], to: string[]): number {
+  // 要素が同じであることを確認
+  if (from.length !== to.length) {
+    throw new Error("Arrays must have the same length");
+  }
+
+  // 各要素の位置をマッピング
+  const indexMap = new Map<string, number>();
+  from.forEach((val, idx) => indexMap.set(val, idx));
+
+  // 転倒数を数える
+  let inversions = 0;
+  for (let i = 0; i < to.length; i++) {
+    const fromIdx = indexMap.get(to[i]);
+    if (fromIdx === undefined) {
+      throw new Error(`Element ${to[i]} not found in source array`);
+    }
+    for (let j = i + 1; j < to.length; j++) {
+      const toIdx = indexMap.get(to[j]);
+      if (toIdx !== undefined && fromIdx > toIdx) {
+        inversions++;
+      }
+    }
+  }
+
+  // 転倒数が奇数なら奇置換（1）、偶数なら偶置換（0）
+  return inversions % 2;
+}
+
+/**
  * 透明な属性を作成する
  */
 function createTransparentAttributes(
@@ -179,6 +214,7 @@ function createSolidFrameFAttributes(
   const colors: number[] = [];
 
   // 頂点とインデックスの初期化
+  // 各面の各頂点について，頂点を作成する．
   for (const polygon of polygons) {
     indexMap.set(polygon, new Map());
     const meanPos = getMeanPosition(polygon.identicalNodeSets, positionMap);
@@ -197,6 +233,8 @@ function createSolidFrameFAttributes(
     }
   }
 
+  console.log(indexMap);
+
   // エッジの処理
   for (const polyhedron of polytope.children) {
     const searchedEdges = new Set<Polytope>();
@@ -213,14 +251,63 @@ function createSolidFrameFAttributes(
         const [s, e] = [...edge.identicalNodeSets.values()].map(
           (n) => n.values().next().value!
         );
-        indices.push(
-          indexMap.get(polygon)!.get(s)!,
-          indexMap.get(sibling)!.get(s)!,
-          indexMap.get(polygon)!.get(e)!,
-          indexMap.get(sibling)!.get(s)!,
-          indexMap.get(sibling)!.get(e)!,
-          indexMap.get(polygon)!.get(e)!
+
+        // ここで面の向きを調整する
+        // TODO: 反転の基準を調査する
+        // 基準は辺の生成元と面の生成元組から計算できる．
+        // 以下，Lで反転
+        // ("1","a","ab") → ??? → L
+        // ("1","a","ac") → ??? → R
+        // ("1","b","bc") → ??? → L
+        // ("1","b","ba") → ??? → R
+        // ("1","c","ca") → ??? → L
+        // ("1","c","cb") → ??? → R
+        // ("a","a","ab") → ??? → R
+        // ("a","a","ac") → ??? → L
+        // ("a","b","bc") → ??? → R
+        // ("a","b","ba") → ??? → L
+        // ("a","c","ca") → ??? → L
+        // ("a","c","cb") → ??? → R
+        const parent = polygon.parent
+          .intersection(sibling.parent)
+          .values()
+          .next().value!;
+        const genEdge = edge.diagram.gensStr;
+        const genPolygon = polygon.diagram.gens.filter(
+          (c) => c !== genEdge
+        )[0]!;
+        const genPolyhedron = parent.diagram.gens.filter(
+          (c) => c !== genEdge && c !== genPolygon
+        )[0]!;
+        const genPolychora = polytope.diagram.gens.filter(
+          (c) => c !== genEdge && c !== genPolygon && c !== genPolyhedron
+        )[0]!;
+        const arr = [genEdge, genPolygon, genPolyhedron, genPolychora];
+        console.log(s.getParity(), polytope.diagram.gens, arr);
+        const permutationParity = calculatePermutationParity(
+          polytope.diagram.gens,
+          arr
         );
+        const shouldFlip = s.getParity() !== permutationParity;
+        if (!shouldFlip) {
+          indices.push(
+            indexMap.get(polygon)!.get(e)!,
+            indexMap.get(sibling)!.get(e)!,
+            indexMap.get(polygon)!.get(s)!,
+            indexMap.get(sibling)!.get(e)!,
+            indexMap.get(sibling)!.get(s)!,
+            indexMap.get(polygon)!.get(s)!
+          );
+        } else {
+          indices.push(
+            indexMap.get(polygon)!.get(s)!,
+            indexMap.get(sibling)!.get(s)!,
+            indexMap.get(polygon)!.get(e)!,
+            indexMap.get(sibling)!.get(s)!,
+            indexMap.get(sibling)!.get(e)!,
+            indexMap.get(polygon)!.get(e)!
+          );
+        }
       }
     }
   }

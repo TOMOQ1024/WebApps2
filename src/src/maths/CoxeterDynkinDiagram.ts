@@ -13,7 +13,7 @@ export class CoxeterDynkinDiagram {
     public nodeMarks: { [gen: string]: string } = {}
   ) {
     this.gens = Object.keys(nodeMarks);
-    this.gensStr = this.gens.join(",");
+    this.gensStr = this.gens.join("");
     this.groupType = this.calculateGroupType();
   }
 
@@ -22,7 +22,7 @@ export class CoxeterDynkinDiagram {
     diagram.gens = Array.from({ length: matrix.length }, (_, i) =>
       String.fromCharCode(97 + i)
     );
-    diagram.gensStr = diagram.gens.join(",");
+    diagram.gensStr = diagram.gens.join("");
 
     for (let i = 0; i < matrix.length; i++) {
       for (let j = 0; j < matrix[i].length; j++) {

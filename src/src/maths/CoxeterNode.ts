@@ -169,4 +169,12 @@ export class CoxeterNode {
 
     return true;
   }
+
+  /**
+   * coordinateの長さに基づく偶奇性
+   * @returns 0 (偶数) or 1 (奇数)
+   */
+  getParity(): number {
+    return this.coordinate.length % 2;
+  }
 }
