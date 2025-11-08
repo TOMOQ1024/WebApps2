@@ -283,7 +283,6 @@ function createSolidFrameFAttributes(
           (c) => c !== genEdge && c !== genPolygon && c !== genPolyhedron
         )[0]!;
         const arr = [genEdge, genPolygon, genPolyhedron, genPolychora];
-        console.log(s.getParity(), polytope.diagram.gens, arr);
         const permutationParity = calculatePermutationParity(
           polytope.diagram.gens,
           arr
@@ -351,7 +350,38 @@ function createSolidFrameFAttributes(
             currentFace = nextFace;
           }
 
-          const vertexIndices = [...faces].map(
+          const facesArr = [...faces];
+          const parentPolyhedron = facesArr[0].parent
+            .intersection(facesArr[1].parent)
+            .intersection(facesArr[2].parent)
+            .values()
+            .next().value!;
+          const genPolychora = polytope.diagram.gens.filter(
+            (c) => !parentPolyhedron.diagram.gens.includes(c)
+          )[0]!;
+          const genArr = [
+            ...facesArr.map(
+              (f) =>
+                parentPolyhedron.diagram.gens.filter(
+                  (c) => !f.diagram.gens.includes(c)
+                )[0]!
+            ),
+            genPolychora,
+          ];
+
+          const permutationParity = calculatePermutationParity(
+            polytope.diagram.gens,
+            genArr
+          );
+
+          const shouldFlip =
+            vertex.nodes.values().next().value!.getParity() !==
+            permutationParity;
+
+          if (shouldFlip)
+            [facesArr[0], facesArr[1]] = [facesArr[1], facesArr[0]];
+
+          const vertexIndices = facesArr.map(
             (f) =>
               indexMap
                 .get(f)!

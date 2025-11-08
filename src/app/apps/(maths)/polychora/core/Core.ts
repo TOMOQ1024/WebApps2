@@ -6,7 +6,6 @@ import {
   DirectionalLight,
   DoubleSide,
   Group,
-  LineSegments,
   Mesh,
   MeshBasicMaterial,
   Matrix4,
@@ -95,7 +94,7 @@ export default class Core {
     }
   );
   ctrls: OrbitControls;
-  mesh: LineSegments | Mesh | null = null;
+  mesh: Mesh | null = null;
   buildTime: number = 0;
   material = new RawShaderMaterial({
     // side: DoubleSide,
