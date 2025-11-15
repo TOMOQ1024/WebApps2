@@ -19,19 +19,22 @@ export const MatrixInput2D = ({
     elements[4].toString(), // a22
     elements[7].toString(), // a23
   ]);
+  const [isEditing, setIsEditing] = useState(false);
 
-  // 親コンポーネントからの値の変更を反映
+  // 親コンポーネントからの値の変更を反映（編集中でない場合のみ）
   useEffect(() => {
-    const elements = value.elements;
-    setInputs([
-      elements[0].toString(),
-      elements[3].toString(),
-      elements[6].toString(),
-      elements[1].toString(),
-      elements[4].toString(),
-      elements[7].toString(),
-    ]);
-  }, [value]);
+    if (!isEditing) {
+      const elements = value.elements;
+      setInputs([
+        elements[0].toString(),
+        elements[3].toString(),
+        elements[6].toString(),
+        elements[1].toString(),
+        elements[4].toString(),
+        elements[7].toString(),
+      ]);
+    }
+  }, [value, isEditing]);
 
   const handleChange = (index: number, val: string) => {
     const newInputs = [...inputs];
@@ -57,7 +60,12 @@ export const MatrixInput2D = ({
     }
   };
 
+  const handleFocus = () => {
+    setIsEditing(true);
+  };
+
   const handleBlur = () => {
+    setIsEditing(false);
     const nums = inputs.map((s) => parseFloat(s));
     if (!nums.every((n) => !Number.isNaN(n))) {
       // 無効な場合は元に戻す
@@ -103,6 +111,7 @@ export const MatrixInput2D = ({
             type="text"
             value={inputs[i]}
             onChange={(e) => handleChange(i, e.target.value)}
+            onFocus={handleFocus}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
             style={getInputStyle(i)}
