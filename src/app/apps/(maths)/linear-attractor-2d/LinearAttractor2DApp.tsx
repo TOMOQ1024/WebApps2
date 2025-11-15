@@ -15,7 +15,7 @@ const TEX_SIZE = 256;
 
 // パラメータ
 const DEFAULT_PARAMS = {
-  pointSize: 0.02,
+  pointSize: 0.05,
   numPoints: TEX_SIZE * TEX_SIZE,
   ...sampleParams.sierpinski_triangle,
 };
@@ -239,6 +239,7 @@ export default function LinearAttractor2DApp() {
       uniforms: {
         positionTexture: { value: null },
         pointSize: { value: paramsRef.current.pointSize },
+        zoom: { value: 1 },
       },
       vertexShader,
       fragmentShader,
@@ -246,6 +247,7 @@ export default function LinearAttractor2DApp() {
       depthWrite: false,
     });
     const points = new THREE.Points(geometry, material);
+    points.frustumCulled = false; // GPGPUで位置を更新するため、視錐台カリングを無効化
     pointsRef.current = points;
     scene.add(points);
 
@@ -316,6 +318,11 @@ export default function LinearAttractor2DApp() {
     if (cameraRef.current) {
       cameraRef.current.zoom = zoom;
       cameraRef.current.updateProjectionMatrix();
+    }
+    // 点のサイズもズームに応じて調整
+    if (pointsRef.current) {
+      (pointsRef.current.material as THREE.ShaderMaterial).uniforms.zoom.value =
+        zoom;
     }
   }, [zoom]);
 
