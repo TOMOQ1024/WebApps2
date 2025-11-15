@@ -1,7 +1,7 @@
-import { BufferAttribute, Vector3 } from "three";
+import { BufferAttribute, type Vector3 } from "three";
+import type { CoxeterNode } from "@/src/maths/CoxeterNode";
 import { MobiusGyrovectorSphericalSpace3 } from "@/src/maths/MobiusGyrovectorSphericalSpace3";
-import { CoxeterNode } from "@/src/maths/CoxeterNode";
-import { Polytope } from "@/src/maths/Polytope";
+import type { Polytope } from "@/src/maths/Polytope";
 
 // 共通の色定義を定数として抽出
 export const POLYGON_COLORS = {
@@ -39,7 +39,7 @@ export const SOLID_COLORS = {
  */
 function createPolygonIndices(
   vertexCount: number,
-  indexOffset: number
+  indexOffset: number,
 ): number[] {
   const indices: number[] = [];
   for (let j = 0; j < vertexCount - 2; j++) {
@@ -48,7 +48,7 @@ function createPolygonIndices(
     indices.push(
       indexOffset + H,
       indexOffset + (j % 2 ? L + 1 : (H + vertexCount - 1) % vertexCount),
-      indexOffset + L
+      indexOffset + L,
     );
   }
   return indices;
@@ -59,12 +59,12 @@ function createPolygonIndices(
  */
 function getMeanPosition(
   identicalNodeSets: Set<Set<CoxeterNode>>,
-  positionMap: { [key: string]: Vector3 }
+  positionMap: { [key: string]: Vector3 },
 ): Vector3 {
   return MobiusGyrovectorSphericalSpace3.mean(
     ...[...identicalNodeSets.values()].map(
-      (nodeSet) => positionMap[nodeSet.values().next().value!.coordinate]
-    )
+      (nodeSet) => positionMap[nodeSet.values().next().value?.coordinate ?? ""],
+    ),
   );
 }
 
@@ -82,7 +82,9 @@ function calculatePermutationParity(from: string[], to: string[]): number {
 
   // 各要素の位置をマッピング
   const indexMap = new Map<string, number>();
-  from.forEach((val, idx) => indexMap.set(val, idx));
+  from.forEach((val, idx) => {
+    indexMap.set(val, idx);
+  });
 
   // 転倒数を数える
   let inversions = 0;
@@ -108,7 +110,7 @@ function calculatePermutationParity(from: string[], to: string[]): number {
  */
 function createTransparentAttributes(
   polygons: Set<Polytope>,
-  positionMap: { [key: string]: Vector3 }
+  positionMap: { [key: string]: Vector3 },
 ) {
   const indices: number[] = [];
   const vertices: number[] = [];
@@ -129,7 +131,7 @@ function createTransparentAttributes(
       uvs.push(
         (Math.cos((j * 2 * Math.PI) / n) / 2 + 0.5 + (n % UV_DIV)) / UV_DIV,
         (Math.sin((j * 2 * Math.PI) / n) / 2 + 0.5 + Math.floor(n / UV_DIV)) /
-          UV_DIV
+          UV_DIV,
       );
     }
     indexOffset += vertexCount;
@@ -147,7 +149,7 @@ function createTransparentAttributes(
  */
 function createFrameAttributes(
   polygons: Set<Polytope>,
-  positionMap: { [key: string]: Vector3 }
+  positionMap: { [key: string]: Vector3 },
 ) {
   const indices: number[] = [];
   const vertices: number[] = [];
@@ -169,7 +171,7 @@ function createFrameAttributes(
         indexOffset + k + vertexCount,
         indexOffset + j,
         indexOffset + k + vertexCount,
-        indexOffset + j + vertexCount
+        indexOffset + j + vertexCount,
       );
 
       const nodeSet = [...polygon.identicalNodeSets.values()][j];
@@ -185,10 +187,10 @@ function createFrameAttributes(
         ...MobiusGyrovectorSphericalSpace3.mix(
           positionMap[node.coordinate],
           meanPos,
-          0.1
-        ).toArray()
+          0.1,
+        ).toArray(),
       );
-      colors.push(...color.map((c) => 1), 1);
+      colors.push(...color.map(() => 1), 1);
     }
     indexOffset += vertexCount * 2;
   }
@@ -206,7 +208,7 @@ function createFrameAttributes(
 function createSolidFrameFAttributes(
   polytope: Polytope,
   polygons: Set<Polytope>,
-  positionMap: { [key: string]: Vector3 }
+  positionMap: { [key: string]: Vector3 },
 ) {
   const indexMap = new Map<Polytope, Map<CoxeterNode, number>>();
   const indices: number[] = [];
@@ -223,11 +225,11 @@ function createSolidFrameFAttributes(
     ] ?? [1, 1, 1];
 
     for (const nodeSet of polygon.identicalNodeSets) {
-      const node = nodeSet.values().next().value!;
+      const node = nodeSet.values().next().value as CoxeterNode;
       const vertex = positionMap[node.coordinate];
-      indexMap.get(polygon)!.set(node, positions.length / 3);
+      indexMap.get(polygon)?.set(node, positions.length / 3);
       positions.push(
-        ...MobiusGyrovectorSphericalSpace3.mix(vertex, meanPos, 0.1).toArray()
+        ...MobiusGyrovectorSphericalSpace3.mix(vertex, meanPos, 0.1).toArray(),
       );
       colors.push(...color, 1);
     }
@@ -249,7 +251,7 @@ function createSolidFrameFAttributes(
 
         searchedEdges.add(edge);
         const [s, e] = [...edge.identicalNodeSets.values()].map(
-          (n) => n.values().next().value!
+          (n) => n.values().next().value as CoxeterNode,
         );
 
         // ここで面の向きを調整する
@@ -271,40 +273,42 @@ function createSolidFrameFAttributes(
         const parent = polygon.parent
           .intersection(sibling.parent)
           .values()
-          .next().value!;
+          .next().value;
+        if (!parent) throw new Error("Parent not found");
         const genEdge = edge.diagram.gensStr;
-        const genPolygon = polygon.diagram.gens.filter(
-          (c) => c !== genEdge
-        )[0]!;
-        const genPolyhedron = parent.diagram.gens.filter(
-          (c) => c !== genEdge && c !== genPolygon
-        )[0]!;
-        const genPolychora = polytope.diagram.gens.filter(
-          (c) => c !== genEdge && c !== genPolygon && c !== genPolyhedron
-        )[0]!;
+        const genPolygon =
+          polygon.diagram.gens.filter((c) => c !== genEdge)[0] ?? "";
+        const genPolyhedron =
+          parent.diagram.gens.filter(
+            (c) => c !== genEdge && c !== genPolygon,
+          )[0] ?? "";
+        const genPolychora =
+          polytope.diagram.gens.filter(
+            (c) => c !== genEdge && c !== genPolygon && c !== genPolyhedron,
+          )[0] ?? "";
         const arr = [genEdge, genPolygon, genPolyhedron, genPolychora];
         const permutationParity = calculatePermutationParity(
           polytope.diagram.gens,
-          arr
+          arr,
         );
         const shouldFlip = s.getParity() !== permutationParity;
         if (!shouldFlip) {
           indices.push(
-            indexMap.get(polygon)!.get(e)!,
-            indexMap.get(sibling)!.get(e)!,
-            indexMap.get(polygon)!.get(s)!,
-            indexMap.get(sibling)!.get(e)!,
-            indexMap.get(sibling)!.get(s)!,
-            indexMap.get(polygon)!.get(s)!
+            indexMap.get(polygon)?.get(e) ?? -1,
+            indexMap.get(sibling)?.get(e) ?? -1,
+            indexMap.get(polygon)?.get(s) ?? -1,
+            indexMap.get(sibling)?.get(e) ?? -1,
+            indexMap.get(sibling)?.get(s) ?? -1,
+            indexMap.get(polygon)?.get(s) ?? -1,
           );
         } else {
           indices.push(
-            indexMap.get(polygon)!.get(s)!,
-            indexMap.get(sibling)!.get(s)!,
-            indexMap.get(polygon)!.get(e)!,
-            indexMap.get(sibling)!.get(s)!,
-            indexMap.get(sibling)!.get(e)!,
-            indexMap.get(polygon)!.get(e)!
+            indexMap.get(polygon)?.get(s) ?? -1,
+            indexMap.get(sibling)?.get(s) ?? -1,
+            indexMap.get(polygon)?.get(e) ?? -1,
+            indexMap.get(sibling)?.get(s) ?? -1,
+            indexMap.get(sibling)?.get(e) ?? -1,
+            indexMap.get(polygon)?.get(e) ?? -1,
           );
         }
       }
@@ -331,14 +335,14 @@ function createSolidFrameFAttributes(
 
           while (true) {
             const nextEdgeAndFace: [Polytope, Polytope] | undefined = [
-              ...currentFace!.siblings,
+              ...(currentFace?.siblings ?? []),
             ].find(
               ([sibling, joint]) =>
                 !edges.has(joint) &&
                 joint.children.has(vertex) &&
                 sibling.identicalNodeSets.difference(
-                  polyhedron.identicalNodeSets
-                ).size === 0
+                  polyhedron.identicalNodeSets,
+                ).size === 0,
             );
 
             if (!nextEdgeAndFace) break;
@@ -355,27 +359,33 @@ function createSolidFrameFAttributes(
             .intersection(facesArr[1].parent)
             .intersection(facesArr[2].parent)
             .values()
-            .next().value!;
-          const genPolychora = polytope.diagram.gens.filter(
-            (c) => !parentPolyhedron.diagram.gens.includes(c)
-          )[0]!;
+            .next().value as Polytope;
+          const genPolychora =
+            polytope.diagram.gens.filter(
+              (c) => !parentPolyhedron.diagram.gens.includes(c),
+            )[0] ?? "";
           const genArr = [
             ...facesArr.map(
               (f) =>
                 parentPolyhedron.diagram.gens.filter(
-                  (c) => !f.diagram.gens.includes(c)
-                )[0]!
+                  (c) => !f.diagram.gens.includes(c),
+                )[0] ?? "",
             ),
             genPolychora,
           ];
 
+          if (polytope.diagram.gens.length !== genArr.length) {
+            console.error(facesArr);
+            console.error(polytope.diagram.gens, genArr);
+            continue;
+          }
           const permutationParity = calculatePermutationParity(
             polytope.diagram.gens,
-            genArr
+            genArr,
           );
 
           const shouldFlip =
-            vertex.nodes.values().next().value!.getParity() !==
+            vertex.nodes.values().next().value?.getParity() !==
             permutationParity;
 
           if (shouldFlip)
@@ -384,17 +394,17 @@ function createSolidFrameFAttributes(
           const vertexIndices = facesArr.map(
             (f) =>
               indexMap
-                .get(f)!
-                .get(
+                .get(f)
+                ?.get(
                   [...vertex.identicalNodeSets.values()][0].values().next()
-                    .value!
-                )!
+                    .value as CoxeterNode,
+                ) ?? -1,
           );
 
           indices.push(
             ...createPolygonIndices(vertexIndices.length, 0).map(
-              (i) => vertexIndices[i]
-            )
+              (i) => vertexIndices[i],
+            ),
           );
         }
       }
@@ -414,7 +424,7 @@ function createSolidFrameFAttributes(
 function createSolidFrameCAttributes(
   polytope: Polytope,
   polyhedra: Set<Polytope>,
-  positionMap: { [key: string]: Vector3 }
+  positionMap: { [key: string]: Vector3 },
 ) {
   const indexMap = new Map<Polytope, Map<CoxeterNode, number>>();
   const indices: number[] = [];
@@ -430,11 +440,11 @@ function createSolidFrameCAttributes(
     ] ?? [1, 1, 1];
 
     for (const nodeSet of polyhedron.identicalNodeSets) {
-      const node = nodeSet.values().next().value!;
+      const node = nodeSet.values().next().value as CoxeterNode;
       const vertex = positionMap[node.coordinate];
-      indexMap.get(polyhedron)!.set(node, positions.length / 3);
+      indexMap.get(polyhedron)?.set(node, positions.length / 3);
       positions.push(
-        ...MobiusGyrovectorSphericalSpace3.mix(vertex, meanPos, 0.1).toArray()
+        ...MobiusGyrovectorSphericalSpace3.mix(vertex, meanPos, 0.1).toArray(),
       );
       colors.push(...color, 1);
     }
@@ -454,15 +464,15 @@ function createSolidFrameCAttributes(
 
         searchedEdges.add(edge);
         const [s, e] = [...edge.identicalNodeSets.values()].map(
-          (n) => n.values().next().value!
+          (n) => n.values().next().value as CoxeterNode,
         );
         indices.push(
-          indexMap.get(polyhedron)!.get(s)!,
-          indexMap.get(sibling)!.get(s)!,
-          indexMap.get(polyhedron)!.get(e)!,
-          indexMap.get(sibling)!.get(s)!,
-          indexMap.get(sibling)!.get(e)!,
-          indexMap.get(polyhedron)!.get(e)!
+          indexMap.get(polyhedron)?.get(s) ?? -1,
+          indexMap.get(sibling)?.get(s) ?? -1,
+          indexMap.get(polyhedron)?.get(e) ?? -1,
+          indexMap.get(sibling)?.get(s) ?? -1,
+          indexMap.get(sibling)?.get(e) ?? -1,
+          indexMap.get(polyhedron)?.get(e) ?? -1,
         );
       }
     }
@@ -488,14 +498,14 @@ function createSolidFrameCAttributes(
 
           while (true) {
             const nextEdgeAndFace: [Polytope, Polytope] | undefined = [
-              ...currentFace!.siblings,
+              ...(currentFace?.siblings ?? []),
             ].find(
               ([sibling, joint]) =>
                 !edges.has(joint) &&
                 joint.children.has(vertex) &&
                 sibling.identicalNodeSets.difference(
-                  polyhedron.identicalNodeSets
-                ).size === 0
+                  polyhedron.identicalNodeSets,
+                ).size === 0,
             );
 
             if (!nextEdgeAndFace) break;
@@ -510,17 +520,17 @@ function createSolidFrameCAttributes(
           const vertexIndices = [...faces].map(
             (f) =>
               indexMap
-                .get(f)!
-                .get(
+                .get(f)
+                ?.get(
                   [...vertex.identicalNodeSets.values()][0].values().next()
-                    .value!
-                )!
+                    .value as CoxeterNode,
+                ) ?? -1,
           );
 
           indices.push(
             ...createPolygonIndices(vertexIndices.length, 0).map(
-              (i) => vertexIndices[i]
-            )
+              (i) => vertexIndices[i],
+            ),
           );
         }
       }
@@ -540,7 +550,7 @@ function createSolidFrameCAttributes(
 export function CreateAttributes(
   positionMap: { [key: string]: Vector3 },
   polytope: Polytope,
-  mode: "transparent" | "frame" | "solidframe-f" | "solidframe-c"
+  mode: "transparent" | "frame" | "solidframe-f" | "solidframe-c",
 ) {
   const polygons = new Set<Polytope>();
   for (const node of polytope.nodes) {
