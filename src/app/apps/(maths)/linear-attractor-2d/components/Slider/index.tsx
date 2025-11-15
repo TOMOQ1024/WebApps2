@@ -17,4 +17,3 @@ export const Slider = ({ label, min, max, step, value, onChange }: any) => (
     </label>
   </div>
 );
-

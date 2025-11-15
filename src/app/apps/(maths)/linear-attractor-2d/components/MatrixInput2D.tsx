@@ -1,12 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import * as THREE from "three";
 
 export const MatrixInput2D = ({
-  label,
   value,
   onChange,
 }: {
-  label: string;
   value: THREE.Matrix3;
   onChange: (m: THREE.Matrix3) => void;
 }) => {
@@ -22,16 +20,27 @@ export const MatrixInput2D = ({
     elements[7].toString(), // a23
   ]);
 
+  // 親コンポーネントからの値の変更を反映
+  useEffect(() => {
+    const elements = value.elements;
+    setInputs([
+      elements[0].toString(),
+      elements[3].toString(),
+      elements[6].toString(),
+      elements[1].toString(),
+      elements[4].toString(),
+      elements[7].toString(),
+    ]);
+  }, [value]);
+
   const handleChange = (index: number, val: string) => {
     const newInputs = [...inputs];
     newInputs[index] = val;
     setInputs(newInputs);
-  };
 
-  const handleBlur = () => {
-    const nums = inputs.map((s) => parseFloat(s));
-    if (nums.every((n) => !isNaN(n))) {
-      // 行列形式から列優先形式に変換
+    // 入力中にリアルタイムで反映
+    const nums = newInputs.map((s) => parseFloat(s));
+    if (nums.every((n) => !Number.isNaN(n))) {
       const newMatrix = new THREE.Matrix3();
       newMatrix.set(
         nums[0],
@@ -45,8 +54,14 @@ export const MatrixInput2D = ({
         1,
       );
       onChange(newMatrix);
-    } else {
+    }
+  };
+
+  const handleBlur = () => {
+    const nums = inputs.map((s) => parseFloat(s));
+    if (!nums.every((n) => !Number.isNaN(n))) {
       // 無効な場合は元に戻す
+      const elements = value.elements;
       setInputs([
         elements[0].toString(),
         elements[3].toString(),
@@ -60,34 +75,37 @@ export const MatrixInput2D = ({
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
-      handleBlur();
+      (e.target as HTMLInputElement).blur();
     }
   };
 
-  const inputStyle = {
+  const getInputStyle = (i: number) => ({
     width: "60px",
     padding: "2px 4px",
-    border: "2px solid var(--border-color)",
+    borderTop: "2px solid var(--border-color)",
+    borderBottom: i >= 3 ? "2px solid var(--border-color)" : "none",
+    borderLeft: i % 3 === 0 ? "2px solid var(--border-color)" : "none",
+    borderRight: "2px solid var(--border-color)",
     background: "var(--background-color)",
     color: "var(--text-color)",
     borderRadius: 0,
     textAlign: "center" as const,
     fontSize: "12px",
-  };
+    outline: "none",
+  });
 
   return (
-    <div className="mb-2">
-      <div className="text-sm block mb-1">{label}:</div>
-      <div className="inline-grid grid-cols-3 gap-1">
-        {inputs.map((val, i) => (
+    <div>
+      <div className="inline-grid grid-cols-3" style={{ gap: 0 }}>
+        {(["a11", "a12", "a13", "a21", "a22", "a23"] as const).map((key, i) => (
           <input
-            key={i}
+            key={key}
             type="text"
-            value={val}
+            value={inputs[i]}
             onChange={(e) => handleChange(i, e.target.value)}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
-            style={inputStyle}
+            style={getInputStyle(i)}
           />
         ))}
       </div>
