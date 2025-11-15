@@ -39,7 +39,7 @@ export const RealNumberInput = ({
   };
 
   return (
-    <div style={{ marginBottom: 8 }}>
+    <div className="mb-2">
       <label>{label}: </label>
       <EditableMathField
         latex={latex}

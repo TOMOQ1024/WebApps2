@@ -13,7 +13,8 @@ export const Slider = ({ label, min, max, step, value, onChange }: any) => (
         onChange={(e) => onChange(Number(e.target.value))}
         className={styles.slider}
       />{" "}
-      <span className="font-medium">{value}</span>
+      <span className="font-medium">{value.toFixed(3)}</span>
     </label>
   </div>
 );
+

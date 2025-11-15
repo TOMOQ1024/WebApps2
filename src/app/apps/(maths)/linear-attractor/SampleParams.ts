@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-// prettier-ignore
+// biome-ignore format: s
 export const sampleParams = {
   sierpinski_tetrahedron: {
     threshold0: 1,
@@ -14,58 +14,22 @@ export const sampleParams = {
       0, 0, 0, 1
     ),
     transform1: new THREE.Matrix4(
-      0.5,
-      0.0,
-      0.0,
-      -0.5,
-      0.0,
-      0.5,
-      0.0,
-      -0.5,
-      0.0,
-      0.0,
-      0.5,
-      0.5,
-      0,
-      0,
-      0,
-      1
+      0.5, 0.0, 0.0, -0.5,
+      0.0, 0.5, 0.0, -0.5,
+      0.0, 0.0, 0.5, 0.5,
+      0, 0, 0, 1
     ),
     transform2: new THREE.Matrix4(
-      0.5,
-      0.0,
-      0.0,
-      -0.5,
-      0.0,
-      0.5,
-      0.0,
-      0.5,
-      0.0,
-      0.0,
-      0.5,
-      -0.5,
-      0,
-      0,
-      0,
-      1
+      0.5, 0.0, 0.0, -0.5,
+      0.0, 0.5, 0.0, 0.5,
+      0.0, 0.0, 0.5, -0.5,
+      0, 0, 0, 1
     ),
     transform3: new THREE.Matrix4(
-      0.5,
-      0.0,
-      0.0,
-      0.5,
-      0.0,
-      0.5,
-      0.0,
-      -0.5,
-      0.0,
-      0.0,
-      0.5,
-      -0.5,
-      0,
-      0,
-      0,
-      1
+      0.5, 0.0, 0.0, 0.5,
+      0.0, 0.5, 0.0, -0.5,
+      0.0, 0.0, 0.5, -0.5,
+      0, 0, 0, 1
     ),
   },
   bernsley_fern: {

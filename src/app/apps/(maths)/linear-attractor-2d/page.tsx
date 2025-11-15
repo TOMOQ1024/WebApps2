@@ -1,12 +1,12 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import type { Variable } from "three/examples/jsm/misc/GPUComputationRenderer.js";
 import { GPUComputationRenderer } from "three/examples/jsm/misc/GPUComputationRenderer.js";
 import ControlButtons from "./components/ControlButtons";
+import { MatrixInput2D } from "./components/MatrixInput2D";
+import { RealNumberInput } from "./components/RealNumberInput";
 import { Slider } from "./components/Slider";
-import { MatrixInput } from "./components/Slider/MatrixInput";
-import { RealNumberInput } from "./components/Slider/RealNumberInput";
 import { sampleParams } from "./SampleParams";
 import { computeFragmentShader } from "./shaders/computeFragmentShader";
 import { fragmentShader } from "./shaders/fragmentShader";
@@ -16,18 +16,14 @@ const TEX_SIZE = 256;
 
 // パラメータ
 const DEFAULT_PARAMS = {
-  pointSize: 0.03,
-  xMin: -2,
-  xMax: 2,
-  yMin: -2,
-  yMax: 2,
+  pointSize: 0.02,
   numPoints: TEX_SIZE * TEX_SIZE,
-  ...sampleParams.sierpinski_tetrahedron,
+  ...sampleParams.sierpinski_triangle,
 };
 
 function createOriginTexture(gpuCompute: GPUComputationRenderer) {
   const texture = gpuCompute.createTexture();
-  const data = (texture.image as any).data as Float32Array;
+  const data = (texture.image as unknown as { data: Float32Array }).data;
 
   for (let i = 0; i < TEX_SIZE * TEX_SIZE; i++) {
     data[i * 4 + 0] = 0;
@@ -39,26 +35,25 @@ function createOriginTexture(gpuCompute: GPUComputationRenderer) {
   return texture;
 }
 
-export default function GmowskiMiraAttractorPage() {
+export default function LinearAttractor2DPage() {
   const [params, setParams] = useState(DEFAULT_PARAMS);
   const paramsRef = useRef(params);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer>(null);
   const sceneRef = useRef<THREE.Scene>(null);
-  const cameraRef = useRef<THREE.PerspectiveCamera>(null);
+  const cameraRef = useRef<THREE.OrthographicCamera>(null);
   const pointsRef = useRef<THREE.Points>(null);
   const gpuComputeRef = useRef<GPUComputationRenderer>(null);
-  const positionVariableRef = useRef<any>(null);
-  const orbitControlsRef = useRef<OrbitControls>(null);
-  const [error, setError] = useState<string>("");
-  const [controlsVisible, setControlsVisible] = useState(true); // 追加
+  const positionVariableRef = useRef<Variable>(null);
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const [zoom, setZoom] = useState(1);
 
   // paramsの最新値をrefに反映
   useEffect(() => {
     paramsRef.current = params;
   }, [params]);
 
-  const initializeUniforms = (positionVariable: any) => {
+  const initializeUniforms = useCallback((positionVariable: Variable) => {
     positionVariable.material.uniforms.uTime = { value: 0 };
     positionVariable.material.uniforms.uThreshold0 = {
       value: paramsRef.current.threshold0,
@@ -84,21 +79,18 @@ export default function GmowskiMiraAttractorPage() {
     positionVariable.material.uniforms.uTransform3 = {
       value: paramsRef.current.transform3,
     };
-  };
+  }, []);
 
   // 点群を原点に初期化する関数
   const initializeToOrigin = () => {
     if (!gpuComputeRef.current || !rendererRef.current) return;
 
-    // 現在のGPUComputationRendererを削除し、新しく作成
     const renderer = rendererRef.current;
     const gpuCompute = new GPUComputationRenderer(TEX_SIZE, TEX_SIZE, renderer);
     gpuComputeRef.current = gpuCompute;
 
-    // 原点テクスチャを作成
     const originTexture = createOriginTexture(gpuCompute);
 
-    // 新しいpositionVariableを作成
     const positionVariable = gpuCompute.addVariable(
       "texturePosition",
       computeFragmentShader,
@@ -106,27 +98,35 @@ export default function GmowskiMiraAttractorPage() {
     );
     gpuCompute.setVariableDependencies(positionVariable, [positionVariable]);
 
-    // ユニフォームを設定
     initializeUniforms(positionVariable);
 
-    // GPGPU初期化
     const err = gpuCompute.init();
     if (err) {
       alert(`GPGPU初期化エラー: ${err}`);
       return;
     }
 
-    // 変数の参照を更新
     positionVariableRef.current = positionVariable;
+  };
+
+  // カメラリセット
+  const resetCamera = () => {
+    setZoom(1);
+    if (cameraRef.current) {
+      cameraRef.current.position.set(0, 0, 1);
+      cameraRef.current.zoom = 1;
+      cameraRef.current.updateProjectionMatrix();
+    }
   };
 
   // 初期化
   useEffect(() => {
     if (!canvasRef.current) return;
+
     // レンダラー
     const renderer = new THREE.WebGLRenderer({
       canvas: canvasRef.current,
-      antialias: true,
+      antialias: false,
       alpha: true,
     });
     renderer.setSize(window.innerWidth, window.innerHeight, false);
@@ -136,39 +136,64 @@ export default function GmowskiMiraAttractorPage() {
     const scene = new THREE.Scene();
     sceneRef.current = scene;
 
-    // カメラ
-    const camera = new THREE.PerspectiveCamera(
-      60,
-      window.innerWidth / window.innerHeight,
-      0.01,
+    // カメラ（OrthographicCamera for 2D）
+    const aspect = window.innerWidth / window.innerHeight;
+    const frustumSize = 2;
+    const camera = new THREE.OrthographicCamera(
+      (frustumSize * aspect) / -2,
+      (frustumSize * aspect) / 2,
+      frustumSize / 2,
+      frustumSize / -2,
+      0.1,
       100,
     );
-    camera.position.set(0, 0, 4);
+    camera.position.set(0, 0, 1);
     cameraRef.current = camera;
 
-    // orbit controls
-    const orbitControls = new OrbitControls(camera, renderer.domElement);
-    orbitControls.enableDamping = true;
-    orbitControls.dampingFactor = 0.25;
-    orbitControls.enableZoom = true;
-    orbitControls.enablePan = true;
-    orbitControls.enableRotate = true;
-    orbitControlsRef.current = orbitControls;
+    // マウスホイールでズーム
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? 1.1 : 0.9;
+      setZoom((prev) => Math.max(0.1, Math.min(10, prev * delta)));
+    };
+    canvasRef.current.addEventListener("wheel", handleWheel, {
+      passive: false,
+    });
+
+    // マウスドラッグでパン
+    let isDragging = false;
+    let prevMouse = { x: 0, y: 0 };
+    const handleMouseDown = (e: MouseEvent) => {
+      isDragging = true;
+      prevMouse = { x: e.clientX, y: e.clientY };
+    };
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !cameraRef.current) return;
+      const dx = (e.clientX - prevMouse.x) / window.innerWidth;
+      const dy = (e.clientY - prevMouse.y) / window.innerHeight;
+      const zoomFactor = 2 / cameraRef.current.zoom;
+      camera.position.x -= dx * zoomFactor * aspect;
+      camera.position.y += dy * zoomFactor;
+      prevMouse = { x: e.clientX, y: e.clientY };
+    };
+    const handleMouseUp = () => {
+      isDragging = false;
+    };
+    canvasRef.current.addEventListener("mousedown", handleMouseDown);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
     // GPGPUセットアップ
     const gpuCompute = new GPUComputationRenderer(TEX_SIZE, TEX_SIZE, renderer);
     gpuComputeRef.current = gpuCompute;
-    // 初期位置テクスチャ
     const posTex = createOriginTexture(gpuCompute);
-    // 変数登録
     const positionVariable = gpuCompute.addVariable(
       "texturePosition",
       computeFragmentShader,
       posTex,
     );
     gpuCompute.setVariableDependencies(positionVariable, [positionVariable]);
-    // ユニフォーム
     initializeUniforms(positionVariable);
-    // 初期化
     const err = gpuCompute.init();
     if (err) {
       alert(`GPGPU初期化エラー: ${err}`);
@@ -178,7 +203,6 @@ export default function GmowskiMiraAttractorPage() {
 
     // 点群ジオメトリ
     const geometry = new THREE.BufferGeometry();
-    // 各点のuv座標を格納（TEX_SIZE*TEX_SIZE点）
     const positions = new Float32Array(TEX_SIZE * TEX_SIZE * 3);
     const uvs = new Float32Array(TEX_SIZE * TEX_SIZE * 2);
     let k = 0;
@@ -194,6 +218,7 @@ export default function GmowskiMiraAttractorPage() {
     }
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute("uv", new THREE.BufferAttribute(uvs, 2));
+
     // シェーダーマテリアル
     const material = new THREE.ShaderMaterial({
       uniforms: {
@@ -212,9 +237,7 @@ export default function GmowskiMiraAttractorPage() {
     // アニメーションループ
     let animId: number;
     const animate = () => {
-      // 現在のGPUComputationRendererとpositionVariableを使用
       if (gpuComputeRef.current && positionVariableRef.current) {
-        // GPGPU計算
         positionVariableRef.current.material.uniforms.uTime.value =
           performance.now() / 1000;
         positionVariableRef.current.material.uniforms.uThreshold0.value =
@@ -234,7 +257,6 @@ export default function GmowskiMiraAttractorPage() {
         positionVariableRef.current.material.uniforms.uTransform3.value =
           paramsRef.current.transform3;
         gpuComputeRef.current.compute();
-        // 最新の位置テクスチャを渡す
         material.uniforms.positionTexture.value =
           gpuComputeRef.current.getCurrentRenderTarget(
             positionVariableRef.current,
@@ -251,7 +273,11 @@ export default function GmowskiMiraAttractorPage() {
       const w = window.innerWidth;
       const h = window.innerHeight;
       rendererRef.current.setSize(w, h, false);
-      cameraRef.current.aspect = w / h;
+      const aspect = w / h;
+      cameraRef.current.left = (frustumSize * aspect) / -2;
+      cameraRef.current.right = (frustumSize * aspect) / 2;
+      cameraRef.current.top = frustumSize / 2;
+      cameraRef.current.bottom = frustumSize / -2;
       cameraRef.current.updateProjectionMatrix();
     };
     window.addEventListener("resize", handleResize);
@@ -259,18 +285,29 @@ export default function GmowskiMiraAttractorPage() {
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", handleResize);
+      canvasRef.current?.removeEventListener("wheel", handleWheel);
+      canvasRef.current?.removeEventListener("mousedown", handleMouseDown);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
       geometry.dispose();
       material.dispose();
       scene.remove(points);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [initializeUniforms]);
+
+  // ズーム変更時のカメラ更新
+  useEffect(() => {
+    if (cameraRef.current) {
+      cameraRef.current.zoom = zoom;
+      cameraRef.current.updateProjectionMatrix();
+    }
+  }, [zoom]);
 
   // パラメータ変更時のuniform更新
   useEffect(() => {
     if (!positionVariableRef.current) return;
     positionVariableRef.current.material.uniforms.uTime.value = 0;
-    // 点サイズも更新
     if (pointsRef.current) {
       (
         pointsRef.current.material as THREE.ShaderMaterial
@@ -278,37 +315,16 @@ export default function GmowskiMiraAttractorPage() {
     }
   }, [params.pointSize]);
 
-  // threshold変更時のuniform更新
-  useEffect(() => {
-    if (!positionVariableRef.current) return;
-    positionVariableRef.current.material.uniforms.uThreshold0.value =
-      params.threshold0;
-    positionVariableRef.current.material.uniforms.uThreshold1.value =
-      params.threshold1;
-    positionVariableRef.current.material.uniforms.uThreshold2.value =
-      params.threshold2;
-    positionVariableRef.current.material.uniforms.uThreshold3.value =
-      params.threshold3;
-  }, [
-    params.threshold0,
-    params.threshold1,
-    params.threshold2,
-    params.threshold3,
-  ]);
-
   return (
     <main className="w-screen h-[calc(100vh-var(--header-height))]">
       <ControlButtons
-        onResetControl={() => {
-          if (orbitControlsRef.current) {
-            orbitControlsRef.current.reset();
-          }
-        }}
+        onResetControl={resetCamera}
         onReset={() => {
           setParams({ ...DEFAULT_PARAMS });
+          resetCamera();
         }}
         onInitializeToOrigin={initializeToOrigin}
-        onToggleControlsVisible={() => setControlsVisible((v) => !v)} // 追加
+        onToggleControlsVisible={() => setControlsVisible((v) => !v)}
         onRandomSample={() => {
           const keys = Object.keys(
             sampleParams,
@@ -322,16 +338,11 @@ export default function GmowskiMiraAttractorPage() {
       />
       {controlsVisible && (
         <div className="absolute bottom-[10px] left-[10px] z-10">
-          {error && (
-            <div className="bg-red-500/10 border border-red-500 p-2 mb-2 rounded">
-              <div className="text-red-500 text-xs mb-1 last:mb-0">{error}</div>
-            </div>
-          )}
-          <div className="bg-[var(--background-color)] p-[10px] border-2 border-[var(--border-color)] flex flex-row gap-4 mb-[10px]">
+          <div className="bg-[var(--background-color)] p-[10px] border-2 flex flex-row gap-4 mb-[10px]">
             <Slider
-              label="頂点サイズ"
-              min={0.005}
-              max={0.2}
+              label="点サイズ"
+              min={0.001}
+              max={0.05}
               step={0.001}
               value={params.pointSize}
               onChange={(v: number) =>
@@ -341,10 +352,21 @@ export default function GmowskiMiraAttractorPage() {
                 }))
               }
             />
+            <Slider
+              label="ズーム"
+              min={0.1}
+              max={5}
+              step={0.1}
+              value={zoom}
+              onChange={setZoom}
+            />
           </div>
-          <div className="bg-[var(--background-color)] p-[10px] border-2 border-[var(--border-color)] flex flex-row gap-4 mb-[10px]">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex flex-col items-center min-w-[220px]">
+          <div className="bg-[var(--background-color)] p-[10px] border-2 flex flex-row gap-4 mb-[10px]">
+            {([0, 1, 2, 3] as const).map((i) => (
+              <div
+                key={`transform-${i}`}
+                className="flex flex-col items-start min-w-[220px]"
+              >
                 <RealNumberInput
                   label={`重み${i}`}
                   value={
@@ -356,26 +378,20 @@ export default function GmowskiMiraAttractorPage() {
                       [`threshold${i}`]: v,
                     }))
                   }
-                  onError={(err: string) => {
-                    setError(err);
-                  }}
                 />
-                <MatrixInput
+                <MatrixInput2D
                   label={`変換行列${i}`}
                   value={
                     params[
                       `transform${i}` as keyof typeof params
-                    ] as THREE.Matrix4
+                    ] as THREE.Matrix3
                   }
-                  onChange={(m: THREE.Matrix4) =>
+                  onChange={(m: THREE.Matrix3) =>
                     setParams((prev) => ({
                       ...prev,
                       [`transform${i}`]: m,
                     }))
                   }
-                  onError={(err: string) => {
-                    setError(err);
-                  }}
                 />
               </div>
             ))}

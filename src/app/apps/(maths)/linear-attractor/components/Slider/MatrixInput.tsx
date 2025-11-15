@@ -1,14 +1,6 @@
-import { useState, useEffect } from "react";
-import { EditableMathField } from "@/components/MathFields";
+import { useEffect, useState } from "react";
 import * as THREE from "three";
-
-function arraysEqual(a: string[], b: string[]) {
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
-}
+import { EditableMathField } from "@/components/MathFields";
 
 export const MatrixInput = ({
   label,
@@ -22,7 +14,7 @@ export const MatrixInput = ({
   onError?: (error: string) => void;
 }) => {
   const [elements, setElements] = useState<string[]>(
-    value.toArray().map(String)
+    value.toArray().map(String),
   );
   const [errors, setErrors] = useState<string[]>(Array(16).fill(""));
   const [isEditing, setIsEditing] = useState<boolean[]>(Array(16).fill(false));
@@ -34,7 +26,7 @@ export const MatrixInput = ({
   useEffect(() => {
     const valueArr = value.toArray().map(String);
     setElements((prev) => prev.map((v, i) => (isEditing[i] ? v : valueArr[i])));
-  }, [value]);
+  }, [value, isEditing]);
 
   const handleChange = (idx: number, str: string) => {
     const arr = [...elements];
@@ -80,15 +72,9 @@ export const MatrixInput = ({
   };
 
   return (
-    <div style={{ marginBottom: 8 }}>
-      <label>{label}</label>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: 4,
-        }}
-      >
+    <div className="mb-2">
+      <div>{label}</div>
+      <div className="grid grid-cols-4 gap-1">
         {[0, 1, 2, 3].map((row) =>
           [0, 1, 2, 3].map((col) => {
             const idx = getIndex(row, col);
@@ -99,7 +85,7 @@ export const MatrixInput = ({
                   onChange={(mf: any) =>
                     handleChange(
                       idx,
-                      mf.latex().replace(/\\,/g, "").replace(/\\ /g, "")
+                      mf.latex().replace(/\\,/g, "").replace(/\\ /g, ""),
                     )
                   }
                   onFocus={() => handleFocus(idx)}
@@ -111,7 +97,7 @@ export const MatrixInput = ({
                 />
               </div>
             );
-          })
+          }),
         )}
       </div>
     </div>

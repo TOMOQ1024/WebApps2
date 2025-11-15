@@ -129,6 +129,16 @@ export const appList = {
     appName: "Life Game",
     tags: new Set(["wip"]),
   },
+  "linear-attractor": {
+    appName: "Linear Attractor",
+    description: "複数のアフィン変換による3次元アトラクターを観察できるページ",
+    tags: new Set(["maths", "fractal"]),
+  },
+  "linear-attractor-2d": {
+    appName: "Linear Attractor 2D",
+    description: "複数のアフィン変換による2次元アトラクターを観察できるページ",
+    tags: new Set(["maths", "fractal"]),
+  },
   mandelbrotset: {
     appName: "Mandelbrot Set",
     tags: new Set(["wip"]),
