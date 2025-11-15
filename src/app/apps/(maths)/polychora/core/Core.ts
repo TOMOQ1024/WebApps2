@@ -1,22 +1,19 @@
-import axios from "axios";
 import {
   AmbientLight,
-  BufferGeometry,
   CullFaceBack,
-  DirectionalLight,
-  DoubleSide,
   Group,
+  Matrix4,
   Mesh,
   MeshBasicMaterial,
-  Matrix4,
+  type Object3D,
   OrthographicCamera,
-  Object3D,
   PerspectiveCamera,
+  Quaternion,
   RawShaderMaterial,
   Scene,
-  Quaternion,
   Vector3,
   WebGLRenderer,
+  type XRTargetRaySpace,
 } from "three";
 import {
   GLTFExporter,
@@ -24,10 +21,10 @@ import {
   VRButton,
   XRControllerModelFactory,
 } from "three/examples/jsm/Addons";
-import { CreatePolychoronGeometry } from "./Geometry";
 import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
-import { vertexShader } from "../Shaders/VertexShader";
 import { fragmentShader } from "../Shaders/FragmentShader";
+import { vertexShader } from "../Shaders/VertexShader";
+import { CreatePolychoronGeometry } from "./Geometry";
 
 export default class Core {
   cvs: HTMLCanvasElement;
@@ -38,8 +35,8 @@ export default class Core {
   scene: Scene;
   isVRMode: boolean = false;
   vrButton: HTMLElement | null = null;
-  vrControllers: any[] = [];
-  controllerGrips: any[] = [];
+  vrControllers: XRTargetRaySpace[] = [];
+  controllerGrips: XRTargetRaySpace[] = [];
   polyGroup: Group = new Group();
 
   // 片手/両手掴み用の状態
@@ -91,7 +88,7 @@ export default class Core {
       b: "x",
       c: "x",
       d: "x",
-    }
+    },
   );
   ctrls: OrbitControls;
   mesh: Mesh | null = null;
@@ -258,14 +255,14 @@ export default class Core {
           URL.revokeObjectURL(url);
         } else {
           console.error(
-            "GLBのエクスポートに失敗しました: 不正なデータ形式です"
+            "GLBのエクスポートに失敗しました: 不正なデータ形式です",
           );
         }
       },
       (error: ErrorEvent) => {
         console.error("GLBのエクスポートに失敗しました:", error.message);
       },
-      { binary: true }
+      { binary: true },
     );
   }
 
@@ -301,7 +298,7 @@ export default class Core {
 
     const controllerGrip1 = this.renderer.xr.getControllerGrip(0);
     controllerGrip1.add(
-      controllerModelFactory.createControllerModel(controllerGrip1)
+      controllerModelFactory.createControllerModel(controllerGrip1),
     );
     this.scene.add(controllerGrip1);
     this.controllerGrips.push(controllerGrip1);
@@ -315,15 +312,16 @@ export default class Core {
 
     const controllerGrip2 = this.renderer.xr.getControllerGrip(1);
     controllerGrip2.add(
-      controllerModelFactory.createControllerModel(controllerGrip2)
+      controllerModelFactory.createControllerModel(controllerGrip2),
     );
     this.scene.add(controllerGrip2);
     this.controllerGrips.push(controllerGrip2);
   }
 
   // コントローラのイベントハンドラ
+  // biome-ignore lint/suspicious/noExplicitAny: unknown event
   private onSelectStart(event: any): void {
-    const controller: Object3D = event.target;
+    const controller = event.target as XRTargetRaySpace;
     const index = this.vrControllers.indexOf(controller);
     if (index === -1) return;
 
@@ -375,13 +373,14 @@ export default class Core {
     }
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: unknown event
   private onSelectEnd(event: any): void {
-    const controller: Object3D = event.target;
+    const controller = event.target as XRTargetRaySpace;
     const index = this.vrControllers.indexOf(controller);
     if (index === -1) return;
 
     if (this.controllerStates[index]) {
-      this.controllerStates[index]!.grabbing = false;
+      this.controllerStates[index].grabbing = false;
     }
 
     // 両手掴み解除時に片手掴みへスムーズに移行できるよう再計算
@@ -415,7 +414,8 @@ export default class Core {
       // 片手掴み：コントローラ姿勢に追従
       const i = grabbingIndices[0];
       const grip: Object3D = this.controllerGrips[i];
-      const state = this.controllerStates[i]!;
+      const state = this.controllerStates[i];
+      if (!state) throw new Error("Controller state not found");
       const newPolyWorld = new Matrix4()
         .copy(grip.matrixWorld)
         .multiply(state.offsetMatrix);
@@ -442,14 +442,14 @@ export default class Core {
       const T1 = new Matrix4().makeTranslation(
         midpoint1.x,
         midpoint1.y,
-        midpoint1.z
+        midpoint1.z,
       );
       const R = new Matrix4().makeRotationFromQuaternion(qRot);
       const S = new Matrix4().makeScale(scale, scale, scale);
       const T0inv = new Matrix4().makeTranslation(
         -midpoint0.x,
         -midpoint0.y,
-        -midpoint0.z
+        -midpoint0.z,
       );
 
       const m = new Matrix4()
@@ -521,6 +521,7 @@ export default class Core {
   }
 
   // パススルーモードを有効化
+  // biome-ignore lint/suspicious/noExplicitAny: unknown session type
   private async enablePassthrough(session: any): Promise<void> {
     try {
       // パススルー機能の確認と有効化
@@ -553,7 +554,7 @@ export default class Core {
         this.material.needsUpdate = true;
       } else {
         console.log(
-          "パススルーモードは利用できませんが、VRモードは正常に動作します"
+          "パススルーモードは利用できませんが、VRモードは正常に動作します",
         );
         // 通常VRは不透明・両面・深度書き込みあり
         this.material.transparent = false;
@@ -567,7 +568,7 @@ export default class Core {
     } catch (error) {
       console.log(
         "パススルーモードの有効化に失敗しましたが、VRモードは継続されます:",
-        error
+        error,
       );
     }
   }
@@ -617,9 +618,8 @@ export default class Core {
   async checkWebXRSupport(): Promise<boolean> {
     if ("xr" in navigator) {
       try {
-        const supported = await navigator.xr?.isSessionSupported(
-          "immersive-vr"
-        );
+        const supported =
+          await navigator.xr?.isSessionSupported("immersive-vr");
         return supported || false;
       } catch {
         return false;
