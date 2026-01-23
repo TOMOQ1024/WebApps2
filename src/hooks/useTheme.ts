@@ -51,7 +51,7 @@ export const useTheme = () => {
         }
 
         // スムーズに補間（lerp）
-        const speed = 0.1;
+        const speed = 0.01;
         return current + diff * speed;
       });
 

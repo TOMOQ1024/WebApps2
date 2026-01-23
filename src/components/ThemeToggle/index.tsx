@@ -8,8 +8,6 @@ import { useTheme } from "@/hooks/useTheme";
 import { fragmentShader } from "./Shaders/FragmentShader";
 import { vertexShader } from "./Shaders/VertexShader";
 
-const BORDER_WIDTH = 2 / 32; // 正規化された値（2px / 32px）
-
 export default function ThemeToggle() {
   const { theme, themeValue, toggleTheme } = useTheme();
   const themeRef = useRef(themeValue);
@@ -18,7 +16,6 @@ export default function ThemeToggle() {
   const uniforms = useMemo<ShaderButtonUniforms>(
     () => ({
       uTheme: { value: themeValue },
-      uBorderWidth: { value: BORDER_WIDTH },
     }),
     [], // 初期値のみ、更新は onFrame で
   );
