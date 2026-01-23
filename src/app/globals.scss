@@ -3,6 +3,7 @@
 :root {
   --header-height: 50px;
   --font-family: "Roboto Mono", monospace;
+  --theme-transition-duration: 3s;
 
   --background-color: white;
   --primary-color: black;
@@ -26,6 +27,14 @@
     --text-color: white;
     --border-color: white;
   }
+}
+
+// テーマ切り替え時の transition
+* {
+  transition:
+    background-color var(--theme-transition-duration) ease,
+    color var(--theme-transition-duration) ease,
+    border-color var(--theme-transition-duration) ease;
 }
 
 body {

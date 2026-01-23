@@ -2,12 +2,12 @@
 
 import {
   createContext,
+  type ReactNode,
   useCallback,
   useContext,
   useEffect,
   useRef,
   useState,
-  type ReactNode,
 } from "react";
 
 type ThemeLabel = "light" | "dark";
@@ -25,17 +25,16 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 // 0-1: light, 1-2: dark
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [themeValue, setThemeValue] = useState(0); // [0, 2) の連続値
+  const [theme, setThemeLabel] = useState<ThemeLabel>("light"); // 目標に基づくテーマラベル
   const targetRef = useRef(0); // 目標値
   const animationRef = useRef<number | null>(null);
 
-  // themeValue から離散的なテーマラベルを取得
-  const getThemeLabel = (value: number): ThemeLabel => {
-    const normalized = ((value % 2) + 2) % 2; // 負の値も対応
+  // 目標値からテーマラベルを取得
+  const getThemeLabelFromTarget = (target: number): ThemeLabel => {
+    const normalized = ((target % 2) + 2) % 2;
     if (normalized < 1) return "light";
     return "dark";
   };
-
-  const theme = getThemeLabel(themeValue);
 
   // localStorage から初期値を読み込み
   useEffect(() => {
@@ -46,6 +45,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       if (!Number.isNaN(value)) {
         setThemeValue(value);
         targetRef.current = value;
+        setThemeLabel(getThemeLabelFromTarget(value));
       }
     }
   }, []);
@@ -54,8 +54,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
+  // themeValue 変更時に localStorage を更新
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     localStorage.setItem("themeValue", String(themeValue));
-  }, [theme, themeValue]);
+  }, [themeValue]);
 
   // アニメーションループ
   useEffect(() => {
@@ -64,10 +69,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         const target = targetRef.current;
         const diff = target - current;
 
-        // 十分近ければ目標値に設定
-        if (Math.abs(diff) < 0.01) {
-          return target;
-        }
+        // // 十分近ければ目標値に設定
+        // if (Math.abs(diff) < 0.01) {
+        //   return target;
+        // }
 
         // スムーズに補間（lerp）
         const speed = 0.01;
@@ -86,9 +91,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // クリック時に目標値を +1（2 を超えたら循環）
+  // クリック時に目標値を +1（2 を超えたら循環）し、テーマラベルを即座に切り替え
   const toggleTheme = useCallback(() => {
     targetRef.current = (targetRef.current + 1) % 2;
+    setThemeLabel(getThemeLabelFromTarget(targetRef.current));
   }, []);
 
   // 特定のテーマに直接設定
@@ -101,6 +107,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         targetRef.current = 1.5;
         break;
     }
+    setThemeLabel(label);
   }, []);
 
   return (
@@ -124,4 +131,3 @@ export const useTheme = () => {
   }
   return context;
 };
-

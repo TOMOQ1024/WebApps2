@@ -70,7 +70,7 @@ void main() {
   vec3 borderColor = vec3(0.0);
 
   // 内側の色（太陽/月のアイコン）
-  uvIcon *= 4.0;
+  uvIcon *= 5.0;
   vec3 innerColor = vec3(imp2col(mix(
     -impMoon(uvIcon.x, uvIcon.y),
     impSun(uvIcon.x, uvIcon.y),
