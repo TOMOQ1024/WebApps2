@@ -1,7 +1,7 @@
 import NotFoundPage from "@/components/NotFoundPage";
 
 export const metadata = {
-  title: "tomoq apps",
+  title: "404 Not Found - tomoq.net",
 };
 
 export default function Home() {
