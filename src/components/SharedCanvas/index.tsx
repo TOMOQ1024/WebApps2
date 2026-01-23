@@ -43,7 +43,7 @@ export function SharedCanvasProvider({ children }: SharedCanvasProviderProps) {
             width: "100vw",
             height: "100vh",
             pointerEvents: "none",
-            zIndex: 5000,
+            zIndex: 50,
           }}
           gl={{ alpha: true }}
           eventSource={containerRef as RefObject<HTMLDivElement>}

@@ -16,8 +16,9 @@ export default function ThemeToggle() {
   const uniforms = useMemo<ShaderButtonUniforms>(
     () => ({
       uTheme: { value: themeValue },
+      uAspectRatio: { value: 1 }, // 正方形
     }),
-    [], // 初期値のみ、更新は onFrame で
+    [],
   );
 
   const handleFrame = (u: ShaderButtonUniforms) => {

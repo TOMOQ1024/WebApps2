@@ -1,0 +1,111 @@
+"use client";
+
+import { View } from "@react-three/drei";
+import { useFrame, useThree } from "@react-three/fiber";
+import { useEffect, useMemo, useRef } from "react";
+import type * as THREE from "three";
+import { useTheme } from "@/hooks/useTheme";
+import { fragmentShader } from "../ThemeToggle/Shaders/FragmentShader";
+import { vertexShader } from "../ThemeToggle/Shaders/VertexShader";
+
+// ボタンサイズ（ピクセル）
+const BUTTON_SIZE = 32;
+// ヘッダーの高さ（ピクセル）
+const HEADER_HEIGHT = 50;
+// ボタンの右からのパディング（md:px-8 = 32px）
+const BUTTON_PADDING_RIGHT = 32;
+
+function BodyShaderPlane({
+  themeValueRef,
+}: {
+  themeValueRef: React.MutableRefObject<number>;
+}) {
+  const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const meshRef = useRef<THREE.Mesh>(null);
+  const cameraRef = useRef<THREE.OrthographicCamera>(null);
+  const { viewport, size } = useThree();
+
+  const uniforms = useMemo(
+    () => ({
+      uTime: { value: 0 },
+      uTheme: { value: 0 },
+      uAspectRatio: { value: 1 },
+      uIconScale: { value: 1 },
+      uIconOffset: { value: [0, 0] },
+    }),
+    [],
+  );
+
+  useEffect(() => {
+    if (cameraRef.current && meshRef.current) {
+      const hw = viewport.width / 2;
+      const hh = viewport.height / 2;
+
+      cameraRef.current.left = -hw;
+      cameraRef.current.right = hw;
+      cameraRef.current.top = hh;
+      cameraRef.current.bottom = -hh;
+      cameraRef.current.updateProjectionMatrix();
+
+      meshRef.current.scale.set(viewport.width, viewport.height, 1);
+    }
+  }, [viewport.width, viewport.height]);
+
+  useFrame(({ clock }) => {
+    if (materialRef.current) {
+      materialRef.current.uniforms.uTime.value = clock.getElapsedTime();
+      materialRef.current.uniforms.uTheme.value = themeValueRef.current;
+
+      const aspect = viewport.width / viewport.height;
+      materialRef.current.uniforms.uAspectRatio.value = aspect;
+
+      // アイコンのスケール: ボタンサイズ / 画面高さ（正規化座標での高さ = 2）
+      const iconScale = (BUTTON_SIZE / size.height) * 2;
+      materialRef.current.uniforms.uIconScale.value = iconScale;
+
+      // アイコンのオフセット（右上からの位置、正規化座標）
+      const offsetX =
+        ((BUTTON_PADDING_RIGHT + BUTTON_SIZE / 2) / size.width) * 2 * aspect;
+      const offsetY = (HEADER_HEIGHT / 2 / size.height) * 2;
+      materialRef.current.uniforms.uIconOffset.value = [offsetX, offsetY];
+    }
+  });
+
+  return (
+    <>
+      <orthographicCamera
+        ref={cameraRef}
+        makeDefault
+        args={[-1, 1, 1, -1, 0.1, 10]}
+        position={[0, 0, 1]}
+      />
+      <mesh ref={meshRef}>
+        <planeGeometry args={[1, 1]} />
+        <shaderMaterial
+          ref={materialRef}
+          vertexShader={vertexShader}
+          fragmentShader={fragmentShader}
+          uniforms={uniforms}
+          depthTest={false}
+          depthWrite={false}
+        />
+      </mesh>
+    </>
+  );
+}
+
+export default function BodyShaderBackground() {
+  const { themeValue } = useTheme();
+  const themeValueRef = useRef(themeValue);
+
+  // themeValue が変わるたびに ref を更新
+  useEffect(() => {
+    themeValueRef.current = themeValue;
+  }, [themeValue]);
+
+  return (
+    <View className="fixed inset-0 z-0">
+      <BodyShaderPlane themeValueRef={themeValueRef} />
+    </View>
+  );
+}

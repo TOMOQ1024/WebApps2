@@ -4,6 +4,9 @@
  * uniforms:
  * - uTime: 経過時間（秒）
  * - uTheme: [0, 2) の連続値（0-1: light, 1-2: dark）
+ * - uAspectRatio: アスペクト比（幅/高さ）
+ * - uIconScale: アイコンのスケール（0-1、1=画面高さと同じ）
+ * - uIconOffset: アイコンの右上からのオフセット（正規化座標）
  *
  * varying:
  * - vUv: [0, 1] に正規化された UV 座標
@@ -11,6 +14,9 @@
 export const fragmentShader = /* glsl */ `
 uniform float uTime;
 uniform float uTheme;
+uniform float uAspectRatio;
+uniform float uIconScale;
+uniform vec2 uIconOffset;
 varying vec2 vUv;
 
 #define PI 3.14159265358979323846
@@ -42,25 +48,36 @@ float imp2col(float x) {
 }
 
 void main() {
+  float aspect = uAspectRatio > 0.0 ? uAspectRatio : 1.0;
+  float iconScale = uIconScale > 0.0 ? uIconScale : 1.0;
+  vec2 iconOffset = uIconOffset;
+  
+  // uv を [-1, 1] に変換
   vec2 uv = vUv * 2.0 - 1.0;
   
-  // ボーダー色（light: 黒, dark: 白）
-  // theme=0 (light) → 黒 (0), theme=1 (dark) → 白 (1)
-  // float dFrame = 1.0 - min(1.0 - abs(uv.x), 1.0 - abs(uv.y)) * 2.0;
-  float dFrame = max(abs(uv.x), abs(uv.y)) * 2.0 - 1.0;
-  float borderBrightness = dFrame;// * smoothDelta(theme - 1.0);
-  vec3 borderColor = vec3(0.0);//vec3(borderBrightness);
+  // アスペクト比を考慮（x を aspect 倍に拡大）
+  uv.x *= aspect;
+  
+  // アイコンを右上に配置
+  // 右上の位置: (aspect - offset.x, 1 - offset.y)
+  // アイコンの中心をそこに移動
+  vec2 iconCenter = vec2(aspect - iconOffset.x, 1.0 - iconOffset.y);
+  
+  // アイコン用の UV（アイコン中心を原点に移動し、スケールを適用）
+  vec2 uvIcon = (uv - iconCenter) / iconScale;
+  
+  // ボーダー
+  vec3 borderColor = vec3(0.0);
 
-  // 内側の色
-  uv *= 4.0;
+  // 内側の色（太陽/月のアイコン）
+  uvIcon *= 4.0;
   vec3 innerColor = vec3(imp2col(mix(
-    -impMoon(uv.x, uv.y),
-    impSun(uv.x, uv.y),
+    -impMoon(uvIcon.x, uvIcon.y),
+    impSun(uvIcon.x, uvIcon.y),
     (1.0 + cos(uTheme * PI)) / 2.0
   )));
 
   vec3 color = max(borderColor, innerColor);
-  // vec3 color = borderColor;
   gl_FragColor = vec4(color, 1.0);
 }
 `;

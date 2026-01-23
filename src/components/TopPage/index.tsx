@@ -25,7 +25,7 @@ const TopPage = () => {
       */}
 
       {/* スクロール可能なコンテンツエリア */}
-      <div className="relative z-[1] w-full pointer-events-none [&_section]:pointer-events-auto [&_section]:p-8 [&_section]:my-8 [&_section]:mx-auto [&_section]:max-w-[800px] [&_section]:bg-[var(--background-color)] [&_section]:border-2 [&_section]:border-[var(--border-color)] max-md:[&_section]:m-4 max-md:[&_section]:p-4">
+      <div className="relative z-[100] w-full pointer-events-none [&_section]:pointer-events-auto [&_section]:p-8 [&_section]:my-8 [&_section]:mx-auto [&_section]:max-w-[800px] [&_section]:bg-[var(--background-color)] [&_section]:border-2 [&_section]:border-[var(--border-color)] max-md:[&_section]:m-4 max-md:[&_section]:p-4">
         {/* Hero Section */}
         <section className="mt-[calc(50vh+var(--header-height))] text-center">
           <h1 className="text-7xl max-md:text-5xl m-0 font-bold">tomoq</h1>

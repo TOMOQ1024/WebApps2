@@ -1,10 +1,29 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+"use client";
+
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
 type ThemeLabel = "light" | "dark";
 
+interface ThemeContextValue {
+  theme: ThemeLabel;
+  themeValue: number;
+  toggleTheme: () => void;
+  setTheme: (label: ThemeLabel) => void;
+}
+
+const ThemeContext = createContext<ThemeContextValue | null>(null);
+
 // [0, 2) の循環する実数値でテーマを管理
 // 0-1: light, 1-2: dark
-export const useTheme = () => {
+export function ThemeProvider({ children }: { children: ReactNode }) {
   const [themeValue, setThemeValue] = useState(0); // [0, 2) の連続値
   const targetRef = useRef(0); // 目標値
   const animationRef = useRef<number | null>(null);
@@ -84,10 +103,25 @@ export const useTheme = () => {
     }
   }, []);
 
-  return {
-    theme, // 離散的なテーマラベル ("light" | "dark")
-    themeValue, // [0, 2) の連続値
-    toggleTheme,
-    setTheme,
-  };
+  return (
+    <ThemeContext.Provider
+      value={{
+        theme,
+        themeValue,
+        toggleTheme,
+        setTheme,
+      }}
+    >
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error("useTheme must be used within a ThemeProvider");
+  }
+  return context;
 };
+

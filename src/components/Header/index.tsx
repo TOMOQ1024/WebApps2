@@ -1,19 +1,22 @@
 "use client";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import ThemeToggle from "../ThemeToggle";
+import { useTheme } from "@/hooks/useTheme";
 
 export default function Header() {
   const pathname = usePathname();
   const pathSegments = pathname.split("/").filter(Boolean);
+  const { theme, toggleTheme } = useTheme();
 
   const buildPath = (index: number) => {
     return `/${pathSegments.slice(0, index + 1).join("/")}`;
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 h-[var(--header-height)] z-[1000] bg-[var(--background-color)] border-b-2 border-[var(--border-color)] flex items-center justify-between px-4 md:px-8">
-      <div className="flex items-center gap-2 text-xl whitespace-nowrap">
+    <header className="fixed inset-x-0 top-0 h-[var(--header-height)] z-[100] border-b-2 border-[var(--border-color)] flex items-center justify-between px-4 md:px-8 bg-transparent">
+      {/* テキストコンテンツ */}
+      <div className="relative flex items-center gap-2 text-xl whitespace-nowrap">
         <Link href="/" className="no-underline font-medium">
           tomoq.net
         </Link>
@@ -35,7 +38,15 @@ export default function Header() {
           </>
         )}
       </div>
-      <ThemeToggle />
+
+      {/* クリック専用ボタン */}
+      <button
+        type="button"
+        onClick={toggleTheme}
+        className="relative w-8 h-8 bg-transparent cursor-pointer"
+        style={{ border: "none" }}
+        aria-label={`テーマを切り替え: 現在 ${theme}`}
+      />
     </header>
   );
 }
