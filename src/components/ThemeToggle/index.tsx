@@ -29,7 +29,7 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={toggleTheme}
-      className="w-8 h-8 p-0 border-2 border-[var(--border-color)] bg-transparent cursor-pointer overflow-hidden transition-transform duration-200 hover:scale-110 [&_canvas]:!w-full [&_canvas]:!h-full"
+      className="w-8 h-8 p-0 border-2 border-[var(--border-color)] bg-transparent cursor-pointer overflow-hidden [&_canvas]:!w-full [&_canvas]:!h-full"
     >
       <Canvas>
         <ambientLight intensity={0.5} />

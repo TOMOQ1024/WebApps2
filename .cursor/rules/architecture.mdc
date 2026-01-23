@@ -1,0 +1,40 @@
+---
+description: プロジェクト全体のアーキテクチャ
+globs: **/*.ts, **/*.tsx
+alwaysApply: false
+---
+
+# tomoq.net アーキテクチャ
+
+## 概要
+
+数学ビジュアライゼーションやゲームなどのインタラクティブなウェブアプリを提供する個人サイト．
+
+## ディレクトリ構造
+
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── api/               # API Routes
+│   ├── apps/              # アプリケーション群
+│   │   ├── (maths)/      # 数学系
+│   │   ├── (games)/      # ゲーム
+│   │   ├── (tools)/      # ツール
+│   │   └── (experimental)/ # 実験的
+│   ├── galleries/         # ギャラリー
+│   └── works/             # 作品一覧
+├── components/            # 共通 UI コンポーネント
+├── hooks/                 # カスタム Hooks
+├── lib/                   # ユーティリティ
+└── src/                   # コアライブラリ (将来的に整理予定)
+```
+
+### 課題
+
+- `src/src/` は歴史的経緯で残っている二重構造
+- 将来的に `src/core/` などに整理したい
+
+## アプリ追加時
+
+1. `src/app/apps/(category)/[app-name]/` にディレクトリ作成
+2. `src/lib/appList.ts` にエントリ追加

@@ -1,0 +1,23 @@
+---
+description: コンポーネント配置のルール
+globs: **/components/**/*.tsx, **/app/**/*.tsx
+alwaysApply: false
+---
+
+# コンポーネント配置
+
+## 共通コンポーネント
+
+`src/components/` に配置．複数ページで使用されるもの．
+
+## ページ固有コンポーネント
+
+各ページディレクトリ内の `components/` に配置．
+
+```
+src/app/apps/(maths)/polychora/
+├── page.tsx
+├── components/
+│   └── MainWrapper.tsx
+└── Core.ts
+```

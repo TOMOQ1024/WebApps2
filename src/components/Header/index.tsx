@@ -16,7 +16,7 @@ export default function Header() {
       <div className="flex items-center gap-2 text-xl whitespace-nowrap">
         <Link
           href="/"
-          className="no-underline font-medium transition-transform duration-300 hover:scale-105"
+          className="no-underline font-medium"
         >
           tomoq.net
         </Link>
@@ -28,7 +28,7 @@ export default function Header() {
                 <div key={buildPath(index)} className="flex items-center gap-2">
                   <Link
                     href={buildPath(index)}
-                    className="no-underline transition-transform duration-300 hover:scale-105"
+                    className="no-underline"
                   >
                     {segment}
                   </Link>
