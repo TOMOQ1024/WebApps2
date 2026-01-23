@@ -6,7 +6,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { getServerSession } from "next-auth/next";
 import "@fontsource-variable/roboto-mono";
-import { IsClientCtxProvider } from "@/components/IsClientCtx";
+import ClientProviders from "@/components/ClientProviders";
 
 export default async function RootLayout({
   children,
@@ -24,10 +24,10 @@ export default async function RootLayout({
       <head />
       <body>
         <NextAuthProvider session={session}>
-          <IsClientCtxProvider>
+          <ClientProviders>
             <Header />
             {children}
-          </IsClientCtxProvider>
+          </ClientProviders>
         </NextAuthProvider>
         <Analytics />
         <SpeedInsights />

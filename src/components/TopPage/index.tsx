@@ -18,9 +18,11 @@ const TopPage = () => {
 
   return (
     <main className="relative w-full min-h-screen overflow-x-hidden">
+      {/* TODO: SharedCanvas に統合する
       <FullScreenCanvas>
         <TopScene scrollY={scrollY} />
       </FullScreenCanvas>
+      */}
 
       {/* スクロール可能なコンテンツエリア */}
       <div className="relative z-[1] w-full pointer-events-none [&_section]:pointer-events-auto [&_section]:p-8 [&_section]:my-8 [&_section]:mx-auto [&_section]:max-w-[800px] [&_section]:bg-[var(--background-color)] [&_section]:border-2 [&_section]:border-[var(--border-color)] max-md:[&_section]:m-4 max-md:[&_section]:p-4">
