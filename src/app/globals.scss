@@ -37,6 +37,12 @@
     border-color var(--theme-transition-duration) ease;
 }
 
+// 初期読み込み時は transition を無効化
+.no-transition,
+.no-transition * {
+  transition: none !important;
+}
+
 body {
   width: 100%;
   color: var(--text-color);

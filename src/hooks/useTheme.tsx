@@ -36,9 +36,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return "dark";
   };
 
-  // localStorage から初期値を読み込み
+  // localStorage から初期値を読み込み（transition を一時的に無効化）
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    // 初期読み込み時は transition を無効化
+    document.documentElement.classList.add("no-transition");
+
     const saved = localStorage.getItem("themeValue");
     if (saved) {
       const value = Number.parseFloat(saved);
@@ -48,6 +52,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         setThemeLabel(getThemeLabelFromTarget(value));
       }
     }
+
+    // 次のフレームで transition を有効化
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.documentElement.classList.remove("no-transition");
+      });
+    });
   }, []);
 
   // テーマ変更時に data-theme 属性と localStorage を更新
