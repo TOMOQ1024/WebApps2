@@ -1,7 +1,7 @@
 "use client";
 
 import { View } from "@react-three/drei";
-import { useFrame, useThree } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import type * as THREE from "three";
 import { useTheme } from "@/hooks/useTheme";
@@ -15,15 +15,17 @@ const HEADER_HEIGHT = 50;
 // ボタンの右からのパディング（md:px-8 = 32px）
 const BUTTON_PADDING_RIGHT = 32;
 
-function BodyShaderPlane({
-  themeValueRef,
-}: {
-  themeValueRef: React.MutableRefObject<number>;
-}) {
+function BodyShaderPlane() {
+  const { themeValue } = useTheme();
+  const themeValueRef = useRef(themeValue);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const meshRef = useRef<THREE.Mesh>(null);
   const cameraRef = useRef<THREE.OrthographicCamera>(null);
-  const { viewport, size } = useThree();
+
+  // themeValue が変わるたびに ref を更新
+  useEffect(() => {
+    themeValueRef.current = themeValue;
+  }, [themeValue]);
 
   const uniforms = useMemo(
     () => ({
@@ -36,7 +38,8 @@ function BodyShaderPlane({
     [],
   );
 
-  useEffect(() => {
+  useFrame(({ clock, viewport, size }) => {
+    // viewport を使ってカメラとメッシュを設定
     if (cameraRef.current && meshRef.current) {
       const hw = viewport.width / 2;
       const hh = viewport.height / 2;
@@ -49,14 +52,13 @@ function BodyShaderPlane({
 
       meshRef.current.scale.set(viewport.width, viewport.height, 1);
     }
-  }, [viewport.width, viewport.height]);
 
-  useFrame(({ clock }) => {
+    // uniform の計算には size（ピクセル単位）を使用
     if (materialRef.current) {
+      const aspect = size.width / size.height;
+
       materialRef.current.uniforms.uTime.value = clock.getElapsedTime();
       materialRef.current.uniforms.uTheme.value = themeValueRef.current;
-
-      const aspect = viewport.width / viewport.height;
       materialRef.current.uniforms.uAspectRatio.value = aspect;
 
       // アイコンのスケール: ボタンサイズ / 画面高さ（正規化座標での高さ = 2）
@@ -95,17 +97,9 @@ function BodyShaderPlane({
 }
 
 export default function BodyShaderBackground() {
-  const { themeValue } = useTheme();
-  const themeValueRef = useRef(themeValue);
-
-  // themeValue が変わるたびに ref を更新
-  useEffect(() => {
-    themeValueRef.current = themeValue;
-  }, [themeValue]);
-
   return (
     <View className="fixed inset-0 z-0">
-      <BodyShaderPlane themeValueRef={themeValueRef} />
+      <BodyShaderPlane />
     </View>
   );
 }
