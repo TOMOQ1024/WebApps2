@@ -12,12 +12,9 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 h-[var(--header-height)] bg-[var(--background-color)] border-b-2 border-[var(--border-color)] z-[1000] flex items-center justify-between px-4 md:px-8">
+    <header className="fixed inset-x-0 top-0 h-[var(--header-height)] z-[1000] bg-[var(--background-color)] border-b-2 border-[var(--border-color)] flex items-center justify-between px-4 md:px-8">
       <div className="flex items-center gap-2 text-xl whitespace-nowrap">
-        <Link
-          href="/"
-          className="no-underline font-medium"
-        >
+        <Link href="/" className="no-underline font-medium">
           tomoq.net
         </Link>
         {pathSegments.length > 0 && (
@@ -26,10 +23,7 @@ export default function Header() {
             <div className="flex items-center gap-2">
               {pathSegments.map((segment, index) => (
                 <div key={buildPath(index)} className="flex items-center gap-2">
-                  <Link
-                    href={buildPath(index)}
-                    className="no-underline"
-                  >
+                  <Link href={buildPath(index)} className="no-underline">
                     {segment}
                   </Link>
                   {index < pathSegments.length - 1 && (
@@ -41,9 +35,7 @@ export default function Header() {
           </>
         )}
       </div>
-      <div className="flex items-center gap-4">
-        <ThemeToggle />
-      </div>
+      <ThemeToggle />
     </header>
   );
 }

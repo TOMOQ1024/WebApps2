@@ -1,4 +1,8 @@
-export const defaultVertexShader = /* glsl */ `
+/**
+ * ShaderButton 用の標準頂点シェーダー
+ * projectionMatrix と modelViewMatrix を使用して、カメラに従って配置
+ */
+export const vertexShader = /* glsl */ `
 varying vec2 vUv;
 
 void main() {

@@ -1,68 +1,41 @@
 "use client";
 
-import { View } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
-import { useRef } from "react";
-import type { ShaderMaterial } from "three";
+import { useMemo, useRef } from "react";
+import ShaderButton, {
+  type ShaderButtonUniforms,
+} from "@/components/ShaderButton";
 import { useTheme } from "@/hooks/useTheme";
 import { fragmentShader } from "./Shaders/FragmentShader";
 import { vertexShader } from "./Shaders/VertexShader";
 
-function ShaderPlane({ themeValue }: { themeValue: number }) {
-  const materialRef = useRef<ShaderMaterial>(null);
-
-  const uniforms = useRef({
-    uTime: { value: 0 },
-    uTheme: { value: themeValue },
-  }).current;
-
-  useFrame(({ clock }) => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.uTime.value = clock.getElapsedTime();
-      materialRef.current.uniforms.uTheme.value = themeValue;
-    }
-  });
-
-  return (
-    <mesh position={[0, 0, 0]}>
-      <planeGeometry args={[10, 10]} />
-      <shaderMaterial
-        ref={materialRef}
-        vertexShader={vertexShader}
-        fragmentShader={fragmentShader}
-        uniforms={uniforms}
-      />
-    </mesh>
-  );
-}
+const BORDER_WIDTH = 2 / 32; // 正規化された値（2px / 32px）
 
 export default function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme();
-  const themeValue = theme === "dark" ? 2 : theme === "light" ? 1 : 0;
+  const { theme, themeValue, toggleTheme } = useTheme();
+  const themeRef = useRef(themeValue);
+  themeRef.current = themeValue;
+
+  const uniforms = useMemo<ShaderButtonUniforms>(
+    () => ({
+      uTheme: { value: themeValue },
+      uBorderWidth: { value: BORDER_WIDTH },
+    }),
+    [], // 初期値のみ、更新は onFrame で
+  );
+
+  const handleFrame = (u: ShaderButtonUniforms) => {
+    u.uTheme.value = themeRef.current;
+  };
 
   return (
-    <>
-      {/* View は position: fixed でヘッダーの右上に配置 */}
-      <View
-        style={{
-          position: "fixed",
-          top: 9,
-          right: 32,
-          width: 32,
-          height: 32,
-          pointerEvents: "none",
-        }}
-      >
-        <ShaderPlane themeValue={themeValue} />
-      </View>
-      {/* クリック用のボタン */}
-      <button
-        type="button"
-        onClick={toggleTheme}
-        className="relative w-8 h-8 p-0 bg-transparent cursor-pointer"
-        style={{ border: "none" }}
-        aria-label={`テーマを切り替え: 現在 ${theme}`}
-      />
-    </>
+    <ShaderButton
+      className="w-8 h-8"
+      fragmentShader={fragmentShader}
+      vertexShader={vertexShader}
+      uniforms={uniforms}
+      onClick={toggleTheme}
+      onFrame={handleFrame}
+      ariaLabel={`テーマを切り替え: 現在 ${theme}`}
+    />
   );
 }

@@ -13,16 +13,7 @@
   --warning-color: #fa0;
   --error-color: #c00;
 
-  &[data-theme="auto"] {
-    @media (prefers-color-scheme: dark) {
-      --background-color: black;
-      --primary-color: white;
-      --text-color: white;
-      --border-color: white;
-    }
-  }
-
-  // 明示的なライトモード
+  // ライトモード
   &[data-theme="light"] {
     --background-color: white;
     --text-color: black;
