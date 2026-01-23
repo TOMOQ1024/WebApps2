@@ -1,6 +1,5 @@
 import { Canvas } from "@react-three/fiber";
 import { useTheme } from "@/hooks/useTheme";
-import styles from "./index.module.scss";
 
 const ThemeCube = () => {
   const { theme } = useTheme();
@@ -13,8 +12,8 @@ const ThemeCube = () => {
           theme === "dark"
             ? "#ffffff"
             : theme === "light"
-            ? "#000000"
-            : "#666666"
+              ? "#000000"
+              : "#666666"
         }
         metalness={0.5}
         roughness={0.5}
@@ -27,7 +26,11 @@ export default function ThemeToggle() {
   const { toggleTheme } = useTheme();
 
   return (
-    <button onClick={toggleTheme} className={styles.themeToggle}>
+    <button
+      type="button"
+      onClick={toggleTheme}
+      className="w-8 h-8 p-0 border-2 border-[var(--border-color)] bg-transparent cursor-pointer overflow-hidden transition-transform duration-200 hover:scale-110 [&_canvas]:!w-full [&_canvas]:!h-full"
+    >
       <Canvas>
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} />

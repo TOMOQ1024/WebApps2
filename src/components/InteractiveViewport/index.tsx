@@ -1,5 +1,4 @@
-import { HTMLAttributes } from "react";
-import styles from "./index.module.scss";
+import type { HTMLAttributes } from "react";
 
 export default function InteractiveViewport(
   props: HTMLAttributes<HTMLDivElement>
@@ -7,16 +6,9 @@ export default function InteractiveViewport(
   return (
     <div
       {...props}
-      className={`${props.className ?? ""} ${styles.iv}`}
-      style={{
-        ...(props.style ?? {}),
-        position: "relative",
-        overflow: "hidden",
-      }}
+      className={`relative overflow-hidden ${props.className ?? ""}`}
     >
-      <div style={{ position: "absolute", top: 0, left: 0 }}>
-        {props.children}
-      </div>
+      <div className="absolute top-0 left-0">{props.children}</div>
     </div>
   );
 }
