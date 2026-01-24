@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { type ExpressionMode, Graph3DCore } from "../core/Graph3DCore";
-import type { ImplicitRelationType } from "./Main";
+import type { RelationType } from "./Main";
 
 interface CanvasProps {
   evalFunction: ((x: number, y: number, z?: number) => number) | null;
@@ -17,7 +17,7 @@ interface CanvasProps {
   };
   segments: number;
   wireframe: boolean;
-  implicitRelation: ImplicitRelationType;
+  relationType: RelationType;
   onCoreReady: (core: Graph3DCore) => void;
 }
 
@@ -27,7 +27,7 @@ export default function Canvas({
   range,
   segments,
   wireframe,
-  implicitRelation,
+  relationType,
   onCoreReady,
 }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -66,7 +66,7 @@ export default function Canvas({
     };
   }, [onCoreReady]);
 
-  // Update surface when evalFunction, mode, range, segments, or implicitRelation change
+  // Update surface when evalFunction, mode, range, segments, or relationType change
   useEffect(() => {
     if (coreRef.current && evalFunction) {
       if (mode === "explicit") {
@@ -80,6 +80,7 @@ export default function Canvas({
             yMax: range.yMax,
           },
           segments,
+          relationType,
         );
       } else {
         // f(x, y, z) = 0 mode (implicit)
@@ -94,11 +95,11 @@ export default function Canvas({
             zMax: range.zMax ?? 5,
           },
           Math.min(segments, 32), // Limit segments for implicit (performance)
-          implicitRelation,
+          relationType,
         );
       }
     }
-  }, [evalFunction, mode, range, segments, implicitRelation]);
+  }, [evalFunction, mode, range, segments, relationType]);
 
   // Update wireframe mode
   useEffect(() => {

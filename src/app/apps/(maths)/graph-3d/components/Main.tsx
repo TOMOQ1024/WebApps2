@@ -48,32 +48,69 @@ const BUILTIN_FUNCS = [
 ];
 
 /**
- * z= で始まるかチェック
- */
-function startsWithZEquals(expression: string): boolean {
-  return /^z\s*=/.test(expression);
-}
-
-/**
  * z を変数として含むかチェック（関数名の一部ではなく独立した変数として）
- * = の後ろの z も含める
  */
 function containsZVariable(expression: string): boolean {
   return /(?<![a-zA-Z])z(?![a-zA-Z])/.test(expression);
 }
 
 /**
+ * 関係演算子タイプ
+ * - equation: 等式 (=) → DoubleSide
+ * - less: 不等式 (<, <=) → FrontSide
+ * - greater: 不等式 (>, >=) → BackSide
+ */
+export type RelationType = "equation" | "less" | "greater";
+
+/**
+ * z で始まる陽関数式をパース
+ * - "z=f(x,y)" → { rhs: "f(x,y)", relationType: "equation" }
+ * - "z<f(x,y)" → { rhs: "f(x,y)", relationType: "less" }
+ * - "z>f(x,y)" → { rhs: "f(x,y)", relationType: "greater" }
+ */
+function parseExplicitExpression(expression: string): {
+  rhs: string;
+  relationType: RelationType;
+} | null {
+  // z で始まり、演算子（=, <, >, <=, >=, \le, \leq, \ge, \geq）が続くパターン
+  // (?![a-zA-Z]) で \left などを除外
+  const match = expression.match(
+    /^z\s*(\\leq(?![a-zA-Z])|\\geq(?![a-zA-Z])|\\le(?![a-zA-Z])|\\ge(?![a-zA-Z])|<=|>=|<|>|=)\s*(.+)$/,
+  );
+  if (!match) return null;
+
+  const operator = match[1];
+  const rhs = match[2];
+
+  let relationType: RelationType;
+  if (operator === "=") {
+    relationType = "equation";
+  } else if (
+    operator === "<" ||
+    operator === "<=" ||
+    operator === "\\le" ||
+    operator === "\\leq"
+  ) {
+    relationType = "less";
+  } else {
+    relationType = "greater";
+  }
+
+  return { rhs, relationType };
+}
+
+/**
  * 式のモードを判定する
- * - z= で始まり、右辺に z を含まない場合 → 陽関数 (explicit)
- * - z= で始まり、右辺に z を含む場合 → 陰関数 (implicit)
+ * - z で始まり、右辺に z を含まない場合 → 陽関数 (explicit)
+ * - z で始まり、右辺に z を含む場合 → 陰関数 (implicit)
  * - z を変数として含む場合 → 陰関数 (implicit)
  * - どちらでもない場合 → エラー
  */
 function detectExpressionMode(expression: string): ExpressionMode | "error" {
-  if (startsWithZEquals(expression)) {
-    // 右辺を抽出して z が含まれているかチェック
-    const rhs = extractExplicitRHS(expression);
-    if (rhs && containsZVariable(rhs)) {
+  const explicitParsed = parseExplicitExpression(expression);
+  if (explicitParsed) {
+    // 右辺に z が含まれているかチェック
+    if (containsZVariable(explicitParsed.rhs)) {
       // z= で始まるが右辺に z が含まれる → 陰関数
       return "implicit";
     }
@@ -85,21 +122,8 @@ function detectExpressionMode(expression: string): ExpressionMode | "error" {
   return "error";
 }
 
-/**
- * z= の右辺を抽出
- */
-function extractExplicitRHS(expression: string): string | null {
-  const match = expression.match(/^z\s*=\s*(.+)$/);
-  return match ? match[1] : null;
-}
-
-/**
- * 陰関数の関係演算子タイプ
- * - equation: 等式 (=) → DoubleSide
- * - less: 不等式 (<, <=) → FrontSide
- * - greater: 不等式 (>, >=) → BackSide
- */
-export type ImplicitRelationType = "equation" | "less" | "greater";
+// ImplicitRelationType は RelationType のエイリアス（後方互換性のため）
+export type ImplicitRelationType = RelationType;
 
 /**
  * 陰関数式をパースして左辺・右辺・関係演算子を抽出
@@ -165,8 +189,7 @@ export default function Main() {
   const [segments, setSegments] = useState<number>(64);
   const [core, setCore] = useState<Graph3DCore | null>(null);
   const [hasLoadedFromParams, setHasLoadedFromParams] = useState(false);
-  const [implicitRelation, setImplicitRelation] =
-    useState<ImplicitRelationType>("equation");
+  const [relationType, setRelationType] = useState<RelationType>("equation");
 
   const searchParams = useSearchParams();
 
@@ -203,18 +226,23 @@ export default function Main() {
       let knownVars: string[];
 
       if (exprMode === "explicit") {
-        // 陽関数: z= の右辺を抽出
-        const rhs = extractExplicitRHS(expression);
-        console.log("[Graph3D] Explicit RHS:", rhs);
-        if (!rhs) {
+        // 陽関数: z(...) の形式をパース
+        const parsed = parseExplicitExpression(expression);
+        console.log("[Graph3D] Parsed explicit:", parsed);
+        if (!parsed) {
           setError("Invalid explicit function format");
           setEvalFunction(null);
           return;
         }
+
+        // 関係タイプを保存（等式 or 不等式）
+        setRelationType(parsed.relationType);
+        console.log("[Graph3D] Relation type:", parsed.relationType);
+
         knownVars = ["x", "y", "t"];
 
         // LaTeX を AST に変換
-        const ast = parseLatex(rhs, BUILTIN_FUNCS);
+        const ast = parseLatex(parsed.rhs, BUILTIN_FUNCS);
         console.log("[Graph3D] AST:", JSON.stringify(ast, null, 2));
 
         // AST を JavaScript コードに変換
@@ -231,7 +259,7 @@ export default function Main() {
         }
 
         // 関係タイプを保存（等式 or 不等式）
-        setImplicitRelation(parsed.relationType);
+        setRelationType(parsed.relationType);
         console.log("[Graph3D] Relation type:", parsed.relationType);
 
         knownVars = ["x", "y", "z", "t"];
@@ -421,7 +449,7 @@ export default function Main() {
         range={range}
         segments={segments}
         wireframe={wireframe}
-        implicitRelation={implicitRelation}
+        relationType={relationType}
         onCoreReady={handleCoreReady}
       />
       <ControlPanel

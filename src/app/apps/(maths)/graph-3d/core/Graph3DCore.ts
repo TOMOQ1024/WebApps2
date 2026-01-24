@@ -101,7 +101,20 @@ export class Graph3DCore {
     evalFn: (x: number, y: number) => number,
     range: { xMin: number; xMax: number; yMin: number; yMax: number },
     segments: number,
+    relationType: "equation" | "less" | "greater" = "equation",
   ): void {
+    // 関係タイプによって描画面を切り替え
+    // - equation (=): 両面描画 (DoubleSide)
+    // - less (<, <=): 正側の面のみ (FrontSide)
+    // - greater (>, >=): 裏側の面のみ (BackSide)
+    if (relationType === "equation") {
+      this.material.side = DoubleSide;
+    } else if (relationType === "less") {
+      this.material.side = FrontSide;
+    } else {
+      this.material.side = BackSide;
+    }
+
     const { xMin, xMax, yMin, yMax } = range;
 
     // Create vertices and indices
