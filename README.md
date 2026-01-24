@@ -1,18 +1,25 @@
 # tomoq.net
 
-[tomoq.net](https://tomoq.net)
+[tomoq.net (Preview 版)](https://preview.tomoq.net)
 
-## 今後の実装予定
+[tomoq.net (旧版)](https://tomoq.net)
 
-- `not-found` ページの実装
-  存在するページへの誘導
-  パスから最も高い階層の文字列を抽出し，存在するパスからその文字列に該当するものを求める
+# TODO
+
+## ずっとやる
 
 - SCSS Module から Tailwind CSS への移行
 
-- Dictionaries ページの作成
-  名称は仮．多胞体とかタイリングとかの一覧的なものを作りたい．
+## すぐやる
+
+- Blogs ページの作成  
+  Works ページをつくろうと思ったが，結局ブログ的なものを作りたいので，Blogs ページを作る．
+
+## 近いうちにやる
+
+- Dictionaries ページの作成  
+  名称は仮．多胞体とかタイリングとかの一覧的なものを作りたい．Galleries の，創作ではない版．
+
+## いつかやる
 
 - OGP の実験
-
-- ブログ？
