@@ -54,12 +54,36 @@ export function ASTToGLSL(
               return `sec(${arg})`;
             case "csc":
               return `csc(${arg})`;
+            case "arcsin":
+              return `asin(${arg})`;
+            case "arccos":
+              return `acos(${arg})`;
+            case "arctan":
+              return `atan(${arg})`;
+            case "arccot":
+              return `arccot(${arg})`;
+            case "arcsec":
+              return `arcsec(${arg})`;
+            case "arccsc":
+              return `arccsc(${arg})`;
+            case "arsinh":
+              return `arsinh(${arg})`;
+            case "arcosh":
+              return `arcosh(${arg})`;
+            case "artanh":
+              return `artanh(${arg})`;
+            case "arcoth":
+              return `arcoth(${arg})`;
+            case "arsech":
+              return `arsech(${arg})`;
+            case "arcsch":
+              return `arcsch(${arg})`;
             case "exp":
               return `exp(${arg})`;
             case "abs":
               return `abs(${arg})`;
             case "ln":
-              return `ln(${arg})`;
+              return `log(${arg})`;
             default:
               // ユーザー定義関数（1引数）のサポート
               return `${fnName}(${arg})`;
@@ -120,6 +144,30 @@ export function ASTToGLSL(
           if (args.length === 0)
             throw new Error(`Function ${fnName} requires an argument`);
           return `csch(${args[0]})`;
+        case "arsinh":
+          if (args.length === 0)
+            throw new Error(`Function ${fnName} requires an argument`);
+          return `arsinh(${args[0]})`;
+        case "arcosh":
+          if (args.length === 0)
+            throw new Error(`Function ${fnName} requires an argument`);
+          return `arcosh(${args[0]})`;
+        case "artanh":
+          if (args.length === 0)
+            throw new Error(`Function ${fnName} requires an argument`);
+          return `artanh(${args[0]})`;
+        case "arcoth":
+          if (args.length === 0)
+            throw new Error(`Function ${fnName} requires an argument`);
+          return `arcoth(${args[0]})`;
+        case "arsech":
+          if (args.length === 0)
+            throw new Error(`Function ${fnName} requires an argument`);
+          return `arsech(${args[0]})`;
+        case "arcsch":
+          if (args.length === 0)
+            throw new Error(`Function ${fnName} requires an argument`);
+          return `arcsch(${args[0]})`;
         case "sin":
           if (args.length === 0)
             throw new Error(`Function ${fnName} requires an argument`);
@@ -144,6 +192,34 @@ export function ASTToGLSL(
           if (args.length === 0)
             throw new Error(`Function ${fnName} requires an argument`);
           return `csc(${args[0]})`;
+        case "arcsin":
+          if (args.length === 0)
+            throw new Error(`Function ${fnName} requires an argument`);
+          return `asin(${args[0]})`;
+        case "arccos":
+          if (args.length === 0)
+            throw new Error(`Function ${fnName} requires an argument`);
+          return `acos(${args[0]})`;
+        case "arctan":
+          if (args.length === 0)
+            throw new Error(`Function ${fnName} requires an argument`);
+          if (args.length === 2) {
+            // atan2(y, x) - 2引数バージョン
+            return `atan(${args[0]}, ${args[1]})`;
+          }
+          return `atan(${args[0]})`;
+        case "arccot":
+          if (args.length === 0)
+            throw new Error(`Function ${fnName} requires an argument`);
+          return `arccot(${args[0]})`;
+        case "arcsec":
+          if (args.length === 0)
+            throw new Error(`Function ${fnName} requires an argument`);
+          return `arcsec(${args[0]})`;
+        case "arccsc":
+          if (args.length === 0)
+            throw new Error(`Function ${fnName} requires an argument`);
+          return `arccsc(${args[0]})`;
         case "exp":
           if (args.length === 0)
             throw new Error(`Function ${fnName} requires an argument`);
@@ -157,7 +233,7 @@ export function ASTToGLSL(
         case "ln":
           if (args.length === 0)
             throw new Error(`Function ${fnName} requires an argument`);
-          return `ln(${args[0]})`;
+          return `log(${args[0]})`;
         default:
           // ユーザー定義関数のサポート
           if (knownFuncs.includes(fnName)) {

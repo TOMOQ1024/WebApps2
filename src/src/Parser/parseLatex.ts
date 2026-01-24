@@ -57,11 +57,51 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
     // 関数の引数をパース
     const args: ASTNode[] = [];
 
-    // 括弧がある場合
-    if (peek() === "(") {
+    // \left( の場合
+    if (peek() === "\\" && latex.slice(pos, pos + 5) === "\\left") {
+      const savePos = pos;
+      pos += 5; // '\\left' をスキップ
+      skipWhitespace();
+      if (peek() === "(") {
+        advance(); // '('
+        // カンマ区切りの複数引数をパース
+        while (peek() !== "" && !(peek() === "\\" && latex.slice(pos, pos + 6) === "\\right")) {
+          args.push(parseExpression());
+          skipWhitespace();
+          if (peek() === ",") {
+            advance(); // ','
+            skipWhitespace();
+          } else {
+            break;
+          }
+        }
+        // \right) を期待
+        if (latex.slice(pos, pos + 6) === "\\right") {
+          pos += 6;
+          if (peek() === ")") {
+            advance();
+          }
+        }
+      } else {
+        // \left| などの場合は元に戻して通常処理
+        pos = savePos;
+        let arg = parsePower();
+        args.push(arg);
+      }
+    }
+    // 通常の括弧がある場合
+    else if (peek() === "(") {
       advance(); // '('
-      if (peek() !== ")") {
+      // カンマ区切りの複数引数をパース
+      while (peek() !== ")" && peek() !== "") {
         args.push(parseExpression());
+        skipWhitespace();
+        if (peek() === ",") {
+          advance(); // ','
+          skipWhitespace();
+        } else {
+          break;
+        }
       }
       if (peek() === ")") {
         advance(); // ')'
@@ -291,12 +331,44 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
         advance(); // '}'
 
         // operatorname内の関数名を検証
-        const validOperatornames = ["Re", "Im", "Log", "Arg", "conj"];
+        const validOperatornames = [
+          "Re",
+          "Im",
+          "Log",
+          "Arg",
+          "conj",
+          "arccot",
+          "arcsec",
+          "arccsc",
+          "arsinh",
+          "arcosh",
+          "artanh",
+          "arcoth",
+          "arsech",
+          "arcsch",
+        ];
         if (!validOperatornames.includes(funcName)) {
           throw new Error(`Unsupported operatorname: ${funcName}`);
         }
 
         return parseFunction(funcName);
+      } else if (cmd === "sqrt") {
+        skipWhitespace();
+        if (peek() !== "{") throw new Error("Expected { after \\sqrt");
+        advance(); // '{'
+
+        const arg = parseExpression();
+
+        if (peek() !== "}") throw new Error("Expected } after sqrt content");
+        advance(); // '}'
+
+        // sqrt(x) は x^0.5 として表現
+        return {
+          type: "operator",
+          op: "^",
+          left: arg,
+          right: { type: "number", value: 0.5 },
+        };
       } else if (cmd === "overline") {
         skipWhitespace();
         if (peek() !== "{") throw new Error("Expected { after \\overline");

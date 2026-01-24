@@ -50,55 +50,25 @@ export interface Graph2DGalleryItem {
 // ];
 
 export const galleryData: Graph2DGalleryItem[] = [
-  // 単純な円
+  // Swirl Candy
   {
-    expressions: ["x^2+y^2<1"],
+    expressions: [
+      "0<\\cos\\left(6\\sin\\left(\\artanh\\left(\\sqrt{x^2+y^2}\\right)\\right)-8\\arctan\\left(y,x\\right)\\right)",
+    ],
     center: [0, 0],
-    radius: 2,
+    radius: 1.1,
   },
-  // 楕円
+  // あみあみ正方形
   {
-    expressions: ["\\frac{x^2}{4}+y^2<1"],
+    expressions: [
+      "\\cos \\left(5\\ln \\left(\\frac{1+x}{1-x}\\right)\\right)>\\cos \\left(5\\ln \\left(\\frac{1+y}{1-y}\\right)\\right)",
+    ],
     center: [0, 0],
-    radius: 3,
+    radius: 1.1,
   },
   // 双曲線
   {
     expressions: ["x^2-y^2<1"],
-    center: [0, 0],
-    radius: 3,
-  },
-  // 放物線領域
-  {
-    expressions: ["y<x^2"],
-    center: [0, 0],
-    radius: 3,
-  },
-  // 三角関数
-  {
-    expressions: ["y<\\sin x"],
-    center: [0, 0],
-    radius: 5,
-  },
-  // 関数定義を使用
-  {
-    expressions: ["f\\left(t\\right)=t^2", "f\\left(x\\right)+f\\left(y\\right)<1"],
-    center: [0, 0],
-    radius: 2,
-  },
-  // 複数引数関数
-  {
-    expressions: ["g\\left(a,b\\right)=a^2+b^2", "g\\left(x,y\\right)<1"],
-    center: [0, 0],
-    radius: 2,
-  },
-  // 複数関数の組み合わせ
-  {
-    expressions: [
-      "f\\left(t\\right)=\\sin t",
-      "g\\left(a,b\\right)=a^2-b^2",
-      "f\\left(g\\left(x,y\\right)\\right)<0.5",
-    ],
     center: [0, 0],
     radius: 3,
   },
