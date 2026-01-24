@@ -56,7 +56,7 @@ export const galleryData: Graph2DGalleryItem[] = [
       "0<\\cos\\left(6\\sin\\left(\\artanh\\left(\\sqrt{x^2+y^2}\\right)\\right)-8\\arctan\\left(y,x\\right)\\right)",
     ],
     center: [0, 0],
-    radius: 1.1,
+    radius: 1.3,
   },
   // あみあみ正方形
   {
@@ -64,7 +64,7 @@ export const galleryData: Graph2DGalleryItem[] = [
       "\\cos \\left(5\\ln \\left(\\frac{1+x}{1-x}\\right)\\right)>\\cos \\left(5\\ln \\left(\\frac{1+y}{1-y}\\right)\\right)",
     ],
     center: [0, 0],
-    radius: 1.1,
+    radius: 1.4,
   },
   // Square - Line
   {
@@ -72,6 +72,22 @@ export const galleryData: Graph2DGalleryItem[] = [
       "0>\\max \\left(\\left|\\left|x\\right|+\\left|y\\right|-7\\right|-3,1-\\left|x\\right|\\right)",
     ],
     center: [0, 0],
-    radius: 3,
+    radius: 13,
+  },
+  // Currency sign (generic)
+  {
+    expressions: [
+      "1>\\min \\left(\\frac{\\left|x^2+y^2-9\\right|}{3\\sqrt{2}},\\max \\left(\\left|\\left|x\\right|+\\left|y\\right|-6\\right|,\\left|\\left|x\\right|-\\left|y\\right|\\right|\\right)\\right)",
+    ],
+    center: [0, 0],
+    radius: 6,
+  },
+  // Flower
+  {
+    expressions: [
+      "\\left|x\\right|+\\left|y\\right|>\\frac{\\left|xy\\right|}{6}+\\left|\\left|x\\right|-9\\right|+\\left|\\left|y\\right|-9\\right|+1",
+    ],
+    center: [0, 0],
+    radius: 16,
   },
 ];
