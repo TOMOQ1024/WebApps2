@@ -1,6 +1,6 @@
 import { galleryList } from "@/lib/galleryList";
 import Link from "next/link";
-import Image from "next/image";
+import ImageWithFallback from "@/components/ImageWithFallback";
 import styles from "./page.module.scss";
 
 export const metadata = {
@@ -17,7 +17,7 @@ export default function Home() {
 
       <section className={styles.appsGrid}>
         {Array.from(Object.entries(galleryList)).map(
-          ([path, { galleryName, tags }]) => {
+          ([path, { galleryName }]) => {
             return (
               <Link
                 key={path}
@@ -25,7 +25,7 @@ export default function Home() {
                 className={styles.galleryCard}
               >
                 <div className={styles.galleryIcon}>
-                  <Image
+                  <ImageWithFallback
                     src={`/gallery-icons/${path}.png`}
                     width={128}
                     height={128}

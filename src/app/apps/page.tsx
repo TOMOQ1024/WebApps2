@@ -1,6 +1,6 @@
 import { appList } from "@/lib/appList";
 import Link from "next/link";
-import Image from "next/image";
+import ImageWithFallback from "@/components/ImageWithFallback";
 import styles from "./page.module.scss";
 
 export const metadata = {
@@ -28,7 +28,7 @@ export default function Home() {
                 className={styles.appCard}
               >
                 <div className={styles.appIcon}>
-                  <Image
+                  <ImageWithFallback
                     src={`/app-icons/${path}.png`}
                     width={128}
                     height={128}
