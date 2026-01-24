@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Vector2 } from "three";
 import GraphMgr from "@/src/GraphMgr";
 import {
@@ -80,6 +80,9 @@ export default function Main() {
   const [error, setError] = useState<string | null>(null);
 
   const [hasLoadedFromParams, setHasLoadedFromParams] = useState(false);
+
+  // クエリパラメータから読み込んだ初期グラフ設定を保持
+  const initialGraphRef = useRef<GraphMgr>(new GraphMgr());
 
   const searchParams = useSearchParams();
 
@@ -203,24 +206,26 @@ export default function Main() {
       const origin = searchParams.get("origin");
       const radius = searchParams.get("radius");
 
+      let newOrigin = new Vector2(0, 0);
+      let newRadius = 2;
+
+      if (origin !== null) {
+        const coords = origin.split(",").map((a) => +a);
+        if (coords.length === 2) {
+          newOrigin = new Vector2(coords[0], coords[1]);
+        }
+      }
+
+      if (radius !== null) {
+        newRadius = +radius;
+      }
+
+      // 初期グラフ設定を保存（リセット時に使用）
+      // 注意: refと状態は別のインスタンスにする（GraphMgrはmutableなため）
+      initialGraphRef.current = new GraphMgr(newOrigin.clone(), newRadius);
+
       if (origin !== null || radius !== null) {
-        setGraph((prev) => {
-          let newOrigin = prev.origin;
-          let newRadius = prev.radius;
-
-          if (origin !== null) {
-            const coords = origin.split(",").map((a) => +a);
-            if (coords.length === 2) {
-              newOrigin = new Vector2(coords[0], coords[1]);
-            }
-          }
-
-          if (radius !== null) {
-            newRadius = +radius;
-          }
-
-          return new GraphMgr(newOrigin, newRadius);
-        });
+        setGraph(new GraphMgr(newOrigin, newRadius));
       }
 
       // レンダリングモードの読み込み
@@ -235,7 +240,9 @@ export default function Main() {
   }, [searchParams, hasLoadedFromParams]);
 
   const handleResetGraph = () => {
-    setGraph(new GraphMgr());
+    // クエリパラメータから読み込んだ初期設定にリセット
+    const initial = initialGraphRef.current;
+    setGraph(new GraphMgr(initial.origin.clone(), initial.radius));
   };
 
   const handleShareLink = useCallback(async () => {
