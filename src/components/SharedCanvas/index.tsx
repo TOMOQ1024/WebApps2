@@ -11,6 +11,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { BodyShaderPlane } from "../BodyShaderBackground";
 
 type SharedCanvasContextType = {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -33,10 +34,14 @@ interface SharedCanvasProviderProps {
 
 export function SharedCanvasProvider({ children }: SharedCanvasProviderProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  // SSR対応: 初期値を1にして Canvas を即座にレンダリング開始
+  const [canvasSize, setCanvasSize] = useState({ width: 1, height: 1 });
+  const [isClient, setIsClient] = useState(false);
 
   // window サイズを監視して Canvas サイズを更新
   useEffect(() => {
+    setIsClient(true);
+    
     const updateSize = () => {
       setCanvasSize({
         width: window.innerWidth,
@@ -63,37 +68,31 @@ export function SharedCanvasProvider({ children }: SharedCanvasProviderProps) {
     };
   }, []);
 
-  // サイズが 0 の場合はレンダリングしない（SSR 対応）
-  if (canvasSize.width === 0 || canvasSize.height === 0) {
-    return (
-      <SharedCanvasContext.Provider value={{ containerRef }}>
-        <div ref={containerRef} style={{ position: "relative" }}>
-          {children}
-        </div>
-      </SharedCanvasContext.Provider>
-    );
-  }
-
   return (
     <SharedCanvasContext.Provider value={{ containerRef }}>
       <div ref={containerRef} style={{ position: "relative" }}>
         {children}
-        <Canvas
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: canvasSize.width,
-            height: canvasSize.height,
-            pointerEvents: "none",
-            zIndex: -1,
-          }}
-          gl={{ alpha: true }}
-          eventSource={containerRef as RefObject<HTMLDivElement>}
-          eventPrefix="client"
-        >
-          <View.Port />
-        </Canvas>
+        {isClient && (
+          <Canvas
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: canvasSize.width,
+              height: canvasSize.height,
+              pointerEvents: "none",
+              zIndex: -1,
+            }}
+            gl={{ alpha: true }}
+            frameloop="always"
+            eventSource={containerRef as RefObject<HTMLDivElement>}
+            eventPrefix="client"
+          >
+            {/* 背景シェーダーを直接 Canvas 内で描画 */}
+            <BodyShaderPlane />
+            <View.Port />
+          </Canvas>
+        )}
       </div>
     </SharedCanvasContext.Provider>
   );

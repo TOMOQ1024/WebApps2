@@ -1,8 +1,8 @@
 "use client";
 
-import { OrthographicCamera, View } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { OrthographicCamera } from "@react-three/drei";
+import { useFrame, useThree } from "@react-three/fiber";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import type * as THREE from "three";
 import { useTheme } from "@/hooks/useTheme";
 import { fragmentShader } from "../ThemeToggle/Shaders/FragmentShader";
@@ -15,12 +15,14 @@ const HEADER_HEIGHT = 50;
 // ボタンの右からのパディング（md:px-8 = 32px）
 const BUTTON_PADDING_RIGHT = 32;
 
-function BodyShaderPlane() {
+// Canvas 内で直接使用するコンポーネント（export して SharedCanvas から使用）
+export function BodyShaderPlane() {
   const { themeValue } = useTheme();
   const themeValueRef = useRef(themeValue);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const meshRef = useRef<THREE.Mesh>(null);
   const cameraRef = useRef<THREE.OrthographicCamera>(null);
+  const { viewport, size, invalidate } = useThree();
 
   // themeValue が変わるたびに ref を更新
   useEffect(() => {
@@ -37,6 +39,40 @@ function BodyShaderPlane() {
     }),
     [],
   );
+
+  // 初期設定を即座に行う
+  useLayoutEffect(() => {
+    if (cameraRef.current && meshRef.current) {
+      const hw = viewport.width / 2;
+      const hh = viewport.height / 2;
+
+      cameraRef.current.left = -hw;
+      cameraRef.current.right = hw;
+      cameraRef.current.top = hh;
+      cameraRef.current.bottom = -hh;
+      cameraRef.current.updateProjectionMatrix();
+
+      meshRef.current.scale.set(viewport.width, viewport.height, 1);
+    }
+
+    if (materialRef.current && size.width > 0 && size.height > 0) {
+      const aspect = size.width / size.height;
+
+      materialRef.current.uniforms.uTheme.value = themeValueRef.current;
+      materialRef.current.uniforms.uAspectRatio.value = aspect;
+
+      const iconScale = (BUTTON_SIZE / size.height) * 2;
+      materialRef.current.uniforms.uIconScale.value = iconScale;
+
+      const offsetX =
+        ((BUTTON_PADDING_RIGHT + BUTTON_SIZE / 2) / size.width) * 2 * aspect;
+      const offsetY = (HEADER_HEIGHT / 2 / size.height) * 2;
+      materialRef.current.uniforms.uIconOffset.value = [offsetX, offsetY];
+    }
+
+    // 強制的に再描画
+    invalidate();
+  }, [viewport.width, viewport.height, size.width, size.height, invalidate]);
 
   useFrame(({ clock, viewport, size }) => {
     // viewport を使ってカメラとメッシュを設定
@@ -96,10 +132,3 @@ function BodyShaderPlane() {
   );
 }
 
-export default function BodyShaderBackground() {
-  return (
-    <View className="fixed inset-0 z-0 pointer-events-none">
-      <BodyShaderPlane />
-    </View>
-  );
-}

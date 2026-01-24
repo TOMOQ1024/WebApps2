@@ -2,7 +2,7 @@
 
 import { OrthographicCamera, View } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
-import { type ReactNode, useEffect, useMemo, useRef } from "react";
+import { type ReactNode, useLayoutEffect, useMemo, useRef } from "react";
 import type * as THREE from "three";
 
 export interface ShaderButtonUniforms {
@@ -25,7 +25,7 @@ function ShaderPlane({
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const meshRef = useRef<THREE.Mesh>(null);
   const cameraRef = useRef<THREE.OrthographicCamera>(null);
-  const { viewport, size } = useThree();
+  const { viewport, invalidate } = useThree();
 
   // uniforms に uTime を追加
   const mergedUniforms = useMemo(
@@ -36,8 +36,8 @@ function ShaderPlane({
     [uniforms],
   );
 
-  // viewport に合わせてカメラと plane を設定
-  useEffect(() => {
+  // viewport に合わせてカメラと plane を設定（即座に実行）
+  useLayoutEffect(() => {
     if (cameraRef.current && meshRef.current) {
       // viewport.width/height は Three.js のワールド単位
       const hw = viewport.width / 2;
@@ -52,7 +52,10 @@ function ShaderPlane({
       // plane を viewport にフィット
       meshRef.current.scale.set(viewport.width, viewport.height, 1);
     }
-  }, [viewport.width, viewport.height]);
+
+    // 強制的に再描画
+    invalidate();
+  }, [viewport.width, viewport.height, invalidate]);
 
   useFrame(({ clock }) => {
     if (materialRef.current) {

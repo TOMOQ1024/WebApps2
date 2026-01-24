@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import { ThemeProvider } from "@/hooks/useTheme";
-import BodyShaderBackground from "./BodyShaderBackground";
 import { IsClientCtxProvider } from "./IsClientCtx";
 import { SharedCanvasProvider } from "./SharedCanvas";
 
@@ -15,7 +14,6 @@ export default function ClientProviders({ children }: ClientProvidersProps) {
     <IsClientCtxProvider>
       <ThemeProvider>
         <SharedCanvasProvider>
-          <BodyShaderBackground />
           {children}
         </SharedCanvasProvider>
       </ThemeProvider>
