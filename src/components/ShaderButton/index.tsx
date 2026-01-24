@@ -1,6 +1,6 @@
 "use client";
 
-import { View } from "@react-three/drei";
+import { OrthographicCamera, View } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { type ReactNode, useEffect, useMemo, useRef } from "react";
 import type * as THREE from "three";
@@ -63,7 +63,7 @@ function ShaderPlane({
 
   return (
     <>
-      <orthographicCamera
+      <OrthographicCamera
         ref={cameraRef}
         makeDefault
         args={[-1, 1, 1, -1, 0.1, 10]}

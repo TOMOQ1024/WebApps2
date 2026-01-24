@@ -1,6 +1,6 @@
 "use client";
 
-import { View } from "@react-three/drei";
+import { OrthographicCamera, View } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import type * as THREE from "three";
@@ -75,7 +75,7 @@ function BodyShaderPlane() {
 
   return (
     <>
-      <orthographicCamera
+      <OrthographicCamera
         ref={cameraRef}
         makeDefault
         args={[-1, 1, 1, -1, 0.1, 10]}
