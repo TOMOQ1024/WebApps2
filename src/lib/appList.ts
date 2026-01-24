@@ -113,9 +113,9 @@ export const appList = {
     appName: "Graph 2D",
     tags: new Set(["maths"]),
   },
-  graph3d: {
-    appName: "3D Graphing Calculator",
-    tags: new Set(["maths", "wip"]),
+  "graph-3d": {
+    appName: "Graph 3D",
+    tags: new Set(["maths"]),
   },
   tiling: {
     appName: "Tiling",
