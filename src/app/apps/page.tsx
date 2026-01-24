@@ -26,6 +26,7 @@ export default function Home() {
                 key={path}
                 href={`/apps/${path}`}
                 className={styles.appCard}
+                draggable={false}
               >
                 <div className={styles.appIcon}>
                   <ImageWithFallback

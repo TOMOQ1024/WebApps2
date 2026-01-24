@@ -40,6 +40,7 @@ export default function NotFoundPage() {
                 key={path}
                 href={path}
                 className="no-underline font-mono font-semibold"
+                draggable={false}
               >
                 → {path}
               </Link>
@@ -58,6 +59,7 @@ export default function NotFoundPage() {
               key={href}
               href={href}
               className="no-underline font-semibold"
+              draggable={false}
             >
               {label}
             </Link>

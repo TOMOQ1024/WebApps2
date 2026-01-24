@@ -23,6 +23,7 @@ export default function Post({ data }: { data: IPost & { src: string } }) {
         )}&z0expr=${encodeURIComponent(data.z0Expression)}&iter=${
           data.iteration
         }&origin=${data.originX},${data.originY}&radius=${data.radius}`}
+        draggable={false}
       >
         <Image
           id={`cdcvs-${data.id}`}

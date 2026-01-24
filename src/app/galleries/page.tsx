@@ -23,6 +23,7 @@ export default function Home() {
                 key={path}
                 href={`/galleries/${path}`}
                 className={styles.galleryCard}
+                draggable={false}
               >
                 <div className={styles.galleryIcon}>
                   <ImageWithFallback
