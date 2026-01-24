@@ -8,15 +8,15 @@
 
 ## 操作方法
 
-## 今後の実装予定
+## やりたいこと
 
-- 描画モデル切り替え
+- [ ] feat: 描画モデル切り替え機能
 
-- 反復回数の設定
+- [ ] feat: 反復回数の設定
 
-- $\kappa, \alpha, \beta, \gamma, a, b, c$ を計算
+- [ ] feat: $\kappa, \alpha, \beta, \gamma, a, b, c$ を計算
 
-- $m_{01}, m_{12}, m_{20} \in\left\{2,3,4,\ldots\right\}$ の入力
+- [ ] feat: $m_{01}, m_{12}, m_{20} \in\left\{2,3,4,\ldots\right\}$ の入力
 
 ## 参考
 
