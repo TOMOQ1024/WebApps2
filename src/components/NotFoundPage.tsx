@@ -19,77 +19,27 @@ export default function NotFoundPage() {
   }, [pathname]);
 
   return (
-    <main
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "60vh",
-        padding: "2rem",
-        textAlign: "center",
-      }}
-    >
-      <h1
-        style={{
-          fontSize: "3rem",
-          fontWeight: "bold",
-          marginBottom: "0.5rem",
-        }}
-      >
-        404
-      </h1>
-      <p
-        style={{
-          fontSize: "1.25rem",
-          color: "var(--text-color)",
-          opacity: 0.8,
-          marginBottom: "2rem",
-        }}
-      >
+    <main className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center">
+      <h1 className="text-5xl font-bold mb-2">404</h1>
+      <p className="text-xl text-[var(--text-color)] opacity-80 mb-8">
         ページが見つかりません
       </p>
 
-      <p
-        style={{
-          fontSize: "0.875rem",
-          color: "var(--text-color)",
-          opacity: 0.6,
-          marginBottom: "1.5rem",
-          fontFamily: "monospace",
-        }}
-      >
+      <p className="text-sm text-[var(--text-color)] opacity-60 mb-6 font-mono">
         {pathname}
       </p>
 
       {similarPaths.length > 0 && (
-        <div style={{ marginBottom: "2rem" }}>
-          <p
-            style={{
-              fontSize: "0.875rem",
-              color: "var(--text-color)",
-              opacity: 0.7,
-              marginBottom: "0.75rem",
-            }}
-          >
+        <div className="mb-8">
+          <p className="text-sm text-[var(--text-color)] opacity-70 mb-3">
             もしかして:
           </p>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "0.5rem",
-            }}
-          >
+          <div className="flex flex-col gap-2">
             {similarPaths.map(({ path }) => (
               <Link
                 key={path}
                 href={path}
-                style={{
-                  color: "var(--link-color, #0070f3)",
-                  textDecoration: "none",
-                  fontFamily: "monospace",
-                }}
+                className="no-underline font-mono font-semibold"
               >
                 → {path}
               </Link>
@@ -98,33 +48,16 @@ export default function NotFoundPage() {
         </div>
       )}
 
-      <div style={{ marginTop: "1rem" }}>
-        <p
-          style={{
-            fontSize: "0.875rem",
-            color: "var(--text-color)",
-            opacity: 0.7,
-            marginBottom: "0.75rem",
-          }}
-        >
+      <div className="mt-4">
+        <p className="text-sm text-[var(--text-color)] opacity-70 mb-3">
           主要なページ:
         </p>
-        <div
-          style={{
-            display: "flex",
-            gap: "1.5rem",
-            justifyContent: "center",
-          }}
-        >
+        <div className="flex gap-6 justify-center">
           {mainLinks.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
-              style={{
-                color: "var(--link-color, #0070f3)",
-                textDecoration: "none",
-                fontWeight: 500,
-              }}
+              className="no-underline font-semibold"
             >
               {label}
             </Link>
