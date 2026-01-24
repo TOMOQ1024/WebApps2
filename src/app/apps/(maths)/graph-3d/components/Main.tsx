@@ -306,14 +306,18 @@ export default function Main() {
     }
   }, []);
 
-  // Load from URL parameters (once on mount)
+  // Load from URL parameters and handle initial expression parsing (once on mount)
+  // currentExpression と handleExpressionChange は意図的に依存配列から除外（初回マウント時のみ実行）
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally run only on mount
   useEffect(() => {
     if (searchParams && !hasLoadedFromParams) {
       const exprParam = searchParams.get("expr");
+      let expressionToUse = currentExpression;
+
       if (exprParam !== null) {
         const decodedExpr = decodeURIComponent(exprParam);
+        expressionToUse = decodedExpr;
         setCurrentExpression(decodedExpr);
-        handleExpressionChange(decodedExpr);
       }
 
       // Load range parameters
@@ -354,16 +358,12 @@ export default function Main() {
         setWireframe(wireframeParam === "true");
       }
 
+      // Parse the expression (URL param or default)
+      handleExpressionChange(expressionToUse);
+
       setHasLoadedFromParams(true);
     }
-  }, [searchParams, hasLoadedFromParams, handleExpressionChange]);
-
-  // Handle initial expression parsing (only if not loaded from URL)
-  useEffect(() => {
-    if (!hasLoadedFromParams) {
-      handleExpressionChange(currentExpression);
-    }
-  }, [hasLoadedFromParams, handleExpressionChange, currentExpression]);
+  }, [searchParams, hasLoadedFromParams]);
 
   // Handle core ready callback
   const handleCoreReady = useCallback((newCore: Graph3DCore) => {
