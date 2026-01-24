@@ -123,6 +123,10 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
           leftCount++;
           content += latex.slice(pos, pos + 5);
           pos += 5;
+          // 区切り文字も追加
+          if (peek()) {
+            content += advance();
+          }
         } else if (char === "\\" && latex.slice(pos, pos + 6) === "\\right") {
           leftCount--;
           if (leftCount === 0) {
@@ -135,6 +139,10 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
           } else {
             content += latex.slice(pos, pos + 6);
             pos += 6;
+            // 区切り文字も追加
+            if (peek()) {
+              content += advance();
+            }
           }
         } else {
           content += advance();
@@ -162,6 +170,10 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
           leftCount++;
           content += latex.slice(pos, pos + 5);
           pos += 5;
+          // 区切り文字も追加
+          if (peek()) {
+            content += advance();
+          }
         } else if (char === "\\" && latex.slice(pos, pos + 6) === "\\right") {
           leftCount--;
           if (leftCount === 0) {
@@ -174,6 +186,10 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
           } else {
             content += latex.slice(pos, pos + 6);
             pos += 6;
+            // 区切り文字も追加
+            if (peek()) {
+              content += advance();
+            }
           }
         } else {
           content += advance();
@@ -216,9 +232,7 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
       const savePos = pos;
       const cmd = parseCommand();
 
-      if (knownFuncs.includes(cmd)) {
-        return parseFunction(cmd);
-      } else if (cmd === "pi") {
+      if (cmd === "pi") {
         return { type: "symbol", name: "pi" };
       } else if (knownFuncs.includes(cmd)) {
         return parseFunction(cmd);

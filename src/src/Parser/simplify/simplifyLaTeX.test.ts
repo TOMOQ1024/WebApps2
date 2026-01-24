@@ -69,7 +69,7 @@ describe("simplifyLaTeX", () => {
     expect(
       simplifyLaTeX(
         "\\left(2\\left(\\pi^{x}+\\sin x\\right)^{3}\\left(\\pi^{x}+2\\sin x\\right)\\right)^{2}",
-        [],
+        undefined,
         { numericMode: "computed" }
       )
     ).toBe(
@@ -83,7 +83,7 @@ describe("simplifyLaTeX", () => {
       "2^{2}\\left(\\pi^{x}+\\sin x\\right)^{6}\\left(\\pi^{x}+2\\sin x\\right)^{2}"
     );
     expect(
-      simplifyLaTeX("\\left(\\pi^{x}+\\sin x\\right)^{-1}", [], {
+      simplifyLaTeX("\\left(\\pi^{x}+\\sin x\\right)^{-1}", undefined, {
         rationalMode: "fraction",
       })
     ).toBe("\\frac{1}{\\pi^{x}+\\sin x}");

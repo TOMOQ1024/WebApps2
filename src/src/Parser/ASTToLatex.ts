@@ -131,6 +131,26 @@ export function ASTToLatex(
             return `-${rightLeft}+${rightRight}`;
           }
 
+          // 0 - (a + b) → -a - b の特別処理
+          if (right.type === "operator" && right.op === "+") {
+            const rightLeft = ASTToLatex(right.left, astTransform);
+            const rightRight = ASTToLatex(right.right, astTransform);
+            // 符号を反転して結合
+            const negatedLeft = rightLeft.startsWith("-")
+              ? rightLeft.substring(1)
+              : `-${rightLeft}`;
+            const negatedRight = rightRight.startsWith("-")
+              ? `+${rightRight.substring(1)}`
+              : `-${rightRight}`;
+            // -0 - b → -b の簡約
+            if (rightLeft === "0") {
+              return negatedRight.startsWith("+")
+                ? negatedRight.substring(1)
+                : negatedRight;
+            }
+            return `${negatedLeft}${negatedRight}`;
+          }
+
           const rightStr = ASTToLatex(right, astTransform);
           // 二重否定の処理: --f(x) → f(x)
           if (rightStr.startsWith("--")) {
@@ -202,6 +222,12 @@ export function ASTToLatex(
           right.type === "operator"
         ) {
           return `-${ASTToLatex(right, astTransform)}`;
+        }
+
+        // 両方が数値の場合は計算結果を返す
+        if (left.type === "number" && right.type === "number") {
+          const product = left.value * right.value;
+          return numberToLatex(product, options);
         }
 
         // 係数 * 本体 の形に正規化（左右どちらがnumberでも対応）
@@ -958,7 +984,8 @@ export function ASTToLatex(
       } else if (name === "ln" || name === "log") {
         return `\\${name} ${wrapIfNeeded(args[0], "func", astTransform)}`;
       } else if (name === "exp") {
-        return `e^{${ASTToLatex(args[0], astTransform)}}`;
+        // \exp x 形式を保持
+        return `\\exp ${wrapIfNeeded(args[0], "func", astTransform)}`;
       } else if (name === "sin" || name === "cos") {
         // sin(-x) → -sin x, cos(-x) → cos x のような処理
         const arg = args[0];
@@ -1127,6 +1154,38 @@ function isOne(node: ASTNode): boolean {
   return node.type === "number" && node.value === 1;
 }
 
+// 小数を分数に変換できるか試みる
+function decimalToFraction(
+  value: number
+): { numerator: number; denominator: number } | null {
+  // 整数の場合は分数に変換しない
+  if (Number.isInteger(value)) {
+    return null;
+  }
+
+  // 小数点以下の桁数を取得
+  const valueStr = value.toString();
+  const decimalIndex = valueStr.indexOf(".");
+  if (decimalIndex === -1) return null;
+
+  const decimalPlaces = valueStr.length - decimalIndex - 1;
+  if (decimalPlaces > 6) return null; // 精度の限界
+
+  // 分母を計算
+  const denominator = Math.pow(10, decimalPlaces);
+  const numerator = Math.round(value * denominator);
+
+  // GCDで約分
+  const divisor = gcd(Math.abs(numerator), denominator);
+  const reducedNum = numerator / divisor;
+  const reducedDen = denominator / divisor;
+
+  // 分母が合理的な範囲内かチェック
+  if (reducedDen > 1000) return null;
+
+  return { numerator: reducedNum, denominator: reducedDen };
+}
+
 // 数値をLaTeX形式に変換（分数を適切に処理）
 function numberToLatex(value: number, options?: SimplifyOptions): string {
   if (Number.isInteger(value)) {
@@ -1137,7 +1196,15 @@ function numberToLatex(value: number, options?: SimplifyOptions): string {
     return value.toString();
   }
 
-  // 小数を分数に変換しない（元の値をそのまま使用）
+  // computedモードでない場合，小数を分数に変換
+  if (options?.numericMode !== "computed") {
+    const fraction = decimalToFraction(value);
+    if (fraction && fraction.denominator !== 1) {
+      return `\\frac{${fraction.numerator}}{${fraction.denominator}}`;
+    }
+  }
+
+  // 分数に変換できない場合は元の値をそのまま使用
   return value.toString();
 }
 

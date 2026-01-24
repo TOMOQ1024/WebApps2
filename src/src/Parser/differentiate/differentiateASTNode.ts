@@ -1,5 +1,44 @@
 import { ASTNode } from "../ASTNode";
 
+// ノードが定数（変数に依存しない）かどうかを判定
+function isConstant(node: ASTNode, variable: string): boolean {
+  switch (node.type) {
+    case "number":
+      return true;
+    case "symbol":
+      return node.name !== variable;
+    case "operator":
+      return isConstant(node.left, variable) && isConstant(node.right, variable);
+    case "function":
+      return node.args.every((arg) => isConstant(arg, variable));
+    default:
+      return false;
+  }
+}
+
+// ノードが数値（定数または演算結果）として評価可能かどうか，および評価値を返す
+function evaluateConstant(node: ASTNode): number | null {
+  switch (node.type) {
+    case "number":
+      return node.value;
+    case "operator": {
+      const left = evaluateConstant(node.left);
+      const right = evaluateConstant(node.right);
+      if (left === null || right === null) return null;
+      switch (node.op) {
+        case "+": return left + right;
+        case "-": return left - right;
+        case "*": return left * right;
+        case "/": return right !== 0 ? left / right : null;
+        case "^": return Math.pow(left, right);
+        default: return null;
+      }
+    }
+    default:
+      return null;
+  }
+}
+
 // 変数名はx固定
 export function differentiateASTNode(
   node: ASTNode,
@@ -202,13 +241,19 @@ export function differentiateASTNode(
           },
         };
       } else if (op === "^") {
-        // x^n の場合
+        // 定数のべき乗の場合（底が変数に依存しない場合）は 0
+        if (isConstant(left, variable) && isConstant(right, variable)) {
+          return { type: "number", value: 0 };
+        }
+
+        // x^n の場合（nが定数式の場合も含む）
+        const exponentValue = evaluateConstant(right);
         if (
           left.type === "symbol" &&
           left.name === variable &&
-          right.type === "number"
+          exponentValue !== null
         ) {
-          const n = right.value;
+          const n = exponentValue;
           return {
             type: "operator",
             op: "*",

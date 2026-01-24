@@ -25,9 +25,24 @@ export function evaluateNumericOps(
       case "*":
         return { type: "number", value: left.value * right.value };
       case "^":
-        // computedモードの場合のみ、限定的なべき乗数値評価
+        // 特定の場合のみ数値のべき乗を評価
+        // 1. computedモードの場合は常に評価
+        // 2. 結果が1になる場合（-1^2 = 1, 1^n = 1, a^0 = 1）は常に評価
+        // 3. 結果が-1になる場合も常に評価
+        const result = Math.pow(left.value, right.value);
         if (options?.numericMode === "computed") {
-          return { type: "number", value: Math.pow(left.value, right.value) };
+          if (Number.isFinite(result) && Math.abs(result) < 1e10) {
+            return { type: "number", value: result };
+          }
+        } else if (
+          result === 1 ||
+          result === -1 ||
+          result === 0 ||
+          left.value === 1 ||
+          left.value === -1 ||
+          right.value === 0
+        ) {
+          return { type: "number", value: result };
         }
         return null;
       case "/":
