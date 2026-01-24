@@ -64,12 +64,19 @@ function containsZVariable(expression: string): boolean {
 
 /**
  * 式のモードを判定する
- * - z= で始まる場合 → 陽関数 (explicit)
+ * - z= で始まり、右辺に z を含まない場合 → 陽関数 (explicit)
+ * - z= で始まり、右辺に z を含む場合 → 陰関数 (implicit)
  * - z を変数として含む場合 → 陰関数 (implicit)
  * - どちらでもない場合 → エラー
  */
 function detectExpressionMode(expression: string): ExpressionMode | "error" {
   if (startsWithZEquals(expression)) {
+    // 右辺を抽出して z が含まれているかチェック
+    const rhs = extractExplicitRHS(expression);
+    if (rhs && containsZVariable(rhs)) {
+      // z= で始まるが右辺に z が含まれる → 陰関数
+      return "implicit";
+    }
     return "explicit";
   }
   if (containsZVariable(expression)) {
@@ -107,8 +114,9 @@ function parseImplicitExpression(expression: string): {
   relationType: ImplicitRelationType;
 } | null {
   // 不等式をチェック: <=, >=, <, >, \leq, \geq, \le, \ge
+  // (?![a-zA-Z]) で \left, \get などのコマンドを除外
   const inequalityMatch = expression.match(
-    /^(.+?)\s*(\\leq|\\geq|\\le|\\ge|<=|>=|<|>)\s*(.+)$/,
+    /^(.+?)\s*(\\leq(?![a-zA-Z])|\\geq(?![a-zA-Z])|\\le(?![a-zA-Z])|\\ge(?![a-zA-Z])|<=|>=|<|>)\s*(.+)$/,
   );
   if (inequalityMatch) {
     const operator = inequalityMatch[2];
