@@ -66,9 +66,11 @@ export const galleryData: Graph2DGalleryItem[] = [
     center: [0, 0],
     radius: 1.1,
   },
-  // 双曲線
+  // Square - Line
   {
-    expressions: ["x^2-y^2<1"],
+    expressions: [
+      "0>\\max \\left(\\left|\\left|x\\right|+\\left|y\\right|-7\\right|-3,1-\\left|x\\right|\\right)",
+    ],
     center: [0, 0],
     radius: 3,
   },

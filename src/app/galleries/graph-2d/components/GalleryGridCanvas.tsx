@@ -50,6 +50,8 @@ const BUILTIN_FUNCS = [
   "arcsch",
   "abs",
   "ln",
+  "max",
+  "min",
 ];
 
 /**

@@ -234,6 +234,17 @@ export function ASTToGLSL(
           if (args.length === 0)
             throw new Error(`Function ${fnName} requires an argument`);
           return `log(${args[0]})`;
+        case "max":
+          if (args.length === 0)
+            throw new Error(`Function ${fnName} requires at least one argument`);
+          if (args.length === 1) return args[0];
+          // 右から左へチェーン: max(a, max(b, max(c, d)))
+          return args.reduceRight((acc, arg) => `max(${arg}, ${acc})`);
+        case "min":
+          if (args.length === 0)
+            throw new Error(`Function ${fnName} requires at least one argument`);
+          if (args.length === 1) return args[0];
+          return args.reduceRight((acc, arg) => `min(${arg}, ${acc})`);
         default:
           // ユーザー定義関数のサポート
           if (knownFuncs.includes(fnName)) {

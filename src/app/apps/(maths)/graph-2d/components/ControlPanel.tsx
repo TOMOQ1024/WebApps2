@@ -91,7 +91,7 @@ export default function ControlPanel({
             config={{
               restrictMismatchedBrackets: true,
               autoOperatorNames:
-                "sin cos tan cot sec csc arcsin arccos arctan arccot arcsec arccsc exp sinh cosh tanh coth sech csch arsinh arcosh artanh arcoth arsech arcsch ln",
+                "sin cos tan cot sec csc arcsin arccos arctan arccot arcsec arccsc exp sinh cosh tanh coth sech csch arsinh arcosh artanh arcoth arsech arcsch ln max min",
             }}
           />
           {expressions.length > 1 && (
