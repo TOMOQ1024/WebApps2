@@ -98,4 +98,12 @@ export const galleryData: Graph2DGalleryItem[] = [
     center: [0, 0],
     radius: 8,
   },
+  // Checkerboard
+  {
+    expressions: [
+      "0>\\frac{\\max \\left(\\frac{\\left|x\\right|}{4},\\left|\\left|y-1\\right|-2\\right|\\right)-1}{\\max \\left(\\left|\\left|x-1\\right|-2\\right|,\\frac{\\left|y\\right|}{4}\\right)-1}",
+    ],
+    center: [0, 0],
+    radius: 8,
+  },
 ];
