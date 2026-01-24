@@ -21,10 +21,10 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-// [0, 2) の循環する実数値でテーマを管理
-// 0-1: light, 1-2: dark
+// [0, 1] の連続値でテーマを管理
+// 0: light, 1: dark
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [themeValue, setThemeValue] = useState(0); // [0, 2) の連続値
+  const [themeValue, setThemeValue] = useState(0); // [0, 1] の連続値
   const [theme, setThemeLabel] = useState<ThemeLabel>("light"); // 目標に基づくテーマラベル
   const targetRef = useRef(0); // 目標値
   const animationRef = useRef<number | null>(null);
@@ -32,7 +32,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // 目標値からテーマラベルを取得
   const getThemeLabelFromTarget = (target: number): ThemeLabel => {
     const normalized = ((target % 2) + 2) % 2;
-    if (normalized < 1) return "light";
+    if (normalized < 0.5) return "light";
     return "dark";
   };
 
@@ -43,14 +43,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     // 初期読み込み時は transition を無効化
     document.documentElement.classList.add("no-transition");
 
-    const saved = localStorage.getItem("themeValue");
-    if (saved) {
-      const value = Number.parseFloat(saved);
-      if (!Number.isNaN(value)) {
-        setThemeValue(value);
-        targetRef.current = value;
-        setThemeLabel(getThemeLabelFromTarget(value));
-      }
+    const saved = localStorage.getItem("theme") as ThemeLabel | null;
+    if (saved === "light" || saved === "dark") {
+      const value = saved === "dark" ? 1 : 0;
+      setThemeValue(value);
+      targetRef.current = value;
+      setThemeLabel(saved);
     }
 
     // 次のフレームで transition を有効化
@@ -65,13 +63,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
   }, [theme]);
-
-  // themeValue 変更時に localStorage を更新
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    localStorage.setItem("themeValue", String(themeValue));
-  }, [themeValue]);
 
   // アニメーションループ
   useEffect(() => {
@@ -79,11 +72,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       setThemeValue((current) => {
         const target = targetRef.current;
         const diff = target - current;
-
-        // // 十分近ければ目標値に設定
-        // if (Math.abs(diff) < 0.01) {
-        //   return target;
-        // }
 
         // スムーズに補間（lerp）
         const speed = 0.01;
@@ -102,9 +90,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // クリック時に目標値を +1（2 を超えたら循環）し、テーマラベルを即座に切り替え
+  // クリック時に目標値を +1 し、テーマラベルを即座に切り替え
   const toggleTheme = useCallback(() => {
-    targetRef.current = (targetRef.current + 1) % 2;
+    targetRef.current = targetRef.current === 0 ? 1 : 0;
     setThemeLabel(getThemeLabelFromTarget(targetRef.current));
   }, []);
 
@@ -112,10 +100,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setTheme = useCallback((label: ThemeLabel) => {
     switch (label) {
       case "light":
-        targetRef.current = 0.5;
+        targetRef.current = 0;
         break;
       case "dark":
-        targetRef.current = 1.5;
+        targetRef.current = 1;
         break;
     }
     setThemeLabel(label);

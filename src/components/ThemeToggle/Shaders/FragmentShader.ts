@@ -3,7 +3,7 @@
  *
  * uniforms:
  * - uTime: 経過時間（秒）
- * - uTheme: [0, 2) の連続値（0-1: light, 1-2: dark）
+ * - uTheme: [0, 1] の連続値（0: light, 1: dark）
  * - uAspectRatio: アスペクト比（幅/高さ）
  * - uIconScale: アイコンのスケール（0-1、1=画面高さと同じ）
  * - uIconOffset: アイコンの右上からのオフセット（正規化座標）
@@ -65,19 +65,14 @@ void main() {
   
   // アイコン用の UV（アイコン中心を原点に移動し、スケールを適用）
   vec2 uvIcon = (uv - iconCenter) / iconScale;
-  
-  // ボーダー
-  vec3 borderColor = vec3(0.0);
 
   // 内側の色（太陽/月のアイコン）
   uvIcon *= 5.0;
-  vec3 innerColor = vec3(imp2col(mix(
-    -impMoon(uvIcon.x, uvIcon.y),
+  vec3 color = vec3(imp2col(mix(
     impSun(uvIcon.x, uvIcon.y),
-    (1.0 + cos(uTheme * PI)) / 2.0
+    -impMoon(uvIcon.x, uvIcon.y),
+    uTheme
   )));
-
-  vec3 color = max(borderColor, innerColor);
   gl_FragColor = vec4(color, 1.0);
 }
 `;

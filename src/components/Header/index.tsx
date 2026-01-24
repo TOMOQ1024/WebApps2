@@ -43,7 +43,7 @@ export default function Header() {
       <button
         type="button"
         onClick={toggleTheme}
-        className="relative w-8 h-8 bg-transparent cursor-pointer"
+        className="relative w-8 h-8 z-[200] bg-transparent cursor-pointer"
         style={{ border: "none" }}
         aria-label={`テーマを切り替え: 現在 ${theme}`}
       />

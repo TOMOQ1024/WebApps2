@@ -98,7 +98,7 @@ function BodyShaderPlane() {
 
 export default function BodyShaderBackground() {
   return (
-    <View className="fixed inset-0 z-0">
+    <View className="fixed inset-0 z-0 pointer-events-none">
       <BodyShaderPlane />
     </View>
   );
