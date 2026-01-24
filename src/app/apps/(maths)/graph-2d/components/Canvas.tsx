@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { vertexShader } from "../Shaders/VertexShader";
 import GraphMgr from "@/src/GraphMgr";
 import { CanvasManager } from "@/src/CanvasManager";
+import { useTheme } from "@/hooks/useTheme";
 
 interface CanvasProps {
   shader: string;
@@ -17,6 +18,14 @@ export default function Canvas({
   onGraphChange,
   renderMode,
 }: CanvasProps) {
+  const { themeValue } = useTheme();
+  const themeValueRef = useRef(themeValue);
+
+  // themeValue を ref に同期
+  useEffect(() => {
+    themeValueRef.current = themeValue;
+  }, [themeValue]);
+
   const [resolution, setResolution] = useState<THREE.Vector2>(() => {
     // サーバーサイドレンダリング時はデフォルト値を使用
     if (typeof window === "undefined") {
@@ -65,6 +74,7 @@ export default function Canvas({
     const material = new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
+        uTheme: { value: themeValueRef.current },
         uResolution: {
           value: resolution,
         },
@@ -87,6 +97,7 @@ export default function Canvas({
     canvasManager.startAnimation((time) => {
       if (materialRef.current) {
         materialRef.current.uniforms.uTime.value = time * 0.001;
+        materialRef.current.uniforms.uTheme.value = themeValueRef.current;
         const graph = canvasManager.getGraphManager();
         materialRef.current.uniforms.uGraph.value.origin.set(
           graph!.origin.x,

@@ -12,6 +12,7 @@ import {
   parseInequality,
   FunctionDef,
 } from "@/src/Parser/graph2d/expressionParser";
+import { useTheme } from "@/hooks/useTheme";
 
 interface GalleryGridCanvasProps {
   items: Graph2DGalleryItem[];
@@ -148,6 +149,14 @@ export default function GalleryGridCanvas({
   items,
   className,
 }: GalleryGridCanvasProps) {
+  const { themeValue } = useTheme();
+  const themeValueRef = useRef(themeValue);
+
+  // themeValue を ref に同期
+  useEffect(() => {
+    themeValueRef.current = themeValue;
+  }, [themeValue]);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
@@ -387,6 +396,7 @@ export default function GalleryGridCanvas({
       const material = new THREE.ShaderMaterial({
         uniforms: {
           uTime: { value: 0 },
+          uTheme: { value: themeValueRef.current },
           uResolution: { value: new THREE.Vector2(cellSize / 2, cellSize / 2) },
           uGraph: {
             value: {
@@ -416,8 +426,9 @@ export default function GalleryGridCanvas({
     let lastTime = performance.now();
     function renderAll(deltaTime: number) {
       meshes.forEach((mesh, idx) => {
-        (mesh.material as THREE.ShaderMaterial).uniforms.uTime.value +=
-          deltaTime / 1000;
+        const uniforms = (mesh.material as THREE.ShaderMaterial).uniforms;
+        uniforms.uTime.value += deltaTime / 1000;
+        uniforms.uTheme.value = themeValueRef.current;
         mesh.scale.set(
           hoverIdxRef.current === idx ? 1.1 : 1,
           hoverIdxRef.current === idx ? 1.1 : 1,
