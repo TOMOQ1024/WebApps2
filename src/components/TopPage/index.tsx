@@ -22,13 +22,13 @@ const TopPage = () => {
           <div className="flex gap-4 justify-center flex-wrap mt-4">
             <a
               href="/apps"
-              className="inline-block px-8 py-4 border-2 border-[var(--border-color)] no-underline font-bold hover:invert"
+              className="inline-block px-8 py-4 border-2 border-[var(--border-color)] no-underline font-bold transition-transform hover:scale-105"
             >
               Apps
             </a>
             <a
               href="/galleries"
-              className="inline-block px-8 py-4 border-2 border-[var(--border-color)] no-underline font-bold hover:invert"
+              className="inline-block px-8 py-4 border-2 border-[var(--border-color)] no-underline font-bold transition-transform hover:scale-105"
             >
               Galleries
             </a>
@@ -82,7 +82,7 @@ const TopPage = () => {
               <a
                 key={link.label}
                 href={link.href}
-                className="inline-block px-8 py-4 border-2 border-[var(--border-color)] no-underline font-bold hover:invert"
+                className="inline-block px-8 py-4 border-2 border-[var(--border-color)] no-underline font-bold transition-transform hover:scale-105"
               >
                 {link.label}
               </a>

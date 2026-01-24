@@ -17,7 +17,7 @@ export default function Header() {
     <header className="fixed inset-x-0 top-0 h-[var(--header-height)] z-[100] border-b-2 border-[var(--border-color)] flex items-center justify-between px-4 md:px-8 bg-transparent">
       {/* テキストコンテンツ */}
       <div className="relative flex items-center gap-2 text-xl whitespace-nowrap">
-        <Link href="/" className="no-underline font-medium">
+        <Link href="/" className="no-underline font-medium transition-transform inline-block hover:scale-105">
           tomoq.net
         </Link>
         {pathSegments.length > 0 && (
@@ -26,7 +26,7 @@ export default function Header() {
             <div className="flex items-center gap-2">
               {pathSegments.map((segment, index) => (
                 <div key={buildPath(index)} className="flex items-center gap-2">
-                  <Link href={buildPath(index)} className="no-underline">
+                  <Link href={buildPath(index)} className="no-underline transition-transform inline-block hover:scale-105">
                     {segment}
                   </Link>
                   {index < pathSegments.length - 1 && (
