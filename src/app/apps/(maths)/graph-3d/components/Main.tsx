@@ -3,6 +3,10 @@
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ASTToJS } from "@/src/Parser/ASTToJS";
+import {
+  type FunctionDef,
+  parseFunctionDef,
+} from "@/src/Parser/graph2d/expressionParser";
 import { parseLatex } from "@/src/Parser/parseLatex";
 import type { ExpressionMode, Graph3DCore } from "../core/Graph3DCore";
 import Canvas from "./Canvas";
@@ -55,6 +59,26 @@ function containsZVariable(expression: string): boolean {
 }
 
 /**
+ * 関数定義から JavaScript 関数コードを生成
+ * f(x) = x^2 → function f(x) { return Math.pow(x, 2); }
+ */
+function generateJSFunction(
+  def: FunctionDef,
+  previousFuncNames: string[],
+): string {
+  const knownFuncs = [...BUILTIN_FUNCS, ...previousFuncNames];
+  const knownVars = [...def.args, "t"]; // 関数の引数 + t（時間）
+
+  try {
+    const ast = parseLatex(def.body, knownFuncs);
+    const jsCode = ASTToJS(ast, BUILTIN_FUNCS, knownVars, previousFuncNames);
+    return `function ${def.name}(${def.args.join(", ")}) { return ${jsCode}; }`;
+  } catch (e) {
+    throw e;
+  }
+}
+
+/**
  * 関係演算子タイプ
  * - equation: 等式 (=) → DoubleSide
  * - less: 不等式 (<, <=) → FrontSide
@@ -100,10 +124,20 @@ function parseExplicitExpression(expression: string): {
 }
 
 /**
+ * 等号・不等号を含むかチェック（\left, \right などは除外）
+ */
+function containsRelationalOperator(expression: string): boolean {
+  return /(?<!\\left|\\right)(=|<|>|\\le(?![a-zA-Z])|\\ge(?![a-zA-Z])|\\leq|\\geq)/.test(
+    expression,
+  );
+}
+
+/**
  * 式のモードを判定する
  * - z で始まり、右辺に z を含まない場合 → 陽関数 (explicit)
  * - z で始まり、右辺に z を含む場合 → 陰関数 (implicit)
  * - z を変数として含む場合 → 陰関数 (implicit)
+ * - 等号・不等号を含む場合（z なし）→ 陰関数 (implicit, 例: x^2+y^2=1)
  * - どちらでもない場合 → エラー
  */
 function detectExpressionMode(expression: string): ExpressionMode | "error" {
@@ -117,6 +151,10 @@ function detectExpressionMode(expression: string): ExpressionMode | "error" {
     return "explicit";
   }
   if (containsZVariable(expression)) {
+    return "implicit";
+  }
+  // z を含まなくても等号・不等号があれば陰関数（例: x^2+y^2=1）
+  if (containsRelationalOperator(expression)) {
     return "implicit";
   }
   return "error";
@@ -171,8 +209,9 @@ function parseImplicitExpression(expression: string): {
 }
 
 export default function Main() {
-  const [currentExpression, setCurrentExpression] =
-    useState<string>("z=\\sin(x)\\cos(y)");
+  const [currentExpressions, setCurrentExpressions] = useState<string[]>([
+    "z=\\sin(x)\\cos(y)",
+  ]);
   const [evalFunction, setEvalFunction] = useState<
     ((x: number, y: number, z?: number) => number) | null
   >(null);
@@ -193,27 +232,69 @@ export default function Main() {
 
   const searchParams = useSearchParams();
 
-  // 式のモードを自動検出
-  const mode = useMemo(
-    () => detectExpressionMode(currentExpression),
-    [currentExpression],
-  );
+  // 式のモードを自動検出（メイン式のみを対象）
+  const mode = useMemo(() => {
+    // 関数定義でない行（メイン式）を抽出
+    for (const expr of currentExpressions) {
+      const trimmed = expr.trim();
+      if (trimmed && !parseFunctionDef(trimmed)) {
+        return detectExpressionMode(trimmed);
+      }
+    }
+    return "error" as const;
+  }, [currentExpressions]);
 
-  // Parse expression and update evalFunction
-  const handleExpressionChange = useCallback((expression: string) => {
-    setCurrentExpression(expression);
+  // Parse expressions and update evalFunction
+  const handleExpressionsChange = useCallback((expressions: string[]) => {
+    setCurrentExpressions(expressions);
 
-    console.log("[Graph3D] Input expression:", expression);
+    console.log("[Graph3D] Input expressions:", expressions);
 
     try {
-      if (!expression.trim()) {
+      // 空でない式のみ処理
+      const nonEmptyExpressions = expressions
+        .map((e) => e.trim())
+        .filter((e) => e.length > 0);
+
+      if (nonEmptyExpressions.length === 0) {
         setError("Expression cannot be empty");
         setEvalFunction(null);
         return;
       }
 
+      // 関数定義と評価式を分離
+      const functionDefs: FunctionDef[] = [];
+      let mainExpression: string | null = null;
+
+      for (const expr of nonEmptyExpressions) {
+        const funcDef = parseFunctionDef(expr);
+        if (funcDef) {
+          console.log("[Graph3D] Found function definition:", funcDef.name);
+          functionDefs.push(funcDef);
+        } else {
+          // 関数定義でない行 → 評価式
+          if (mainExpression === null) {
+            mainExpression = expr;
+          } else {
+            // 複数の評価式がある場合はエラー
+            setError("Only one main expression is allowed");
+            setEvalFunction(null);
+            return;
+          }
+        }
+      }
+
+      if (!mainExpression) {
+        setError("No main expression found");
+        setEvalFunction(null);
+        return;
+      }
+
+      console.log("[Graph3D] Main expression:", mainExpression);
+      console.log("[Graph3D] Function definitions:", functionDefs.length);
+
       // 式のモードを判定
-      const exprMode = detectExpressionMode(expression);
+      const exprMode = detectExpressionMode(mainExpression);
       console.log("[Graph3D] Detected mode:", exprMode);
 
       if (exprMode === "error") {
@@ -222,12 +303,25 @@ export default function Main() {
         return;
       }
 
+      // ユーザー定義関数の JavaScript コードを生成
+      const userFuncNames = functionDefs.map((def) => def.name);
+      const jsFunctions: string[] = [];
+
+      for (let i = 0; i < functionDefs.length; i++) {
+        const def = functionDefs[i];
+        const previousFuncNames = functionDefs.slice(0, i).map((d) => d.name);
+        const jsFunc = generateJSFunction(def, previousFuncNames);
+        console.log(`[Graph3D] Generated function ${def.name}:`, jsFunc);
+        jsFunctions.push(jsFunc);
+      }
+
       let jsCode: string;
       let knownVars: string[];
+      const allKnownFuncs = [...BUILTIN_FUNCS, ...userFuncNames];
 
       if (exprMode === "explicit") {
         // 陽関数: z(...) の形式をパース
-        const parsed = parseExplicitExpression(expression);
+        const parsed = parseExplicitExpression(mainExpression);
         console.log("[Graph3D] Parsed explicit:", parsed);
         if (!parsed) {
           setError("Invalid explicit function format");
@@ -242,15 +336,15 @@ export default function Main() {
         knownVars = ["x", "y", "t"];
 
         // LaTeX を AST に変換
-        const ast = parseLatex(parsed.rhs, BUILTIN_FUNCS);
+        const ast = parseLatex(parsed.rhs, allKnownFuncs);
         console.log("[Graph3D] AST:", JSON.stringify(ast, null, 2));
 
         // AST を JavaScript コードに変換
-        jsCode = ASTToJS(ast, BUILTIN_FUNCS, knownVars);
+        jsCode = ASTToJS(ast, BUILTIN_FUNCS, knownVars, userFuncNames);
         console.log("[Graph3D] JS code:", jsCode);
       } else {
         // 陰関数: f(x,y,z) = 0 の形式に正規化
-        const parsed = parseImplicitExpression(expression);
+        const parsed = parseImplicitExpression(mainExpression);
         console.log("[Graph3D] Parsed implicit:", parsed);
         if (!parsed) {
           setError("Implicit function requires =, <, >, <=, or >=");
@@ -265,14 +359,14 @@ export default function Main() {
         knownVars = ["x", "y", "z", "t"];
 
         // 左辺と右辺をそれぞれパース
-        const leftAst = parseLatex(parsed.left, BUILTIN_FUNCS);
+        const leftAst = parseLatex(parsed.left, allKnownFuncs);
         console.log("[Graph3D] Left AST:", JSON.stringify(leftAst, null, 2));
-        const leftCode = ASTToJS(leftAst, BUILTIN_FUNCS, knownVars);
+        const leftCode = ASTToJS(leftAst, BUILTIN_FUNCS, knownVars, userFuncNames);
         console.log("[Graph3D] Left JS:", leftCode);
 
-        const rightAst = parseLatex(parsed.right, BUILTIN_FUNCS);
+        const rightAst = parseLatex(parsed.right, allKnownFuncs);
         console.log("[Graph3D] Right AST:", JSON.stringify(rightAst, null, 2));
-        const rightCode = ASTToJS(rightAst, BUILTIN_FUNCS, knownVars);
+        const rightCode = ASTToJS(rightAst, BUILTIN_FUNCS, knownVars, userFuncNames);
         console.log("[Graph3D] Right JS:", rightCode);
 
         // 左辺 - 右辺 = 0 として評価
@@ -280,9 +374,15 @@ export default function Main() {
         console.log("[Graph3D] Final JS code:", jsCode);
       }
 
-      // 関数を生成
+      // 関数を生成（ユーザー定義関数を含む）
+      const fullCode = `
+        ${jsFunctions.join("\n")}
+        return ${jsCode};
+      `;
+      console.log("[Graph3D] Full code:", fullCode);
+
       // eslint-disable-next-line no-new-func
-      const fn = new Function("x", "y", "z", "t", `return ${jsCode};`) as (
+      const fn = new Function("x", "y", "z", "t", fullCode) as (
         x: number,
         y: number,
         z?: number,
@@ -300,24 +400,24 @@ export default function Main() {
       setError(null);
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : String(e);
-      console.error("[Graph3D] Parse error:", errorMessage);
       setError(errorMessage);
       setEvalFunction(null);
     }
   }, []);
 
   // Load from URL parameters and handle initial expression parsing (once on mount)
-  // currentExpression と handleExpressionChange は意図的に依存配列から除外（初回マウント時のみ実行）
+  // currentExpressions と handleExpressionsChange は意図的に依存配列から除外（初回マウント時のみ実行）
   // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally run only on mount
   useEffect(() => {
     if (searchParams && !hasLoadedFromParams) {
       const exprParam = searchParams.get("expr");
-      let expressionToUse = currentExpression;
+      let expressionsToUse = currentExpressions;
 
       if (exprParam !== null) {
         const decodedExpr = decodeURIComponent(exprParam);
-        expressionToUse = decodedExpr;
-        setCurrentExpression(decodedExpr);
+        // 改行で分割して配列に
+        expressionsToUse = decodedExpr.split("\n").filter((e) => e.trim());
+        setCurrentExpressions(expressionsToUse);
       }
 
       // Load range parameters
@@ -358,8 +458,8 @@ export default function Main() {
         setWireframe(wireframeParam === "true");
       }
 
-      // Parse the expression (URL param or default)
-      handleExpressionChange(expressionToUse);
+      // Parse the expressions (URL param or default)
+      handleExpressionsChange(expressionsToUse);
 
       setHasLoadedFromParams(true);
     }
@@ -387,9 +487,10 @@ export default function Main() {
     try {
       const params = new URLSearchParams();
 
-      // Save expression if not default
-      if (currentExpression !== "z=\\sin(x)\\cos(y)") {
-        params.set("expr", encodeURIComponent(currentExpression));
+      // Save expressions if not default
+      const expressionsStr = currentExpressions.join("\n");
+      if (expressionsStr !== "z=\\sin(x)\\cos(y)") {
+        params.set("expr", encodeURIComponent(expressionsStr));
       }
 
       // Save range if not default
@@ -436,7 +537,7 @@ export default function Main() {
     } catch (err) {
       console.error("Failed to copy link:", err);
     }
-  }, [currentExpression, range, segments, wireframe, mode]);
+  }, [currentExpressions, range, segments, wireframe, mode]);
 
   // Canvas に渡すモード（エラーの場合は explicit をデフォルトとして使用）
   const canvasMode: ExpressionMode = mode === "error" ? "explicit" : mode;
@@ -453,8 +554,8 @@ export default function Main() {
         onCoreReady={handleCoreReady}
       />
       <ControlPanel
-        onExpressionChange={handleExpressionChange}
-        currentExpression={currentExpression}
+        onExpressionsChange={handleExpressionsChange}
+        currentExpressions={currentExpressions}
         error={error}
         mode={mode}
       />

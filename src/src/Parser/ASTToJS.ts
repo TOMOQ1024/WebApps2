@@ -3,11 +3,16 @@ import type { ASTNode } from "./ASTNode";
 /**
  * AST を JavaScript のコード文字列に変換する
  * Graph3D 用に z = f(x, y) 形式の数式を評価するため
+ * @param node ASTノード
+ * @param knownFuncs 組み込み関数名の配列
+ * @param knownVars 変数名の配列
+ * @param userFuncs ユーザー定義関数名の配列
  */
 export function ASTToJS(
   node: ASTNode,
   knownFuncs: string[] = [],
-  knownVars: string[] = []
+  knownVars: string[] = [],
+  userFuncs: string[] = [],
 ): string {
   switch (node.type) {
     case "number":
@@ -30,14 +35,14 @@ export function ASTToJS(
       // 特別な場合：関数名 * 引数 → 関数呼び出し
       if (node.op === "*" && node.left.type === "symbol") {
         const fnName = node.left.name;
-        if (knownFuncs.includes(fnName)) {
-          const arg = ASTToJS(node.right, knownFuncs, knownVars);
-          return convertFunctionCall(fnName, [arg]);
+        if (knownFuncs.includes(fnName) || userFuncs.includes(fnName)) {
+          const arg = ASTToJS(node.right, knownFuncs, knownVars, userFuncs);
+          return convertFunctionCall(fnName, [arg], userFuncs);
         }
       }
 
-      const left = ASTToJS(node.left, knownFuncs, knownVars);
-      const right = ASTToJS(node.right, knownFuncs, knownVars);
+      const left = ASTToJS(node.left, knownFuncs, knownVars, userFuncs);
+      const right = ASTToJS(node.right, knownFuncs, knownVars, userFuncs);
 
       switch (node.op) {
         case "+":
@@ -60,16 +65,30 @@ export function ASTToJS(
     }
 
     case "function": {
-      const args = node.args.map((arg) => ASTToJS(arg, knownFuncs, knownVars));
-      return convertFunctionCall(node.name, args);
+      const args = node.args.map((arg) =>
+        ASTToJS(arg, knownFuncs, knownVars, userFuncs),
+      );
+      return convertFunctionCall(node.name, args, userFuncs);
     }
   }
 }
 
 /**
  * 関数呼び出しを JavaScript コードに変換
+ * @param fnName 関数名
+ * @param args 引数のコード文字列配列
+ * @param userFuncs ユーザー定義関数名の配列
  */
-function convertFunctionCall(fnName: string, args: string[]): string {
+function convertFunctionCall(
+  fnName: string,
+  args: string[],
+  userFuncs: string[] = [],
+): string {
+  // ユーザー定義関数の場合
+  if (userFuncs.includes(fnName)) {
+    return `${fnName}(${args.join(", ")})`;
+  }
+
   if (args.length === 0 && !["max", "min"].includes(fnName)) {
     throw new Error(`Function ${fnName} requires an argument`);
   }

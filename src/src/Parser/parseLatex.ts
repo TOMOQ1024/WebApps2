@@ -552,6 +552,13 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
       return { type: "number", value: 0 };
     }
     const result = parseExpression();
+
+    // 入力がすべて消費されたかチェック
+    skipWhitespace();
+    if (pos < latex.length) {
+      throw new Error(`Unexpected character: ${latex[pos]}`);
+    }
+
     return result;
   } catch (error) {
     throw new Error(
