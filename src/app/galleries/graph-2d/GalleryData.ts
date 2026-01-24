@@ -90,4 +90,12 @@ export const galleryData: Graph2DGalleryItem[] = [
     center: [0, 0],
     radius: 16,
   },
+  // Code
+  {
+    expressions: [
+      "1>\\min \\left(\\max \\left(\\frac{\\left|\\left|x\\right|-5\\right|}{2},\\left|\\left|x\\right|+2\\left|y\\right|-7\\right|\\right),\\max \\left(\\left|2x-y\\right|,\\frac{\\left|y\\right|}{4}\\right)\\right)",
+    ],
+    center: [0, 0],
+    radius: 8,
+  },
 ];
