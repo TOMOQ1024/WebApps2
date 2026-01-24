@@ -29,6 +29,22 @@
   }
 }
 
+html {
+  background-color: var(--background-color);
+  
+  // CSS で初期背景色を設定（JS 実行前のフォールバック）
+  @media (prefers-color-scheme: dark) {
+    &:not([data-theme]) {
+      background-color: black;
+    }
+  }
+  @media (prefers-color-scheme: light) {
+    &:not([data-theme]) {
+      background-color: white;
+    }
+  }
+}
+
 // テーマ切り替え時の transition
 * {
   transition:

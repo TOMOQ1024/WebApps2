@@ -36,20 +36,34 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return "dark";
   };
 
-  // localStorage から初期値を読み込み（transition を一時的に無効化）
+  // 初期値を読み込み（transition を一時的に無効化）
+  // blocking script で既に data-theme 属性が設定されているため，それを読み取る
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     // 初期読み込み時は transition を無効化
     document.documentElement.classList.add("no-transition");
 
-    const saved = localStorage.getItem("theme") as ThemeLabel | null;
-    if (saved === "light" || saved === "dark") {
-      const value = saved === "dark" ? 1 : 0;
-      setThemeValue(value);
-      targetRef.current = value;
-      setThemeLabel(saved);
+    // blocking script で設定された data-theme 属性を読み取る
+    const currentTheme = document.documentElement.getAttribute("data-theme");
+    let theme: ThemeLabel;
+    
+    if (currentTheme === "dark" || currentTheme === "light") {
+      theme = currentTheme;
+    } else {
+      // フォールバック: localStorage または prefers-color-scheme
+      const saved = localStorage.getItem("theme") as ThemeLabel | null;
+      if (saved === "dark" || saved === "light") {
+        theme = saved;
+      } else {
+        theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
     }
+
+    const value = theme === "dark" ? 1 : 0;
+    setThemeValue(value);
+    targetRef.current = value;
+    setThemeLabel(theme);
 
     // 次のフレームで transition を有効化
     requestAnimationFrame(() => {
