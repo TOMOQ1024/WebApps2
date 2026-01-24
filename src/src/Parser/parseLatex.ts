@@ -153,6 +153,11 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
         throw new Error("Unmatched \\left");
       }
 
+      // 空の絶対値はエラー
+      if (content.trim() === "") {
+        throw new Error("Empty absolute value is not allowed");
+      }
+
       // 収集した内容を新しいパーサーインスタンスでパースして絶対値関数として返す
       const expr = parseLatex(content, knownFuncs);
       return { type: "function", name: "abs", args: [expr] };
@@ -198,6 +203,11 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
 
       if (leftCount > 0) {
         throw new Error("Unmatched \\left");
+      }
+
+      // 空の括弧はエラー
+      if (content.trim() === "") {
+        throw new Error("Empty parentheses are not allowed");
       }
 
       // 収集した内容を新しいパーサーインスタンスでパース

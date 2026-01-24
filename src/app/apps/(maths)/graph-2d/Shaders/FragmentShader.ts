@@ -31,7 +31,7 @@ void main() {
   vec2 z0 = vPosition / min(uResolution.x, uResolution.y) * uGraph.radius + uGraph.origin;
   float c = graph2d(z0);
 
-  c = c < 0. ? 0. : 1.;
+  c = c < 0. ? 1. : 0.;
 
   gl_FragColor = vec4(c, c, c, 1.);
   return;

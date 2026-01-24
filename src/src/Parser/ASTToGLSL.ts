@@ -61,7 +61,8 @@ export function ASTToGLSL(
             case "ln":
               return `ln(${arg})`;
             default:
-              throw new Error(`Unsupported function: ${fnName}`);
+              // ユーザー定義関数（1引数）のサポート
+              return `${fnName}(${arg})`;
           }
         }
       }
@@ -158,6 +159,10 @@ export function ASTToGLSL(
             throw new Error(`Function ${fnName} requires an argument`);
           return `ln(${args[0]})`;
         default:
+          // ユーザー定義関数のサポート
+          if (knownFuncs.includes(fnName)) {
+            return `${fnName}(${args.join(", ")})`;
+          }
           throw new Error(`Unsupported function: ${fnName}`);
       }
   }

@@ -11,6 +11,10 @@ export const galleryList = {
     galleryName: "CompDynam",
     tags: new Set(["maths"]),
   },
+  "graph-2d": {
+    galleryName: "Graph 2D",
+    tags: new Set(["maths"]),
+  },
 } as {
   [path: string]: {
     galleryName: string;

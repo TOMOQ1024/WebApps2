@@ -27,10 +27,7 @@ export function latexToGLSL(
     const ast = parseLatex(latex, knownFuncs);
 
     // 抽象構文木をGLSLコードに変換
-    let glslCode = ASTToGLSL(ast, knownFuncs, knownVars);
-
-    console.log(latex);
-    console.log(glslCode);
+    const glslCode = ASTToGLSL(ast, knownFuncs, knownVars);
 
     return glslCode;
   } catch (error) {
