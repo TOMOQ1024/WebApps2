@@ -14,10 +14,9 @@
 - [ ] feat: 文字列をエスケープするだけのページを作成する
       `String.raw` する．
 
-- [ ] feat: Blogs ページの作成  
-       Works ページをつくろうと思ったが，結局ブログ的なものを作りたいので，Blogs ページを作る．
-
 ## 近いうちにやる
+
+- [ ] perf: CompDynam Gallery なんか重いかも
 
 - [ ] feat: Dictionaries ページの作成  
        名称は仮．多胞体とかタイリングとかの一覧的なものを作りたい．Galleries の，創作ではない版．

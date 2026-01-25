@@ -8,6 +8,7 @@ import { findSimilarPaths } from "@/lib/findSimilarPaths";
 const mainLinks = [
   { href: "/apps", label: "Apps" },
   { href: "/galleries", label: "Galleries" },
+  { href: "/blogs", label: "Blogs" },
   { href: "/works", label: "Works" },
 ];
 

@@ -32,6 +32,12 @@ const TopPage = () => {
             >
               Galleries
             </a>
+            <a
+              href="/blogs"
+              className="inline-block px-8 py-4 border-2 border-[var(--border-color)] no-underline font-bold transition-transform hover:scale-105"
+            >
+              Blog
+            </a>
           </div>
         </section>
 
