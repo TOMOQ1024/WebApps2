@@ -303,8 +303,17 @@ export default function Main() {
         return;
       }
 
-      // ユーザー定義関数の JavaScript コードを生成
+      // ユーザー定義関数の JavaScript コードを生成（重複チェック）
       const userFuncNames = functionDefs.map((def) => def.name);
+      const duplicateNames = userFuncNames.filter(
+        (name, index) => userFuncNames.indexOf(name) !== index,
+      );
+      if (duplicateNames.length > 0) {
+        setError(`Duplicate function definition: ${duplicateNames[0]}`);
+        setEvalFunction(null);
+        return;
+      }
+
       const jsFunctions: string[] = [];
 
       for (let i = 0; i < functionDefs.length; i++) {

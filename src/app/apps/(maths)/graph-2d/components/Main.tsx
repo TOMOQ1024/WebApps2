@@ -114,7 +114,7 @@ export default function Main() {
             } else {
               // 不等号がない場合はエラー
               throw new Error(
-                `Inequality required (e.g. 0<${trimmed} or 0>${trimmed})`,
+                `Inequality required (e.g. 0<y-x^2 or y>x^2)`,
               );
             }
           }
@@ -125,8 +125,16 @@ export default function Main() {
           return null;
         }
 
-        // ユーザー定義関数名を収集
+        // ユーザー定義関数名を収集（重複チェック）
         const userFuncNames = functionDefs.map((def) => def.name);
+        const duplicateNames = userFuncNames.filter(
+          (name, index) => userFuncNames.indexOf(name) !== index,
+        );
+        if (duplicateNames.length > 0) {
+          throw new Error(
+            `Duplicate function definition: ${duplicateNames[0]}`,
+          );
+        }
 
         // GLSL関数を生成
         const glslFunctions = functionDefs.map((def, idx) => {

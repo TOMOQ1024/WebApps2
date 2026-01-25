@@ -101,8 +101,15 @@ function generateShaderFromExpressions(
     }
   }
 
-  // ユーザー定義関数名を収集
+  // ユーザー定義関数名を収集（重複チェック）
   const userFuncNames = functionDefs.map((def) => def.name);
+  const duplicateNames = userFuncNames.filter(
+    (name, index) => userFuncNames.indexOf(name) !== index,
+  );
+  if (duplicateNames.length > 0) {
+    console.error(`Duplicate function definition: ${duplicateNames[0]}`);
+    return baseShader; // エラー時はデフォルトシェーダーを返す
+  }
 
   // GLSL関数を生成
   const glslFunctions = functionDefs.map((def, idx) => {
