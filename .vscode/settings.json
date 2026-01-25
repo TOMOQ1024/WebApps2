@@ -1,4 +1,7 @@
 {
+  "files.associations": {
+    "*.mdx": "markdown"
+  },
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "biomejs.biome",
   "editor.codeActionsOnSave": {
