@@ -104,6 +104,16 @@ export const galleryData: Graph2DGalleryItem[] = [
       "0>\\frac{\\max \\left(\\frac{\\left|x\\right|}{4},\\left|\\left|y-1\\right|-2\\right|\\right)-1}{\\max \\left(\\left|\\left|x-1\\right|-2\\right|,\\frac{\\left|y\\right|}{4}\\right)-1}",
     ],
     center: [0, 0],
-    radius: 8,
+    radius: 6,
+  },
+  // 7 rounded wave
+  {
+    expressions: [
+      "X\\left(x,y\\right)=\\sin \\left(\\frac{7}{2}\\arctan \\left(x,y\\right)\\right)",
+      "Y\\left(x,y\\right)=\\ln \\left(x^2+y^2\\right)",
+      "1>X\\left(x,y\\right)^2+4Y\\left(x,y\\right)^2",
+    ],
+    center: [0, 0],
+    radius: 1.7,
   },
 ];
