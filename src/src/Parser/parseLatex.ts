@@ -406,6 +406,10 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
           "arcoth",
           "arsech",
           "arcsch",
+          "floor",
+          "ceil",
+          "round",
+          "fract",
         ];
         if (!validOperatornames.includes(funcName)) {
           throw new Error(`Unsupported operatorname: ${funcName}`);
