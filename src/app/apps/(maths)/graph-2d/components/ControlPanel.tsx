@@ -3,7 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import { EditableMathField } from "@/components/MathFields";
 import {
   isFunctionDefinition,
-  isInequality,
+  isNumericExpression,
+  parseChainedInequality,
 } from "@/src/Parser/graph2d/expressionParser";
 
 export interface ControlPanelProps {
@@ -52,13 +53,19 @@ export default function ControlPanel({
 
   // 式のタイプを判定してラベルを返す
   const getExpressionLabel = (expr: string): string => {
+    if (!expr.trim()) {
+      return "---";
+    }
     if (isFunctionDefinition(expr)) {
       return "def";
-    } else if (isInequality(expr)) {
-      return "inq";
-    } else {
-      return "err";
     }
+    if (parseChainedInequality(expr) !== null) {
+      return "inq";
+    }
+    if (isNumericExpression(expr)) {
+      return "num";
+    }
+    return "err";
   };
 
   return (
