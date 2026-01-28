@@ -9,8 +9,10 @@ import { Graph2DGalleryItem } from "@/app/galleries/graph-2d/GalleryData";
 import { useRouter } from "next/navigation";
 import {
   parseFunctionDef,
-  parseInequality,
+  parseChainedInequality,
+  isNumericExpression,
   FunctionDef,
+  ChainedInequalityResult,
 } from "@/src/Parser/graph2d/expressionParser";
 import { useTheme } from "@/hooks/useTheme";
 
@@ -60,6 +62,34 @@ const BUILTIN_FUNCS = [
 ];
 
 /**
+ * 連鎖不等式をGLSLに変換
+ */
+function chainedInequalityToGLSL(
+  result: ChainedInequalityResult,
+  knownFuncs: string[],
+  knownVars: string[]
+): string {
+  const { parts, operators } = result;
+  const partsGLSL = parts.map((part) => latexToGLSL(part, knownFuncs, knownVars));
+
+  const diffs: string[] = [];
+  for (let i = 0; i < operators.length; i++) {
+    const left = partsGLSL[i];
+    const right = partsGLSL[i + 1];
+    if (operators[i] === "<") {
+      diffs.push(`(${left}) - (${right})`);
+    } else {
+      diffs.push(`(${right}) - (${left})`);
+    }
+  }
+
+  if (diffs.length === 1) {
+    return diffs[0];
+  }
+  return diffs.reduceRight((acc, diff) => `max(${diff}, ${acc})`);
+}
+
+/**
  * 関数定義からGLSL関数を生成
  */
 function generateGLSLFunction(def: FunctionDef, knownFuncs: string[]): string {
@@ -83,11 +113,9 @@ function generateGLSLFunction(def: FunctionDef, knownFuncs: string[]): string {
 function generateShaderFromExpressions(
   expressions: string[],
   baseShader: string
-): string {
+): { shader: string; exprType: number } {
   const functionDefs: FunctionDef[] = [];
-  let inequalityLeft = "";
-  let inequalityRight = "";
-  let isLessThan = true;
+  let mainExpression: string | null = null;
 
   // 式を解析
   for (const expr of expressions) {
@@ -95,13 +123,7 @@ function generateShaderFromExpressions(
     if (funcDef) {
       functionDefs.push(funcDef);
     } else {
-      // 最後の不等式として扱う
-      const inequality = parseInequality(expr);
-      if (inequality) {
-        inequalityLeft = inequality.left;
-        inequalityRight = inequality.right;
-        isLessThan = inequality.isLessThan;
-      }
+      mainExpression = expr;
     }
   }
 
@@ -112,27 +134,40 @@ function generateShaderFromExpressions(
   );
   if (duplicateNames.length > 0) {
     console.error(`Duplicate function definition: ${duplicateNames[0]}`);
-    return baseShader; // エラー時はデフォルトシェーダーを返す
+    return { shader: baseShader, exprType: 0 };
   }
 
   // GLSL関数を生成
   const glslFunctions = functionDefs.map((def, idx) => {
-    // 前の関数は既知として扱う
     const knownFuncs = functionDefs.slice(0, idx).map((d) => d.name);
     return generateGLSLFunction(def, knownFuncs);
   });
 
-  // 左辺と右辺を別々にGLSLに変換し、引き算する
+  const knownFuncs = [...BUILTIN_FUNCS, ...userFuncNames];
+  const knownVars = ["x", "y", "t"];
+
   let mainGLSL = "0.0";
-  if (inequalityLeft || inequalityRight) {
+  let exprType = 0; // 0: 不等式, 1: 数値式
+
+  if (mainExpression) {
     try {
-      const knownFuncs = [...BUILTIN_FUNCS, ...userFuncNames];
-      const knownVars = ["x", "y", "t"];
-      const leftGLSL = latexToGLSL(inequalityLeft, knownFuncs, knownVars);
-      const rightGLSL = latexToGLSL(inequalityRight, knownFuncs, knownVars);
-      mainGLSL = `(${leftGLSL}) - (${rightGLSL})`;
+      if (isNumericExpression(mainExpression)) {
+        // 数値式
+        mainGLSL = latexToGLSL(mainExpression, knownFuncs, knownVars);
+        exprType = 1;
+      } else {
+        // 連鎖不等式
+        const chainedInequality = parseChainedInequality(mainExpression);
+        if (chainedInequality) {
+          mainGLSL = chainedInequalityToGLSL(
+            chainedInequality,
+            knownFuncs,
+            knownVars
+          );
+        }
+      }
     } catch (e) {
-      console.error("Failed to convert inequality to GLSL:", e);
+      console.error("Failed to convert expression to GLSL:", e);
     }
   }
 
@@ -144,16 +179,10 @@ function generateShaderFromExpressions(
   const funcCode = glslFunctions.join("\n\n") + "\n\n";
   shader = shader.replace(funcInsertPoint, funcCode + funcInsertPoint);
 
-  // 不等式をメイン処理に挿入
+  // 式をメイン処理に挿入
   shader = shader.replace(/\/\* input func here \*\//, `c = ${mainGLSL};`);
 
-  // 不等号に応じて塗りつぶし判定を調整
-  if (!isLessThan) {
-    // > の場合、判定を反転
-    shader = shader.replace(/c < 0\. \? 1\. : 0\./, "c > 0. ? 1. : 0.");
-  }
-
-  return shader;
+  return { shader, exprType };
 }
 
 export default function GalleryGridCanvas({
@@ -392,12 +421,15 @@ export default function GalleryGridCanvas({
     const meshes: THREE.Mesh[] = [];
     items.forEach((item, idx) => {
       let fragmentShader = baseFragmentShader;
+      let exprType = 0;
       const vertexShader = baseVertexShader;
       try {
-        fragmentShader = generateShaderFromExpressions(
+        const result = generateShaderFromExpressions(
           item.expressions,
           baseFragmentShader
         );
+        fragmentShader = result.shader;
+        exprType = result.exprType;
       } catch (e) {
         console.error("Failed to generate shader for item", idx, e);
       }
@@ -416,7 +448,8 @@ export default function GalleryGridCanvas({
             },
           },
           uIterations: { value: 50 },
-          uRenderMode: { value: 0 },
+          uRenderMode: { value: exprType === 1 ? 2 : 0 }, // 数値式の場合は tanh モード
+          uExprType: { value: exprType },
         },
         vertexShader,
         fragmentShader,

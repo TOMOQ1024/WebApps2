@@ -6,8 +6,10 @@ import { Vector2 } from "three";
 import GraphMgr from "@/src/GraphMgr";
 import {
   type FunctionDef,
+  type ChainedInequalityResult,
   parseFunctionDef,
-  parseInequality,
+  parseChainedInequality,
+  isNumericExpression,
 } from "@/src/Parser/graph2d/expressionParser";
 import { latexToGLSL } from "@/src/Parser/latexToGLSL";
 import { fragmentShader } from "../Shaders/FragmentShader";
@@ -53,6 +55,42 @@ const BUILTIN_FUNCS = [
 ];
 
 /**
+ * 連鎖不等式をGLSLに変換
+ * a < b < c → max((a)-(b), (b)-(c))
+ * a > b > c → max((b)-(a), (c)-(b))
+ * 混在の場合も各ペアごとに符号を調整
+ */
+function chainedInequalityToGLSL(
+  result: ChainedInequalityResult,
+  knownFuncs: string[],
+  knownVars: string[]
+): string {
+  const { parts, operators } = result;
+  const partsGLSL = parts.map((part) => latexToGLSL(part, knownFuncs, knownVars));
+
+  // 各隣接ペアの差を計算
+  const diffs: string[] = [];
+  for (let i = 0; i < operators.length; i++) {
+    const left = partsGLSL[i];
+    const right = partsGLSL[i + 1];
+    if (operators[i] === "<") {
+      // a < b → (a) - (b) < 0
+      diffs.push(`(${left}) - (${right})`);
+    } else {
+      // a > b → (b) - (a) < 0
+      diffs.push(`(${right}) - (${left})`);
+    }
+  }
+
+  // すべての差の max を取る（すべてが負なら条件成立）
+  if (diffs.length === 1) {
+    return diffs[0];
+  }
+  // max(a, max(b, max(c, d))) の形式で結合
+  return diffs.reduceRight((acc, diff) => `max(${diff}, ${acc})`);
+}
+
+/**
  * 関数定義からGLSL関数を生成
  */
 function generateGLSLFunction(def: FunctionDef, knownFuncs: string[]): string {
@@ -74,6 +112,7 @@ export default function Main() {
   const [shader, setShader] = useState(fragmentShader);
   const [graph, setGraph] = useState<GraphMgr>(new GraphMgr());
   const [renderMode, setRenderMode] = useState(0);
+  const [exprType, setExprType] = useState(0); // 0: 不等式, 1: 数値式
 
   // LaTeX文字列を管理（複数式対応：改行区切り）
   const [currentExpressions, setCurrentExpressions] = useState<string[]>([
@@ -92,12 +131,12 @@ export default function Main() {
 
   // 式リストからシェーダーを生成
   const generateShaderFromExpressions = useCallback(
-    (expressions: string[]): string | null => {
+    (expressions: string[]): { shader: string; exprType: number } | null => {
       try {
         const functionDefs: FunctionDef[] = [];
-        let inequalityLeft = "";
-        let inequalityRight = "";
-        let isLessThan = true;
+        let mainExpression: string | null = null;
+        let chainedInequality: ChainedInequalityResult | null = null;
+        let isNumeric = false;
 
         // 式を解析
         for (const expr of expressions) {
@@ -108,25 +147,26 @@ export default function Main() {
           if (funcDef) {
             functionDefs.push(funcDef);
           } else {
-            // 不等式として扱う
-            const inequality = parseInequality(trimmed);
-            console.log("[parse] input:", trimmed, "→", inequality);
-            if (inequality) {
-              inequalityLeft = inequality.left;
-              inequalityRight = inequality.right;
-              isLessThan = inequality.isLessThan;
-            } else {
-              // 不等号がない場合はエラー
-              throw new Error(
-                `Inequality required (e.g. 0<y-x^2 or y>x^2)`,
-              );
-            }
+            // メイン式として扱う（最後の非関数定義式）
+            mainExpression = trimmed;
           }
         }
 
-        if (!inequalityLeft && !inequalityRight) {
-          setError("Inequality required");
+        if (!mainExpression) {
+          setError("Expression required");
           return null;
+        }
+
+        // メイン式の種類を判定
+        if (isNumericExpression(mainExpression)) {
+          // 数値式（グレースケール表示）
+          isNumeric = true;
+        } else {
+          // 不等式（連鎖不等式を含む）
+          chainedInequality = parseChainedInequality(mainExpression);
+          if (!chainedInequality) {
+            throw new Error("Failed to parse inequality");
+          }
         }
 
         // ユーザー定義関数名を収集（重複チェック）
@@ -146,15 +186,25 @@ export default function Main() {
           return generateGLSLFunction(def, knownFuncs);
         });
 
-        // 左辺と右辺を別々にGLSLに変換
         const knownFuncs = [...BUILTIN_FUNCS, ...userFuncNames];
         const knownVars = ["x", "y", "t"];
-        console.log("[parse] left:", inequalityLeft, "right:", inequalityRight, "isLessThan:", isLessThan);
-        const leftGLSL = latexToGLSL(inequalityLeft, knownFuncs, knownVars);
-        const rightGLSL = latexToGLSL(inequalityRight, knownFuncs, knownVars);
-        // GLSLレベルで引き算
-        const mainGLSL = `(${leftGLSL}) - (${rightGLSL})`;
-        console.log("[parse] mainGLSL:", mainGLSL);
+
+        let mainGLSL: string;
+        if (isNumeric) {
+          // 数値式をそのままGLSLに変換
+          mainGLSL = latexToGLSL(mainExpression, knownFuncs, knownVars);
+        } else if (chainedInequality) {
+          // 連鎖不等式をGLSLに変換
+          mainGLSL = chainedInequalityToGLSL(
+            chainedInequality,
+            knownFuncs,
+            knownVars
+          );
+        } else {
+          throw new Error("Invalid expression");
+        }
+
+        console.log("[parse] mainGLSL:", mainGLSL, "isNumeric:", isNumeric);
 
         // シェーダーを構築
         let newShader = fragmentShader;
@@ -175,16 +225,8 @@ export default function Main() {
           `c = ${mainGLSL};`,
         );
 
-        // 不等号に応じて塗りつぶし判定を調整
-        if (!isLessThan) {
-          newShader = newShader.replace(
-            /c < 0\. \? 1\. : 0\./,
-            "c > 0. ? 1. : 0.",
-          );
-        }
-
         setError(null);
-        return newShader;
+        return { shader: newShader, exprType: isNumeric ? 1 : 0 };
       } catch (e) {
         const errorMessage = e instanceof Error ? e.message : String(e);
         setError(errorMessage);
@@ -196,9 +238,10 @@ export default function Main() {
 
   // 式が変更された時にシェーダーを更新
   useEffect(() => {
-    const newShader = generateShaderFromExpressions(currentExpressions);
-    if (newShader) {
-      setShader(newShader);
+    const result = generateShaderFromExpressions(currentExpressions);
+    if (result) {
+      setShader(result.shader);
+      setExprType(result.exprType);
     }
   }, [currentExpressions, generateShaderFromExpressions]);
 
@@ -305,6 +348,7 @@ export default function Main() {
         graph={graph}
         onGraphChange={setGraph}
         renderMode={renderMode}
+        exprType={exprType}
       />
       <ControlPanel
         onExpressionsChange={setCurrentExpressions}
@@ -316,6 +360,7 @@ export default function Main() {
         onRenderModeChange={setRenderMode}
         currentRenderMode={renderMode}
         onShareLink={handleShareLink}
+        exprType={exprType}
       />
     </main>
   );

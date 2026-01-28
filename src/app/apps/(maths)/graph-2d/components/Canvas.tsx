@@ -10,6 +10,7 @@ interface CanvasProps {
   graph: GraphMgr;
   onGraphChange: (graph: GraphMgr) => void;
   renderMode: number;
+  exprType: number;
 }
 
 export default function Canvas({
@@ -17,6 +18,7 @@ export default function Canvas({
   graph,
   onGraphChange,
   renderMode,
+  exprType,
 }: CanvasProps) {
   const { themeValue } = useTheme();
   const themeValueRef = useRef(themeValue);
@@ -85,6 +87,7 @@ export default function Canvas({
           },
         },
         uRenderMode: { value: renderMode },
+        uExprType: { value: exprType },
       },
       vertexShader: vertexShader,
       fragmentShader: shader,
@@ -112,7 +115,7 @@ export default function Canvas({
       material.dispose();
       geometry.dispose();
     };
-  }, [shader, resolution, renderMode, graph, onGraphChange]);
+  }, [shader, resolution, renderMode, exprType, graph, onGraphChange]);
 
   // graphの変更を監視
   useEffect(() => {
@@ -126,6 +129,12 @@ export default function Canvas({
       materialRef.current.uniforms.uRenderMode.value = renderMode;
     }
   }, [renderMode]);
+
+  useEffect(() => {
+    if (materialRef.current) {
+      materialRef.current.uniforms.uExprType.value = exprType;
+    }
+  }, [exprType]);
 
   return (
     <div
