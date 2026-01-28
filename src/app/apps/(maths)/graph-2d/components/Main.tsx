@@ -46,6 +46,10 @@ const BUILTIN_FUNCS = [
   "ln",
   "max",
   "min",
+  "floor",
+  "ceil",
+  "round",
+  "fract",
 ];
 
 /**

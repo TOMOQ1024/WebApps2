@@ -82,6 +82,14 @@ export function ASTToGLSL(
               return `exp(${arg})`;
             case "abs":
               return `abs(${arg})`;
+            case "floor":
+              return `floor(${arg})`;
+            case "ceil":
+              return `ceil(${arg})`;
+            case "round":
+              return `round(${arg})`;
+            case "fract":
+              return `fract(${arg})`;
             case "ln":
               return `log(${arg})`;
             default:
@@ -228,6 +236,22 @@ export function ASTToGLSL(
           if (args.length === 0)
             throw new Error(`Function ${fnName} requires an argument`);
           return `abs(${args[0]})`;
+        case "floor":
+          if (args.length === 0)
+            throw new Error(`Function ${fnName} requires an argument`);
+          return `floor(${args[0]})`;
+        case "ceil":
+          if (args.length === 0)
+            throw new Error(`Function ${fnName} requires an argument`);
+          return `ceil(${args[0]})`;
+        case "round":
+          if (args.length === 0)
+            throw new Error(`Function ${fnName} requires an argument`);
+          return `round(${args[0]})`;
+        case "fract":
+          if (args.length === 0)
+            throw new Error(`Function ${fnName} requires an argument`);
+          return `fract(${args[0]})`;
         case "log":
           throw new Error("log is not supported. Use Log instead.");
         case "ln":

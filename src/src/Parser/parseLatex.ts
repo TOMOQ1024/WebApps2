@@ -143,6 +143,60 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
     return { type: "function", name, args };
   }
 
+  function parseFloorCeil(funcName: string, endCmd: string): ASTNode {
+    // \lfloor ... \rfloor または \lceil ... \rceil をパース
+    skipWhitespace();
+
+    // ネストを追跡しながら内容を収集
+    let content = "";
+    let depth = 1;
+
+    while (pos < latex.length && depth > 0) {
+      const char = peek();
+
+      if (char === "\\") {
+        // コマンドをチェック
+        const cmdStart = pos;
+        pos++; // '\' をスキップ
+        let cmd = "";
+        while (peek().match(/[a-zA-Z]/)) {
+          cmd += advance();
+        }
+
+        if (cmd === "lfloor" || cmd === "lceil") {
+          depth++;
+          content += "\\" + cmd;
+        } else if (cmd === endCmd) {
+          depth--;
+          if (depth === 0) {
+            // 対応する終了記号を見つけた
+            break;
+          } else {
+            content += "\\" + cmd;
+          }
+        } else {
+          // 他のコマンドはそのまま追加
+          content += latex.slice(cmdStart, pos);
+        }
+      } else {
+        content += advance();
+      }
+    }
+
+    if (depth > 0) {
+      throw new Error(`Unmatched \\l${funcName === "floor" ? "floor" : "ceil"}`);
+    }
+
+    // 空の内容はエラー
+    if (content.trim() === "") {
+      throw new Error(`Empty ${funcName} is not allowed`);
+    }
+
+    // 収集した内容を新しいパーサーインスタンスでパースして関数として返す
+    const expr = parseLatex(content, knownFuncs);
+    return { type: "function", name: funcName, args: [expr] };
+  }
+
   function parseLeftRight(): ASTNode {
     // \left を消費済み
     skipWhitespace();
@@ -316,6 +370,12 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
         };
       } else if (cmd === "left") {
         return parseLeftRight();
+      } else if (cmd === "lfloor") {
+        // \lfloor ... \rfloor を floor 関数として処理
+        return parseFloorCeil("floor", "rfloor");
+      } else if (cmd === "lceil") {
+        // \lceil ... \rceil を ceil 関数として処理
+        return parseFloorCeil("ceil", "rceil");
       } else if (cmd === "operatorname") {
         skipWhitespace();
         if (peek() !== "{") throw new Error("Expected { after \\operatorname");

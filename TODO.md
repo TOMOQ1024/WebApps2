@@ -18,6 +18,9 @@
 
 - [ ] perf: CompDynam Gallery なんか重いかも
 
+- [ ] feat: 画像を 4 点でトリミングするページの作成  
+       adobe scan みたいな．
+
 - [ ] feat: Dictionaries ページの作成  
        名称は仮．多胞体とかタイリングとかの一覧的なものを作りたい．Galleries の，創作ではない版．
 

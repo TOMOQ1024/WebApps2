@@ -19,6 +19,10 @@ export function latexToGLSL(
     "csch",
     "abs",
     "ln",
+    "floor",
+    "ceil",
+    "round",
+    "fract",
   ],
   knownVars: string[] = ["x", "y", "t"]
 ): string {

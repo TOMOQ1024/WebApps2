@@ -48,6 +48,7 @@ const BUILTIN_FUNCS = [
   "floor",
   "ceil",
   "round",
+  "fract",
   "sign",
 ];
 
