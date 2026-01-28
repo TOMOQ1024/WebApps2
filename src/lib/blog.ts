@@ -26,6 +26,7 @@ interface FrontMatter {
   date?: string | Date;
   tags?: string[];
   description?: string;
+  draft?: boolean;
 }
 
 /**
@@ -87,8 +88,10 @@ export function getAllPosts(): BlogPostMeta[] {
         date: formatDate(data.date),
         tags: data.tags || [],
         description: data.description || "",
+        draft: data.draft || false,
       };
     })
+    .filter((post) => !post.draft) // 下書きは一覧から除外
     .sort((a, b) => {
       if (!a.date || !b.date) return 0;
       return new Date(b.date).getTime() - new Date(a.date).getTime();
