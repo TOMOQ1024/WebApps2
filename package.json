@@ -92,6 +92,7 @@
     "@biomejs/biome": "2.3.5",
     "@tailwindcss/postcss": "^4.1.13",
     "@types/jest": "^29.5.14",
+    "@types/js-yaml": "^4.0.9",
     "autoprefixer": "^10.4.21",
     "jest": "^30.0.0",
     "patch-package": "^8.0.0",
