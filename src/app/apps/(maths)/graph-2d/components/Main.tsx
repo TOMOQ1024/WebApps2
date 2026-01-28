@@ -7,7 +7,9 @@ import GraphMgr from "@/src/GraphMgr";
 import {
   type FunctionDef,
   type ChainedInequalityResult,
+  type ConstantDef,
   parseFunctionDef,
+  parseConstantDef,
   parseChainedInequality,
   isNumericExpression,
 } from "@/src/Parser/graph2d/expressionParser";
@@ -134,6 +136,7 @@ export default function Main() {
     (expressions: string[]): { shader: string; exprType: number } | null => {
       try {
         const functionDefs: FunctionDef[] = [];
+        const constantDefs: ConstantDef[] = [];
         let mainExpression: string | null = null;
         let chainedInequality: ChainedInequalityResult | null = null;
         let isNumeric = false;
@@ -146,10 +149,17 @@ export default function Main() {
           const funcDef = parseFunctionDef(trimmed);
           if (funcDef) {
             functionDefs.push(funcDef);
-          } else {
-            // メイン式として扱う（最後の非関数定義式）
-            mainExpression = trimmed;
+            continue;
           }
+
+          const constDef = parseConstantDef(trimmed);
+          if (constDef) {
+            constantDefs.push(constDef);
+            continue;
+          }
+
+          // メイン式として扱う（最後の非関数/非定数定義式）
+          mainExpression = trimmed;
         }
 
         if (!mainExpression) {
@@ -171,13 +181,23 @@ export default function Main() {
 
         // ユーザー定義関数名を収集（重複チェック）
         const userFuncNames = functionDefs.map((def) => def.name);
-        const duplicateNames = userFuncNames.filter(
-          (name, index) => userFuncNames.indexOf(name) !== index,
+        const userConstNames = constantDefs.map((def) => def.name);
+        const allUserNames = [...userFuncNames, ...userConstNames];
+        const duplicateNames = allUserNames.filter(
+          (name, index) => allUserNames.indexOf(name) !== index,
         );
         if (duplicateNames.length > 0) {
           throw new Error(
-            `Duplicate function definition: ${duplicateNames[0]}`,
+            `Duplicate definition: ${duplicateNames[0]}`,
           );
+        }
+
+        // 予約変数との重複チェック
+        const reservedVars = ["x", "y", "t"];
+        for (const name of allUserNames) {
+          if (reservedVars.includes(name)) {
+            throw new Error(`Cannot redefine reserved variable: ${name}`);
+          }
         }
 
         // GLSL関数を生成
@@ -187,7 +207,16 @@ export default function Main() {
         });
 
         const knownFuncs = [...BUILTIN_FUNCS, ...userFuncNames];
-        const knownVars = ["x", "y", "t"];
+        const knownVars = ["x", "y", "t", ...userConstNames];
+
+        // GLSL定数を生成
+        const glslConstants = constantDefs.map((def, idx) => {
+          // 前の定数は既知として扱う
+          const prevConstNames = constantDefs.slice(0, idx).map((d) => d.name);
+          const constKnownVars = ["x", "y", "t", ...prevConstNames];
+          const valueGLSL = latexToGLSL(def.value, knownFuncs, constKnownVars);
+          return `float ${def.name} = ${valueGLSL};`;
+        });
 
         let mainGLSL: string;
         if (isNumeric) {
@@ -219,10 +248,13 @@ export default function Main() {
           );
         }
 
-        // メイン式を挿入
+        // 定数とメイン式を挿入
+        const constantsCode = glslConstants.length > 0 
+          ? glslConstants.join("\n  ") + "\n\n  " 
+          : "";
         newShader = newShader.replace(
           /\/\* input func here \*\//,
-          `c = ${mainGLSL};`,
+          `${constantsCode}c = ${mainGLSL};`,
         );
 
         setError(null);

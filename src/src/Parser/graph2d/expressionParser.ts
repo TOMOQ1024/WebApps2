@@ -21,6 +21,11 @@ export interface ChainedInequalityResult {
   operators: ("<" | ">")[]; // ['<', '<']
 }
 
+export interface ConstantDef {
+  name: string; // "a", "r" など
+  value: string; // LaTeX形式の値 "2", "\\frac{1}{2}" など
+}
+
 /**
  * 関数定義をパースする
  * 対応形式:
@@ -82,6 +87,37 @@ export function parseInequality(latex: string): InequalityResult | null {
   }
 
   return null;
+}
+
+/**
+ * 定数定義をパースする
+ * 対応形式:
+ * - a=2
+ * - r=0.5
+ * - k=\frac{1}{2}
+ * ※ 括弧を含む場合は関数定義として扱う
+ */
+export function parseConstantDef(latex: string): ConstantDef | null {
+  // 形式: 単一の英字 = 値
+  // 関数定義（括弧を含む）は除外
+  const match = latex.match(/^([a-zA-Z])=(.+)$/);
+  if (match) {
+    const name = match[1];
+    const value = match[2];
+    // 値に括弧が含まれていないことを確認（関数定義との区別）
+    // ただし \left( や \frac{}{} などは許可
+    if (!value.match(/^[^\\]*\(/)) {
+      return { name, value };
+    }
+  }
+  return null;
+}
+
+/**
+ * 式が定数定義かどうかを判定する
+ */
+export function isConstantDefinition(latex: string): boolean {
+  return parseConstantDef(latex) !== null;
 }
 
 /**
@@ -186,10 +222,11 @@ export function parseChainedInequality(
 }
 
 /**
- * 式が数値式かどうかを判定する（不等号を含まない、関数定義でもない）
+ * 式が数値式かどうかを判定する（不等号を含まない、関数定義でも定数定義でもない）
  */
 export function isNumericExpression(latex: string): boolean {
   if (!latex.trim()) return false;
   if (isFunctionDefinition(latex)) return false;
+  if (isConstantDefinition(latex)) return false;
   return parseChainedInequality(latex) === null;
 }

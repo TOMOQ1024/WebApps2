@@ -116,4 +116,27 @@ export const galleryData: Graph2DGalleryItem[] = [
     center: [0, 0],
     radius: 1.7,
   },
+  // Star Polygons
+  {
+    expressions: [
+      "n=\\operatorname{round}\\left(7+2\\sin t\\right)",
+      "1>9\\left|\\sqrt{xx+yy}\\left(\\sin \\left(\\frac{\\left(n-3\\right)\\pi -2\\arcsin \\left(\\cos \\left(n\\arctan \\left(x,y\\right)\\right)\\right)}{2n}\\right)\\right)+\\sin \\left(\\frac{4-n}{2n}\\pi \\right)\\right|",
+    ],
+    center: [0, 0],
+    radius: 1.4,
+  },
+  // Stairs
+  {
+    expressions: ["\\lfloor x\\rfloor <y<\\lceil x\\rceil "],
+    center: [0, 0],
+    radius: 3,
+  },
+  // Pixelated Gradient
+  {
+    expressions: [
+      "\\frac{\\lfloor x\\rfloor }{5}-\\frac{\\lfloor y\\rfloor }{5}",
+    ],
+    center: [0, 0],
+    radius: 5,
+  },
 ];

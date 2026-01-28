@@ -9,9 +9,11 @@ import { Graph2DGalleryItem } from "@/app/galleries/graph-2d/GalleryData";
 import { useRouter } from "next/navigation";
 import {
   parseFunctionDef,
+  parseConstantDef,
   parseChainedInequality,
   isNumericExpression,
   FunctionDef,
+  ConstantDef,
   ChainedInequalityResult,
 } from "@/src/Parser/graph2d/expressionParser";
 import { useTheme } from "@/hooks/useTheme";
@@ -115,6 +117,7 @@ function generateShaderFromExpressions(
   baseShader: string
 ): { shader: string; exprType: number } {
   const functionDefs: FunctionDef[] = [];
+  const constantDefs: ConstantDef[] = [];
   let mainExpression: string | null = null;
 
   // 式を解析
@@ -122,18 +125,27 @@ function generateShaderFromExpressions(
     const funcDef = parseFunctionDef(expr);
     if (funcDef) {
       functionDefs.push(funcDef);
-    } else {
-      mainExpression = expr;
+      continue;
     }
+
+    const constDef = parseConstantDef(expr);
+    if (constDef) {
+      constantDefs.push(constDef);
+      continue;
+    }
+
+    mainExpression = expr;
   }
 
-  // ユーザー定義関数名を収集（重複チェック）
+  // ユーザー定義関数名と定数名を収集（重複チェック）
   const userFuncNames = functionDefs.map((def) => def.name);
-  const duplicateNames = userFuncNames.filter(
-    (name, index) => userFuncNames.indexOf(name) !== index,
+  const userConstNames = constantDefs.map((def) => def.name);
+  const allUserNames = [...userFuncNames, ...userConstNames];
+  const duplicateNames = allUserNames.filter(
+    (name, index) => allUserNames.indexOf(name) !== index,
   );
   if (duplicateNames.length > 0) {
-    console.error(`Duplicate function definition: ${duplicateNames[0]}`);
+    console.error(`Duplicate definition: ${duplicateNames[0]}`);
     return { shader: baseShader, exprType: 0 };
   }
 
@@ -144,7 +156,15 @@ function generateShaderFromExpressions(
   });
 
   const knownFuncs = [...BUILTIN_FUNCS, ...userFuncNames];
-  const knownVars = ["x", "y", "t"];
+  const knownVars = ["x", "y", "t", ...userConstNames];
+
+  // GLSL定数を生成
+  const glslConstants = constantDefs.map((def, idx) => {
+    const prevConstNames = constantDefs.slice(0, idx).map((d) => d.name);
+    const constKnownVars = ["x", "y", "t", ...prevConstNames];
+    const valueGLSL = latexToGLSL(def.value, knownFuncs, constKnownVars);
+    return `float ${def.name} = ${valueGLSL};`;
+  });
 
   let mainGLSL = "0.0";
   let exprType = 0; // 0: 不等式, 1: 数値式
@@ -179,8 +199,14 @@ function generateShaderFromExpressions(
   const funcCode = glslFunctions.join("\n\n") + "\n\n";
   shader = shader.replace(funcInsertPoint, funcCode + funcInsertPoint);
 
-  // 式をメイン処理に挿入
-  shader = shader.replace(/\/\* input func here \*\//, `c = ${mainGLSL};`);
+  // 定数とメイン式を挿入
+  const constantsCode = glslConstants.length > 0 
+    ? glslConstants.join("\n  ") + "\n\n  " 
+    : "";
+  shader = shader.replace(
+    /\/\* input func here \*\//,
+    `${constantsCode}c = ${mainGLSL};`
+  );
 
   return { shader, exprType };
 }

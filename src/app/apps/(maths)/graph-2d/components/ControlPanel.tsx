@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { EditableMathField } from "@/components/MathFields";
 import {
   isFunctionDefinition,
+  isConstantDefinition,
   isNumericExpression,
   parseChainedInequality,
 } from "@/src/Parser/graph2d/expressionParser";
@@ -58,6 +59,9 @@ export default function ControlPanel({
     }
     if (isFunctionDefinition(expr)) {
       return "def";
+    }
+    if (isConstantDefinition(expr)) {
+      return "con";
     }
     if (parseChainedInequality(expr) !== null) {
       return "inq";
