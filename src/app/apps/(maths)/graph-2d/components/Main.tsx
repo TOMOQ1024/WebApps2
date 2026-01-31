@@ -54,6 +54,9 @@ const BUILTIN_FUNCS = [
   "ceil",
   "round",
   "fract",
+  "sign",
+  "sgn",
+  "mod",
 ];
 
 /**

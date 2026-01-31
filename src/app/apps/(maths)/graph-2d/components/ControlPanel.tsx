@@ -133,7 +133,7 @@ export default function ControlPanel({
                   restrictMismatchedBrackets: true,
                   autoCommands: "lfloor rfloor lceil rceil",
                   autoOperatorNames:
-                    "sin cos tan cot sec csc arcsin arccos arctan arccot arcsec arccsc exp sinh cosh tanh coth sech csch arsinh arcosh artanh arcoth arsech arcsch ln max min floor ceil round fract",
+                    "sin cos tan cot sec csc arcsin arccos arctan arccot arcsec arccsc exp sinh cosh tanh coth sech csch arsinh arcosh artanh arcoth arsech arcsch ln max min floor ceil round fract sign sgn mod",
                 }}
               />
             </div>

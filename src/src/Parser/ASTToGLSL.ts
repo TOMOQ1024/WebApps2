@@ -92,6 +92,11 @@ export function ASTToGLSL(
               return `fract(${arg})`;
             case "ln":
               return `log(${arg})`;
+            case "sign":
+            case "sgn":
+              return `sign(${arg})`;
+            case "mod":
+              return `mod(${arg})`;
             default:
               // ユーザー定義関数（1引数）のサポート
               return `${fnName}(${arg})`;
@@ -252,6 +257,15 @@ export function ASTToGLSL(
           if (args.length === 0)
             throw new Error(`Function ${fnName} requires an argument`);
           return `fract(${args[0]})`;
+        case "sign":
+        case "sgn":
+          if (args.length === 0)
+            throw new Error(`Function ${fnName} requires an argument`);
+          return `sign(${args[0]})`;
+        case "mod":
+          if (args.length !== 2)
+            throw new Error(`Function ${fnName} requires exactly 2 arguments`);
+          return `mod(${args[0]}, ${args[1]})`;
         case "log":
           throw new Error("log is not supported. Use Log instead.");
         case "ln":

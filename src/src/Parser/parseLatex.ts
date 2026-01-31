@@ -410,6 +410,9 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
           "ceil",
           "round",
           "fract",
+          "sign",
+          "sgn",
+          "mod",
         ];
         if (!validOperatornames.includes(funcName)) {
           throw new Error(`Unsupported operatorname: ${funcName}`);
