@@ -50,6 +50,14 @@ export interface Graph2DGalleryItem {
 // ];
 
 export const galleryData: Graph2DGalleryItem[] = [
+  // tomoq
+  {
+    expressions: [
+      "1>\\min\\left(\\ \\frac{\\left|\\left(\\left|x\\right|-\\left|x-18\\right|-x+6\\right)^2+y^2-17\\right|}{8},\\max\\left(-\\frac{y}{5},\\frac{1}{4}\\left|\\left(\\left|x\\right|-2\\right)^2+\\max\\left(0,y-2\\right)^2-5\\right|\\right),\\max\\left(\\left|\\min\\left(\\frac{x+24}{5},\\frac{y+4}{4}\\right)\\right|,\\left|\\max\\left(x-28,y-4\\right)\\right|\\right),\\frac{\\max\\left(y,x+27,\\left|\\min\\left(0,x+20\\right)^2+\\min\\left(0,y\\right)^2-17\\right|\\right)}{8}\\right)",
+    ],
+    center: [0, 0],
+    radius: 30,
+  },
   // Swirl Candy
   {
     expressions: [

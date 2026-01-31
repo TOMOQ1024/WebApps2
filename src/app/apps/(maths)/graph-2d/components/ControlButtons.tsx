@@ -1,10 +1,11 @@
-import { Palette, Home, Link } from "lucide-react";
+import { Home, Link, Palette, Upload } from "lucide-react";
 
 interface ControlButtonsProps {
   onResetGraph: () => void;
   onRenderModeChange: (mode: number) => void;
   currentRenderMode: number;
   onShareLink: () => void;
+  onExportGalleryData: () => void;
   exprType: number; // 0: 不等式, 1: 数値式
 }
 
@@ -16,6 +17,7 @@ export default function ControlButtons({
   onRenderModeChange,
   currentRenderMode,
   onShareLink,
+  onExportGalleryData,
   exprType,
 }: ControlButtonsProps) {
   // 数値式の場合のみグレースケールモード切り替えを有効化
@@ -40,6 +42,7 @@ export default function ControlButtons({
   return (
     <div className="absolute top-4 right-4 flex flex-col gap-2">
       <button
+        type="button"
         className={`w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] flex items-center justify-center hover:scale-95 active:invert ${
           isNumericExpr ? "cursor-pointer" : "cursor-not-allowed opacity-50"
         }`}
@@ -50,6 +53,7 @@ export default function ControlButtons({
         <Palette size={16} />
       </button>
       <button
+        type="button"
         className="w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] cursor-pointer flex items-center justify-center hover:scale-95 active:invert"
         onClick={onResetGraph}
         title="グラフをリセット"
@@ -57,11 +61,20 @@ export default function ControlButtons({
         <Home size={16} />
       </button>
       <button
+        type="button"
         className="w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] cursor-pointer flex items-center justify-center hover:scale-95 active:invert"
         onClick={onShareLink}
         title="リンクをコピー"
       >
         <Link size={16} />
+      </button>
+      <button
+        type="button"
+        className="w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] cursor-pointer flex items-center justify-center hover:scale-95 active:invert"
+        onClick={onExportGalleryData}
+        title="JSON 形式でエクスポート"
+      >
+        <Upload size={16} />
       </button>
     </div>
   );

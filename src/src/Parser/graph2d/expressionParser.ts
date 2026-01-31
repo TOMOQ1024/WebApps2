@@ -36,8 +36,9 @@ export interface ConstantDef {
  */
 export function parseFunctionDef(latex: string): FunctionDef | null {
   // \left( \right) 形式
+  // 非貪欲マッチ (.+?) を使用して最初の \right) までマッチ
   const leftRightMatch = latex.match(
-    /^([a-zA-Z])\\left\(([^)]+)\\right\)=(.+)$/
+    /^([a-zA-Z])\\left\((.+?)\\right\)=(.+)$/
   );
   if (leftRightMatch) {
     const [, name, argsStr, body] = leftRightMatch;

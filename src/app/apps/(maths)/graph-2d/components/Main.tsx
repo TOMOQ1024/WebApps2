@@ -233,14 +233,12 @@ export default function Main() {
           throw new Error("Invalid expression");
         }
 
-        console.log("[parse] mainGLSL:", mainGLSL, "isNumeric:", isNumeric);
-
         // シェーダーを構築
         let newShader = fragmentShader;
 
         // ユーザー定義関数を挿入（graph2d関数の前に）
         if (glslFunctions.length > 0) {
-          const funcInsertPoint = "float graph2d(vec2 C) {";
+          const funcInsertPoint = "float graph2d(vec2 _C) {";
           const funcCode = glslFunctions.join("\n\n") + "\n\n";
           newShader = newShader.replace(
             funcInsertPoint,
@@ -373,6 +371,26 @@ export default function Main() {
     }
   }, [currentExpressions, graph, renderMode]);
 
+  const handleExportGalleryData = useCallback(async () => {
+    try {
+      // GalleryData 形式の JSON を生成
+      const galleryItem = {
+        expressions: currentExpressions.filter((e) => e.trim() !== ""),
+        center: [graph.origin.x, graph.origin.y] as [number, number],
+        radius: graph.radius,
+      };
+
+      const jsonStr = JSON.stringify(galleryItem, null, 2);
+
+      // クリップボードにコピー
+      await navigator.clipboard.writeText(jsonStr);
+
+      console.log("ギャラリーデータをクリップボードにコピーしました:", jsonStr);
+    } catch (error) {
+      console.error("クリップボードへのコピーに失敗しました:", error);
+    }
+  }, [currentExpressions, graph]);
+
   return (
     <main className="relative w-screen h-[calc(100vh-var(--header-height))] overflow-hidden">
       <Canvas
@@ -392,6 +410,7 @@ export default function Main() {
         onRenderModeChange={setRenderMode}
         currentRenderMode={renderMode}
         onShareLink={handleShareLink}
+        onExportGalleryData={handleExportGalleryData}
         exprType={exprType}
       />
     </main>

@@ -1,22 +1,22 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { fragmentShader as baseFragmentShader } from "@/app/apps/(maths)/graph-2d/Shaders/FragmentShader";
 import { vertexShader as baseVertexShader } from "@/app/apps/(maths)/graph-2d/Shaders/VertexShader";
-import { latexToGLSL } from "@/src/Parser/latexToGLSL";
-import { Graph2DGalleryItem } from "@/app/galleries/graph-2d/GalleryData";
-import { useRouter } from "next/navigation";
-import {
-  parseFunctionDef,
-  parseConstantDef,
-  parseChainedInequality,
-  isNumericExpression,
-  FunctionDef,
-  ConstantDef,
-  ChainedInequalityResult,
-} from "@/src/Parser/graph2d/expressionParser";
+import type { Graph2DGalleryItem } from "@/app/galleries/graph-2d/GalleryData";
 import { useTheme } from "@/hooks/useTheme";
+import {
+  type ChainedInequalityResult,
+  type ConstantDef,
+  type FunctionDef,
+  isNumericExpression,
+  parseChainedInequality,
+  parseConstantDef,
+  parseFunctionDef,
+} from "@/src/Parser/graph2d/expressionParser";
+import { latexToGLSL } from "@/src/Parser/latexToGLSL";
 
 interface GalleryGridCanvasProps {
   items: Graph2DGalleryItem[];
@@ -69,10 +69,12 @@ const BUILTIN_FUNCS = [
 function chainedInequalityToGLSL(
   result: ChainedInequalityResult,
   knownFuncs: string[],
-  knownVars: string[]
+  knownVars: string[],
 ): string {
   const { parts, operators } = result;
-  const partsGLSL = parts.map((part) => latexToGLSL(part, knownFuncs, knownVars));
+  const partsGLSL = parts.map((part) =>
+    latexToGLSL(part, knownFuncs, knownVars),
+  );
 
   const diffs: string[] = [];
   for (let i = 0; i < operators.length; i++) {
@@ -99,7 +101,7 @@ function generateGLSLFunction(def: FunctionDef, knownFuncs: string[]): string {
     const bodyGLSL = latexToGLSL(
       def.body,
       [...BUILTIN_FUNCS, ...knownFuncs],
-      [...def.args, "t"]
+      [...def.args, "t"],
     );
     const params = def.args.map((a) => `float ${a}`).join(", ");
     return `float ${def.name}(${params}) { return ${bodyGLSL}; }`;
@@ -114,7 +116,7 @@ function generateGLSLFunction(def: FunctionDef, knownFuncs: string[]): string {
  */
 function generateShaderFromExpressions(
   expressions: string[],
-  baseShader: string
+  baseShader: string,
 ): { shader: string; exprType: number } {
   const functionDefs: FunctionDef[] = [];
   const constantDefs: ConstantDef[] = [];
@@ -182,7 +184,7 @@ function generateShaderFromExpressions(
           mainGLSL = chainedInequalityToGLSL(
             chainedInequality,
             knownFuncs,
-            knownVars
+            knownVars,
           );
         }
       }
@@ -195,17 +197,16 @@ function generateShaderFromExpressions(
   let shader = baseShader;
 
   // ユーザー定義関数を挿入（graph2d関数の前に）
-  const funcInsertPoint = "float graph2d(vec2 C) {";
-  const funcCode = glslFunctions.join("\n\n") + "\n\n";
+  const funcInsertPoint = "float graph2d(vec2 _C) {";
+  const funcCode = `${glslFunctions.join("\n\n")}\n\n`;
   shader = shader.replace(funcInsertPoint, funcCode + funcInsertPoint);
 
   // 定数とメイン式を挿入
-  const constantsCode = glslConstants.length > 0 
-    ? glslConstants.join("\n  ") + "\n\n  " 
-    : "";
+  const constantsCode =
+    glslConstants.length > 0 ? `${glslConstants.join("\n  ")}\n\n  ` : "";
   shader = shader.replace(
     /\/\* input func here \*\//,
-    `${constantsCode}c = ${mainGLSL};`
+    `${constantsCode}c = ${mainGLSL};`,
   );
 
   return { shader, exprType };
@@ -432,7 +433,7 @@ export default function GalleryGridCanvas({
       height / 2,
       -height / 2,
       0.1,
-      10
+      10,
     );
     camera.position.z = 1;
     cameraRef.current = camera;
@@ -452,7 +453,7 @@ export default function GalleryGridCanvas({
       try {
         const result = generateShaderFromExpressions(
           item.expressions,
-          baseFragmentShader
+          baseFragmentShader,
         );
         fragmentShader = result.shader;
         exprType = result.exprType;
@@ -502,7 +503,7 @@ export default function GalleryGridCanvas({
         mesh.scale.set(
           hoverIdxRef.current === idx ? 1.1 : 1,
           hoverIdxRef.current === idx ? 1.1 : 1,
-          1
+          1,
         );
       });
       renderer.render(scene, camera);
@@ -612,7 +613,7 @@ export default function GalleryGridCanvas({
         renderer.domElement.removeEventListener("mousemove", handlePointerMove);
         renderer.domElement.removeEventListener(
           "mouseleave",
-          handlePointerLeave
+          handlePointerLeave,
         );
         renderer.domElement.removeEventListener("click", handleClick);
       }

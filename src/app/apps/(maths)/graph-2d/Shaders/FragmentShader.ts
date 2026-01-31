@@ -18,10 +18,10 @@ varying vec2 vPosition;
 
 ${mathFunctionShader}
 
-float graph2d(vec2 C) {
+float graph2d(vec2 _C) {
   float t = uTime;
-  float x = C.x;
-  float y = C.y;
+  float x = _C.x;
+  float y = _C.y;
   float c;
 
   /* input func here */
