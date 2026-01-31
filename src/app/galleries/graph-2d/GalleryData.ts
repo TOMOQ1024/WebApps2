@@ -147,4 +147,42 @@ export const galleryData: Graph2DGalleryItem[] = [
     center: [0, 0],
     radius: 5,
   },
+  // Rotating Two Circles
+  {
+    expressions: [
+      "x\\left(x^2+y^2-1\\right)\\cos t>\\left(x^4+y^4+2x^2y^2-6x^2-2y^2+1\\right)\\sin t",
+    ],
+    center: [0, 0],
+    radius: 3,
+  },
+  // Ovals
+  {
+    expressions: ["\\left|xy\\right|>\\left|x^2+y^2-1\\right|"],
+    center: [0, 0],
+    radius: 1.7,
+  },
+  // Four Circles
+  {
+    expressions: [
+      "\\left|\\left|x\\right|-\\left|y\\right|\\right|>\\left|x^2+y^2-\\left|x\\right|-\\left|y\\right|\\right|",
+    ],
+    center: [0, 0],
+    radius: 2.5,
+  },
+  // Flower
+  {
+    expressions: [
+      "\\left|\\left|x\\right|-\\left|y\\right|\\right|>x^2+y^2-\\left|xy\\right|",
+    ],
+    center: [0, 0],
+    radius: 1.2,
+  },
+  // Clover
+  {
+    expressions: [
+      "\\sqrt{\\left|\\left|x\\right|-\\left|y\\right|\\right|}>x^2+y^2-\\left|xy\\right|",
+    ],
+    center: [0, 0],
+    radius: 1.4,
+  },
 ];
