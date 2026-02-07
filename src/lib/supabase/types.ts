@@ -44,6 +44,7 @@ export interface GalleryItem {
   gallery_id: string;
   data: Record<string, unknown>;
   sort_order: number;
+  created_by?: string | null; // auth.users の UUID
 }
 
 export interface GalleryItemWithTags extends GalleryItem {

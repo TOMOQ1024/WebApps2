@@ -392,6 +392,7 @@ export async function createGalleryItem(
       gallery_id: gallery.id,
       data: data as unknown as Record<string, unknown>,
       sort_order: nextSortOrder,
+      created_by: user.id,
     })
     .select()
     .single();

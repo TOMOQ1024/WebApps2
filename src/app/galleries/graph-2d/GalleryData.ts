@@ -19,6 +19,7 @@ export interface Graph2DGalleryItem {
 export interface Graph2DGalleryItemWithTags extends Graph2DGalleryItem {
   id: string;
   tags: Tag[];
+  created_by?: string | null; // auth.users の UUID
 }
 
 // 使用例（コメントアウト）
