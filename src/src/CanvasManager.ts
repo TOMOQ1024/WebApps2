@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import GraphMgr from "@/src/GraphMgr";
+import type GraphMgr from "@/src/GraphMgr";
 
 export interface CanvasManagerOptions {
   container: HTMLDivElement;
@@ -26,7 +26,9 @@ export class CanvasManager {
   private boundHandleWheel: (e: WheelEvent) => void;
 
   constructor(options: CanvasManagerOptions) {
-    this.renderer = new THREE.WebGLRenderer();
+    this.renderer = new THREE.WebGLRenderer({
+      preserveDrawingBuffer: true, // toDataURL() でキャプチャするために必要
+    });
     this.scene = new THREE.Scene();
     this.camera = new THREE.OrthographicCamera(
       -options.resolution.x,
@@ -34,7 +36,7 @@ export class CanvasManager {
       options.resolution.y,
       -options.resolution.y,
       0.1,
-      10
+      10,
     );
     this.graphManager = options.graphManager;
     this.onGraphChange = options.onGraphChange;
@@ -65,7 +67,7 @@ export class CanvasManager {
       {
         passive: false,
         capture: true, // キャプチャフェーズでイベントを取得
-      }
+      },
     );
     this.renderer.domElement.addEventListener(
       "pointermove",
@@ -73,7 +75,7 @@ export class CanvasManager {
       {
         passive: false,
         capture: true,
-      }
+      },
     );
     this.renderer.domElement.addEventListener(
       "pointerup",
@@ -81,7 +83,7 @@ export class CanvasManager {
       {
         passive: false,
         capture: true,
-      }
+      },
     );
     this.renderer.domElement.addEventListener("wheel", this.boundHandleWheel, {
       passive: false,
@@ -93,7 +95,7 @@ export class CanvasManager {
       (e) => {
         e.preventDefault();
       },
-      { passive: false, capture: true }
+      { passive: false, capture: true },
     );
 
     this.renderer.domElement.addEventListener(
@@ -101,7 +103,7 @@ export class CanvasManager {
       (e) => {
         e.preventDefault();
       },
-      { passive: false, capture: true }
+      { passive: false, capture: true },
     );
 
     this.renderer.domElement.addEventListener(
@@ -109,7 +111,7 @@ export class CanvasManager {
       (e) => {
         e.preventDefault();
       },
-      { passive: false, capture: true }
+      { passive: false, capture: true },
     );
   }
 
@@ -144,39 +146,41 @@ export class CanvasManager {
     switch (c.length) {
       case 0:
         return;
-      case 1:
+      case 1: {
         const delta = new THREE.Vector2(
           (2 * (e.clientX - p.clientX)) / m,
-          (2 * (p.clientY - e.clientY)) / m
+          (2 * (p.clientY - e.clientY)) / m,
         );
         this.graphManager.translate(delta.negate());
         this.onGraphChange?.(this.graphManager);
         break;
-      default:
+      }
+      default: {
         const C0 = pidx === 0 ? e : c[0];
         const C1 = pidx === 1 ? e : c[1];
         const pOri = new THREE.Vector2(
           (((c[1].clientX + c[0].clientX) / rect.width - 1) * rect.width) / m,
-          (((c[1].clientY + c[0].clientY) / rect.height - 1) * rect.height) / m
+          (((c[1].clientY + c[0].clientY) / rect.height - 1) * rect.height) / m,
         );
         const dOri = new THREE.Vector2(
           (((C1.clientX + C0.clientX) / rect.width - 1) * rect.width) / m,
-          (((C1.clientY + C0.clientY) / rect.height - 1) * rect.height) / m
+          (((C1.clientY + C0.clientY) / rect.height - 1) * rect.height) / m,
         )
           .sub(pOri)
           .multiply({ x: 1, y: -1 });
         const pDelta = Math.hypot(
           (2 * (c[1].clientX - c[0].clientX)) / m,
-          (2 * (c[1].clientY - c[0].clientY)) / m
+          (2 * (c[1].clientY - c[0].clientY)) / m,
         );
         const nDelta = Math.hypot(
           (2 * (C1.clientX - C0.clientX)) / m,
-          (2 * (C1.clientY - C0.clientY)) / m
+          (2 * (C1.clientY - C0.clientY)) / m,
         );
         this.graphManager.translate(dOri.negate());
         this.graphManager.zoom(pOri, Math.log(pDelta / nDelta) * 500);
         this.onGraphChange?.(this.graphManager);
         break;
+      }
     }
 
     if (0 <= pidx) {
@@ -194,7 +198,7 @@ export class CanvasManager {
     this.renderer.domElement.releasePointerCapture(e.pointerId);
     this.pointers.splice(
       this.pointers.findIndex((p) => p.pointerId === e.pointerId),
-      1
+      1,
     );
   }
 
@@ -205,7 +209,7 @@ export class CanvasManager {
     const m = Math.min(rect.width, rect.height);
     const c = new THREE.Vector2(
       ((((event.clientX - rect.left) / rect.width) * 2 - 1) * rect.width) / m,
-      ((((event.clientY - rect.top) / rect.height) * 2 - 1) * rect.height) / m
+      ((((event.clientY - rect.top) / rect.height) * 2 - 1) * rect.height) / m,
     );
     this.graphManager.zoom(c.negate(), event.deltaY);
     this.onGraphChange?.(this.graphManager);
@@ -214,7 +218,7 @@ export class CanvasManager {
   private handleResize() {
     const newResolution = new THREE.Vector2(
       window.innerWidth,
-      window.innerHeight - 50
+      window.innerHeight - 50,
     );
 
     this.camera.left = -newResolution.x;
@@ -262,26 +266,26 @@ export class CanvasManager {
     if (this.graphManager) {
       this.renderer.domElement.removeEventListener(
         "pointerdown",
-        this.boundHandlePointerDown
+        this.boundHandlePointerDown,
       );
       this.renderer.domElement.removeEventListener(
         "pointermove",
-        this.boundHandlePointerMove
+        this.boundHandlePointerMove,
       );
       this.renderer.domElement.removeEventListener(
         "pointerup",
-        this.boundHandlePointerUp
+        this.boundHandlePointerUp,
       );
       this.renderer.domElement.removeEventListener(
         "wheel",
-        this.boundHandleWheel
+        this.boundHandleWheel,
       );
     }
     cancelAnimationFrame(this.animationFrameId);
     this.renderer.dispose();
     if (this.renderer.domElement.parentElement) {
       this.renderer.domElement.parentElement.removeChild(
-        this.renderer.domElement
+        this.renderer.domElement,
       );
     }
   }

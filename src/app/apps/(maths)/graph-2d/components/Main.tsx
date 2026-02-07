@@ -3,18 +3,18 @@
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Vector2 } from "three";
+import { useAuth } from "@/components/SupabaseAuthProvider";
 import GraphMgr from "@/src/GraphMgr";
 import {
-  type FunctionDef,
   type ChainedInequalityResult,
   type ConstantDef,
-  parseFunctionDef,
-  parseConstantDef,
-  parseChainedInequality,
+  type FunctionDef,
   isNumericExpression,
+  parseChainedInequality,
+  parseConstantDef,
+  parseFunctionDef,
 } from "@/src/Parser/graph2d/expressionParser";
 import { latexToGLSL } from "@/src/Parser/latexToGLSL";
-import { useAuth } from "@/components/SupabaseAuthProvider";
 import { fragmentShader } from "../Shaders/FragmentShader";
 import Canvas, { type CanvasHandle } from "./Canvas";
 import ControlButtons from "./ControlButtons";
@@ -70,10 +70,12 @@ const BUILTIN_FUNCS = [
 function chainedInequalityToGLSL(
   result: ChainedInequalityResult,
   knownFuncs: string[],
-  knownVars: string[]
+  knownVars: string[],
 ): string {
   const { parts, operators } = result;
-  const partsGLSL = parts.map((part) => latexToGLSL(part, knownFuncs, knownVars));
+  const partsGLSL = parts.map((part) =>
+    latexToGLSL(part, knownFuncs, knownVars),
+  );
 
   // 各隣接ペアの差を計算
   const diffs: string[] = [];
@@ -200,9 +202,7 @@ export default function Main() {
           (name, index) => allUserNames.indexOf(name) !== index,
         );
         if (duplicateNames.length > 0) {
-          throw new Error(
-            `Duplicate definition: ${duplicateNames[0]}`,
-          );
+          throw new Error(`Duplicate definition: ${duplicateNames[0]}`);
         }
 
         // 予約変数との重複チェック
@@ -240,7 +240,7 @@ export default function Main() {
           mainGLSL = chainedInequalityToGLSL(
             chainedInequality,
             knownFuncs,
-            knownVars
+            knownVars,
           );
         } else {
           throw new Error("Invalid expression");
@@ -252,7 +252,7 @@ export default function Main() {
         // ユーザー定義関数を挿入（graph2d関数の前に）
         if (glslFunctions.length > 0) {
           const funcInsertPoint = "float graph2d(vec2 _C) {";
-          const funcCode = glslFunctions.join("\n\n") + "\n\n";
+          const funcCode = `${glslFunctions.join("\n\n")}\n\n`;
           newShader = newShader.replace(
             funcInsertPoint,
             funcCode + funcInsertPoint,
@@ -260,9 +260,8 @@ export default function Main() {
         }
 
         // 定数とメイン式を挿入
-        const constantsCode = glslConstants.length > 0 
-          ? glslConstants.join("\n  ") + "\n\n  " 
-          : "";
+        const constantsCode =
+          glslConstants.length > 0 ? `${glslConstants.join("\n  ")}\n\n  ` : "";
         newShader = newShader.replace(
           /\/\* input func here \*\//,
           `${constantsCode}c = ${mainGLSL};`,
@@ -429,15 +428,31 @@ export default function Main() {
     (data: { center?: [number, number]; radius?: number }) => {
       if (data.center !== undefined) {
         const newCenter = data.center;
-        setGraph((prev) => new GraphMgr(new Vector2(newCenter[0], newCenter[1]), prev.radius));
+        setGraph(
+          (prev) =>
+            new GraphMgr(new Vector2(newCenter[0], newCenter[1]), prev.radius),
+        );
       }
       if (data.radius !== undefined) {
         const newRadius = data.radius;
         setGraph((prev) => new GraphMgr(prev.origin.clone(), newRadius));
       }
     },
-    []
+    [],
   );
+
+  // モーダルが開いている間，graph が変更されたらサムネイルを再キャプチャ
+  // biome-ignore lint/correctness/useExhaustiveDependencies: graph の変更をトリガーとして使用
+  useEffect(() => {
+    if (isPostModalOpen) {
+      // Canvas が再描画されるまで少し待つ
+      const timeoutId = setTimeout(() => {
+        const thumbnail = canvasRef.current?.captureSquareThumbnail(256);
+        setThumbnailDataUrl(thumbnail || null);
+      }, 50);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isPostModalOpen, graph]);
 
   return (
     <main className="relative w-screen h-[calc(100vh-var(--header-height))] overflow-hidden">
