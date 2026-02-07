@@ -227,17 +227,22 @@ async function seedGalleries(tagMap: Map<string, number>) {
   return galleryMap;
 }
 
-async function seedGalleryItems() {
+async function seedGalleryItems(galleryMap: Map<string, number>) {
   console.log("\nギャラリーアイテムを投入中...");
 
   // graph-2d ギャラリーアイテム
+  const graph2dGalleryId = galleryMap.get("graph-2d");
+  if (!graph2dGalleryId) {
+    console.error("  ✗ graph-2d ギャラリーが見つかりません");
+    return;
+  }
+
   console.log("  graph-2d アイテム...");
   let sortOrder = 0;
 
   for (const item of graph2dGalleryData) {
     const { error } = await supabase.from("gallery_items").insert({
-      gallery_path: "graph-2d",
-      item_type: "graph_2d",
+      gallery_id: graph2dGalleryId,
       data: {
         expressions: item.expressions,
         center: item.center,
@@ -254,13 +259,18 @@ async function seedGalleryItems() {
   console.log(`  ✓ ${graph2dGalleryData.length} 件投入`);
 
   // compdynam ギャラリーアイテム
+  const compdynamGalleryId = galleryMap.get("compdynam");
+  if (!compdynamGalleryId) {
+    console.error("  ✗ compdynam ギャラリーが見つかりません");
+    return;
+  }
+
   console.log("  compdynam アイテム...");
   sortOrder = 0;
 
   for (const item of compdynamGalleryData) {
     const { error } = await supabase.from("gallery_items").insert({
-      gallery_path: "compdynam",
-      item_type: "compdynam",
+      gallery_id: compdynamGalleryId,
       data: {
         functionLatex: item.functionLatex,
         initialValueLatex: item.initialValueLatex,
@@ -308,8 +318,8 @@ async function main() {
 
     const tagMap = await seedTags();
     await seedApps(tagMap);
-    await seedGalleries(tagMap);
-    await seedGalleryItems();
+    const galleryMap = await seedGalleries(tagMap);
+    await seedGalleryItems(galleryMap);
 
     console.log("\n✓ データ投入完了");
   } catch (error) {

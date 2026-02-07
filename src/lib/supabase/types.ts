@@ -37,8 +37,7 @@ export interface GalleryWithTags extends Gallery {
 // ギャラリーアイテム
 export interface GalleryItem {
   id: number;
-  gallery_path: string;
-  item_type: "graph_2d" | "compdynam";
+  gallery_id: number;
   data: Record<string, unknown>;
   sort_order: number;
 }
@@ -60,12 +59,10 @@ export interface CompDynamItemData {
 }
 
 // 型付きギャラリーアイテム
-export interface Graph2DGalleryItem extends Omit<GalleryItem, "data" | "item_type"> {
-  item_type: "graph_2d";
+export interface Graph2DGalleryItem extends Omit<GalleryItem, "data"> {
   data: Graph2DItemData;
 }
 
-export interface CompDynamGalleryItem extends Omit<GalleryItem, "data" | "item_type"> {
-  item_type: "compdynam";
+export interface CompDynamGalleryItem extends Omit<GalleryItem, "data"> {
   data: CompDynamItemData;
 }

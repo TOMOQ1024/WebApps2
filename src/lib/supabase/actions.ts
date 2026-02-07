@@ -160,15 +160,15 @@ export async function getGalleryByPath(path: string): Promise<GalleryWithTags | 
 }
 
 /**
- * ギャラリーパスからアイテムを取得
+ * ギャラリー ID からアイテムを取得
  */
-export async function getGalleryItems(galleryPath: string): Promise<GalleryItem[]> {
+export async function getGalleryItemsByGalleryId(galleryId: number): Promise<GalleryItem[]> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("gallery_items")
     .select("*")
-    .eq("gallery_path", galleryPath)
+    .eq("gallery_id", galleryId)
     .order("sort_order");
 
   if (error) {
@@ -180,17 +180,26 @@ export async function getGalleryItems(galleryPath: string): Promise<GalleryItem[
 }
 
 /**
+ * ギャラリーパスからアイテムを取得
+ */
+export async function getGalleryItems(galleryPath: string): Promise<GalleryItem[]> {
+  const gallery = await getGalleryByPath(galleryPath);
+  if (!gallery) {
+    console.error(`Gallery not found: ${galleryPath}`);
+    return [];
+  }
+  return getGalleryItemsByGalleryId(gallery.id);
+}
+
+/**
  * Graph2D ギャラリーアイテムを取得（型付き）
  */
 export async function getGraph2DItems(): Promise<Graph2DGalleryItem[]> {
   const items = await getGalleryItems("graph-2d");
-  return items
-    .filter((item) => item.item_type === "graph_2d")
-    .map((item) => ({
-      ...item,
-      item_type: "graph_2d" as const,
-      data: item.data as unknown as Graph2DGalleryItem["data"],
-    }));
+  return items.map((item) => ({
+    ...item,
+    data: item.data as unknown as Graph2DGalleryItem["data"],
+  }));
 }
 
 /**
@@ -198,13 +207,10 @@ export async function getGraph2DItems(): Promise<Graph2DGalleryItem[]> {
  */
 export async function getCompDynamItems(): Promise<CompDynamGalleryItem[]> {
   const items = await getGalleryItems("compdynam");
-  return items
-    .filter((item) => item.item_type === "compdynam")
-    .map((item) => ({
-      ...item,
-      item_type: "compdynam" as const,
-      data: item.data as unknown as CompDynamGalleryItem["data"],
-    }));
+  return items.map((item) => ({
+    ...item,
+    data: item.data as unknown as CompDynamGalleryItem["data"],
+  }));
 }
 
 /**

@@ -38,17 +38,17 @@ create table if not exists public.gallery_tags (
 );
 
 -- ギャラリーアイテム（graph-2d と compdynam を統合）
--- item_type で 'graph_2d' | 'compdynam' を区別し，data に JSONB で格納
+-- gallery_id で参照するギャラリーの path からアイテムタイプを判別
+-- data に JSONB で格納
 create table if not exists public.gallery_items (
   id          bigint generated always as identity primary key,
-  gallery_path text not null,
-  item_type   text not null check (item_type in ('graph_2d', 'compdynam')),
+  gallery_id  bigint not null references public.galleries(id) on delete cascade,
   data        jsonb not null,
   sort_order  int default 0
 );
 
 -- インデックス
-create index if not exists idx_gallery_items_gallery on public.gallery_items(gallery_path);
+create index if not exists idx_gallery_items_gallery_id on public.gallery_items(gallery_id);
 create index if not exists idx_app_tags_app on public.app_tags(app_id);
 create index if not exists idx_app_tags_tag on public.app_tags(tag_id);
 create index if not exists idx_gallery_tags_gallery on public.gallery_tags(gallery_id);
