@@ -433,6 +433,127 @@ export async function createGalleryItem(
 }
 
 /**
+ * ギャラリーアイテムを更新（作成者のみ）
+ */
+export async function updateGalleryItem(
+  itemId: string,
+  data: Graph2DItemData,
+  tagIds?: string[],
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+
+  // 認証チェック
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "認証が必要です" };
+  }
+
+  // アイテムを取得して所有者チェック
+  const { data: existingItem, error: fetchError } = await supabase
+    .from("gallery_items")
+    .select("created_by")
+    .eq("id", itemId)
+    .single();
+
+  if (fetchError || !existingItem) {
+    return { success: false, error: "アイテムが見つかりません" };
+  }
+
+  if (existingItem.created_by !== user.id) {
+    return { success: false, error: "このアイテムを編集する権限がありません" };
+  }
+
+  // データを更新
+  const { error: updateError } = await supabase
+    .from("gallery_items")
+    .update({
+      data: data as unknown as Record<string, unknown>,
+    })
+    .eq("id", itemId);
+
+  if (updateError) {
+    console.error("Error updating gallery item:", updateError);
+    return { success: false, error: updateError.message };
+  }
+
+  // タグを更新（既存のタグを削除して新しいタグを追加）
+  if (tagIds !== undefined) {
+    // 既存のタグ紐付けを削除
+    await supabase.from("gallery_item_tags").delete().eq("gallery_item_id", itemId);
+
+    // 新しいタグを紐付け
+    if (tagIds.length > 0) {
+      const tagRelations = tagIds.map((tagId) => ({
+        gallery_item_id: itemId,
+        tag_id: tagId,
+      }));
+
+      const { error: tagError } = await supabase
+        .from("gallery_item_tags")
+        .insert(tagRelations);
+
+      if (tagError) {
+        console.error("Error updating gallery item tags:", tagError);
+      }
+    }
+  }
+
+  return { success: true };
+}
+
+/**
+ * ギャラリーアイテムを削除（作成者のみ）
+ */
+export async function deleteGalleryItem(
+  itemId: string,
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+
+  // 認証チェック
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "認証が必要です" };
+  }
+
+  // アイテムを取得して所有者チェック
+  const { data: existingItem, error: fetchError } = await supabase
+    .from("gallery_items")
+    .select("created_by")
+    .eq("id", itemId)
+    .single();
+
+  if (fetchError || !existingItem) {
+    return { success: false, error: "アイテムが見つかりません" };
+  }
+
+  if (existingItem.created_by !== user.id) {
+    return { success: false, error: "このアイテムを削除する権限がありません" };
+  }
+
+  // タグ紐付けを先に削除
+  await supabase.from("gallery_item_tags").delete().eq("gallery_item_id", itemId);
+
+  // アイテムを削除
+  const { error: deleteError } = await supabase
+    .from("gallery_items")
+    .delete()
+    .eq("id", itemId);
+
+  if (deleteError) {
+    console.error("Error deleting gallery item:", deleteError);
+    return { success: false, error: deleteError.message };
+  }
+
+  return { success: true };
+}
+
+/**
  * タグを作成
  */
 export async function createTag(

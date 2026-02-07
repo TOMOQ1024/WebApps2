@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import GalleryGridCanvas from "./GalleryGridCanvas";
 import DetailModal from "./DetailModal";
 import type { Graph2DGalleryItemWithTags } from "@/app/galleries/graph-2d/GalleryData";
@@ -12,6 +13,7 @@ interface MainProps {
 }
 
 export default function Main({ items, availableTags }: MainProps) {
+  const router = useRouter();
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Graph2DGalleryItemWithTags | null>(null);
@@ -50,6 +52,18 @@ export default function Main({ items, availableTags }: MainProps) {
   const handleCloseModal = useCallback(() => {
     setSelectedItem(null);
   }, []);
+
+  const handleUpdate = useCallback(() => {
+    // サーバーからデータを再取得
+    router.refresh();
+    setSelectedItem(null);
+  }, [router]);
+
+  const handleDelete = useCallback(() => {
+    // サーバーからデータを再取得
+    router.refresh();
+    setSelectedItem(null);
+  }, [router]);
 
   return (
     <main className="relative w-full h-[calc(100vh-var(--header-height))] overflow-hidden">
@@ -119,6 +133,8 @@ export default function Main({ items, availableTags }: MainProps) {
           item={selectedItem}
           isOpen={!!selectedItem}
           onClose={handleCloseModal}
+          onUpdate={handleUpdate}
+          onDelete={handleDelete}
         />
       )}
     </main>
