@@ -1,4 +1,4 @@
-import { getGraph2DItems } from "@/lib/supabase/actions";
+import { getGraph2DItemsWithTags, getTagsForGalleryItems } from "@/lib/supabase/actions";
 import Main from "./components/Main";
 
 export const metadata = {
@@ -6,14 +6,19 @@ export const metadata = {
 };
 
 export default async function Home() {
-  const items = await getGraph2DItems();
+  const [items, availableTags] = await Promise.all([
+    getGraph2DItemsWithTags(),
+    getTagsForGalleryItems(),
+  ]);
 
-  // DB の data を GalleryData の形式に変換
+  // DB の data を GalleryData の形式に変換（タグ情報も含める）
   const galleryData = items.map((item) => ({
+    id: item.id,
     expressions: item.data.expressions,
     center: item.data.center,
     radius: item.data.radius,
+    tags: item.tags,
   }));
 
-  return <Main items={galleryData} />;
+  return <Main items={galleryData} availableTags={availableTags} />;
 }

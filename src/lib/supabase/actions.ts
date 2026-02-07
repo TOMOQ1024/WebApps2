@@ -6,6 +6,7 @@ import type {
   GalleryWithTags,
   GalleryItem,
   Graph2DGalleryItem,
+  Graph2DGalleryItemWithTags,
   Graph2DItemData,
   CompDynamGalleryItem,
   Tag,
@@ -204,6 +205,38 @@ export async function getGraph2DItems(): Promise<Graph2DGalleryItem[]> {
 }
 
 /**
+ * Graph2D ギャラリーアイテムを取得（タグ付き）
+ */
+export async function getGraph2DItemsWithTags(): Promise<Graph2DGalleryItemWithTags[]> {
+  const supabase = await createClient();
+  const items = await getGraph2DItems();
+
+  // 各アイテムのタグを取得
+  const itemsWithTags: Graph2DGalleryItemWithTags[] = await Promise.all(
+    items.map(async (item) => {
+      const { data: tagRelations } = await supabase
+        .from("gallery_item_tags")
+        .select("tag_id")
+        .eq("gallery_item_id", item.id);
+
+      if (!tagRelations || tagRelations.length === 0) {
+        return { ...item, tags: [] };
+      }
+
+      const tagIds = tagRelations.map((r) => r.tag_id);
+      const { data: tags } = await supabase
+        .from("tags")
+        .select("*")
+        .in("id", tagIds);
+
+      return { ...item, tags: tags ?? [] };
+    })
+  );
+
+  return itemsWithTags;
+}
+
+/**
  * CompDynam ギャラリーアイテムを取得（型付き）
  */
 export async function getCompDynamItems(): Promise<CompDynamGalleryItem[]> {
@@ -227,6 +260,26 @@ export async function getTags(): Promise<Tag[]> {
 
   if (error) {
     console.error("Error fetching tags:", error);
+    return [];
+  }
+
+  return data ?? [];
+}
+
+/**
+ * ギャラリーアイテム用のタグを取得
+ */
+export async function getTagsForGalleryItems(): Promise<Tag[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("tags")
+    .select("*")
+    .eq("for_gallery_items", true)
+    .order("name");
+
+  if (error) {
+    console.error("Error fetching tags for gallery items:", error);
     return [];
   }
 
@@ -300,7 +353,8 @@ export async function getGalleryListCompat(): Promise<{
  */
 export async function createGalleryItem(
   galleryPath: string,
-  data: Graph2DItemData
+  data: Graph2DItemData,
+  tagIds?: string[]
 ): Promise<{ success: boolean; error?: string; item?: GalleryItem }> {
   const supabase = await createClient();
 
@@ -347,6 +401,23 @@ export async function createGalleryItem(
     return { success: false, error: error.message };
   }
 
+  // タグを紐付け
+  if (tagIds && tagIds.length > 0) {
+    const tagRelations = tagIds.map((tagId) => ({
+      gallery_item_id: newItem.id,
+      tag_id: tagId,
+    }));
+
+    const { error: tagError } = await supabase
+      .from("gallery_item_tags")
+      .insert(tagRelations);
+
+    if (tagError) {
+      console.error("Error creating gallery item tags:", tagError);
+      // タグの紐付けに失敗してもアイテム自体は作成済みなので成功扱い
+    }
+  }
+
   return { success: true, item: newItem };
 }
 
@@ -354,7 +425,12 @@ export async function createGalleryItem(
  * タグを作成
  */
 export async function createTag(
-  name: string
+  name: string,
+  options?: {
+    for_apps?: boolean;
+    for_galleries?: boolean;
+    for_gallery_items?: boolean;
+  }
 ): Promise<{ success: boolean; error?: string; tag?: Tag }> {
   const supabase = await createClient();
 
@@ -384,10 +460,20 @@ export async function createTag(
     return { success: false, error: "このタグは既に存在します" };
   }
 
+  // スコープフラグの設定（デフォルト値）
+  const for_apps = options?.for_apps ?? true;
+  const for_galleries = options?.for_galleries ?? true;
+  const for_gallery_items = options?.for_gallery_items ?? false;
+
   // タグを作成
   const { data: newTag, error } = await supabase
     .from("tags")
-    .insert({ name: trimmedName })
+    .insert({
+      name: trimmedName,
+      for_apps,
+      for_galleries,
+      for_gallery_items,
+    })
     .select()
     .single();
 

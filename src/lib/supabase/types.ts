@@ -7,6 +7,9 @@
 export interface Tag {
   id: string;
   name: string;
+  for_apps?: boolean;
+  for_galleries?: boolean;
+  for_gallery_items?: boolean;
 }
 
 // アプリ
@@ -43,6 +46,10 @@ export interface GalleryItem {
   sort_order: number;
 }
 
+export interface GalleryItemWithTags extends GalleryItem {
+  tags: Tag[];
+}
+
 // Graph2D アイテムの data 型
 export interface Graph2DItemData {
   expressions: string[];
@@ -64,6 +71,14 @@ export interface Graph2DGalleryItem extends Omit<GalleryItem, "data"> {
   data: Graph2DItemData;
 }
 
+export interface Graph2DGalleryItemWithTags extends Graph2DGalleryItem {
+  tags: Tag[];
+}
+
 export interface CompDynamGalleryItem extends Omit<GalleryItem, "data"> {
   data: CompDynamItemData;
+}
+
+export interface CompDynamGalleryItemWithTags extends CompDynamGalleryItem {
+  tags: Tag[];
 }

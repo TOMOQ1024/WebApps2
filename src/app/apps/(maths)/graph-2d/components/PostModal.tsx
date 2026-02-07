@@ -1,17 +1,20 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import Image from "next/image";
 import { X, Plus, Loader2 } from "lucide-react";
 import type { Tag, Graph2DItemData } from "@/lib/supabase/types";
-import { getTags, createTag, createGalleryItem } from "@/lib/supabase/actions";
+import { getTagsForGalleryItems, createTag, createGalleryItem } from "@/lib/supabase/actions";
 
 interface PostModalProps {
   isOpen: boolean;
   onClose: () => void;
   galleryData: Graph2DItemData;
+  onGalleryDataChange?: (data: Partial<Graph2DItemData>) => void;
+  thumbnailDataUrl?: string;
 }
 
-export default function PostModal({ isOpen, onClose, galleryData }: PostModalProps) {
+export default function PostModal({ isOpen, onClose, galleryData, onGalleryDataChange, thumbnailDataUrl }: PostModalProps) {
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [newTagName, setNewTagName] = useState("");
@@ -20,11 +23,23 @@ export default function PostModal({ isOpen, onClose, galleryData }: PostModalPro
   const [isPending, startTransition] = useTransition();
   const [isLoadingTags, setIsLoadingTags] = useState(true);
 
-  // タグを読み込む
+  // ローカル編集用の状態
+  const [centerX, setCenterX] = useState(galleryData.center[0].toString());
+  const [centerY, setCenterY] = useState(galleryData.center[1].toString());
+  const [radius, setRadius] = useState(galleryData.radius.toString());
+
+  // galleryData が変わったらローカル状態を更新
+  useEffect(() => {
+    setCenterX(galleryData.center[0].toString());
+    setCenterY(galleryData.center[1].toString());
+    setRadius(galleryData.radius.toString());
+  }, [galleryData.center, galleryData.radius]);
+
+  // タグを読み込む（ギャラリーアイテム用タグのみ）
   useEffect(() => {
     if (isOpen) {
       setIsLoadingTags(true);
-      getTags()
+      getTagsForGalleryItems()
         .then((fetchedTags) => {
           setTags(fetchedTags);
           setIsLoadingTags(false);
@@ -46,6 +61,31 @@ export default function PostModal({ isOpen, onClose, galleryData }: PostModalPro
     }
   }, [isOpen]);
 
+  // 座標・半径が変更されたら親に通知
+  const handleCenterXChange = (value: string) => {
+    setCenterX(value);
+    const num = parseFloat(value);
+    if (!Number.isNaN(num) && onGalleryDataChange) {
+      onGalleryDataChange({ center: [num, galleryData.center[1]] });
+    }
+  };
+
+  const handleCenterYChange = (value: string) => {
+    setCenterY(value);
+    const num = parseFloat(value);
+    if (!Number.isNaN(num) && onGalleryDataChange) {
+      onGalleryDataChange({ center: [galleryData.center[0], num] });
+    }
+  };
+
+  const handleRadiusChange = (value: string) => {
+    setRadius(value);
+    const num = parseFloat(value);
+    if (!Number.isNaN(num) && num > 0 && onGalleryDataChange) {
+      onGalleryDataChange({ radius: num });
+    }
+  };
+
   const handleTagToggle = (tagId: string) => {
     setSelectedTagIds((prev) =>
       prev.includes(tagId)
@@ -58,7 +98,12 @@ export default function PostModal({ isOpen, onClose, galleryData }: PostModalPro
     if (!newTagName.trim()) return;
 
     startTransition(async () => {
-      const result = await createTag(newTagName.trim());
+      // ギャラリーアイテム用タグとして作成
+      const result = await createTag(newTagName.trim(), {
+        for_apps: false,
+        for_galleries: false,
+        for_gallery_items: true,
+      });
       if (result.success && result.tag) {
         const newTag = result.tag;
         setTags((prev) => [...prev, newTag].sort((a, b) => a.name.localeCompare(b.name)));
@@ -73,7 +118,8 @@ export default function PostModal({ isOpen, onClose, galleryData }: PostModalPro
 
   const handleSubmit = () => {
     startTransition(async () => {
-      const result = await createGalleryItem("graph-2d", galleryData);
+      // タグIDも一緒に保存
+      const result = await createGalleryItem("graph-2d", galleryData, selectedTagIds);
       if (result.success) {
         setSuccess(true);
         setError(null);
@@ -113,15 +159,70 @@ export default function PostModal({ isOpen, onClose, galleryData }: PostModalPro
           </button>
         </div>
 
-        {/* プレビュー */}
+        {/* サムネイルプレビュー */}
+        <div className="mb-4 flex justify-center">
+          {thumbnailDataUrl ? (
+            <div className="w-48 h-48 border-2 border-[var(--border-color)] overflow-hidden relative">
+              <Image
+                src={thumbnailDataUrl}
+                alt="プレビュー"
+                width={192}
+                height={192}
+                className="object-cover"
+                unoptimized
+              />
+            </div>
+          ) : (
+            <div className="w-48 h-48 border-2 border-[var(--border-color)] flex items-center justify-center text-sm opacity-50">
+              プレビューなし
+            </div>
+          )}
+        </div>
+
+        {/* 描画設定 */}
         <div className="mb-4 p-3 bg-[var(--background-color)] border border-[var(--border-color)]">
-          <p className="text-sm text-[var(--text-color)] opacity-70 mb-2">投稿する数式:</p>
-          <div className="space-y-1">
-            {galleryData.expressions.map((expr) => (
-              <code key={expr} className="block text-sm break-all">
-                {expr}
-              </code>
-            ))}
+          <p className="text-sm text-[var(--text-color)] opacity-70 mb-2">描画設定:</p>
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <label htmlFor="centerX" className="block text-xs text-[var(--text-color)] opacity-50 mb-1">
+                中心 X
+              </label>
+              <input
+                id="centerX"
+                type="number"
+                step="any"
+                value={centerX}
+                onChange={(e) => handleCenterXChange(e.target.value)}
+                className="w-full px-2 py-1 text-sm border border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)]"
+              />
+            </div>
+            <div>
+              <label htmlFor="centerY" className="block text-xs text-[var(--text-color)] opacity-50 mb-1">
+                中心 Y
+              </label>
+              <input
+                id="centerY"
+                type="number"
+                step="any"
+                value={centerY}
+                onChange={(e) => handleCenterYChange(e.target.value)}
+                className="w-full px-2 py-1 text-sm border border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)]"
+              />
+            </div>
+            <div>
+              <label htmlFor="radius" className="block text-xs text-[var(--text-color)] opacity-50 mb-1">
+                描画半径
+              </label>
+              <input
+                id="radius"
+                type="number"
+                step="any"
+                min="0.001"
+                value={radius}
+                onChange={(e) => handleRadiusChange(e.target.value)}
+                className="w-full px-2 py-1 text-sm border border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)]"
+              />
+            </div>
           </div>
         </div>
 

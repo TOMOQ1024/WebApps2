@@ -16,7 +16,7 @@ import {
 import { latexToGLSL } from "@/src/Parser/latexToGLSL";
 import { useAuth } from "@/components/SupabaseAuthProvider";
 import { fragmentShader } from "../Shaders/FragmentShader";
-import Canvas from "./Canvas";
+import Canvas, { type CanvasHandle } from "./Canvas";
 import ControlButtons from "./ControlButtons";
 import ControlPanel from "./ControlPanel";
 import PostModal from "./PostModal";
@@ -134,6 +134,10 @@ export default function Main() {
 
   // 投稿モーダルの状態
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [thumbnailDataUrl, setThumbnailDataUrl] = useState<string | null>(null);
+
+  // Canvas への参照
+  const canvasRef = useRef<CanvasHandle>(null);
 
   // クエリパラメータから読み込んだ初期グラフ設定を保持
   const initialGraphRef = useRef<GraphMgr>(new GraphMgr());
@@ -410,6 +414,9 @@ export default function Main() {
   }, [currentExpressions, graph]);
 
   const handleOpenPostModal = useCallback(() => {
+    // キャンバスをキャプチャしてサムネイルを生成
+    const thumbnail = canvasRef.current?.captureSquareThumbnail(256);
+    setThumbnailDataUrl(thumbnail || null);
     setIsPostModalOpen(true);
   }, []);
 
@@ -417,9 +424,25 @@ export default function Main() {
     setIsPostModalOpen(false);
   }, []);
 
+  // PostModal からの描画設定変更を処理
+  const handleGalleryDataChange = useCallback(
+    (data: { center?: [number, number]; radius?: number }) => {
+      if (data.center !== undefined) {
+        const newCenter = data.center;
+        setGraph((prev) => new GraphMgr(new Vector2(newCenter[0], newCenter[1]), prev.radius));
+      }
+      if (data.radius !== undefined) {
+        const newRadius = data.radius;
+        setGraph((prev) => new GraphMgr(prev.origin.clone(), newRadius));
+      }
+    },
+    []
+  );
+
   return (
     <main className="relative w-screen h-[calc(100vh-var(--header-height))] overflow-hidden">
       <Canvas
+        ref={canvasRef}
         shader={shader}
         graph={graph}
         onGraphChange={setGraph}
@@ -445,6 +468,8 @@ export default function Main() {
         isOpen={isPostModalOpen}
         onClose={handleClosePostModal}
         galleryData={getGalleryData()}
+        onGalleryDataChange={handleGalleryDataChange}
+        thumbnailDataUrl={thumbnailDataUrl ?? undefined}
       />
     </main>
   );
