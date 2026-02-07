@@ -460,6 +460,11 @@ export async function createTag(
     return { success: false, error: "タグ名を入力してください" };
   }
 
+  // スコープフラグの設定（デフォルト値）
+  const for_apps = options?.for_apps ?? true;
+  const for_galleries = options?.for_galleries ?? true;
+  const for_gallery_items = options?.for_gallery_items ?? false;
+
   // 既存タグのチェック
   const { data: existingTag } = await supabase
     .from("tags")
@@ -468,13 +473,31 @@ export async function createTag(
     .single();
 
   if (existingTag) {
-    return { success: false, error: "このタグは既に存在します" };
-  }
+    // 既存タグがある場合，必要なスコープフラグを追加更新
+    const updateFields: Record<string, boolean> = {};
+    if (for_apps && !existingTag.for_apps) updateFields.for_apps = true;
+    if (for_galleries && !existingTag.for_galleries) updateFields.for_galleries = true;
+    if (for_gallery_items && !existingTag.for_gallery_items) updateFields.for_gallery_items = true;
 
-  // スコープフラグの設定（デフォルト値）
-  const for_apps = options?.for_apps ?? true;
-  const for_galleries = options?.for_galleries ?? true;
-  const for_gallery_items = options?.for_gallery_items ?? false;
+    if (Object.keys(updateFields).length > 0) {
+      const { data: updatedTag, error: updateError } = await supabase
+        .from("tags")
+        .update(updateFields)
+        .eq("id", existingTag.id)
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error("Error updating tag:", updateError);
+        return { success: false, error: updateError.message };
+      }
+
+      return { success: true, tag: updatedTag };
+    }
+
+    // 更新不要な場合はそのまま返す
+    return { success: true, tag: existingTag };
+  }
 
   // タグを作成
   const { data: newTag, error } = await supabase
