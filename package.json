@@ -29,6 +29,8 @@
     "@prisma/client": "6.4.1",
     "@react-three/drei": "^10.3.0",
     "@react-three/fiber": "^9.1.2",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.95.3",
     "@types/matter-js": "^0.19.6",
     "@types/node": "22.13.5",
     "@types/p5": "^1.7.6",
