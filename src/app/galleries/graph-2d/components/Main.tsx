@@ -1,12 +1,16 @@
 "use client";
 
 import GalleryGridCanvas from "./GalleryGridCanvas";
-import { galleryData } from "@/app/galleries/graph-2d/GalleryData";
+import type { Graph2DGalleryItem } from "@/app/galleries/graph-2d/GalleryData";
 
-export default function Main() {
+interface MainProps {
+  items: Graph2DGalleryItem[];
+}
+
+export default function Main({ items }: MainProps) {
   return (
     <main className="relative w-full h-[calc(100vh-var(--header-height))] overflow-hidden">
-      <GalleryGridCanvas items={galleryData} />
+      <GalleryGridCanvas items={items} />
     </main>
   );
 }

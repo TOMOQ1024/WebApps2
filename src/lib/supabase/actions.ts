@@ -184,7 +184,13 @@ export async function getGalleryItems(galleryPath: string): Promise<GalleryItem[
  */
 export async function getGraph2DItems(): Promise<Graph2DGalleryItem[]> {
   const items = await getGalleryItems("graph-2d");
-  return items.filter((item) => item.item_type === "graph_2d") as Graph2DGalleryItem[];
+  return items
+    .filter((item) => item.item_type === "graph_2d")
+    .map((item) => ({
+      ...item,
+      item_type: "graph_2d" as const,
+      data: item.data as unknown as Graph2DGalleryItem["data"],
+    }));
 }
 
 /**
@@ -192,7 +198,13 @@ export async function getGraph2DItems(): Promise<Graph2DGalleryItem[]> {
  */
 export async function getCompDynamItems(): Promise<CompDynamGalleryItem[]> {
   const items = await getGalleryItems("compdynam");
-  return items.filter((item) => item.item_type === "compdynam") as CompDynamGalleryItem[];
+  return items
+    .filter((item) => item.item_type === "compdynam")
+    .map((item) => ({
+      ...item,
+      item_type: "compdynam" as const,
+      data: item.data as unknown as CompDynamGalleryItem["data"],
+    }));
 }
 
 /**
