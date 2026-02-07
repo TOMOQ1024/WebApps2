@@ -14,10 +14,12 @@ import {
   isNumericExpression,
 } from "@/src/Parser/graph2d/expressionParser";
 import { latexToGLSL } from "@/src/Parser/latexToGLSL";
+import { useAuth } from "@/components/SupabaseAuthProvider";
 import { fragmentShader } from "../Shaders/FragmentShader";
 import Canvas from "./Canvas";
 import ControlButtons from "./ControlButtons";
 import ControlPanel from "./ControlPanel";
+import PostModal from "./PostModal";
 
 // 組み込み関数リスト
 const BUILTIN_FUNCS = [
@@ -114,6 +116,7 @@ function generateGLSLFunction(def: FunctionDef, knownFuncs: string[]): string {
 }
 
 export default function Main() {
+  const { user } = useAuth();
   const [shader, setShader] = useState(fragmentShader);
   const [graph, setGraph] = useState<GraphMgr>(new GraphMgr());
   const [renderMode, setRenderMode] = useState(0);
@@ -128,6 +131,9 @@ export default function Main() {
   const [error, setError] = useState<string | null>(null);
 
   const [hasLoadedFromParams, setHasLoadedFromParams] = useState(false);
+
+  // 投稿モーダルの状態
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
 
   // クエリパラメータから読み込んだ初期グラフ設定を保持
   const initialGraphRef = useRef<GraphMgr>(new GraphMgr());
@@ -394,6 +400,23 @@ export default function Main() {
     }
   }, [currentExpressions, graph]);
 
+  // ギャラリーデータを生成
+  const getGalleryData = useCallback(() => {
+    return {
+      expressions: currentExpressions.filter((e) => e.trim() !== ""),
+      center: [graph.origin.x, graph.origin.y] as [number, number],
+      radius: graph.radius,
+    };
+  }, [currentExpressions, graph]);
+
+  const handleOpenPostModal = useCallback(() => {
+    setIsPostModalOpen(true);
+  }, []);
+
+  const handleClosePostModal = useCallback(() => {
+    setIsPostModalOpen(false);
+  }, []);
+
   return (
     <main className="relative w-screen h-[calc(100vh-var(--header-height))] overflow-hidden">
       <Canvas
@@ -414,7 +437,14 @@ export default function Main() {
         currentRenderMode={renderMode}
         onShareLink={handleShareLink}
         onExportGalleryData={handleExportGalleryData}
+        onPost={handleOpenPostModal}
+        isLoggedIn={!!user}
         exprType={exprType}
+      />
+      <PostModal
+        isOpen={isPostModalOpen}
+        onClose={handleClosePostModal}
+        galleryData={getGalleryData()}
       />
     </main>
   );

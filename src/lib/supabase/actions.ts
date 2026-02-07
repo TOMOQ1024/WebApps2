@@ -6,6 +6,7 @@ import type {
   GalleryWithTags,
   GalleryItem,
   Graph2DGalleryItem,
+  Graph2DItemData,
   CompDynamGalleryItem,
   Tag,
 } from "./types";
@@ -292,4 +293,108 @@ export async function getGalleryListCompat(): Promise<{
   }
 
   return result;
+}
+
+/**
+ * ギャラリーアイテムを作成
+ */
+export async function createGalleryItem(
+  galleryPath: string,
+  data: Graph2DItemData
+): Promise<{ success: boolean; error?: string; item?: GalleryItem }> {
+  const supabase = await createClient();
+
+  // 認証チェック
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "認証が必要です" };
+  }
+
+  // ギャラリーを取得
+  const gallery = await getGalleryByPath(galleryPath);
+  if (!gallery) {
+    return { success: false, error: `ギャラリーが見つかりません: ${galleryPath}` };
+  }
+
+  // 現在の最大 sort_order を取得
+  const { data: existingItems } = await supabase
+    .from("gallery_items")
+    .select("sort_order")
+    .eq("gallery_id", gallery.id)
+    .order("sort_order", { ascending: false })
+    .limit(1);
+
+  const nextSortOrder = existingItems && existingItems.length > 0
+    ? existingItems[0].sort_order + 1
+    : 0;
+
+  // アイテムを作成
+  const { data: newItem, error } = await supabase
+    .from("gallery_items")
+    .insert({
+      gallery_id: gallery.id,
+      data: data as unknown as Record<string, unknown>,
+      sort_order: nextSortOrder,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error creating gallery item:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, item: newItem };
+}
+
+/**
+ * タグを作成
+ */
+export async function createTag(
+  name: string
+): Promise<{ success: boolean; error?: string; tag?: Tag }> {
+  const supabase = await createClient();
+
+  // 認証チェック
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "認証が必要です" };
+  }
+
+  // タグ名のバリデーション
+  const trimmedName = name.trim();
+  if (!trimmedName) {
+    return { success: false, error: "タグ名を入力してください" };
+  }
+
+  // 既存タグのチェック
+  const { data: existingTag } = await supabase
+    .from("tags")
+    .select("*")
+    .eq("name", trimmedName)
+    .single();
+
+  if (existingTag) {
+    return { success: false, error: "このタグは既に存在します" };
+  }
+
+  // タグを作成
+  const { data: newTag, error } = await supabase
+    .from("tags")
+    .insert({ name: trimmedName })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error creating tag:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, tag: newTag };
 }
