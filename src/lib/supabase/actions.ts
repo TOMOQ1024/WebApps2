@@ -162,7 +162,7 @@ export async function getGalleryByPath(path: string): Promise<GalleryWithTags | 
 /**
  * ギャラリー ID からアイテムを取得
  */
-export async function getGalleryItemsByGalleryId(galleryId: number): Promise<GalleryItem[]> {
+export async function getGalleryItemsByGalleryId(galleryId: string): Promise<GalleryItem[]> {
   const supabase = await createClient();
 
   const { data, error } = await supabase

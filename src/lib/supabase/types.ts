@@ -1,16 +1,17 @@
 /**
  * Supabase テーブルの型定義
+ * id は NanoID (12文字の文字列)
  */
 
 // タグ
 export interface Tag {
-  id: number;
+  id: string;
   name: string;
 }
 
 // アプリ
 export interface App {
-  id: number;
+  id: string;
   path: string;
   app_name: string;
   description: string;
@@ -23,7 +24,7 @@ export interface AppWithTags extends App {
 
 // ギャラリー
 export interface Gallery {
-  id: number;
+  id: string;
   path: string;
   gallery_name: string;
   description: string;
@@ -36,8 +37,8 @@ export interface GalleryWithTags extends Gallery {
 
 // ギャラリーアイテム
 export interface GalleryItem {
-  id: number;
-  gallery_id: number;
+  id: string;
+  gallery_id: string;
   data: Record<string, unknown>;
   sort_order: number;
 }

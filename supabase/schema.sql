@@ -1,15 +1,36 @@
 -- Supabase DB スキーマ
 -- Supabase Dashboard > SQL Editor で実行してください
 
+-- NanoID 生成関数
+create extension if not exists pgcrypto;
+
+create or replace function nanoid(size int default 12)
+returns text as $$
+declare
+  id text := '';
+  i int := 0;
+  urlAlphabet char(64) := 'useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict';
+  bytes bytea := gen_random_bytes(size);
+  byte int;
+begin
+  while i < size loop
+    byte := get_byte(bytes, i);
+    id := id || substr(urlAlphabet, (byte & 63) + 1, 1);
+    i := i + 1;
+  end loop;
+  return id;
+end
+$$ language plpgsql volatile;
+
 -- タグ（apps と galleries で共通利用）
 create table if not exists public.tags (
-  id   bigint generated always as identity primary key,
+  id   text primary key default nanoid(),
   name text unique not null
 );
 
 -- アプリ一覧（appList 相当）
 create table if not exists public.apps (
-  id          bigint generated always as identity primary key,
+  id          text primary key default nanoid(),
   path        text unique not null,
   app_name    text not null,
   description text default '',
@@ -17,14 +38,14 @@ create table if not exists public.apps (
 );
 
 create table if not exists public.app_tags (
-  app_id bigint not null references public.apps(id) on delete cascade,
-  tag_id bigint not null references public.tags(id) on delete cascade,
+  app_id text not null references public.apps(id) on delete cascade,
+  tag_id text not null references public.tags(id) on delete cascade,
   primary key (app_id, tag_id)
 );
 
 -- ギャラリー一覧（galleryList 相当）
 create table if not exists public.galleries (
-  id           bigint generated always as identity primary key,
+  id           text primary key default nanoid(),
   path         text unique not null,
   gallery_name text not null,
   description  text default '',
@@ -32,8 +53,8 @@ create table if not exists public.galleries (
 );
 
 create table if not exists public.gallery_tags (
-  gallery_id bigint not null references public.galleries(id) on delete cascade,
-  tag_id     bigint not null references public.tags(id) on delete cascade,
+  gallery_id text not null references public.galleries(id) on delete cascade,
+  tag_id     text not null references public.tags(id) on delete cascade,
   primary key (gallery_id, tag_id)
 );
 
@@ -41,8 +62,8 @@ create table if not exists public.gallery_tags (
 -- gallery_id で参照するギャラリーの path からアイテムタイプを判別
 -- data に JSONB で格納
 create table if not exists public.gallery_items (
-  id          bigint generated always as identity primary key,
-  gallery_id  bigint not null references public.galleries(id) on delete cascade,
+  id          text primary key default nanoid(),
+  gallery_id  text not null references public.galleries(id) on delete cascade,
   data        jsonb not null,
   sort_order  int default 0
 );

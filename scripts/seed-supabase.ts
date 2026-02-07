@@ -95,7 +95,7 @@ async function seedTags() {
   });
 
   // タグを投入（既存のものは無視）
-  const tagMap = new Map<string, number>();
+  const tagMap = new Map<string, string>();
 
   for (const tagName of allTags) {
     const { data, error } = await supabase
@@ -131,10 +131,10 @@ async function seedTags() {
   return tagMap;
 }
 
-async function seedApps(tagMap: Map<string, number>) {
+async function seedApps(tagMap: Map<string, string>) {
   console.log("\nアプリを投入中...");
 
-  const appMap = new Map<string, number>();
+  const appMap = new Map<string, string>();
   let sortOrder = 0;
 
   for (const [path, app] of Object.entries(appList)) {
@@ -179,10 +179,10 @@ async function seedApps(tagMap: Map<string, number>) {
   return appMap;
 }
 
-async function seedGalleries(tagMap: Map<string, number>) {
+async function seedGalleries(tagMap: Map<string, string>) {
   console.log("\nギャラリーを投入中...");
 
-  const galleryMap = new Map<string, number>();
+  const galleryMap = new Map<string, string>();
   let sortOrder = 0;
 
   for (const [path, gallery] of Object.entries(galleryList)) {
@@ -227,7 +227,7 @@ async function seedGalleries(tagMap: Map<string, number>) {
   return galleryMap;
 }
 
-async function seedGalleryItems(galleryMap: Map<string, number>) {
+async function seedGalleryItems(galleryMap: Map<string, string>) {
   console.log("\nギャラリーアイテムを投入中...");
 
   // graph-2d ギャラリーアイテム
