@@ -60,19 +60,15 @@ export default function Main({ items, availableTags }: MainProps) {
           <button
             type="button"
             onClick={toggleFilter}
-            className="flex items-center gap-2 px-3 py-2 bg-[var(--background-color)] border-2 border-[var(--border-color)] text-sm font-medium hover:opacity-80 transition-opacity"
+            className="flex items-center gap-2 px-3 py-2 bg-[var(--background-color)] border-2 border-[var(--border-color)] text-sm font-medium hover:opacity-80"
           >
             <span>タグ絞り込み</span>
             {selectedTagIds.length > 0 && (
-              <span className="px-1.5 py-0.5 text-xs bg-[var(--text-color)] text-[var(--background-color)]">
+              <span className="px-1.5 py-0.5 text-xs border border-[var(--text-color)] font-bold">
                 {selectedTagIds.length}
               </span>
             )}
-            <span
-              className={`transition-transform ${isFilterOpen ? "rotate-180" : ""}`}
-            >
-              ▼
-            </span>
+            <span className={isFilterOpen ? "rotate-180" : ""}>▼</span>
           </button>
 
           {/* フィルターパネル */}
@@ -96,10 +92,10 @@ export default function Main({ items, availableTags }: MainProps) {
                     key={tag.id}
                     type="button"
                     onClick={() => handleTagToggle(tag.id)}
-                    className={`px-2 py-0.5 text-xs border border-[var(--border-color)] transition-colors ${
+                    className={`px-2 py-0.5 text-xs border-2 ${
                       selectedTagIds.includes(tag.id)
-                        ? "bg-[var(--text-color)] text-[var(--background-color)]"
-                        : "hover:opacity-70"
+                        ? "border-[var(--text-color)] font-bold"
+                        : "border-[var(--border-color)] hover:opacity-70"
                     }`}
                   >
                     {tag.name}

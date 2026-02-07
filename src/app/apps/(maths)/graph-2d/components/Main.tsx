@@ -16,7 +16,7 @@ import {
 } from "@/src/Parser/graph2d/expressionParser";
 import { latexToGLSL } from "@/src/Parser/latexToGLSL";
 import { fragmentShader } from "../Shaders/FragmentShader";
-import Canvas, { type CanvasHandle } from "./Canvas";
+import Canvas from "./Canvas";
 import ControlButtons from "./ControlButtons";
 import ControlPanel from "./ControlPanel";
 import PostModal from "./PostModal";
@@ -136,10 +136,6 @@ export default function Main() {
 
   // 投稿モーダルの状態
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
-  const [thumbnailDataUrl, setThumbnailDataUrl] = useState<string | null>(null);
-
-  // Canvas への参照
-  const canvasRef = useRef<CanvasHandle>(null);
 
   // クエリパラメータから読み込んだ初期グラフ設定を保持
   const initialGraphRef = useRef<GraphMgr>(new GraphMgr());
@@ -413,9 +409,6 @@ export default function Main() {
   }, [currentExpressions, graph]);
 
   const handleOpenPostModal = useCallback(() => {
-    // キャンバスをキャプチャしてサムネイルを生成
-    const thumbnail = canvasRef.current?.captureSquareThumbnail(256);
-    setThumbnailDataUrl(thumbnail || null);
     setIsPostModalOpen(true);
   }, []);
 
@@ -441,23 +434,9 @@ export default function Main() {
     [],
   );
 
-  // モーダルが開いている間，graph が変更されたらサムネイルを再キャプチャ
-  // biome-ignore lint/correctness/useExhaustiveDependencies: graph の変更をトリガーとして使用
-  useEffect(() => {
-    if (isPostModalOpen) {
-      // Canvas が再描画されるまで少し待つ
-      const timeoutId = setTimeout(() => {
-        const thumbnail = canvasRef.current?.captureSquareThumbnail(256);
-        setThumbnailDataUrl(thumbnail || null);
-      }, 50);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [isPostModalOpen, graph]);
-
   return (
     <main className="relative w-screen h-[calc(100vh-var(--header-height))] overflow-hidden">
       <Canvas
-        ref={canvasRef}
         shader={shader}
         graph={graph}
         onGraphChange={setGraph}
@@ -484,7 +463,6 @@ export default function Main() {
         onClose={handleClosePostModal}
         galleryData={getGalleryData()}
         onGalleryDataChange={handleGalleryDataChange}
-        thumbnailDataUrl={thumbnailDataUrl ?? undefined}
       />
     </main>
   );

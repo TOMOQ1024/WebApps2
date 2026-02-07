@@ -217,14 +217,14 @@ export default function DetailModal({
           <button
             type="button"
             onClick={handleGoToApp}
-            className="flex-1 px-4 py-2 border-2 border-[var(--text-color)] font-medium hover:bg-[var(--text-color)] hover:text-[var(--background-color)] transition-colors"
+            className="flex-1 px-4 py-2 border-2 border-[var(--text-color)] font-medium hover:opacity-80"
           >
             アプリで開く
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 border border-[var(--border-color)] hover:opacity-70 transition-opacity"
+            className="px-4 py-2 border border-[var(--border-color)] hover:opacity-70"
           >
             閉じる
           </button>

@@ -1,20 +1,33 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import Image from "next/image";
-import { X, Plus, Loader2 } from "lucide-react";
-import type { Tag, Graph2DItemData } from "@/lib/supabase/types";
-import { getTagsForGalleryItems, createTag, createGalleryItem } from "@/lib/supabase/actions";
+import { Loader2, Plus, X } from "lucide-react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import * as THREE from "three";
+import { fragmentShader as baseFragmentShader } from "@/app/apps/(maths)/graph-2d/Shaders/FragmentShader";
+import { vertexShader as baseVertexShader } from "@/app/apps/(maths)/graph-2d/Shaders/VertexShader";
+import { generateShaderFromExpressions } from "@/app/galleries/graph-2d/components/GalleryGridCanvas";
+import { useTheme } from "@/hooks/useTheme";
+import {
+  createGalleryItem,
+  createTag,
+  getTagsForGalleryItems,
+} from "@/lib/supabase/actions";
+import type { Graph2DItemData, Tag } from "@/lib/supabase/types";
 
 interface PostModalProps {
   isOpen: boolean;
   onClose: () => void;
   galleryData: Graph2DItemData;
   onGalleryDataChange?: (data: Partial<Graph2DItemData>) => void;
-  thumbnailDataUrl?: string;
 }
 
-export default function PostModal({ isOpen, onClose, galleryData, onGalleryDataChange, thumbnailDataUrl }: PostModalProps) {
+export default function PostModal({
+  isOpen,
+  onClose,
+  galleryData,
+  onGalleryDataChange,
+}: PostModalProps) {
+  const { themeValue } = useTheme();
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [newTagName, setNewTagName] = useState("");
@@ -22,6 +35,12 @@ export default function PostModal({ isOpen, onClose, galleryData, onGalleryDataC
   const [success, setSuccess] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [isLoadingTags, setIsLoadingTags] = useState(true);
+  const [isRendering, setIsRendering] = useState(false);
+
+  // WebGL 関連の ref
+  const containerRef = useRef<HTMLDivElement>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const animationIdRef = useRef<number | null>(null);
 
   // ローカル編集用の状態
   const [centerX, setCenterX] = useState(galleryData.center[0].toString());
@@ -34,6 +53,113 @@ export default function PostModal({ isOpen, onClose, galleryData, onGalleryDataC
     setCenterY(galleryData.center[1].toString());
     setRadius(galleryData.radius.toString());
   }, [galleryData.center, galleryData.radius]);
+
+  // WebGL レンダリング
+  useEffect(() => {
+    if (!isOpen || !containerRef.current) return;
+
+    const container = containerRef.current;
+
+    // シェーダー生成
+    let fragmentShader = baseFragmentShader;
+    let exprType = 0;
+    try {
+      const result = generateShaderFromExpressions(
+        galleryData.expressions,
+        baseFragmentShader,
+      );
+      fragmentShader = result.shader;
+      exprType = result.exprType;
+    } catch {
+      setIsRendering(false);
+      return;
+    }
+
+    setIsRendering(true);
+
+    const size = 192;
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(size, size);
+    const canvas = renderer.domElement;
+
+    // 既存の canvas を安全に削除
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+    container.appendChild(canvas);
+    rendererRef.current = renderer;
+
+    const halfSize = size / 2;
+    const scene = new THREE.Scene();
+    const camera = new THREE.OrthographicCamera(
+      -halfSize,
+      halfSize,
+      halfSize,
+      -halfSize,
+      0,
+      1,
+    );
+
+    const material = new THREE.ShaderMaterial({
+      vertexShader: baseVertexShader,
+      fragmentShader,
+      uniforms: {
+        uTime: { value: 0 },
+        uTheme: { value: themeValue },
+        uResolution: { value: new THREE.Vector2(halfSize, halfSize) },
+        uGraph: {
+          value: {
+            origin: new THREE.Vector2(
+              galleryData.center[0],
+              galleryData.center[1],
+            ),
+            radius: galleryData.radius,
+          },
+        },
+        uIterations: { value: 50 },
+        uRenderMode: { value: exprType === 1 ? 2 : 0 },
+        uExprType: { value: exprType },
+      },
+    });
+
+    const geometry = new THREE.PlaneGeometry(size, size);
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+
+    const startTime = performance.now();
+    function animate() {
+      const elapsed = (performance.now() - startTime) / 1000;
+      material.uniforms.uTime.value = elapsed;
+      material.uniforms.uTheme.value = themeValue;
+      // galleryData の変更を反映
+      material.uniforms.uGraph.value.origin.set(
+        galleryData.center[0],
+        galleryData.center[1],
+      );
+      material.uniforms.uGraph.value.radius = galleryData.radius;
+      renderer.render(scene, camera);
+      animationIdRef.current = requestAnimationFrame(animate);
+    }
+    animate();
+
+    return () => {
+      if (animationIdRef.current !== null) {
+        cancelAnimationFrame(animationIdRef.current);
+      }
+      renderer.dispose();
+      geometry.dispose();
+      material.dispose();
+      if (canvas.parentNode === container) {
+        container.removeChild(canvas);
+      }
+    };
+  }, [
+    isOpen,
+    galleryData.expressions,
+    galleryData.center,
+    galleryData.radius,
+    themeValue,
+  ]);
 
   // タグを読み込む（ギャラリーアイテム用タグのみ）
   useEffect(() => {
@@ -90,7 +216,7 @@ export default function PostModal({ isOpen, onClose, galleryData, onGalleryDataC
     setSelectedTagIds((prev) =>
       prev.includes(tagId)
         ? prev.filter((id) => id !== tagId)
-        : [...prev, tagId]
+        : [...prev, tagId],
     );
   };
 
@@ -106,7 +232,9 @@ export default function PostModal({ isOpen, onClose, galleryData, onGalleryDataC
       });
       if (result.success && result.tag) {
         const newTag = result.tag;
-        setTags((prev) => [...prev, newTag].sort((a, b) => a.name.localeCompare(b.name)));
+        setTags((prev) =>
+          [...prev, newTag].sort((a, b) => a.name.localeCompare(b.name)),
+        );
         setSelectedTagIds((prev) => [...prev, newTag.id]);
         setNewTagName("");
         setError(null);
@@ -119,7 +247,11 @@ export default function PostModal({ isOpen, onClose, galleryData, onGalleryDataC
   const handleSubmit = () => {
     startTransition(async () => {
       // タグIDも一緒に保存
-      const result = await createGalleryItem("graph-2d", galleryData, selectedTagIds);
+      const result = await createGalleryItem(
+        "graph-2d",
+        galleryData,
+        selectedTagIds,
+      );
       if (result.success) {
         setSuccess(true);
         setError(null);
@@ -159,32 +291,29 @@ export default function PostModal({ isOpen, onClose, galleryData, onGalleryDataC
           </button>
         </div>
 
-        {/* サムネイルプレビュー */}
+        {/* サムネイルプレビュー（WebGL） */}
         <div className="mb-4 flex justify-center">
-          {thumbnailDataUrl ? (
-            <div className="w-48 h-48 border-2 border-[var(--border-color)] overflow-hidden relative">
-              <Image
-                src={thumbnailDataUrl}
-                alt="プレビュー"
-                width={192}
-                height={192}
-                className="object-cover"
-                unoptimized
-              />
-            </div>
-          ) : (
-            <div className="w-48 h-48 border-2 border-[var(--border-color)] flex items-center justify-center text-sm opacity-50">
-              プレビューなし
-            </div>
-          )}
+          <div className="w-49 h-49 border-2 border-[var(--border-color)] flex items-center justify-center relative">
+            {/* WebGL canvas コンテナ */}
+            <div ref={containerRef} className="absolute inset-0" />
+            {/* フォールバックテキスト */}
+            {!isRendering && (
+              <span className="text-sm opacity-50 z-10">プレビューなし</span>
+            )}
+          </div>
         </div>
 
         {/* 描画設定 */}
         <div className="mb-4 p-3 bg-[var(--background-color)] border border-[var(--border-color)]">
-          <p className="text-sm text-[var(--text-color)] opacity-70 mb-2">描画設定:</p>
+          <p className="text-sm text-[var(--text-color)] opacity-70 mb-2">
+            描画設定:
+          </p>
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label htmlFor="centerX" className="block text-xs text-[var(--text-color)] opacity-50 mb-1">
+              <label
+                htmlFor="centerX"
+                className="block text-xs text-[var(--text-color)] opacity-50 mb-1"
+              >
                 中心 X
               </label>
               <input
@@ -197,7 +326,10 @@ export default function PostModal({ isOpen, onClose, galleryData, onGalleryDataC
               />
             </div>
             <div>
-              <label htmlFor="centerY" className="block text-xs text-[var(--text-color)] opacity-50 mb-1">
+              <label
+                htmlFor="centerY"
+                className="block text-xs text-[var(--text-color)] opacity-50 mb-1"
+              >
                 中心 Y
               </label>
               <input
@@ -210,7 +342,10 @@ export default function PostModal({ isOpen, onClose, galleryData, onGalleryDataC
               />
             </div>
             <div>
-              <label htmlFor="radius" className="block text-xs text-[var(--text-color)] opacity-50 mb-1">
+              <label
+                htmlFor="radius"
+                className="block text-xs text-[var(--text-color)] opacity-50 mb-1"
+              >
                 描画半径
               </label>
               <input
@@ -228,7 +363,9 @@ export default function PostModal({ isOpen, onClose, galleryData, onGalleryDataC
 
         {/* タグ選択 */}
         <div className="mb-4">
-          <p className="text-sm text-[var(--text-color)] opacity-70 mb-2">タグ（任意）:</p>
+          <p className="text-sm text-[var(--text-color)] opacity-70 mb-2">
+            タグ（任意）:
+          </p>
           {isLoadingTags ? (
             <div className="flex items-center gap-2 text-sm opacity-70">
               <Loader2 size={14} className="animate-spin" />
@@ -241,10 +378,10 @@ export default function PostModal({ isOpen, onClose, galleryData, onGalleryDataC
                   key={tag.id}
                   type="button"
                   onClick={() => handleTagToggle(tag.id)}
-                  className={`px-2 py-1 text-sm border border-[var(--border-color)] transition-colors ${
+                  className={`px-2 py-1 text-sm border-2 ${
                     selectedTagIds.includes(tag.id)
-                      ? "bg-[var(--text-color)] text-[var(--background-color)]"
-                      : "hover:opacity-70"
+                      ? "border-[var(--text-color)] font-bold"
+                      : "border-[var(--border-color)] hover:opacity-70"
                   }`}
                 >
                   {tag.name}
@@ -298,7 +435,7 @@ export default function PostModal({ isOpen, onClose, galleryData, onGalleryDataC
           type="button"
           onClick={handleSubmit}
           disabled={isPending || success}
-          className="w-full py-2 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] hover:scale-[0.98] active:invert disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-2 border-2 border-[var(--text-color)] bg-[var(--background-color)] text-[var(--text-color)] hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isPending ? (
             <>
