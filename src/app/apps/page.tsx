@@ -1,4 +1,4 @@
-import { appList } from "@/lib/appList";
+import { getApps } from "@/lib/supabase/actions";
 import Link from "next/link";
 import ImageWithFallback from "@/components/ImageWithFallback";
 import styles from "./page.module.scss";
@@ -7,7 +7,9 @@ export const metadata = {
   title: "tomoq apps",
 };
 
-export default function Home() {
+export default async function Home() {
+  const apps = await getApps();
+
   return (
     <main className={styles.appsPage}>
       <section className={styles.heroSection}>
@@ -16,32 +18,31 @@ export default function Home() {
       </section>
 
       <section className={styles.appsGrid}>
-        {Array.from(Object.entries(appList)).map(
-          ([path, { appName, tags }]) => {
-            if (tags.has("wip")) {
-              return null;
-            }
-            return (
-              <Link
-                key={path}
-                href={`/apps/${path}`}
-                className={styles.appCard}
-                draggable={false}
-              >
-                <div className={styles.appIcon}>
-                  <ImageWithFallback
-                    src={`/app-icons/${path}.png`}
-                    width={128}
-                    height={128}
-                    alt={`App icon of ${appName}`}
-                    priority={false}
-                  />
-                </div>
-                <div className={styles.appName}>{appName}</div>
-              </Link>
-            );
+        {apps.map((app) => {
+          const hasWipTag = app.tags.some((tag) => tag.name === "wip");
+          if (hasWipTag) {
+            return null;
           }
-        )}
+          return (
+            <Link
+              key={app.path}
+              href={`/apps/${app.path}`}
+              className={styles.appCard}
+              draggable={false}
+            >
+              <div className={styles.appIcon}>
+                <ImageWithFallback
+                  src={`/app-icons/${app.path}.png`}
+                  width={128}
+                  height={128}
+                  alt={`App icon of ${app.app_name}`}
+                  priority={false}
+                />
+              </div>
+              <div className={styles.appName}>{app.app_name}</div>
+            </Link>
+          );
+        })}
       </section>
     </main>
   );

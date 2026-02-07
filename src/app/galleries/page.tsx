@@ -1,4 +1,4 @@
-import { galleryList } from "@/lib/galleryList";
+import { getGalleries } from "@/lib/supabase/actions";
 import Link from "next/link";
 import ImageWithFallback from "@/components/ImageWithFallback";
 import styles from "./page.module.scss";
@@ -7,7 +7,9 @@ export const metadata = {
   title: "tomoq galleries",
 };
 
-export default function Home() {
+export default async function Home() {
+  const galleries = await getGalleries();
+
   return (
     <main className={styles.galleriesPage}>
       <section className={styles.heroSection}>
@@ -16,29 +18,25 @@ export default function Home() {
       </section>
 
       <section className={styles.appsGrid}>
-        {Array.from(Object.entries(galleryList)).map(
-          ([path, { galleryName }]) => {
-            return (
-              <Link
-                key={path}
-                href={`/galleries/${path}`}
-                className={styles.galleryCard}
-                draggable={false}
-              >
-                <div className={styles.galleryIcon}>
-                  <ImageWithFallback
-                    src={`/gallery-icons/${path}.png`}
-                    width={128}
-                    height={128}
-                    alt={`Gallery icon of ${galleryName}`}
-                    priority={false}
-                  />
-                </div>
-                <div className={styles.galleryName}>{galleryName}</div>
-              </Link>
-            );
-          }
-        )}
+        {galleries.map((gallery) => (
+          <Link
+            key={gallery.path}
+            href={`/galleries/${gallery.path}`}
+            className={styles.galleryCard}
+            draggable={false}
+          >
+            <div className={styles.galleryIcon}>
+              <ImageWithFallback
+                src={`/gallery-icons/${gallery.path}.png`}
+                width={128}
+                height={128}
+                alt={`Gallery icon of ${gallery.gallery_name}`}
+                priority={false}
+              />
+            </div>
+            <div className={styles.galleryName}>{gallery.gallery_name}</div>
+          </Link>
+        ))}
       </section>
     </main>
   );
