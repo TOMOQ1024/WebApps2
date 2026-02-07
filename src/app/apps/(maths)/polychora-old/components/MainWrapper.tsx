@@ -1,14 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
 import Core from "../core/Core";
-import { useSession } from "next-auth/react";
 import Controls from "./Controls";
 import { Vector3 } from "three";
 import style from "./MainWrapper.module.scss";
 import { GyrovectorSpace3 } from "@/src/maths/GyrovectorSpace3";
 
 export default function MainWrapper() {
-  const session = useSession();
   const [core, setCore] = useState<Core>();
   const [isFull, setIsFull] = useState(false);
 
@@ -66,7 +64,7 @@ export default function MainWrapper() {
         // document.removeEventListener("contextmenu", preventDefault);
       };
     }
-  }, [core, session]);
+  }, [core]);
 
   return (
     <main className={style.main}>

@@ -1,13 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import Core from "../Core";
-import { useSession } from "next-auth/react";
 import preventDefault from "@/src/preventDefault";
 import { Vector2 } from "three";
 import Controls from "./Controls";
 
 export default function MainWrapper() {
-  const session = useSession();
   const [core, setCore] = useState<Core>();
   const [isFull, setIsFull] = useState(false);
 
@@ -87,7 +85,7 @@ export default function MainWrapper() {
         document.removeEventListener("contextmenu", preventDefault);
       };
     }
-  }, [core, session]);
+  }, [core]);
 
   return (
     <main id="main-wrapper">

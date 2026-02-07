@@ -3,13 +3,10 @@ import { useEffect, useState } from "react";
 import Core from "../Core";
 import { Vector2 } from "three";
 import Controls from "./Controls";
-import axios from "axios";
-import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import preventDefault from "@/src/preventDefault";
 
 export default function MainWrapper() {
-  const session = useSession();
   const searchParams = useSearchParams();
   const [core, setCore] = useState<Core>();
   const [isFull, setIsFull] = useState(false);
@@ -65,21 +62,7 @@ export default function MainWrapper() {
             HandleResize();
           }
         }
-        if (session && e.key === ";" && !e.shiftKey && !e.metaKey) {
-          const data = {
-            authorId: 1,
-            z0Expression: initCore.z0expr,
-            expression: initCore.funcexpr,
-            radius: initCore.graph.radius,
-            originX: initCore.graph.origin.x,
-            originY: initCore.graph.origin.y,
-            tags: [],
-          };
-          (async () => {
-            const response = await axios.post("/api/works/create", data);
-            console.log(response);
-          })();
-        }
+        // TODO: 将来的に Supabase 経由でデータ保存機能を実装
         if (0 && e.key === "v" && !e.shiftKey && !e.metaKey) {
           // 仮
           const ipt = document.querySelector("#func-input") as HTMLInputElement;
@@ -252,7 +235,7 @@ export default function MainWrapper() {
         document.removeEventListener("contextmenu", preventDefault);
       };
     }
-  }, [core, session]);
+  }, [core]);
 
   return (
     <main id="main-wrapper">

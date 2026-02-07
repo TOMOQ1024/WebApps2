@@ -1,11 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import Core from "../Core";
-import { useSession } from "next-auth/react";
 import Controls from "./Controls";
 import { CreatePolyhedron } from "../Polyhedron";
 import {
-  AxesHelper,
   EdgesGeometry,
   LineBasicMaterial,
   LineSegments,
@@ -14,7 +12,6 @@ import {
 } from "three";
 
 export default function MainWrapper() {
-  const session = useSession();
   const [core, setCore] = useState<Core>();
   const [isFull, setIsFull] = useState(false);
 
@@ -134,7 +131,7 @@ export default function MainWrapper() {
         // document.removeEventListener("contextmenu", preventDefault);
       };
     }
-  }, [core, session]);
+  }, [core]);
 
   return (
     <main id="main-wrapper">
