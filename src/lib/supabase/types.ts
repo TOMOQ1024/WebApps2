@@ -74,6 +74,7 @@ export interface Graph2DGalleryItem extends Omit<GalleryItem, "data"> {
 
 export interface Graph2DGalleryItemWithTags extends Graph2DGalleryItem {
   tags: Tag[];
+  creator_username?: string | null; // 作成者のユーザー名
 }
 
 export interface CompDynamGalleryItem extends Omit<GalleryItem, "data"> {

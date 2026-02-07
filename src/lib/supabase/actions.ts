@@ -211,25 +211,35 @@ export async function getGraph2DItemsWithTags(): Promise<Graph2DGalleryItemWithT
   const supabase = await createClient();
   const items = await getGraph2DItems();
 
-  // 各アイテムのタグを取得
+  // 各アイテムのタグと作成者名を取得
   const itemsWithTags: Graph2DGalleryItemWithTags[] = await Promise.all(
     items.map(async (item) => {
+      // タグを取得
       const { data: tagRelations } = await supabase
         .from("gallery_item_tags")
         .select("tag_id")
         .eq("gallery_item_id", item.id);
 
-      if (!tagRelations || tagRelations.length === 0) {
-        return { ...item, tags: [] };
+      let tags: Tag[] = [];
+      if (tagRelations && tagRelations.length > 0) {
+        const tagIds = tagRelations.map((r) => r.tag_id);
+        const { data: fetchedTags } = await supabase
+          .from("tags")
+          .select("*")
+          .in("id", tagIds);
+        tags = fetchedTags ?? [];
       }
 
-      const tagIds = tagRelations.map((r) => r.tag_id);
-      const { data: tags } = await supabase
-        .from("tags")
-        .select("*")
-        .in("id", tagIds);
+      // 作成者のユーザー名を取得
+      let creator_username: string | null = null;
+      if (item.created_by) {
+        const { data: username } = await supabase.rpc("get_username", {
+          user_id: item.created_by,
+        });
+        creator_username = username;
+      }
 
-      return { ...item, tags: tags ?? [] };
+      return { ...item, tags, creator_username };
     })
   );
 

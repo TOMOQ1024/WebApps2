@@ -18,6 +18,8 @@ export default async function Home() {
     center: item.data.center,
     radius: item.data.radius,
     tags: item.tags,
+    created_by: item.created_by,
+    creator_username: item.creator_username,
   }));
 
   return <Main items={galleryData} availableTags={availableTags} />;

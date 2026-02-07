@@ -212,6 +212,14 @@ export default function DetailModal({
           </div>
         )}
 
+        {/* 作成者 */}
+        {item.creator_username && (
+          <div className="mb-4 text-sm">
+            <span className="opacity-50">作成者: </span>
+            <span className="font-medium">{item.creator_username}</span>
+          </div>
+        )}
+
         {/* アクションボタン */}
         <div className="flex gap-2">
           <button
@@ -230,12 +238,10 @@ export default function DetailModal({
           </button>
         </div>
 
-        {/* 所有者表示（編集機能は後回し） */}
+        {/* 所有者向け編集機能（後回し） */}
         {isOwner && (
           <div className="mt-4 pt-4 border-t border-[var(--border-color)]">
-            <p className="text-xs opacity-50">
-              あなたが作成した作品です（編集機能は後日実装予定）
-            </p>
+            <p className="text-xs opacity-50">編集機能は後日実装予定</p>
           </div>
         )}
       </div>
