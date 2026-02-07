@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "seed:supabase": "tsx scripts/seed-supabase.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
@@ -96,11 +97,13 @@
     "@types/jest": "^29.5.14",
     "@types/js-yaml": "^4.0.9",
     "autoprefixer": "^10.4.21",
+    "dotenv": "^17.2.4",
     "jest": "^30.0.0",
     "patch-package": "^8.0.0",
     "postcss": "^8.5.6",
     "postinstall-postinstall": "^2.1.0",
     "tailwindcss": "^4.1.13",
-    "ts-jest": "^29.4.0"
+    "ts-jest": "^29.4.0",
+    "tsx": "^4.21.0"
   }
 }
