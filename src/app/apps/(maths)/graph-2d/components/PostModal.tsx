@@ -223,8 +223,24 @@ export default function PostModal({
   const handleCreateTag = () => {
     if (!newTagName.trim()) return;
 
+    const trimmedName = newTagName.trim().toLowerCase();
+
+    // 既存タグリストに同名のタグがあるかチェック
+    const existingTag = tags.find(
+      (t) => t.name.toLowerCase() === trimmedName,
+    );
+    if (existingTag) {
+      // 既存タグを選択（まだ選択されていなければ）
+      if (!selectedTagIds.includes(existingTag.id)) {
+        setSelectedTagIds((prev) => [...prev, existingTag.id]);
+      }
+      setNewTagName("");
+      setError(null);
+      return;
+    }
+
     startTransition(async () => {
-      // ギャラリーアイテム用タグとして作成
+      // ギャラリーアイテム用タグとして作成（または既存タグのスコープ更新）
       const result = await createTag(newTagName.trim(), {
         for_apps: false,
         for_galleries: false,
@@ -232,10 +248,17 @@ export default function PostModal({
       });
       if (result.success && result.tag) {
         const newTag = result.tag;
-        setTags((prev) =>
-          [...prev, newTag].sort((a, b) => a.name.localeCompare(b.name)),
-        );
-        setSelectedTagIds((prev) => [...prev, newTag.id]);
+        // 既にリストにあるか確認（createTag がスコープ更新で既存タグを返した場合）
+        const alreadyInList = tags.some((t) => t.id === newTag.id);
+        if (!alreadyInList) {
+          setTags((prev) =>
+            [...prev, newTag].sort((a, b) => a.name.localeCompare(b.name)),
+          );
+        }
+        // 選択に追加
+        if (!selectedTagIds.includes(newTag.id)) {
+          setSelectedTagIds((prev) => [...prev, newTag.id]);
+        }
         setNewTagName("");
         setError(null);
       } else {
@@ -278,7 +301,7 @@ export default function PostModal({
       />
 
       {/* モーダル */}
-      <div className="relative z-10 w-full max-w-md bg-[var(--background-color)] border-2 border-[var(--border-color)] p-6">
+      <div className="relative z-10 w-full max-w-md max-h-[90vh] overflow-y-auto bg-[var(--background-color)] border-2 border-[var(--border-color)] p-6 mx-4">
         {/* ヘッダー */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold">ギャラリーに投稿</h2>
@@ -372,21 +395,23 @@ export default function PostModal({
               読み込み中...
             </div>
           ) : (
-            <div className="flex flex-wrap gap-2 mb-2">
-              {tags.map((tag) => (
-                <button
-                  key={tag.id}
-                  type="button"
-                  onClick={() => handleTagToggle(tag.id)}
-                  className={`px-2 py-1 text-sm border-2 ${
-                    selectedTagIds.includes(tag.id)
-                      ? "border-[var(--text-color)] font-bold"
-                      : "border-[var(--border-color)] hover:opacity-70"
-                  }`}
-                >
-                  {tag.name}
-                </button>
-              ))}
+            <div className="max-h-32 overflow-y-auto border border-[var(--border-color)] p-2 mb-2">
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag) => (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => handleTagToggle(tag.id)}
+                    className={`px-2 py-1 text-sm border-2 ${
+                      selectedTagIds.includes(tag.id)
+                        ? "border-[var(--text-color)] font-bold"
+                        : "border-[var(--border-color)] hover:opacity-70"
+                    }`}
+                  >
+                    {tag.name}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
