@@ -1,11 +1,12 @@
 "use client";
 
-import { Loader2, Plus, X } from "lucide-react";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { Loader2, Plus } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import * as THREE from "three";
 import { fragmentShader as baseFragmentShader } from "@/app/apps/(maths)/graph-2d/Shaders/FragmentShader";
 import { vertexShader as baseVertexShader } from "@/app/apps/(maths)/graph-2d/Shaders/VertexShader";
 import { generateShaderFromExpressions } from "@/app/galleries/graph-2d/components/GalleryGridCanvas";
+import Modal from "@/components/Modal";
 import { useTheme } from "@/hooks/useTheme";
 import {
   createGalleryItem,
@@ -36,11 +37,29 @@ export default function PostModal({
   const [isPending, startTransition] = useTransition();
   const [isLoadingTags, setIsLoadingTags] = useState(true);
   const [isRendering, setIsRendering] = useState(false);
+  const [containerReady, setContainerReady] = useState(false);
 
   // WebGL 関連の ref
   const containerRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const animationIdRef = useRef<number | null>(null);
+
+  // コンテナの準備状態を監視
+  useEffect(() => {
+    if (!isOpen) {
+      setContainerReady(false);
+      return;
+    }
+    // Dialog がマウントされた後に containerRef が利用可能になるのを待つ
+    const checkContainer = () => {
+      if (containerRef.current) {
+        setContainerReady(true);
+      } else {
+        requestAnimationFrame(checkContainer);
+      }
+    };
+    checkContainer();
+  }, [isOpen]);
 
   // ローカル編集用の状態
   const [centerX, setCenterX] = useState(galleryData.center[0].toString());
@@ -56,7 +75,7 @@ export default function PostModal({
 
   // WebGL レンダリング
   useEffect(() => {
-    if (!isOpen || !containerRef.current) return;
+    if (!containerReady || !containerRef.current) return;
 
     const container = containerRef.current;
 
@@ -154,7 +173,7 @@ export default function PostModal({
       }
     };
   }, [
-    isOpen,
+    containerReady,
     galleryData.expressions,
     galleryData.center,
     galleryData.radius,
@@ -211,6 +230,13 @@ export default function PostModal({
       onGalleryDataChange({ radius: num });
     }
   };
+
+  // 入力文字列でタグを絞り込み
+  const filteredTags = useMemo(() => {
+    const query = newTagName.trim().toLowerCase();
+    if (!query) return tags;
+    return tags.filter((tag) => tag.name.toLowerCase().includes(query));
+  }, [tags, newTagName]);
 
   const handleTagToggle = (tagId: string) => {
     setSelectedTagIds((prev) =>
@@ -288,31 +314,10 @@ export default function PostModal({
     });
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* オーバーレイ */}
-      <button
-        type="button"
-        className="absolute inset-0 bg-black/50 cursor-default"
-        onClick={onClose}
-        aria-label="モーダルを閉じる"
-      />
-
-      {/* モーダル */}
-      <div className="relative z-10 w-full max-w-md max-h-[90vh] overflow-y-auto bg-[var(--background-color)] border-2 border-[var(--border-color)] p-6 mx-4">
-        {/* ヘッダー */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold">ギャラリーに投稿</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1 hover:opacity-70"
-          >
-            <X size={20} />
-          </button>
-        </div>
+    <Modal isOpen={isOpen} onClose={onClose}>
+      {/* ヘッダー */}
+      <h2 className="text-lg font-bold mb-4">ギャラリーに投稿</h2>
 
         {/* サムネイルプレビュー（WebGL） */}
         <div className="mb-4 flex justify-center">
@@ -397,31 +402,35 @@ export default function PostModal({
           ) : (
             <div className="max-h-32 overflow-y-auto border border-[var(--border-color)] p-2 mb-2">
               <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => (
-                  <button
-                    key={tag.id}
-                    type="button"
-                    onClick={() => handleTagToggle(tag.id)}
-                    className={`px-2 py-1 text-sm border-2 ${
-                      selectedTagIds.includes(tag.id)
-                        ? "border-[var(--text-color)] font-bold"
-                        : "border-[var(--border-color)] hover:opacity-70"
-                    }`}
-                  >
-                    {tag.name}
-                  </button>
-                ))}
+                {filteredTags.length > 0 ? (
+                  filteredTags.map((tag) => (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => handleTagToggle(tag.id)}
+                      className={`px-2 py-1 text-sm border-2 ${
+                        selectedTagIds.includes(tag.id)
+                          ? "border-[var(--text-color)] font-bold"
+                          : "border-[var(--border-color)] hover:opacity-70"
+                      }`}
+                    >
+                      {tag.name}
+                    </button>
+                  ))
+                ) : newTagName.trim() ? (
+                  <span className="text-sm opacity-50">一致するタグがありません</span>
+                ) : null}
               </div>
             </div>
           )}
 
-          {/* 新規タグ作成 */}
+          {/* タグ検索・新規作成 */}
           <div className="flex gap-2 mt-2">
             <input
               type="text"
               value={newTagName}
               onChange={(e) => setNewTagName(e.target.value)}
-              placeholder="新しいタグを作成"
+              placeholder="タグを検索または作成"
               className="flex-1 px-2 py-1 text-sm border border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)]"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -473,7 +482,6 @@ export default function PostModal({
             "投稿する"
           )}
         </button>
-      </div>
-    </div>
+    </Modal>
   );
 }

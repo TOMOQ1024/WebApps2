@@ -14,6 +14,7 @@ import { Loader2, Pencil, Trash2, Plus } from "lucide-react";
 import { fragmentShader as baseFragmentShader } from "@/app/apps/(maths)/graph-2d/Shaders/FragmentShader";
 import { vertexShader as baseVertexShader } from "@/app/apps/(maths)/graph-2d/Shaders/VertexShader";
 import type { Graph2DGalleryItemWithTags } from "@/app/galleries/graph-2d/GalleryData";
+import Modal from "@/components/Modal";
 import { useAuth } from "@/components/SupabaseAuthProvider";
 import { useTheme } from "@/hooks/useTheme";
 import { generateShaderFromExpressions } from "./GalleryGridCanvas";
@@ -47,6 +48,24 @@ export default function DetailModal({
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const animationIdRef = useRef<number | null>(null);
   const [isRendering, setIsRendering] = useState(false);
+  const [containerReady, setContainerReady] = useState(false);
+
+  // コンテナの準備状態を監視
+  useEffect(() => {
+    if (!isOpen) {
+      setContainerReady(false);
+      return;
+    }
+    // Dialog がマウントされた後に containerRef が利用可能になるのを待つ
+    const checkContainer = () => {
+      if (containerRef.current) {
+        setContainerReady(true);
+      } else {
+        requestAnimationFrame(checkContainer);
+      }
+    };
+    checkContainer();
+  }, [isOpen]);
 
   // 編集モード
   const [isEditing, setIsEditing] = useState(false);
@@ -110,6 +129,13 @@ export default function DetailModal({
       setSelectedTagIds(item.tags.map((t) => t.id));
     }
   }, [isOpen, item]);
+
+  // 入力文字列でタグを絞り込み
+  const filteredTags = useMemo(() => {
+    const query = newTagName.trim().toLowerCase();
+    if (!query) return availableTags;
+    return availableTags.filter((tag) => tag.name.toLowerCase().includes(query));
+  }, [availableTags, newTagName]);
 
   // タグ選択の切り替え
   const handleTagToggle = useCallback((tagId: string) => {
@@ -190,7 +216,7 @@ export default function DetailModal({
 
   // WebGL レンダリング
   useEffect(() => {
-    if (!isOpen || !containerRef.current) return;
+    if (!containerReady || !containerRef.current) return;
 
     const container = containerRef.current;
 
@@ -284,35 +310,13 @@ export default function DetailModal({
         container.removeChild(canvas);
       }
     };
-  }, [isOpen, item.expressions, renderData, themeValue]);
-
-  if (!isOpen) return null;
+  }, [containerReady, item.expressions, renderData, themeValue]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* オーバーレイ */}
-      <button
-        type="button"
-        className="absolute inset-0 bg-black/50"
-        onClick={onClose}
-        aria-label="閉じる"
-      />
-
-      {/* モーダルコンテンツ */}
-      <div className="relative bg-[var(--background-color)] border-2 border-[var(--border-color)] p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
-        {/* 閉じるボタン */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute top-3 right-3 text-xl opacity-70 hover:opacity-100"
-          aria-label="閉じる"
-        >
-          ×
-        </button>
-
-        <h2 className="text-lg font-bold mb-4">
-          {isEditing ? "作品を編集" : "作品詳細"}
-        </h2>
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <h2 className="text-lg font-bold mb-4">
+        {isEditing ? "作品を編集" : "作品詳細"}
+      </h2>
 
         {/* サムネイル */}
         <div className="mb-4 flex justify-center">
@@ -397,30 +401,34 @@ export default function DetailModal({
                   読み込み中...
                 </div>
               ) : (
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {availableTags.map((tag) => (
-                    <button
-                      key={tag.id}
-                      type="button"
-                      onClick={() => handleTagToggle(tag.id)}
-                      className={`px-2 py-1 text-sm border-2 ${
-                        selectedTagIds.includes(tag.id)
-                          ? "border-[var(--text-color)] font-bold"
-                          : "border-[var(--border-color)] hover:opacity-70"
-                      }`}
-                    >
-                      {tag.name}
-                    </button>
-                  ))}
+                <div className="flex flex-wrap gap-2 mb-2 max-h-24 overflow-y-auto border border-[var(--border-color)] p-2">
+                  {filteredTags.length > 0 ? (
+                    filteredTags.map((tag) => (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        onClick={() => handleTagToggle(tag.id)}
+                        className={`px-2 py-1 text-sm border-2 ${
+                          selectedTagIds.includes(tag.id)
+                            ? "border-[var(--text-color)] font-bold"
+                            : "border-[var(--border-color)] hover:opacity-70"
+                        }`}
+                      >
+                        {tag.name}
+                      </button>
+                    ))
+                  ) : newTagName.trim() ? (
+                    <span className="text-sm opacity-50">一致するタグがありません</span>
+                  ) : null}
                 </div>
               )}
-              {/* 新規タグ作成 */}
+              {/* タグ検索・新規作成 */}
               <div className="flex gap-2 mt-2">
                 <input
                   type="text"
                   value={newTagName}
                   onChange={(e) => setNewTagName(e.target.value)}
-                  placeholder="新しいタグを作成"
+                  placeholder="タグを検索または作成"
                   className="flex-1 px-2 py-1 text-sm border border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)]"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
@@ -577,7 +585,6 @@ export default function DetailModal({
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </Modal>
   );
 }
