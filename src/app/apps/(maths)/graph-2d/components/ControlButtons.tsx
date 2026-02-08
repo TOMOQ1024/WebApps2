@@ -1,4 +1,5 @@
-import { Home, Link, Palette, Upload } from "lucide-react";
+import { GalleryHorizontalEnd, Home, Link, Palette, Send, Upload } from "lucide-react";
+import NextLink from "next/link";
 
 interface ControlButtonsProps {
   onResetGraph: () => void;
@@ -6,6 +7,8 @@ interface ControlButtonsProps {
   currentRenderMode: number;
   onShareLink: () => void;
   onExportGalleryData: () => void;
+  onPost?: () => void;
+  isLoggedIn?: boolean;
   exprType: number; // 0: 不等式, 1: 数値式
 }
 
@@ -18,6 +21,8 @@ export default function ControlButtons({
   currentRenderMode,
   onShareLink,
   onExportGalleryData,
+  onPost,
+  isLoggedIn = false,
   exprType,
 }: ControlButtonsProps) {
   // 数値式の場合のみグレースケールモード切り替えを有効化
@@ -76,6 +81,23 @@ export default function ControlButtons({
       >
         <Upload size={16} />
       </button>
+      <NextLink
+        href="/galleries/graph-2d"
+        className="w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] cursor-pointer flex items-center justify-center hover:scale-95 active:invert"
+        title="ギャラリーを見る"
+      >
+        <GalleryHorizontalEnd size={16} />
+      </NextLink>
+      {isLoggedIn && onPost && (
+        <button
+          type="button"
+          className="w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] cursor-pointer flex items-center justify-center hover:scale-95 active:invert"
+          onClick={onPost}
+          title="ギャラリーに投稿"
+        >
+          <Send size={16} />
+        </button>
+      )}
     </div>
   );
 }

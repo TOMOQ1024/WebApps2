@@ -1,10 +1,9 @@
-import { NextAuthProvider } from "@/components/NextAuthProvider";
+import { SupabaseAuthProvider } from "@/components/SupabaseAuthProvider";
+import { createClient } from "@/lib/supabase/server";
 import "./globals.scss";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { getServerSession } from "next-auth/next";
 import Header from "@/components/Header";
-import { authOptions } from "@/lib/authOptions";
 import "@fontsource-variable/roboto-mono";
 import ClientProviders from "@/components/ClientProviders";
 
@@ -26,7 +25,10 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
+  const supabase = await createClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -41,12 +43,12 @@ export default async function RootLayout({
         />
       </head>
       <body>
-        <NextAuthProvider session={session}>
+        <SupabaseAuthProvider initialSession={session}>
           <ClientProviders>
             <Header />
             {children}
           </ClientProviders>
-        </NextAuthProvider>
+        </SupabaseAuthProvider>
         <Analytics />
         <SpeedInsights />
       </body>

@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useImperativeHandle, forwardRef } from "react";
 import * as THREE from "three";
 import { vertexShader } from "../Shaders/VertexShader";
-import GraphMgr from "@/src/GraphMgr";
+import type GraphMgr from "@/src/GraphMgr";
 import { CanvasManager } from "@/src/CanvasManager";
 import { useTheme } from "@/hooks/useTheme";
 
@@ -13,13 +13,17 @@ interface CanvasProps {
   exprType: number;
 }
 
-export default function Canvas({
+export interface CanvasHandle {
+  captureSquareThumbnail: (size?: number) => string | null;
+}
+
+const Canvas = forwardRef<CanvasHandle, CanvasProps>(function Canvas({
   shader,
   graph,
   onGraphChange,
   renderMode,
   exprType,
-}: CanvasProps) {
+}, ref) {
   const { themeValue } = useTheme();
   const themeValueRef = useRef(themeValue);
 
@@ -101,12 +105,14 @@ export default function Canvas({
       if (materialRef.current) {
         materialRef.current.uniforms.uTime.value = time * 0.001;
         materialRef.current.uniforms.uTheme.value = themeValueRef.current;
-        const graph = canvasManager.getGraphManager();
-        materialRef.current.uniforms.uGraph.value.origin.set(
-          graph!.origin.x,
-          graph!.origin.y
-        );
-        materialRef.current.uniforms.uGraph.value.radius = graph!.radius;
+        const currentGraph = canvasManager.getGraphManager();
+        if (currentGraph) {
+          materialRef.current.uniforms.uGraph.value.origin.set(
+            currentGraph.origin.x,
+            currentGraph.origin.y
+          );
+          materialRef.current.uniforms.uGraph.value.radius = currentGraph.radius;
+        }
       }
     });
 
@@ -136,10 +142,45 @@ export default function Canvas({
     }
   }, [exprType]);
 
+  // 正方形サムネイルをキャプチャする関数を親に公開
+  useImperativeHandle(ref, () => ({
+    captureSquareThumbnail: (size = 256): string | null => {
+      const canvasManager = canvasManagerRef.current;
+      if (!canvasManager) return null;
+
+      const renderer = canvasManager.getRenderer();
+      const domElement = renderer.domElement;
+
+      // キャンバスの中心から正方形を切り出す
+      const canvasWidth = domElement.width;
+      const canvasHeight = domElement.height;
+      const cropSize = Math.min(canvasWidth, canvasHeight);
+      const offsetX = Math.floor((canvasWidth - cropSize) / 2);
+      const offsetY = Math.floor((canvasHeight - cropSize) / 2);
+
+      // 一時的なキャンバスを作成して正方形にクロップ
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = size;
+      tempCanvas.height = size;
+      const ctx = tempCanvas.getContext("2d");
+      if (!ctx) return null;
+
+      ctx.drawImage(
+        domElement,
+        offsetX, offsetY, cropSize, cropSize,
+        0, 0, size, size
+      );
+
+      return tempCanvas.toDataURL("image/png");
+    },
+  }), []);
+
   return (
     <div
       ref={containerRef}
       className="left-0 w-full h-full z-0 touch-none select-none"
     />
   );
-}
+});
+
+export default Canvas;

@@ -1,3 +1,5 @@
+import type { Tag } from "@/lib/supabase/types";
+
 /**
  * Graph 2D ギャラリーアイテムの型定義
  *
@@ -9,6 +11,16 @@ export interface Graph2DGalleryItem {
   expressions: string[];
   center: [number, number];
   radius: number;
+}
+
+/**
+ * タグ情報を含む Graph 2D ギャラリーアイテム
+ */
+export interface Graph2DGalleryItemWithTags extends Graph2DGalleryItem {
+  id: string;
+  tags: Tag[];
+  created_by?: string | null; // auth.users の UUID
+  creator_username?: string | null; // 作成者のユーザー名
 }
 
 // 使用例（コメントアウト）

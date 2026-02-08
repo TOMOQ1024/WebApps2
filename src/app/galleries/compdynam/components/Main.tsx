@@ -1,12 +1,17 @@
 "use client";
+
 import styles from "./Main.module.scss";
 import GalleryGridCanvas from "./GalleryGridCanvas";
-import { galleryData } from "@/app/galleries/compdynam/GalleryData";
+import type { CompDynamGalleryItem } from "@/app/galleries/compdynam/GalleryData";
 
-export default function Main() {
+interface MainProps {
+  items: CompDynamGalleryItem[];
+}
+
+export default function Main({ items }: MainProps) {
   return (
     <main className={styles.main}>
-      <GalleryGridCanvas items={galleryData} />
+      <GalleryGridCanvas items={items} />
     </main>
   );
 }

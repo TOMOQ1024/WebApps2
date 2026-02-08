@@ -1,11 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { fragmentShader as baseFragmentShader } from "@/app/apps/(maths)/graph-2d/Shaders/FragmentShader";
 import { vertexShader as baseVertexShader } from "@/app/apps/(maths)/graph-2d/Shaders/VertexShader";
-import type { Graph2DGalleryItem } from "@/app/galleries/graph-2d/GalleryData";
+import type { Graph2DGalleryItem, Graph2DGalleryItemWithTags } from "@/app/galleries/graph-2d/GalleryData";
 import { useTheme } from "@/hooks/useTheme";
 import {
   type ChainedInequalityResult,
@@ -19,8 +18,9 @@ import {
 import { latexToGLSL } from "@/src/Parser/latexToGLSL";
 
 interface GalleryGridCanvasProps {
-  items: Graph2DGalleryItem[];
+  items: (Graph2DGalleryItem | Graph2DGalleryItemWithTags)[];
   className?: string;
+  onItemClick?: (item: Graph2DGalleryItemWithTags) => void;
 }
 
 const CELL_SIZE = 100; // px 固定
@@ -114,7 +114,7 @@ function generateGLSLFunction(def: FunctionDef, knownFuncs: string[]): string {
 /**
  * 式リストからシェーダーを生成
  */
-function generateShaderFromExpressions(
+export function generateShaderFromExpressions(
   expressions: string[],
   baseShader: string,
 ): { shader: string; exprType: number } {
@@ -215,6 +215,7 @@ function generateShaderFromExpressions(
 export default function GalleryGridCanvas({
   items,
   className,
+  onItemClick,
 }: GalleryGridCanvasProps) {
   const { themeValue } = useTheme();
   const themeValueRef = useRef(themeValue);
@@ -231,7 +232,6 @@ export default function GalleryGridCanvas({
   const [rows, setRows] = useState(1);
   const [, forceUpdate] = useState(false);
   const hoverIdxRef = useRef<number | null>(null);
-  const router = useRouter();
 
   // Three.js関連のrefs
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -379,14 +379,10 @@ export default function GalleryGridCanvas({
         const idx = getCellIndexFromPointer(e);
         if (idx !== null && 0 <= idx && idx < items.length) {
           const item = items[idx];
-          // graph-2d アプリへのナビゲーション
-          const params = new URLSearchParams();
-          // 全ての式をセミコロン区切りで渡す
-          const expressionsStr = item.expressions.join(";");
-          params.set("expr", encodeURIComponent(expressionsStr));
-          params.set("origin", `${item.center[0]},${item.center[1]}`);
-          params.set("radius", item.radius.toString());
-          router.push(`/apps/graph-2d?${params.toString()}`);
+          // 詳細モーダルを開く
+          if (onItemClick && "id" in item) {
+            onItemClick(item as Graph2DGalleryItemWithTags);
+          }
         }
       };
 
@@ -402,7 +398,7 @@ export default function GalleryGridCanvas({
         handleClick: newHandleClick,
       };
     }
-  }, [canvasSize, cols, rows, items.length, router, items]);
+  }, [canvasSize, cols, rows, items.length, onItemClick, items]);
 
   // メッシュ生成（items変更時のみ）
   useEffect(() => {
@@ -580,14 +576,10 @@ export default function GalleryGridCanvas({
       const idx = getCellIndexFromPointer(e);
       if (idx !== null && 0 <= idx && idx < items.length) {
         const item = items[idx];
-        // graph-2d アプリへのナビゲーション
-        const params = new URLSearchParams();
-        // 全ての式をセミコロン区切りで渡す
-        const expressionsStr = item.expressions.join(";");
-        params.set("expr", encodeURIComponent(expressionsStr));
-        params.set("origin", `${item.center[0]},${item.center[1]}`);
-        params.set("radius", item.radius.toString());
-        router.push(`/apps/graph-2d?${params.toString()}`);
+        // 詳細モーダルを開く
+        if (onItemClick && "id" in item) {
+          onItemClick(item as Graph2DGalleryItemWithTags);
+        }
       }
     };
 
@@ -629,7 +621,7 @@ export default function GalleryGridCanvas({
       meshesRef.current = [];
       eventHandlersRef.current = null;
     };
-  }, [items, router]);
+  }, [items, onItemClick]);
 
   // 親divでoverflow-y: auto、canvasは横幅100%、高さ可変
   return (

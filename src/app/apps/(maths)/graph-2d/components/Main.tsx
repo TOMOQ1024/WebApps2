@@ -3,21 +3,23 @@
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Vector2 } from "three";
+import { useAuth } from "@/components/SupabaseAuthProvider";
 import GraphMgr from "@/src/GraphMgr";
 import {
-  type FunctionDef,
   type ChainedInequalityResult,
   type ConstantDef,
-  parseFunctionDef,
-  parseConstantDef,
-  parseChainedInequality,
+  type FunctionDef,
   isNumericExpression,
+  parseChainedInequality,
+  parseConstantDef,
+  parseFunctionDef,
 } from "@/src/Parser/graph2d/expressionParser";
 import { latexToGLSL } from "@/src/Parser/latexToGLSL";
 import { fragmentShader } from "../Shaders/FragmentShader";
 import Canvas from "./Canvas";
 import ControlButtons from "./ControlButtons";
 import ControlPanel from "./ControlPanel";
+import PostModal from "./PostModal";
 
 // 組み込み関数リスト
 const BUILTIN_FUNCS = [
@@ -68,10 +70,12 @@ const BUILTIN_FUNCS = [
 function chainedInequalityToGLSL(
   result: ChainedInequalityResult,
   knownFuncs: string[],
-  knownVars: string[]
+  knownVars: string[],
 ): string {
   const { parts, operators } = result;
-  const partsGLSL = parts.map((part) => latexToGLSL(part, knownFuncs, knownVars));
+  const partsGLSL = parts.map((part) =>
+    latexToGLSL(part, knownFuncs, knownVars),
+  );
 
   // 各隣接ペアの差を計算
   const diffs: string[] = [];
@@ -114,6 +118,7 @@ function generateGLSLFunction(def: FunctionDef, knownFuncs: string[]): string {
 }
 
 export default function Main() {
+  const { user } = useAuth();
   const [shader, setShader] = useState(fragmentShader);
   const [graph, setGraph] = useState<GraphMgr>(new GraphMgr());
   const [renderMode, setRenderMode] = useState(0);
@@ -128,6 +133,9 @@ export default function Main() {
   const [error, setError] = useState<string | null>(null);
 
   const [hasLoadedFromParams, setHasLoadedFromParams] = useState(false);
+
+  // 投稿モーダルの状態
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
 
   // クエリパラメータから読み込んだ初期グラフ設定を保持
   const initialGraphRef = useRef<GraphMgr>(new GraphMgr());
@@ -190,9 +198,7 @@ export default function Main() {
           (name, index) => allUserNames.indexOf(name) !== index,
         );
         if (duplicateNames.length > 0) {
-          throw new Error(
-            `Duplicate definition: ${duplicateNames[0]}`,
-          );
+          throw new Error(`Duplicate definition: ${duplicateNames[0]}`);
         }
 
         // 予約変数との重複チェック
@@ -230,7 +236,7 @@ export default function Main() {
           mainGLSL = chainedInequalityToGLSL(
             chainedInequality,
             knownFuncs,
-            knownVars
+            knownVars,
           );
         } else {
           throw new Error("Invalid expression");
@@ -242,7 +248,7 @@ export default function Main() {
         // ユーザー定義関数を挿入（graph2d関数の前に）
         if (glslFunctions.length > 0) {
           const funcInsertPoint = "float graph2d(vec2 _C) {";
-          const funcCode = glslFunctions.join("\n\n") + "\n\n";
+          const funcCode = `${glslFunctions.join("\n\n")}\n\n`;
           newShader = newShader.replace(
             funcInsertPoint,
             funcCode + funcInsertPoint,
@@ -250,9 +256,8 @@ export default function Main() {
         }
 
         // 定数とメイン式を挿入
-        const constantsCode = glslConstants.length > 0 
-          ? glslConstants.join("\n  ") + "\n\n  " 
-          : "";
+        const constantsCode =
+          glslConstants.length > 0 ? `${glslConstants.join("\n  ")}\n\n  ` : "";
         newShader = newShader.replace(
           /\/\* input func here \*\//,
           `${constantsCode}c = ${mainGLSL};`,
@@ -394,6 +399,41 @@ export default function Main() {
     }
   }, [currentExpressions, graph]);
 
+  // ギャラリーデータを生成
+  const getGalleryData = useCallback(() => {
+    return {
+      expressions: currentExpressions.filter((e) => e.trim() !== ""),
+      center: [graph.origin.x, graph.origin.y] as [number, number],
+      radius: graph.radius,
+    };
+  }, [currentExpressions, graph]);
+
+  const handleOpenPostModal = useCallback(() => {
+    setIsPostModalOpen(true);
+  }, []);
+
+  const handleClosePostModal = useCallback(() => {
+    setIsPostModalOpen(false);
+  }, []);
+
+  // PostModal からの描画設定変更を処理
+  const handleGalleryDataChange = useCallback(
+    (data: { center?: [number, number]; radius?: number }) => {
+      if (data.center !== undefined) {
+        const newCenter = data.center;
+        setGraph(
+          (prev) =>
+            new GraphMgr(new Vector2(newCenter[0], newCenter[1]), prev.radius),
+        );
+      }
+      if (data.radius !== undefined) {
+        const newRadius = data.radius;
+        setGraph((prev) => new GraphMgr(prev.origin.clone(), newRadius));
+      }
+    },
+    [],
+  );
+
   return (
     <main className="relative w-screen h-[calc(100vh-var(--header-height))] overflow-hidden">
       <Canvas
@@ -414,7 +454,15 @@ export default function Main() {
         currentRenderMode={renderMode}
         onShareLink={handleShareLink}
         onExportGalleryData={handleExportGalleryData}
+        onPost={handleOpenPostModal}
+        isLoggedIn={!!user}
         exprType={exprType}
+      />
+      <PostModal
+        isOpen={isPostModalOpen}
+        onClose={handleClosePostModal}
+        galleryData={getGalleryData()}
+        onGalleryDataChange={handleGalleryDataChange}
       />
     </main>
   );

@@ -4,12 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "postinstall": "prisma generate",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "seed:supabase": "tsx scripts/seed-supabase.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
@@ -21,14 +21,16 @@
     "@fortawesome/free-regular-svg-icons": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
     "@fortawesome/react-fontawesome": "^0.2.0",
+    "@headlessui/react": "^2.2.9",
     "@mediapipe/tasks-vision": "^0.10.21",
     "@mui/lab": "^6.0.0-beta.28",
     "@mui/material": "^6.4.5",
     "@pixiv/three-vrm": "^3.3.4",
     "@pixiv/three-vrm-animation": "^3.3.4",
-    "@prisma/client": "6.4.1",
     "@react-three/drei": "^10.3.0",
     "@react-three/fiber": "^9.1.2",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.95.3",
     "@types/matter-js": "^0.19.6",
     "@types/node": "22.13.5",
     "@types/p5": "^1.7.6",
@@ -53,11 +55,9 @@
     "matter-js": "^0.20.0",
     "mime": "^4.0.3",
     "next": "^16.1.4",
-    "next-auth": "^4.24.12",
     "next-mdx-remote": "^5.0.0",
     "p5": "^1.9.3",
     "pixi.js": "^8.8.0",
-    "prisma": "^6.4.1",
     "react": "^19.0.0",
     "react-ace": "^14.0.1",
     "react-dom": "^19.0.0",
@@ -94,11 +94,13 @@
     "@types/jest": "^29.5.14",
     "@types/js-yaml": "^4.0.9",
     "autoprefixer": "^10.4.21",
+    "dotenv": "^17.2.4",
     "jest": "^30.0.0",
     "patch-package": "^8.0.0",
     "postcss": "^8.5.6",
     "postinstall-postinstall": "^2.1.0",
     "tailwindcss": "^4.1.13",
-    "ts-jest": "^29.4.0"
+    "ts-jest": "^29.4.0",
+    "tsx": "^4.21.0"
   }
 }
