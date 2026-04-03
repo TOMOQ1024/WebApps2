@@ -1,9 +1,13 @@
 import * as THREE from "three";
 import type GraphMgr from "@/src/GraphMgr";
 
+export type CanvasManagerResizeSource = "window" | "container";
+
 export interface CanvasManagerOptions {
   container: HTMLDivElement;
   resolution: THREE.Vector2;
+  /** 既定は window（ヘッダー分を差し引いたビューポート）．container のときは親要素の client サイズに追従する */
+  resizeSource?: CanvasManagerResizeSource;
   onGraphChange?: (graph: GraphMgr) => void;
   graphManager?: GraphMgr;
   onResolutionChange?: (resolution: THREE.Vector2) => void;
@@ -24,6 +28,8 @@ export class CanvasManager {
   private boundHandlePointerMove: (e: PointerEvent) => void;
   private boundHandlePointerUp: (e: PointerEvent) => void;
   private boundHandleWheel: (e: WheelEvent) => void;
+  private resizeSource: CanvasManagerResizeSource;
+  private resizeObserver: ResizeObserver | null = null;
 
   constructor(options: CanvasManagerOptions) {
     this.renderer = new THREE.WebGLRenderer({
@@ -41,6 +47,7 @@ export class CanvasManager {
     this.graphManager = options.graphManager;
     this.onGraphChange = options.onGraphChange;
     this.onResolutionChange = options.onResolutionChange;
+    this.resizeSource = options.resizeSource ?? "window";
 
     this.renderer.setSize(options.resolution.x, options.resolution.y);
     options.container.appendChild(this.renderer.domElement);
@@ -57,7 +64,18 @@ export class CanvasManager {
   }
 
   private setupEventListeners() {
-    window.addEventListener("resize", this.boundHandleResize);
+    if (this.resizeSource === "window") {
+      window.addEventListener("resize", this.boundHandleResize);
+    } else {
+      const parent = this.renderer.domElement.parentElement;
+      if (parent) {
+        this.resizeObserver = new ResizeObserver(() => {
+          this.handleResize();
+        });
+        this.resizeObserver.observe(parent);
+        this.handleResize();
+      }
+    }
     if (!this.graphManager) return;
 
     // タッチイベントの設定を改善
@@ -216,10 +234,16 @@ export class CanvasManager {
   }
 
   private handleResize() {
-    const newResolution = new THREE.Vector2(
-      window.innerWidth,
-      window.innerHeight - 50,
-    );
+    const newResolution =
+      this.resizeSource === "window"
+        ? new THREE.Vector2(
+            window.innerWidth,
+            window.innerHeight - 50,
+          )
+        : new THREE.Vector2(
+            this.renderer.domElement.parentElement?.clientWidth ?? 1,
+            this.renderer.domElement.parentElement?.clientHeight ?? 1,
+          );
 
     this.camera.left = -newResolution.x;
     this.camera.right = newResolution.x;
@@ -262,7 +286,12 @@ export class CanvasManager {
   }
 
   public dispose() {
-    window.removeEventListener("resize", this.boundHandleResize);
+    if (this.resizeSource === "window") {
+      window.removeEventListener("resize", this.boundHandleResize);
+    } else if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    }
     if (this.graphManager) {
       this.renderer.domElement.removeEventListener(
         "pointerdown",

@@ -143,6 +143,10 @@ export const appList = {
     appName: "Mandelbrot Set",
     tags: new Set(["wip"]),
   },
+  "mandel-match": {
+    appName: "Mandel Match",
+    tags: new Set(["maths", "fractal"]),
+  },
   polychora: {
     appName: "Polychora",
     tags: new Set(["maths", "geometry"]),
