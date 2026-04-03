@@ -28,6 +28,8 @@ export class CanvasManager {
   private boundHandlePointerMove: (e: PointerEvent) => void;
   private boundHandlePointerUp: (e: PointerEvent) => void;
   private boundHandleWheel: (e: WheelEvent) => void;
+  private boundHandleWindowPointerEnd: (e: PointerEvent) => void;
+  private boundHandleWindowBlur: () => void;
   private resizeSource: CanvasManagerResizeSource;
   private resizeObserver: ResizeObserver | null = null;
 
@@ -59,6 +61,8 @@ export class CanvasManager {
     this.boundHandlePointerMove = this.handlePointerMove.bind(this);
     this.boundHandlePointerUp = this.handlePointerUp.bind(this);
     this.boundHandleWheel = this.handleWheel.bind(this);
+    this.boundHandleWindowPointerEnd = this.handleWindowPointerEnd.bind(this);
+    this.boundHandleWindowBlur = this.handleWindowBlur.bind(this);
 
     this.setupEventListeners();
   }
@@ -106,6 +110,19 @@ export class CanvasManager {
     this.renderer.domElement.addEventListener("wheel", this.boundHandleWheel, {
       passive: false,
     });
+
+    // キャンバス外でボタンを離したときもポインタ状態を終了させる
+    window.addEventListener(
+      "pointerup",
+      this.boundHandleWindowPointerEnd,
+      true,
+    );
+    window.addEventListener(
+      "pointercancel",
+      this.boundHandleWindowPointerEnd,
+      true,
+    );
+    window.addEventListener("blur", this.boundHandleWindowBlur);
 
     // タッチイベントも明示的に処理
     this.renderer.domElement.addEventListener(
@@ -155,8 +172,19 @@ export class CanvasManager {
   private handlePointerMove(e: PointerEvent) {
     if (!this.graphManager) return;
     e.preventDefault();
+    if (
+      e.pointerType === "mouse" &&
+      (e.buttons & 1) === 0 &&
+      this.pointers.some((p) => p.pointerId === e.pointerId)
+    ) {
+      this.removePointer(e.pointerId);
+      return;
+    }
     const rect = this.renderer.domElement.getBoundingClientRect();
     const m = Math.min(rect.width, rect.height);
+    if (m <= 0 || !Number.isFinite(m)) {
+      return;
+    }
     const pidx = this.pointers.findIndex((p) => p.pointerId === e.pointerId);
     const p = this.pointers[pidx] ?? e;
     const c = this.pointers;
@@ -195,7 +223,12 @@ export class CanvasManager {
           (2 * (C1.clientY - C0.clientY)) / m,
         );
         this.graphManager.translate(dOri.negate());
-        this.graphManager.zoom(pOri, Math.log(pDelta / nDelta) * 500);
+        if (nDelta > 1e-10 && pDelta > 1e-10) {
+          const ratio = pDelta / nDelta;
+          if (Number.isFinite(ratio) && ratio > 0) {
+            this.graphManager.zoom(pOri, Math.log(ratio) * 500);
+          }
+        }
         this.onGraphChange?.(this.graphManager);
         break;
       }
@@ -213,11 +246,47 @@ export class CanvasManager {
   private handlePointerUp(e: PointerEvent) {
     if (!this.graphManager) return;
     e.preventDefault();
-    this.renderer.domElement.releasePointerCapture(e.pointerId);
-    this.pointers.splice(
-      this.pointers.findIndex((p) => p.pointerId === e.pointerId),
-      1,
-    );
+    this.removePointer(e.pointerId);
+  }
+
+  private handleWindowPointerEnd(e: PointerEvent) {
+    if (!this.graphManager || this.pointers.length === 0) {
+      return;
+    }
+    if (this.pointers.some((p) => p.pointerId === e.pointerId)) {
+      this.removePointer(e.pointerId);
+    }
+  }
+
+  private handleWindowBlur() {
+    this.clearAllPointers();
+  }
+
+  private removePointer(pointerId: number) {
+    const idx = this.pointers.findIndex((p) => p.pointerId === pointerId);
+    if (idx < 0) {
+      return;
+    }
+    try {
+      this.renderer.domElement.releasePointerCapture(pointerId);
+    } catch {
+      /* 既に解放済み */
+    }
+    this.pointers.splice(idx, 1);
+  }
+
+  private clearAllPointers() {
+    if (!this.graphManager || this.pointers.length === 0) {
+      return;
+    }
+    for (const p of [...this.pointers]) {
+      try {
+        this.renderer.domElement.releasePointerCapture(p.pointerId);
+      } catch {
+        /* noop */
+      }
+    }
+    this.pointers.length = 0;
   }
 
   private handleWheel(event: WheelEvent) {
@@ -225,6 +294,9 @@ export class CanvasManager {
     event.preventDefault();
     const rect = this.renderer.domElement.getBoundingClientRect();
     const m = Math.min(rect.width, rect.height);
+    if (m <= 0 || !Number.isFinite(m)) {
+      return;
+    }
     const c = new THREE.Vector2(
       ((((event.clientX - rect.left) / rect.width) * 2 - 1) * rect.width) / m,
       ((((event.clientY - rect.top) / rect.height) * 2 - 1) * rect.height) / m,
@@ -293,6 +365,18 @@ export class CanvasManager {
       this.resizeObserver = null;
     }
     if (this.graphManager) {
+      window.removeEventListener(
+        "pointerup",
+        this.boundHandleWindowPointerEnd,
+        true,
+      );
+      window.removeEventListener(
+        "pointercancel",
+        this.boundHandleWindowPointerEnd,
+        true,
+      );
+      window.removeEventListener("blur", this.boundHandleWindowBlur);
+      this.clearAllPointers();
       this.renderer.domElement.removeEventListener(
         "pointerdown",
         this.boundHandlePointerDown,
