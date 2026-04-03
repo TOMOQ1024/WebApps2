@@ -1,11 +1,19 @@
 "use client";
 
-import { CircleCheck, Dices, Minus, Plus, RotateCcw } from "lucide-react";
+import {
+  CircleCheck,
+  Dices,
+  Lightbulb,
+  Minus,
+  Plus,
+  RotateCcw,
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Vector2 } from "three";
 import GraphMgr from "@/src/GraphMgr";
-import { overlapScorePercent } from "../lib/regionScore";
 import { pickTargetCenter } from "../lib/pickTargetCenter";
+import { overlapScorePercent } from "../lib/regionScore";
+import HintOverlay from "./HintOverlay";
 import MandelCanvas, {
   MANDEL_MATCH_BASE_RADIUS,
   MANDEL_MATCH_MAX_ITER,
@@ -59,6 +67,7 @@ export default function Main() {
   const [userGraph, setUserGraph] = useState(() => new GraphMgr());
   const [interactionEpoch, setInteractionEpoch] = useState(0);
   const [judgedScore, setJudgedScore] = useState<number | null>(null);
+  const [hintOpen, setHintOpen] = useState(false);
 
   const skipZoomEffect = useRef(true);
 
@@ -162,9 +171,18 @@ export default function Main() {
             >
               <CircleCheck {...iconProps} />
             </button>
+            <button
+              type="button"
+              className={`${controlButtonClass} ${hintOpen ? "ring-2 ring-[var(--text-color)] ring-offset-2 ring-offset-[var(--background-color)]" : ""}`}
+              title="Hint"
+              aria-pressed={hintOpen}
+              onClick={() => setHintOpen((v) => !v)}
+            >
+              <Lightbulb {...iconProps} />
+            </button>
           </div>
           <span className="opacity-90">
-            {judgedScore !== null ? judgedScore : "—"}
+            {judgedScore !== null ? `${judgedScore}/100` : "—"}
           </span>
         </header>
         <div className="relative min-h-0 flex-1">
@@ -173,6 +191,9 @@ export default function Main() {
             onGraphChange={onUserGraphChange}
             interactive
           />
+          {hintOpen ? (
+            <HintOverlay target={targetGraph} user={userGraph} />
+          ) : null}
         </div>
       </section>
     </main>

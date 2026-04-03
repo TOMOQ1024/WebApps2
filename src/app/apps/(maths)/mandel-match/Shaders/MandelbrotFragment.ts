@@ -33,12 +33,15 @@ void main() {
   }
 
   if (!escaped) {
-    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    gl_FragColor = vec4(0.14, 0.14, 0.16, 1.0);
     return;
   }
 
   float t = clamp(iter / float(uMaxIter), 0.0, 1.0);
-  float g = sqrt(t);
-  gl_FragColor = vec4(g, g, g, 1.0);
+  float g = pow(t, 0.42);
+  vec3 base = vec3(0.03, 0.03, 0.03);
+  vec3 hi = vec3(1.0, 1.0, 1.0);
+  vec3 col = mix(base, hi, g);
+  gl_FragColor = vec4(col, 1.0);
 }
 `;
