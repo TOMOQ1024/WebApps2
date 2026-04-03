@@ -22,9 +22,20 @@ import MandelCanvas, {
 } from "./MandelCanvas";
 
 const ZOOM_RATIO = Math.SQRT2;
-const TARGET_ZOOM_MIN = 2;
-const TARGET_ZOOM_MAX = 512;
-const TARGET_ZOOM_DEFAULT = 10;
+const TARGET_ZOOM_MIN = 3;
+const TARGET_ZOOM_MAX = 513;
+const TARGET_ZOOM_DEFAULT = 4;
+
+function targetZoomFactorFromStep(step: number): number {
+  return TARGET_ZOOM_DEFAULT * ZOOM_RATIO ** step;
+}
+
+const TARGET_ZOOM_STEP_BOUNDS = (() => {
+  const lnR = Math.log(ZOOM_RATIO);
+  const min = Math.ceil(Math.log(TARGET_ZOOM_MIN / TARGET_ZOOM_DEFAULT) / lnR);
+  const max = Math.floor(Math.log(TARGET_ZOOM_MAX / TARGET_ZOOM_DEFAULT) / lnR);
+  return { min, max };
+})();
 
 const controlButtonClass =
   "flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] hover:scale-95 active:invert";
@@ -81,7 +92,8 @@ function formatScale(n: number): string {
 }
 
 export default function Main() {
-  const [targetZoomFactor, setTargetZoomFactor] = useState(TARGET_ZOOM_DEFAULT);
+  const [targetZoomStep, setTargetZoomStep] = useState(0);
+  const targetZoomFactor = targetZoomFactorFromStep(targetZoomStep);
   const [targetGraph, setTargetGraph] = useState(() =>
     buildTargetGraph(TARGET_ZOOM_DEFAULT),
   );
@@ -163,9 +175,12 @@ export default function Main() {
   }, [targetZoomFactor]);
 
   const bumpTargetZoom = useCallback((dir: "in" | "out") => {
-    setTargetZoomFactor((prev) => {
-      const next = dir === "in" ? prev * ZOOM_RATIO : prev / ZOOM_RATIO;
-      return Math.min(TARGET_ZOOM_MAX, Math.max(TARGET_ZOOM_MIN, next));
+    setTargetZoomStep((prev) => {
+      const next = dir === "in" ? prev + 1 : prev - 1;
+      return Math.min(
+        TARGET_ZOOM_STEP_BOUNDS.max,
+        Math.max(TARGET_ZOOM_STEP_BOUNDS.min, next),
+      );
     });
   }, []);
 
