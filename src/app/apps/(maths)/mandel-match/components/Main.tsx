@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  CircleCheck,
-  Dices,
-  Minus,
-  Plus,
-  RotateCcw,
-} from "lucide-react";
+import { CircleCheck, Dices, Minus, Plus, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Vector2 } from "three";
 import GraphMgr from "@/src/GraphMgr";
@@ -31,8 +25,11 @@ const iconProps = {
 };
 
 function buildTargetGraph(zoomFactor: number): GraphMgr {
-  const { x, y } = pickTargetCenter({ maxIter: MANDEL_MATCH_MAX_ITER });
   const r = MANDEL_MATCH_BASE_RADIUS / zoomFactor;
+  const { x, y } = pickTargetCenter({
+    maxIter: MANDEL_MATCH_MAX_ITER,
+    targetRadius: r,
+  });
   return new GraphMgr(new Vector2(x, y), r);
 }
 
