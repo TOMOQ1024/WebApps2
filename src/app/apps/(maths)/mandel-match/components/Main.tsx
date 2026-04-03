@@ -2,6 +2,7 @@
 
 import {
   CircleCheck,
+  Crosshair,
   Dices,
   Lightbulb,
   Minus,
@@ -93,6 +94,7 @@ export default function Main() {
   const hintUsedRef = useRef(false);
   /** 同一ターゲットで最初の採点が決めた着色（再採点では更新しない） */
   const lockedScoredTintRef = useRef<MandelResultTint | null>(null);
+  const [challengeKey, setChallengeKey] = useState(0);
 
   const skipZoomEffect = useRef(true);
 
@@ -108,6 +110,7 @@ export default function Main() {
     hintUsedRef.current = false;
     lockedScoredTintRef.current = null;
     setHintOpen(false);
+    setChallengeKey((k) => k + 1);
     setInteractionEpoch((n) => n + 1);
   }, [targetZoomFactor]);
 
@@ -141,16 +144,23 @@ export default function Main() {
     hintUsedRef.current = false;
     lockedScoredTintRef.current = null;
     setHintOpen(false);
+    setChallengeKey((k) => k + 1);
     setInteractionEpoch((n) => n + 1);
   }, [targetZoomFactor]);
 
   const resetView = useCallback(() => {
     setUserGraph(new GraphMgr());
-    setJudgedScore(null);
-    setJudgedHintUsed(null);
-    lockedScoredTintRef.current = null;
     setInteractionEpoch((n) => n + 1);
   }, []);
+
+  /** 表示倍率のみ目的側の targetZoomFactor に合わせる（中心は維持） */
+  const matchUserZoomToTarget = useCallback(() => {
+    setUserGraph((prev) => {
+      const r = MANDEL_MATCH_BASE_RADIUS / targetZoomFactor;
+      return new GraphMgr(prev.origin.clone(), r);
+    });
+    setInteractionEpoch((n) => n + 1);
+  }, [targetZoomFactor]);
 
   const bumpTargetZoom = useCallback((dir: "in" | "out") => {
     setTargetZoomFactor((prev) => {
@@ -174,7 +184,7 @@ export default function Main() {
       <section className="flex min-h-[40vh] flex-1 flex-col border-b-2 border-[var(--border-color)] md:min-h-0 md:border-b-0 md:border-r-2">
         <header className="flex min-h-[52px] flex-wrap items-center justify-between gap-2 border-b border-[var(--border-color)] px-3 py-2 font-mono text-sm tabular-nums">
           <span>×{formatScale(targetZoomFactor)}</span>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <button
               type="button"
               className={controlButtonClass}
@@ -207,8 +217,16 @@ export default function Main() {
       </section>
       <section className="flex min-h-[40vh] flex-1 flex-col md:min-h-0">
         <header className="flex min-h-[52px] flex-wrap items-center justify-between gap-2 border-b border-[var(--border-color)] px-3 py-2 font-mono text-sm tabular-nums">
-          <div className="flex flex-wrap items-center gap-2">
-            <span>×{formatScale(userMag)}</span>
+          <span>×{formatScale(userMag)}</span>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <button
+              type="button"
+              className={controlButtonClass}
+              title="目的の倍率に合わせる"
+              onClick={matchUserZoomToTarget}
+            >
+              <Crosshair {...iconProps} />
+            </button>
             <button
               type="button"
               className={controlButtonClass}
@@ -243,17 +261,26 @@ export default function Main() {
               <Lightbulb {...iconProps} />
             </button>
           </div>
-          <span className="opacity-90 text-[var(--text-color)]">
-            {judgedScore !== null ? `${judgedScore}/100` : "—"}
-          </span>
         </header>
         <div className="relative min-h-0 flex-1">
           <MandelCanvas
+            key={challengeKey}
             graph={userGraph}
             onGraphChange={onUserGraphChange}
             interactive
             resultTint={interactiveTint}
           />
+          {judgedScore !== null ? (
+            <output
+              className="pointer-events-none absolute inset-x-0 bottom-6 z-[5] flex justify-center px-3"
+              aria-live="polite"
+              aria-label={`採点 ${judgedScore} 点`}
+            >
+              <span className="border-2 border-[var(--border-color)] bg-[var(--background-color)]/90 px-4 py-2 font-mono text-2xl tabular-nums text-[var(--text-color)] md:text-3xl">
+                {judgedScore}/100
+              </span>
+            </output>
+          ) : null}
           {hintOpen ? (
             <HintOverlay target={targetGraph} user={userGraph} />
           ) : null}
