@@ -8,7 +8,7 @@ import {
   Plus,
   RotateCcw,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Vector2 } from "three";
 import GraphMgr from "@/src/GraphMgr";
 import { pickTargetCenter } from "../lib/pickTargetCenter";
@@ -17,6 +17,7 @@ import HintOverlay from "./HintOverlay";
 import MandelCanvas, {
   MANDEL_MATCH_BASE_RADIUS,
   MANDEL_MATCH_MAX_ITER,
+  type MandelResultTint,
 } from "./MandelCanvas";
 
 const ZOOM_RATIO = Math.SQRT2;
@@ -40,6 +41,25 @@ function buildTargetGraph(zoomFactor: number): GraphMgr {
     targetRadius: r,
   });
   return new GraphMgr(new Vector2(x, y), r);
+}
+
+function userResultTint(
+  score: number | null,
+  hintUsed: boolean | null,
+): MandelResultTint {
+  if (score === null || hintUsed === null) {
+    return "default";
+  }
+  if (hintUsed) {
+    return "yellow";
+  }
+  if (score === 100) {
+    return "green";
+  }
+  if (score > 0) {
+    return "orange";
+  }
+  return "red";
 }
 
 function formatScale(n: number): string {
@@ -67,7 +87,10 @@ export default function Main() {
   const [userGraph, setUserGraph] = useState(() => new GraphMgr());
   const [interactionEpoch, setInteractionEpoch] = useState(0);
   const [judgedScore, setJudgedScore] = useState<number | null>(null);
+  const [judgedHintUsed, setJudgedHintUsed] = useState<boolean | null>(null);
   const [hintOpen, setHintOpen] = useState(false);
+  /** このターゲット中に一度でもヒントを開いたら true（採点時にスナップショット） */
+  const hintUsedRef = useRef(false);
 
   const skipZoomEffect = useRef(true);
 
@@ -79,28 +102,45 @@ export default function Main() {
     setTargetGraph(buildTargetGraph(targetZoomFactor));
     setUserGraph(new GraphMgr());
     setJudgedScore(null);
+    setJudgedHintUsed(null);
+    hintUsedRef.current = false;
+    setHintOpen(false);
     setInteractionEpoch((n) => n + 1);
   }, [targetZoomFactor]);
 
   const onUserGraphChange = useCallback((g: GraphMgr) => {
     setUserGraph(g);
-    setJudgedScore(null);
     setInteractionEpoch((n) => n + 1);
   }, []);
 
   void interactionEpoch;
   const userMag = MANDEL_MATCH_BASE_RADIUS / userGraph.radius;
 
+  /** 採点前は一度でもヒントを開いたら黄色を維持（閉じても戻さない）．採点後は同一ターゲット中は採点色を維持 */
+  const interactiveTint = useMemo((): MandelResultTint => {
+    if (judgedScore !== null) {
+      return userResultTint(judgedScore, judgedHintUsed ?? false);
+    }
+    if (hintOpen || hintUsedRef.current) {
+      return "yellow";
+    }
+    return "default";
+  }, [judgedScore, judgedHintUsed, hintOpen]);
+
   const newTarget = useCallback(() => {
     setTargetGraph(buildTargetGraph(targetZoomFactor));
     setUserGraph(new GraphMgr());
     setJudgedScore(null);
+    setJudgedHintUsed(null);
+    hintUsedRef.current = false;
+    setHintOpen(false);
     setInteractionEpoch((n) => n + 1);
   }, [targetZoomFactor]);
 
   const resetView = useCallback(() => {
     setUserGraph(new GraphMgr());
     setJudgedScore(null);
+    setJudgedHintUsed(null);
     setInteractionEpoch((n) => n + 1);
   }, []);
 
@@ -113,6 +153,7 @@ export default function Main() {
 
   const judge = useCallback(() => {
     setJudgedScore(overlapScorePercent(targetGraph, userGraph));
+    setJudgedHintUsed(hintUsedRef.current);
   }, [userGraph, targetGraph]);
 
   return (
@@ -176,12 +217,20 @@ export default function Main() {
               className={`${controlButtonClass} ${hintOpen ? "ring-2 ring-[var(--text-color)] ring-offset-2 ring-offset-[var(--background-color)]" : ""}`}
               title="Hint"
               aria-pressed={hintOpen}
-              onClick={() => setHintOpen((v) => !v)}
+              onClick={() => {
+                setHintOpen((v) => {
+                  const next = !v;
+                  if (next) {
+                    hintUsedRef.current = true;
+                  }
+                  return next;
+                });
+              }}
             >
               <Lightbulb {...iconProps} />
             </button>
           </div>
-          <span className="opacity-90">
+          <span className="opacity-90 text-[var(--text-color)]">
             {judgedScore !== null ? `${judgedScore}/100` : "—"}
           </span>
         </header>
@@ -190,6 +239,7 @@ export default function Main() {
             graph={userGraph}
             onGraphChange={onUserGraphChange}
             interactive
+            resultTint={interactiveTint}
           />
           {hintOpen ? (
             <HintOverlay target={targetGraph} user={userGraph} />

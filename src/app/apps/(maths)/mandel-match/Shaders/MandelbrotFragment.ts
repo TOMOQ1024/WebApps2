@@ -8,6 +8,9 @@ struct Graph {
 };
 uniform Graph uGraph;
 uniform int uMaxIter;
+/** 採点フィードバック着色（JS 側で補間済み，既定は (1,1,1)・強度 0） */
+uniform vec3 uTintRgb;
+uniform float uTintStrength;
 
 varying vec2 vPosition;
 
@@ -33,7 +36,9 @@ void main() {
   }
 
   if (!escaped) {
-    gl_FragColor = vec4(0.14, 0.14, 0.16, 1.0);
+    vec3 inside = vec3(0.14, 0.14, 0.14);
+    inside = mix(inside, inside * uTintRgb, 0.48 * uTintStrength);
+    gl_FragColor = vec4(inside, 1.0);
     return;
   }
 
@@ -42,6 +47,7 @@ void main() {
   vec3 base = vec3(0.03, 0.03, 0.03);
   vec3 hi = vec3(1.0, 1.0, 1.0);
   vec3 col = mix(base, hi, g);
+  col = mix(col, col * uTintRgb, 0.4 * uTintStrength);
   gl_FragColor = vec4(col, 1.0);
 }
 `;
