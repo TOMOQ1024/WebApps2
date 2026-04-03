@@ -25,6 +25,6 @@ src/src/Parser/
 ## 実行
 
 ```bash
-yarn test
-yarn test:watch
+pnpm test
+pnpm test:watch
 ```

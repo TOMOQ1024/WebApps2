@@ -19,7 +19,7 @@
 `.env.local` に Supabase の接続情報を設定後、以下を実行:
 
 ```bash
-yarn seed:supabase
+pnpm seed:supabase
 ```
 
 または:

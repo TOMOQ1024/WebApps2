@@ -5,7 +5,7 @@
  *   tsx scripts/seed-supabase.ts
  *
  * または:
- *   yarn tsx scripts/seed-supabase.ts
+ *   pnpm exec tsx scripts/seed-supabase.ts
  */
 
 import { createClient } from "@supabase/supabase-js";
