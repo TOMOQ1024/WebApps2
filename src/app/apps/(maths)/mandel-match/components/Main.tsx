@@ -4,6 +4,7 @@ import { CircleCheck, Dices, Minus, Plus, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Vector2 } from "three";
 import GraphMgr from "@/src/GraphMgr";
+import { overlapScorePercent } from "../lib/regionScore";
 import { pickTargetCenter } from "../lib/pickTargetCenter";
 import MandelCanvas, {
   MANDEL_MATCH_BASE_RADIUS,
@@ -31,27 +32,6 @@ function buildTargetGraph(zoomFactor: number): GraphMgr {
     targetRadius: r,
   });
   return new GraphMgr(new Vector2(x, y), r);
-}
-
-/** 原点ずれをビュー半径で正規化した量（小さいほど良い） */
-function normalizedOriginError(user: GraphMgr, target: GraphMgr): number {
-  return user.origin.distanceTo(target.origin) / target.radius;
-}
-
-/** 対数半径差（スケール一致度，小さいほど良い） */
-function logRadiusGap(user: GraphMgr, target: GraphMgr): number {
-  return Math.abs(Math.log(user.radius) - Math.log(target.radius));
-}
-
-/**
- * 0–100．原点とスケールの両方が近いほど高得点．
- */
-function approxScore(user: GraphMgr, target: GraphMgr): number {
-  const eO = normalizedOriginError(user, target);
-  const eR = logRadiusGap(user, target);
-  const sO = 100 * Math.exp(-(eO * 8) * (eO * 8));
-  const sR = 100 * Math.exp(-(eR * 12) * (eR * 12));
-  return Math.round(Math.min(100, Math.max(0, (sO + sR) / 2)));
 }
 
 function formatScale(n: number): string {
@@ -123,7 +103,7 @@ export default function Main() {
   }, []);
 
   const judge = useCallback(() => {
-    setJudgedScore(approxScore(userGraph, targetGraph));
+    setJudgedScore(overlapScorePercent(targetGraph, userGraph));
   }, [userGraph, targetGraph]);
 
   return (
