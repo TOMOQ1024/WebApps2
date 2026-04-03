@@ -1,7 +1,33 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+/** Supabase SSR のセッション Cookie が無いリクエストでは認証 API を呼ばない（Edge ミドルウェアのタイムアウト回避） */
+function hasSupabaseAuthCookie(request: NextRequest): boolean {
+  return request.cookies.getAll().some(
+    (c) => c.name.startsWith("sb-") && c.name.includes("auth-token")
+  );
+}
+
+const SUPABASE_FETCH_TIMEOUT_MS = 8_000;
+
+function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init?: RequestInit
+): Promise<Response> {
+  const deadline = AbortSignal.timeout(SUPABASE_FETCH_TIMEOUT_MS);
+  const upstream = init?.signal;
+  const signal =
+    upstream && typeof AbortSignal.any === "function"
+      ? AbortSignal.any([upstream, deadline])
+      : deadline;
+  return fetch(input, { ...init, signal });
+}
+
 export async function middleware(request: NextRequest) {
+  if (!hasSupabaseAuthCookie(request)) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -10,6 +36,7 @@ export async function middleware(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      global: { fetch: fetchWithTimeout },
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -30,9 +57,11 @@ export async function middleware(request: NextRequest) {
   );
 
   // セッションをリフレッシュ（重要: getUser() を呼ぶことでセッションが更新される）
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    await supabase.auth.getUser();
+  } catch {
+    // Supabase への往復が遅い・失敗してもページは返す（504 MIDDLEWARE_INVOCATION_TIMEOUT の回避）
+  }
 
   // 認証が必要なルートの保護（例: /admin 配下）
   // 必要に応じてカスタマイズしてください
