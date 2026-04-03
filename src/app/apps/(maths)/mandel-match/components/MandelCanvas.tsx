@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { CanvasManager } from "@/src/CanvasManager";
 import type GraphMgr from "@/src/GraphMgr";
@@ -69,14 +69,7 @@ export default function MandelCanvas({
   const tintRgbAnimatedRef = useRef(new THREE.Vector3(1, 1, 1));
   const tintStrengthAnimatedRef = useRef(0);
 
-  const [resolution, setResolution] = useState<THREE.Vector2>(() => {
-    if (typeof window === "undefined") {
-      return new THREE.Vector2(400, 400);
-    }
-    return new THREE.Vector2(400, 400);
-  });
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: 解像度変更時のみシーンを作り直し，graph は graphRef / updateGraph で同期する
+  // biome-ignore lint/correctness/useExhaustiveDependencies: graph は graphRef / updateGraph で同期．リサイズは CanvasManager 内で処理し WebGL は作り直さない
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -96,9 +89,6 @@ export default function MandelCanvas({
       resizeSource: "container",
       graphManager: interactive ? graph : undefined,
       onGraphChange: interactive ? onGraphChange : undefined,
-      onResolutionChange: (newResolution) => {
-        setResolution(newResolution.clone());
-      },
     });
     canvasManagerRef.current = canvasManager;
 
@@ -159,7 +149,7 @@ export default function MandelCanvas({
       material.dispose();
       geometry.dispose();
     };
-  }, [resolution.x, resolution.y, interactive, onGraphChange]);
+  }, [interactive, onGraphChange]);
 
   useEffect(() => {
     if (canvasManagerRef.current && interactive) {
