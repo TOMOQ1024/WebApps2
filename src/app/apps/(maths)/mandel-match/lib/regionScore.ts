@@ -64,5 +64,5 @@ function viewRegionIou(target: GraphMgr, user: GraphMgr): number {
 /** 0–100 */
 export function overlapScorePercent(target: GraphMgr, user: GraphMgr): number {
   const iou = viewRegionIou(target, user);
-  return Math.round(100 * Math.min(1, Math.max(0, iou)));
+  return Math.ceil(100 * Math.min(1, Math.max(0, iou)));
 }
