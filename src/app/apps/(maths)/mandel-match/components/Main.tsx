@@ -53,7 +53,7 @@ function userResultTint(
   if (hintUsed) {
     return "yellow";
   }
-  if (score === 100) {
+  if (score >= 80) {
     return "green";
   }
   if (score > 0) {
@@ -91,6 +91,8 @@ export default function Main() {
   const [hintOpen, setHintOpen] = useState(false);
   /** このターゲット中に一度でもヒントを開いたら true（採点時にスナップショット） */
   const hintUsedRef = useRef(false);
+  /** 同一ターゲットで最初の採点が決めた着色（再採点では更新しない） */
+  const lockedScoredTintRef = useRef<MandelResultTint | null>(null);
 
   const skipZoomEffect = useRef(true);
 
@@ -104,6 +106,7 @@ export default function Main() {
     setJudgedScore(null);
     setJudgedHintUsed(null);
     hintUsedRef.current = false;
+    lockedScoredTintRef.current = null;
     setHintOpen(false);
     setInteractionEpoch((n) => n + 1);
   }, [targetZoomFactor]);
@@ -116,10 +119,13 @@ export default function Main() {
   void interactionEpoch;
   const userMag = MANDEL_MATCH_BASE_RADIUS / userGraph.radius;
 
-  /** 採点前は一度でもヒントを開いたら黄色を維持（閉じても戻さない）．採点後は同一ターゲット中は採点色を維持 */
+  /** 採点前はヒント利用状況に応じて黄色．採点後は初回採点の色を同一ターゲット中ずっと固定 */
   const interactiveTint = useMemo((): MandelResultTint => {
     if (judgedScore !== null) {
-      return userResultTint(judgedScore, judgedHintUsed ?? false);
+      return (
+        lockedScoredTintRef.current ??
+        userResultTint(judgedScore, judgedHintUsed ?? false)
+      );
     }
     if (hintOpen || hintUsedRef.current) {
       return "yellow";
@@ -133,6 +139,7 @@ export default function Main() {
     setJudgedScore(null);
     setJudgedHintUsed(null);
     hintUsedRef.current = false;
+    lockedScoredTintRef.current = null;
     setHintOpen(false);
     setInteractionEpoch((n) => n + 1);
   }, [targetZoomFactor]);
@@ -141,6 +148,7 @@ export default function Main() {
     setUserGraph(new GraphMgr());
     setJudgedScore(null);
     setJudgedHintUsed(null);
+    lockedScoredTintRef.current = null;
     setInteractionEpoch((n) => n + 1);
   }, []);
 
@@ -152,8 +160,13 @@ export default function Main() {
   }, []);
 
   const judge = useCallback(() => {
-    setJudgedScore(overlapScorePercent(targetGraph, userGraph));
-    setJudgedHintUsed(hintUsedRef.current);
+    const score = overlapScorePercent(targetGraph, userGraph);
+    const hint = hintUsedRef.current;
+    setJudgedScore(score);
+    setJudgedHintUsed(hint);
+    if (lockedScoredTintRef.current === null) {
+      lockedScoredTintRef.current = userResultTint(score, hint);
+    }
   }, [userGraph, targetGraph]);
 
   return (
