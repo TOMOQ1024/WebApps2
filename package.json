@@ -10,6 +10,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "seed:supabase": "tsx scripts/seed-supabase.ts",
+    "backup:supabase": "tsx scripts/backup-supabase.ts",
     "supabase:start": "npx supabase start",
     "supabase:stop": "npx supabase stop --no-backup"
   },
