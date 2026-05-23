@@ -1,8 +1,87 @@
 import { ASTNode } from "@/src/Parser/ASTNode";
 import { SimplifyOptions } from "./simplify/simplifyLaTeX";
 import { gcd } from "@/src/Parser/simplify/helpers";
+import { flattenAddition } from "./simplify/flattenAddition";
+import { groupLikeTerms } from "./simplify/groupLikeTerms";
+import { buildAddition } from "./simplify/buildAddition";
 
 // flattenMultiplication関数を追加
+function isAdditionLikeNode(node: ASTNode): boolean {
+  return (
+    node.type === "operator" && (node.op === "+" || node.op === "-")
+  );
+}
+
+function negateForLatex(
+  node: ASTNode,
+  astTransform: boolean,
+  options?: SimplifyOptions
+): string {
+  const inner = ASTToLatex(node, astTransform, "", options);
+  if (node.type === "operator" && (node.op === "+" || node.op === "-")) {
+    return `-\\left(${inner}\\right)`;
+  }
+  return `-${inner}`;
+}
+
+function hasVariableLikeBase(base: ASTNode): boolean {
+  if (base.type === "symbol") {
+    return true;
+  }
+
+  if (
+    base.type === "operator" &&
+    base.op === "^" &&
+    base.left.type === "symbol"
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function tryNegatedPositiveSumLatex(
+  node: ASTNode,
+  astTransform: boolean,
+  options?: SimplifyOptions
+): string | null {
+  if (node.type !== "operator" || node.op !== "+") {
+    return null;
+  }
+
+  const terms = flattenAddition(node.left, node.right);
+  const groups = groupLikeTerms(terms);
+  const nonZeroGroups = Array.from(groups.values()).filter(
+    ({ coefficient }) => coefficient !== 0
+  );
+
+  if (
+    nonZeroGroups.length === 0 ||
+    !nonZeroGroups.every(({ coefficient, base }) => {
+      if (coefficient >= 0) {
+        return false;
+      }
+      return base.type === "number" || hasVariableLikeBase(base);
+    }) ||
+    !nonZeroGroups.some(({ base }) => hasVariableLikeBase(base))
+  ) {
+    return null;
+  }
+
+  const positiveGroups = new Map<
+    string,
+    { coefficient: number; base: ASTNode }
+  >();
+  for (const [key, { coefficient, base }] of groups) {
+    if (coefficient !== 0) {
+      positiveGroups.set(key, { coefficient: -coefficient, base });
+    }
+  }
+
+  const positiveSum = buildAddition(positiveGroups, options);
+  return negateForLatex(positiveSum, astTransform, options);
+}
+
 function flattenMultiplication(left: ASTNode, right: ASTNode): ASTNode[] {
   const factors: ASTNode[] = [];
 
@@ -46,28 +125,34 @@ export function ASTToLatex(
       const { op, left, right } = node;
       if (op === "+") {
         // flattenしてstring化
-        const terms: string[] = [];
+        const terms: { latex: string; node: ASTNode }[] = [];
         const collectTerms = (n: ASTNode) => {
           if (n.type === "operator" && n.op === "+") {
             collectTerms(n.left);
             collectTerms(n.right);
           } else {
-            terms.push(ASTToLatex(n, astTransform));
+            terms.push({ latex: ASTToLatex(n, astTransform), node: n });
           }
         };
         collectTerms(left);
         collectTerms(right);
 
         // -1 + -f(x) の場合は -f(x) だけ返す
-        if (terms.length === 2 && terms.includes("-1")) {
-          const idx = terms.indexOf("-1");
+        if (terms.length === 2 && terms.some((term) => term.latex === "-1")) {
+          const idx = terms.findIndex((term) => term.latex === "-1");
           const other = terms[1 - idx];
-          if (other.startsWith("-")) {
-            return other;
+          if (
+            other.node.type === "operator" &&
+            other.node.op === "-" &&
+            other.node.left.type === "number" &&
+            other.node.left.value === 0 &&
+            other.node.right.type === "function"
+          ) {
+            return other.latex;
           }
         }
 
-        const filteredTerms = terms.filter((t) => t !== "");
+        const filteredTerms = terms.map((term) => term.latex).filter((t) => t !== "");
         if (filteredTerms.length === 0) {
           return "0";
         }
@@ -221,7 +306,7 @@ export function ASTToLatex(
           left.value === -1 &&
           right.type === "operator"
         ) {
-          return `-${ASTToLatex(right, astTransform)}`;
+          return negateForLatex(right, astTransform, options);
         }
 
         // 両方が数値の場合は計算結果を返す
@@ -234,7 +319,8 @@ export function ASTToLatex(
         if (left.type === "number") {
           if (left.value === 0) return "0";
           if (left.value === 1) return ASTToLatex(right, astTransform);
-          if (left.value === -1) return `-${ASTToLatex(right, astTransform)}`;
+          if (left.value === -1)
+            return negateForLatex(right, astTransform, options);
 
           // 関数の場合はスペースを入れない（LaTeX標準に従う）
           if (right.type === "function") {
@@ -272,7 +358,7 @@ export function ASTToLatex(
           if (right.value === 1)
             return ASTToLatex(left, astTransform, "", options);
           if (right.value === -1)
-            return `-${ASTToLatex(left, astTransform, "", options)}`;
+            return negateForLatex(left, astTransform, options);
 
           // 関数の場合はスペースを入れない（LaTeX標準に従う）
           if (left.type === "function") {
@@ -485,16 +571,24 @@ export function ASTToLatex(
         let finalLeftStr = leftStr;
         let finalRightStr = rightStr;
 
-        // 左の子が加減ノードの場合は括弧で囲む
-        if (left.type === "operator" && (left.op === "+" || left.op === "-")) {
+        // 左の子が加減ノード（またはその符号反転）の場合は括弧で囲む
+        if (left.type === "operator" && left.op === "+") {
+          const negatedPositive = tryNegatedPositiveSumLatex(
+            left,
+            astTransform,
+            options
+          );
+          if (negatedPositive) {
+            finalLeftStr = negatedPositive;
+          } else {
+            finalLeftStr = `\\left(${leftStr}\\right)`;
+          }
+        } else if (isAdditionLikeNode(left)) {
           finalLeftStr = `\\left(${leftStr}\\right)`;
         }
 
-        // 右の子が加減ノードの場合は括弧で囲む
-        if (
-          right.type === "operator" &&
-          (right.op === "+" || right.op === "-")
-        ) {
+        // 右の子が加減ノード（またはその符号反転）の場合は括弧で囲む
+        if (isAdditionLikeNode(right)) {
           finalRightStr = `\\left(${rightStr}\\right)`;
         }
 

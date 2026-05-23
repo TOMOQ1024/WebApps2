@@ -20,7 +20,7 @@ function astToString(node: ASTNode): string {
   return "";
 }
 
-// 加算の簡約化
+// ASTノードを文字列化（比較用）
 export function simplifyAddition(
   left: ASTNode,
   right: ASTNode,
