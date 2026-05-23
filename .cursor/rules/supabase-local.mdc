@@ -1,31 +1,28 @@
 ---
-description: ローカル Supabase の安全な操作制約
+description: ローカル Supabase の破壊的操作を禁止
 globs: supabase/**,package.json,.env*
 alwaysApply: true
 ---
 
 # ローカル Supabase 操作制約
 
-## 禁止（ユーザーの明示的な依頼がない限り実行しない）
+## 禁止（明示的な依頼がない限り）
 
 - `supabase db reset`
-- `docker volume rm`（`supabase_db_*`, `supabase_storage_*` など Supabase 関連ボリューム）
+- `docker volume rm`（`supabase_db_*`, `supabase_storage_*` など Supabase 関連）
 - `supabase stop`（`--no-backup` なし）
-- ローカル DB データを消す目的の `docker compose down -v` 相当の操作
+- ローカル DB データを消す `docker compose down -v` 相当
 
-## 推奨
+## 停止・起動
 
-- 停止: `pnpm supabase:stop` または `npx supabase stop --no-backup`
-- 起動: `pnpm supabase:start` または `npx supabase start`
-- 設定変更の反映: 上記 stop → start のみ．DB 初期化は最後の手段
+- 停止: `pnpm supabase:stop` / `npx supabase stop --no-backup`
+- 起動: `pnpm supabase:start` / `npx supabase start`
+- 設定反映も stop → start のみ．DB 初期化は最後の手段
 
-## 環境変数
+## 保護対象
 
-- Supabase CLI の `env(...)` は **プロジェクトルートの `.env`** のみ読む（`.env.local` は読まない）
-- Next.js アプリ用の `NEXT_PUBLIC_SITE_URL` は `.env.local` でよい
-- ローカル `config.toml` の `site_url` は固定値（portless 利用時は `http://tomoq.localhost`）
+- `supabase/backups/` を削除しない
 
-## トラブル時
+## 復旧が必要な場合
 
-storage の `migrations_name_key` 重複は `supabase stop --no-backup` 後の再起動で解消を試みる．
-解消しない場合はユーザーに確認してから `db reset` またはボリューム削除を検討する．
+ユーザーに確認してから `db reset` またはボリューム削除を検討する．
