@@ -17,6 +17,8 @@ create index if not exists idx_gallery_items_created_by on public.gallery_items(
 -- 既存ポリシーを削除
 drop policy if exists "gallery_items_update_authenticated" on public.gallery_items;
 drop policy if exists "gallery_items_delete_authenticated" on public.gallery_items;
+drop policy if exists "gallery_items_update_owner" on public.gallery_items;
+drop policy if exists "gallery_items_delete_owner" on public.gallery_items;
 
 -- 新しいポリシー: 作成者のみ更新可能
 create policy "gallery_items_update_owner" on public.gallery_items

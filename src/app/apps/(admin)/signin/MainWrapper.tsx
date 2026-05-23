@@ -120,6 +120,14 @@ export default function MainWrapper() {
               autoComplete="current-password"
               className="w-full px-3 py-2 border border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] focus:outline-none focus:border-[var(--text-color)]"
             />
+            <p className="mt-2 text-right text-sm">
+              <Link
+                href={`/apps/forgot-password?redirect=${encodeURIComponent(redirectTo)}`}
+                className="text-[var(--text-color)] opacity-70 underline hover:opacity-100"
+              >
+                パスワードを忘れた方
+              </Link>
+            </p>
           </div>
 
           {error && (

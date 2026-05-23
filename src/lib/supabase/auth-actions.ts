@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "./server";
+import { getSiteUrl, isLocalSupabase, MAILPIT_URL } from "./site-url";
 
 /**
  * メールアドレスのバリデーション
@@ -163,6 +164,70 @@ export async function signInWithEmail(
       return { success: false, error: "メールアドレスまたはパスワードが正しくありません" };
     }
     console.error("Signin error:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+}
+
+/**
+ * パスワードリセットメールを送信
+ */
+export async function requestPasswordReset(
+  email: string,
+): Promise<{ success: boolean; error?: string; mailpitUrl?: string }> {
+  const emailValidation = validateEmail(email);
+  if (!emailValidation.valid) {
+    return { success: false, error: emailValidation.error };
+  }
+
+  const trimmedEmail = email.trim().toLowerCase();
+  const siteUrl = getSiteUrl();
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
+    redirectTo: `${siteUrl}/auth/confirm?next=/apps/reset-password`,
+  });
+
+  if (error) {
+    console.error("Password reset request error:", error);
+    return { success: false, error: error.message };
+  }
+
+  return {
+    success: true,
+    ...(isLocalSupabase() ? { mailpitUrl: MAILPIT_URL } : {}),
+  };
+}
+
+/**
+ * 新しいパスワードを設定（リセットリンク経由でセッション確立後）
+ */
+export async function updatePassword(
+  password: string,
+): Promise<{ success: boolean; error?: string }> {
+  const passwordValidation = validatePassword(password);
+  if (!passwordValidation.valid) {
+    return { success: false, error: passwordValidation.error };
+  }
+
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      success: false,
+      error: "セッションが無効です．メールのリンクから再度アクセスしてください",
+    };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    console.error("Password update error:", error);
     return { success: false, error: error.message };
   }
 

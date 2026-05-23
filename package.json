@@ -9,7 +9,9 @@
     "lint": "next lint",
     "test": "jest",
     "test:watch": "jest --watch",
-    "seed:supabase": "tsx scripts/seed-supabase.ts"
+    "seed:supabase": "tsx scripts/seed-supabase.ts",
+    "supabase:start": "npx supabase start",
+    "supabase:stop": "npx supabase stop --no-backup"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

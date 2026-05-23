@@ -1,101 +1,102 @@
 -- nanoid を主キーとして使用するように変更
--- 既存の bigint id を廃止し、nanoid を id にリネーム
+-- 000_initial_schema 適用済み環境（id が text）ではスキップ
 
--- 1. 外部キー制約を削除
-alter table public.app_tags drop constraint if exists app_tags_app_id_fkey;
-alter table public.app_tags drop constraint if exists app_tags_tag_id_fkey;
-alter table public.gallery_tags drop constraint if exists gallery_tags_gallery_id_fkey;
-alter table public.gallery_tags drop constraint if exists gallery_tags_tag_id_fkey;
-alter table public.gallery_items drop constraint if exists fk_gallery_items_gallery;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'tags'
+      AND column_name = 'id'
+      AND data_type = 'text'
+  ) THEN
+    RETURN;
+  END IF;
 
--- 2. 中間テーブルに nanoid ベースのカラムを追加
--- app_tags
-alter table public.app_tags add column if not exists app_nanoid text;
-alter table public.app_tags add column if not exists tag_nanoid text;
-update public.app_tags at set 
-  app_nanoid = (select nanoid from public.apps where id = at.app_id),
-  tag_nanoid = (select nanoid from public.tags where id = at.tag_id);
+  ALTER TABLE public.app_tags DROP CONSTRAINT IF EXISTS app_tags_app_id_fkey;
+  ALTER TABLE public.app_tags DROP CONSTRAINT IF EXISTS app_tags_tag_id_fkey;
+  ALTER TABLE public.gallery_tags DROP CONSTRAINT IF EXISTS gallery_tags_gallery_id_fkey;
+  ALTER TABLE public.gallery_tags DROP CONSTRAINT IF EXISTS gallery_tags_tag_id_fkey;
+  ALTER TABLE public.gallery_items DROP CONSTRAINT IF EXISTS fk_gallery_items_gallery;
 
--- gallery_tags
-alter table public.gallery_tags add column if not exists gallery_nanoid text;
-alter table public.gallery_tags add column if not exists tag_nanoid text;
-update public.gallery_tags gt set 
-  gallery_nanoid = (select nanoid from public.galleries where id = gt.gallery_id),
-  tag_nanoid = (select nanoid from public.tags where id = gt.tag_id);
+  ALTER TABLE public.app_tags ADD COLUMN IF NOT EXISTS app_nanoid text;
+  ALTER TABLE public.app_tags ADD COLUMN IF NOT EXISTS tag_nanoid text;
+  UPDATE public.app_tags at SET
+    app_nanoid = (SELECT nanoid FROM public.apps WHERE id = at.app_id),
+    tag_nanoid = (SELECT nanoid FROM public.tags WHERE id = at.tag_id);
 
--- gallery_items
-alter table public.gallery_items add column if not exists gallery_nanoid text;
-update public.gallery_items gi set 
-  gallery_nanoid = (select nanoid from public.galleries where id = gi.gallery_id);
+  ALTER TABLE public.gallery_tags ADD COLUMN IF NOT EXISTS gallery_nanoid text;
+  ALTER TABLE public.gallery_tags ADD COLUMN IF NOT EXISTS tag_nanoid text;
+  UPDATE public.gallery_tags gt SET
+    gallery_nanoid = (SELECT nanoid FROM public.galleries WHERE id = gt.gallery_id),
+    tag_nanoid = (SELECT nanoid FROM public.tags WHERE id = gt.tag_id);
 
--- 3. 主キー制約を削除
-alter table public.tags drop constraint if exists tags_pkey;
-alter table public.apps drop constraint if exists apps_pkey;
-alter table public.galleries drop constraint if exists galleries_pkey;
-alter table public.gallery_items drop constraint if exists gallery_items_pkey;
-alter table public.app_tags drop constraint if exists app_tags_pkey;
-alter table public.gallery_tags drop constraint if exists gallery_tags_pkey;
+  ALTER TABLE public.gallery_items ADD COLUMN IF NOT EXISTS gallery_nanoid text;
+  UPDATE public.gallery_items gi SET
+    gallery_nanoid = (SELECT nanoid FROM public.galleries WHERE id = gi.gallery_id);
 
--- 4. 古い id カラムと外部キーカラムを削除
-alter table public.app_tags drop column if exists app_id;
-alter table public.app_tags drop column if exists tag_id;
-alter table public.gallery_tags drop column if exists gallery_id;
-alter table public.gallery_tags drop column if exists tag_id;
-alter table public.gallery_items drop column if exists gallery_id;
-alter table public.tags drop column if exists id;
-alter table public.apps drop column if exists id;
-alter table public.galleries drop column if exists id;
-alter table public.gallery_items drop column if exists id;
+  ALTER TABLE public.tags DROP CONSTRAINT IF EXISTS tags_pkey;
+  ALTER TABLE public.apps DROP CONSTRAINT IF EXISTS apps_pkey;
+  ALTER TABLE public.galleries DROP CONSTRAINT IF EXISTS galleries_pkey;
+  ALTER TABLE public.gallery_items DROP CONSTRAINT IF EXISTS gallery_items_pkey;
+  ALTER TABLE public.app_tags DROP CONSTRAINT IF EXISTS app_tags_pkey;
+  ALTER TABLE public.gallery_tags DROP CONSTRAINT IF EXISTS gallery_tags_pkey;
 
--- 5. nanoid を id にリネーム
-alter table public.tags rename column nanoid to id;
-alter table public.apps rename column nanoid to id;
-alter table public.galleries rename column nanoid to id;
-alter table public.gallery_items rename column nanoid to id;
+  ALTER TABLE public.app_tags DROP COLUMN IF EXISTS app_id;
+  ALTER TABLE public.app_tags DROP COLUMN IF EXISTS tag_id;
+  ALTER TABLE public.gallery_tags DROP COLUMN IF EXISTS gallery_id;
+  ALTER TABLE public.gallery_tags DROP COLUMN IF EXISTS tag_id;
+  ALTER TABLE public.gallery_items DROP COLUMN IF EXISTS gallery_id;
+  ALTER TABLE public.tags DROP COLUMN IF EXISTS id;
+  ALTER TABLE public.apps DROP COLUMN IF EXISTS id;
+  ALTER TABLE public.galleries DROP COLUMN IF EXISTS id;
+  ALTER TABLE public.gallery_items DROP COLUMN IF EXISTS id;
 
--- 6. 中間テーブルのカラムをリネーム
-alter table public.app_tags rename column app_nanoid to app_id;
-alter table public.app_tags rename column tag_nanoid to tag_id;
-alter table public.gallery_tags rename column gallery_nanoid to gallery_id;
-alter table public.gallery_tags rename column tag_nanoid to tag_id;
-alter table public.gallery_items rename column gallery_nanoid to gallery_id;
+  ALTER TABLE public.tags RENAME COLUMN nanoid TO id;
+  ALTER TABLE public.apps RENAME COLUMN nanoid TO id;
+  ALTER TABLE public.galleries RENAME COLUMN nanoid TO id;
+  ALTER TABLE public.gallery_items RENAME COLUMN nanoid TO id;
 
--- 7. NOT NULL 制約を追加
-alter table public.app_tags alter column app_id set not null;
-alter table public.app_tags alter column tag_id set not null;
-alter table public.gallery_tags alter column gallery_id set not null;
-alter table public.gallery_tags alter column tag_id set not null;
-alter table public.gallery_items alter column gallery_id set not null;
+  ALTER TABLE public.app_tags RENAME COLUMN app_nanoid TO app_id;
+  ALTER TABLE public.app_tags RENAME COLUMN tag_nanoid TO tag_id;
+  ALTER TABLE public.gallery_tags RENAME COLUMN gallery_nanoid TO gallery_id;
+  ALTER TABLE public.gallery_tags RENAME COLUMN tag_nanoid TO tag_id;
+  ALTER TABLE public.gallery_items RENAME COLUMN gallery_nanoid TO gallery_id;
 
--- 8. 新しい主キー制約を追加
-alter table public.tags add primary key (id);
-alter table public.apps add primary key (id);
-alter table public.galleries add primary key (id);
-alter table public.gallery_items add primary key (id);
-alter table public.app_tags add primary key (app_id, tag_id);
-alter table public.gallery_tags add primary key (gallery_id, tag_id);
+  ALTER TABLE public.app_tags ALTER COLUMN app_id SET NOT NULL;
+  ALTER TABLE public.app_tags ALTER COLUMN tag_id SET NOT NULL;
+  ALTER TABLE public.gallery_tags ALTER COLUMN gallery_id SET NOT NULL;
+  ALTER TABLE public.gallery_tags ALTER COLUMN tag_id SET NOT NULL;
+  ALTER TABLE public.gallery_items ALTER COLUMN gallery_id SET NOT NULL;
 
--- 9. 外部キー制約を追加
-alter table public.app_tags add constraint app_tags_app_id_fkey 
-  foreign key (app_id) references public.apps(id) on delete cascade;
-alter table public.app_tags add constraint app_tags_tag_id_fkey 
-  foreign key (tag_id) references public.tags(id) on delete cascade;
-alter table public.gallery_tags add constraint gallery_tags_gallery_id_fkey 
-  foreign key (gallery_id) references public.galleries(id) on delete cascade;
-alter table public.gallery_tags add constraint gallery_tags_tag_id_fkey 
-  foreign key (tag_id) references public.tags(id) on delete cascade;
-alter table public.gallery_items add constraint gallery_items_gallery_id_fkey 
-  foreign key (gallery_id) references public.galleries(id) on delete cascade;
+  ALTER TABLE public.tags ADD PRIMARY KEY (id);
+  ALTER TABLE public.apps ADD PRIMARY KEY (id);
+  ALTER TABLE public.galleries ADD PRIMARY KEY (id);
+  ALTER TABLE public.gallery_items ADD PRIMARY KEY (id);
+  ALTER TABLE public.app_tags ADD PRIMARY KEY (app_id, tag_id);
+  ALTER TABLE public.gallery_tags ADD PRIMARY KEY (gallery_id, tag_id);
 
--- 10. インデックスを再作成（古いものを削除して新しく作成）
-drop index if exists idx_tags_nanoid;
-drop index if exists idx_apps_nanoid;
-drop index if exists idx_galleries_nanoid;
-drop index if exists idx_gallery_items_nanoid;
-drop index if exists idx_gallery_items_gallery_id;
+  ALTER TABLE public.app_tags ADD CONSTRAINT app_tags_app_id_fkey
+    FOREIGN KEY (app_id) REFERENCES public.apps(id) ON DELETE CASCADE;
+  ALTER TABLE public.app_tags ADD CONSTRAINT app_tags_tag_id_fkey
+    FOREIGN KEY (tag_id) REFERENCES public.tags(id) ON DELETE CASCADE;
+  ALTER TABLE public.gallery_tags ADD CONSTRAINT gallery_tags_gallery_id_fkey
+    FOREIGN KEY (gallery_id) REFERENCES public.galleries(id) ON DELETE CASCADE;
+  ALTER TABLE public.gallery_tags ADD CONSTRAINT gallery_tags_tag_id_fkey
+    FOREIGN KEY (tag_id) REFERENCES public.tags(id) ON DELETE CASCADE;
+  ALTER TABLE public.gallery_items ADD CONSTRAINT gallery_items_gallery_id_fkey
+    FOREIGN KEY (gallery_id) REFERENCES public.galleries(id) ON DELETE CASCADE;
 
-create index if not exists idx_gallery_items_gallery_id on public.gallery_items(gallery_id);
-create index if not exists idx_app_tags_app on public.app_tags(app_id);
-create index if not exists idx_app_tags_tag on public.app_tags(tag_id);
-create index if not exists idx_gallery_tags_gallery on public.gallery_tags(gallery_id);
-create index if not exists idx_gallery_tags_tag on public.gallery_tags(tag_id);
+  DROP INDEX IF EXISTS idx_tags_nanoid;
+  DROP INDEX IF EXISTS idx_apps_nanoid;
+  DROP INDEX IF EXISTS idx_galleries_nanoid;
+  DROP INDEX IF EXISTS idx_gallery_items_nanoid;
+  DROP INDEX IF EXISTS idx_gallery_items_gallery_id;
+
+  CREATE INDEX IF NOT EXISTS idx_gallery_items_gallery_id ON public.gallery_items(gallery_id);
+  CREATE INDEX IF NOT EXISTS idx_app_tags_app ON public.app_tags(app_id);
+  CREATE INDEX IF NOT EXISTS idx_app_tags_tag ON public.app_tags(tag_id);
+  CREATE INDEX IF NOT EXISTS idx_gallery_tags_gallery ON public.gallery_tags(gallery_id);
+  CREATE INDEX IF NOT EXISTS idx_gallery_tags_tag ON public.gallery_tags(tag_id);
+END $$;
