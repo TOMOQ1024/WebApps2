@@ -1,6 +1,7 @@
 export class CoxeterDynkinDiagram {
   gens: string[] = [];
   gensStr: string = "";
+  groupType: "finite" | "affine" | "indefinite";
 
   private _isVolumeless: boolean | undefined;
   private _dimension: number | undefined;
@@ -12,7 +13,46 @@ export class CoxeterDynkinDiagram {
     public nodeMarks: { [gen: string]: string } = {}
   ) {
     this.gens = Object.keys(nodeMarks);
-    this.gensStr = this.gens.join(",");
+    this.gensStr = this.gens.join("");
+    this.groupType = this.calculateGroupType();
+  }
+
+  static fromStringMatrix(matrix: string[][], toggles: string[]) {
+    const diagram = new CoxeterDynkinDiagram();
+    diagram.gens = Array.from({ length: matrix.length }, (_, i) =>
+      String.fromCharCode(97 + i)
+    );
+    diagram.gensStr = diagram.gens.join("");
+
+    for (let i = 0; i < matrix.length; i++) {
+      for (let j = 0; j < matrix[i].length; j++) {
+        const [numerator, denominator] = /\//.test(matrix[i][j])
+          ? matrix[i][j].split("/").map((x) => parseInt(x))
+          : [parseInt(matrix[i][j]), 1];
+        diagram.labels[
+          `${String.fromCharCode(97 + i)}${String.fromCharCode(97 + j)}`
+        ] = [numerator, denominator];
+      }
+    }
+    for (let i = 0; i < toggles.length; i++) {
+      diagram.nodeMarks[String.fromCharCode(97 + i)] = toggles[i];
+    }
+
+    diagram.groupType = diagram.calculateGroupType();
+
+    return diagram;
+  }
+
+  calculateGroupType() {
+    // TODO: Schläflian の計算
+    return "finite";
+    for (const g0 of this.gens) {
+      for (const g1 of this.gens) {
+        if (g0 === g1) continue;
+        const label = this.labels[g0 + g1];
+        if (label[0] / label[1] === 2) return "affine";
+      }
+    }
   }
 
   dropCache() {

@@ -1,0 +1,30 @@
+---
+description: テスト方針
+globs: **/*.test.ts
+alwaysApply: false
+---
+
+# テスト方針
+
+## 対象
+
+- Parser（`src/src/Parser/`）
+- 数学ユーティリティ（`src/src/maths/`）
+- 汎用ロジック
+
+## 配置
+
+テスト対象と同じディレクトリに `*.test.ts` として配置．
+
+```
+src/src/Parser/
+├── parseLatex.ts
+└── parseLatex.test.ts
+```
+
+## 実行
+
+```bash
+pnpm test
+pnpm test:watch
+```

@@ -1,0 +1,42 @@
+---
+description: スタイリング方針
+globs: **/*.tsx, **/*.scss
+alwaysApply: false
+---
+
+# スタイリング方針
+
+## デザイン原則
+
+- **白黒ベース**: 背景と文字は白黒で構成
+- **角は丸くしない**: `rounded-*` は使用しない
+- **シンプル**: 装飾を最小限に
+- **Transition なし**: アニメーションは避ける（hover:scale 程度は可）
+
+## Tailwind CSS
+
+- 新規コンポーネントは Tailwind で記述
+- 既存の SCSS は段階的に移行
+
+### CSS 変数との組み合わせ
+
+```tsx
+className="h-[var(--header-height)] bg-[var(--background-color)]"
+className="border-2 border-[var(--border-color)]"
+```
+
+## CSS 変数
+
+| 変数 | 用途 |
+|------|------|
+| `--header-height` | ヘッダー高さ (50px) |
+| `--background-color` | 背景色 (white/black) |
+| `--text-color` | テキスト色 |
+| `--border-color` | ボーダー色 |
+
+## 避けるべきパターン
+
+- `transition-*`, `duration-*` (アニメーション)
+- `rounded-*` (角丸)
+- グラデーション、シャドウ
+- 新規 SCSS Module の作成

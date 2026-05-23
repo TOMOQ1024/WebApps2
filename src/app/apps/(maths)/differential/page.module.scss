@@ -1,0 +1,31 @@
+.main {
+  max-width: 600px;
+  margin: 2em auto;
+  padding: 24px;
+  background: #fff;
+  border-radius: 8px;
+}
+
+.inputWrapper {
+  min-height: 40px;
+  background: var(--background-color);
+  font-size: 24px;
+  margin: 16px;
+  .input {
+    padding: 8px;
+    width: calc(100% - 20px);
+    border: 2px solid var(--border-color);
+  }
+}
+
+.outputWrapper {
+  min-height: 40px;
+  font-size: 24px;
+  background: var(--background-color);
+  margin: 16px;
+  .output {
+    padding: 8px;
+    width: calc(100% - 20px);
+    border: 2px solid var(--border-color);
+  }
+}

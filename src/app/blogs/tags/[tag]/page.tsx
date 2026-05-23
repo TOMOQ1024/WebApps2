@@ -1,0 +1,68 @@
+import { notFound } from "next/navigation";
+import { getPostsByTag, getAllTags } from "@/lib/blog";
+import BlogCard from "../../components/BlogCard";
+import Link from "next/link";
+
+interface PageProps {
+  params: Promise<{ tag: string }>;
+}
+
+export async function generateStaticParams() {
+  const tags = getAllTags();
+  return tags.map((tag) => ({ tag: encodeURIComponent(tag) }));
+}
+
+export async function generateMetadata({ params }: PageProps) {
+  const { tag } = await params;
+  const decodedTag = decodeURIComponent(tag);
+
+  return {
+    title: `${decodedTag} の記事一覧`,
+    description: `タグ「${decodedTag}」が付いた記事一覧`,
+  };
+}
+
+export default async function TagPage({ params }: PageProps) {
+  const { tag } = await params;
+  const decodedTag = decodeURIComponent(tag);
+  const posts = getPostsByTag(decodedTag);
+  const allTags = getAllTags();
+
+  if (posts.length === 0 && !allTags.includes(decodedTag)) {
+    notFound();
+  }
+
+  return (
+    <main className="max-w-3xl mx-auto px-4 py-8">
+      <div className="mb-8">
+        <Link
+          href="/blogs"
+          className="inline-block mb-4 text-sm text-[var(--text-color)]"
+        >
+          ← ブログ一覧
+        </Link>
+        <h1 className="flex items-center gap-2 text-2xl font-bold m-0 mb-2">
+          <span className="font-normal text-[var(--text-color)]">タグ:</span>
+          <span className="px-3 py-1 border border-[var(--border-color)]">
+            {decodedTag}
+          </span>
+        </h1>
+        <p className="m-0 text-sm text-[var(--text-color)]">
+          {posts.length} 件の記事
+        </p>
+      </div>
+
+      {posts.length === 0 ? (
+        <p className="text-center text-[var(--text-color)] py-12">
+          このタグの記事はありません．
+        </p>
+      ) : (
+        <div className="grid gap-6">
+          {posts.map((post) => (
+            <BlogCard key={post.slug} post={post} />
+          ))}
+        </div>
+      )}
+    </main>
+  );
+}

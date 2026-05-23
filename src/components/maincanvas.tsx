@@ -1,20 +1,25 @@
-export default function MainCanvas(
-  {width=1024, height=1024}:{
-    width?: number
-    height?: number
-  }){
+/**
+ * 古いコード．削除予定．
+ */
+export default function MainCanvas({
+  width = 1024,
+  height = 1024,
+}: {
+  width?: number;
+  height?: number;
+}) {
   return (
     <canvas
-      id='cvs'
+      id="cvs"
       width={width}
       height={height}
       style={{
-        width: width>height ? `${width}px` : 'unset',
-        height: width<height ? `${height}px` : 'unset',
-        maxWidth: `min(90vw,${90/height*width}vh)`,
-        maxHeight: `min(${90/width*height}vw,90vh)`,
-        margin: '10px',
+        width: width > height ? `${width}px` : "unset",
+        height: width < height ? `${height}px` : "unset",
+        maxWidth: `min(90vw,${(90 / height) * width}vh)`,
+        maxHeight: `min(${(90 / width) * height}vw,90vh)`,
+        margin: "10px",
       }}
     />
-  )
+  );
 }

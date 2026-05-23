@@ -1,0 +1,101 @@
+import { ASTNode } from "../ASTNode";
+import { flattenMultiplication } from "./flattenMultiplication";
+
+// 項から係数と基底を抽出
+export function extractCoefficient(term: ASTNode): {
+  coefficient: number;
+  base: ASTNode;
+} {
+  if (term.type === "number") {
+    return { coefficient: term.value, base: { type: "number", value: 1 } };
+  }
+
+  // 係数と複合式の組み合わせを処理（例：9(π^x + sin x)）
+  if (
+    term.type === "operator" &&
+    term.op === "*" &&
+    term.left.type === "number" &&
+    term.right.type === "operator" &&
+    (term.right.op === "+" || term.right.op === "-")
+  ) {
+    return { coefficient: term.left.value, base: term.right };
+  }
+
+  // 複合式と複合式の乗算を処理（例：(9+tan x)(π^x + sin x)）
+  if (
+    term.type === "operator" &&
+    term.op === "*" &&
+    term.left.type === "operator" &&
+    term.left.op === "+" &&
+    term.right.type === "operator" &&
+    term.right.op === "+"
+  ) {
+    // この場合は特別扱いせず、通常の処理に委ねる
+    return { coefficient: 1, base: term };
+  }
+
+  // 乗算の場合、数値因子と非数値因子に分ける
+  if (term.type === "operator" && term.op === "*") {
+    const factors = flattenMultiplication(term.left, term.right);
+    let coefficient = 1;
+    const nonNumericFactors: ASTNode[] = [];
+
+    for (const factor of factors) {
+      if (factor.type === "number") {
+        coefficient *= factor.value;
+      } else if (
+        factor.type === "operator" &&
+        factor.op === "^" &&
+        factor.left.type === "number" &&
+        factor.right.type === "number" &&
+        factor.right.value === -1
+      ) {
+        // n^{-1} の形の因子は係数として扱う（分数の分母の逆数）
+        coefficient *= 1 / factor.left.value;
+      } else if (
+        factor.type === "operator" &&
+        factor.op === "^" &&
+        factor.left.type === "number" &&
+        factor.right.type === "number" &&
+        factor.right.value < 0
+      ) {
+        // n^{-k} の形の因子は係数として扱う
+        coefficient *= Math.pow(factor.left.value, factor.right.value);
+      } else {
+        nonNumericFactors.push(factor);
+      }
+    }
+
+    const base =
+      nonNumericFactors.length === 0
+        ? { type: "number" as const, value: 1 }
+        : nonNumericFactors.length === 1
+        ? nonNumericFactors[0]
+        : nonNumericFactors.reduce((a, b) => ({
+            type: "operator" as const,
+            op: "*",
+            left: a,
+            right: b,
+          }));
+
+    return { coefficient, base };
+  }
+
+  // 負の係数の処理: (-1) * expr
+  if (
+    term.type === "operator" &&
+    term.op === "*" &&
+    term.left.type === "number" &&
+    term.left.value === -1
+  ) {
+    return { coefficient: -1, base: term.right };
+  }
+
+  // 複合式そのもの（係数なし）の場合 - 加算・減算・べき乗・関数など
+  if (term.type === "operator" || term.type === "function") {
+    return { coefficient: 1, base: term };
+  }
+
+  // その他の場合（symbol など）は係数1、基底は項そのもの
+  return { coefficient: 1, base: term };
+}

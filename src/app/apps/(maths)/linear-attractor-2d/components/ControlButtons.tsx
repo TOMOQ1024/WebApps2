@@ -1,0 +1,136 @@
+export interface ControlButtonsProps {
+  onResetControl: () => void;
+  onReset: () => void;
+  onInitializeToOrigin: () => void;
+  onToggleControlsVisible?: () => void;
+  onRandomSample?: () => void;
+}
+
+export default function ControlButtons({
+  onResetControl,
+  onReset,
+  onInitializeToOrigin,
+  onToggleControlsVisible,
+  onRandomSample,
+}: ControlButtonsProps) {
+  return (
+    <div className="absolute top-[calc(var(--header-height)+1rem)] right-4 flex flex-col gap-2">
+      <button
+        className="w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] cursor-pointer flex items-center justify-center hover:scale-95 active:invert"
+        onClick={onResetControl}
+        title="カメラをリセット"
+        type="button"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="square"
+          strokeLinejoin="miter"
+        >
+          <title>カメラをリセット</title>
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
+      </button>
+      <button
+        className="w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] cursor-pointer flex items-center justify-center hover:scale-95 active:invert"
+        onClick={onReset}
+        title="設定をリセット"
+        type="button"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="square"
+          strokeLinejoin="miter"
+        >
+          <title>設定をリセット</title>
+          <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
+          <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+          <path d="M21 21v-5h-5" />
+        </svg>
+      </button>
+      <button
+        className="w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] cursor-pointer flex items-center justify-center hover:scale-95 active:invert"
+        onClick={onInitializeToOrigin}
+        title="点群を原点に初期化"
+        type="button"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="square"
+          strokeLinejoin="miter"
+        >
+          <title>点群を原点に初期化</title>
+          <circle cx="12" cy="12" r="10" />
+          <circle cx="12" cy="12" r="2" />
+        </svg>
+      </button>
+      {onToggleControlsVisible && (
+        <button
+          className="w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] cursor-pointer flex items-center justify-center hover:scale-95 active:invert"
+          onClick={onToggleControlsVisible}
+          title="コントロール類を表示/非表示"
+          type="button"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="square"
+            strokeLinejoin="miter"
+          >
+            <title>コントロール類を表示/非表示</title>
+            <rect x="3" y="3" width="18" height="18" rx="0" />
+            <line x1="3" y1="9" x2="21" y2="9" />
+            <line x1="9" y1="21" x2="9" y2="9" />
+          </svg>
+        </button>
+      )}
+      {onRandomSample && (
+        <button
+          className="w-10 h-10 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] cursor-pointer flex items-center justify-center hover:scale-95 active:invert"
+          onClick={onRandomSample}
+          title="ランダムサンプルを適用"
+          type="button"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="square"
+            strokeLinejoin="miter"
+          >
+            <title>ランダムサンプルを適用</title>
+            <rect x="3" y="3" width="18" height="18" rx="0" ry="0" />
+            <circle cx="7" cy="7" r="1" />
+            <circle cx="17" cy="7" r="1" />
+            <circle cx="12" cy="12" r="1" />
+            <circle cx="7" cy="17" r="1" />
+            <circle cx="17" cy="17" r="1" />
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+}

@@ -1,69 +1,72 @@
 "use client";
-import { Levenshtein } from "@/src/Levenshtein";
-import { IApp } from "@/types/IApp";
-import axios from "axios";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
+import { findSimilarPaths } from "@/lib/findSimilarPaths";
 
-interface AppList {
-  data: IApp;
-  pt: boolean;
-  ld: number;
-  score: number;
-}
+const mainLinks = [
+  { href: "/apps", label: "Apps" },
+  { href: "/galleries", label: "Galleries" },
+  { href: "/blogs", label: "Blogs" },
+  { href: "/works", label: "Works" },
+];
 
 export default function NotFoundPage() {
-  const pathname = usePathname() ?? "";
-  const [apps, setApps] = useState<IApp[]>([]);
-  const [sortedApps, setSortedApps] = useState<AppList[]>([]);
+  const pathname = usePathname();
 
-  useEffect(() => {
-    axios.get("/api/apps/get").then((res) => {
-      setApps(res.data);
-    });
-  }, []);
-
-  useEffect(() => {
-    setSortedApps(
-      apps
-        .map((ad) => {
-          const _name = ad.path.replace(/\s/g, "").toLowerCase();
-          const _pathname = pathname.replace(/\s|\//g, "").toLowerCase();
-          return {
-            data: ad,
-            pt: 0 <= _pathname.indexOf(_name) || 0 <= _name.indexOf(_pathname),
-            ld: Levenshtein(pathname, _name),
-            score: 0,
-          };
-        })
-        .map((v) => {
-          return {
-            ...v,
-            score: v.ld - (v.pt ? 20 : 0),
-          };
-        })
-        .toSorted((a, b) => a.score - b.score)
-    );
-  }, [pathname, apps]);
+  const similarPaths = useMemo(() => {
+    return findSimilarPaths(pathname, 3, 8);
+  }, [pathname]);
 
   return (
-    <main>
-      <p>ページが見つかりませんでした(pathname: {pathname})</p>
-      <br />
-      <div>
-        もしかして：
-        {sortedApps.map((a, i) => {
-          return (
-            <div key={i}>
-              <Link href={`/apps/${a.data.path}`}>{a.data.name}</Link>
-            </div>
-          );
-        })}
+    <main className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center">
+      <h1 className="text-5xl font-bold mb-2">404</h1>
+      <p className="text-xl text-[var(--text-color)] opacity-80 mb-8">
+        ページが見つかりません
+      </p>
+
+      <p className="text-sm text-[var(--text-color)] opacity-60 mb-6 font-mono">
+        {pathname}
+      </p>
+
+      {similarPaths.length > 0 && (
+        <div className="mb-8">
+          <p className="text-sm text-[var(--text-color)] opacity-70 mb-3">
+            もしかして:
+          </p>
+          <div className="flex flex-col gap-2">
+            {similarPaths.map(({ path }) => (
+              <Link
+                key={path}
+                href={path}
+                className="no-underline font-mono font-semibold"
+                draggable={false}
+              >
+                → {path}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-4">
+        <p className="text-sm text-[var(--text-color)] opacity-70 mb-3">
+          主要なページ:
+        </p>
+        <div className="flex gap-6 justify-center">
+          {mainLinks.map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              className="no-underline font-semibold"
+              draggable={false}
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
       </div>
-      {/* <pre>
-        {JSON.stringify(sortedApps, null, 2)}
-      </pre> */}
     </main>
   );
 }

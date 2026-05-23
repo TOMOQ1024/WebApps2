@@ -1,0 +1,48 @@
+"use client";
+import { useState, useEffect } from "react";
+import { EditableMathField, StaticMathField } from "@/components/MathFields";
+import styles from "./page.module.scss";
+import { differentiateLaTeX } from "@/src/Parser/differentiate/differentiateLaTeX";
+
+export default function DifferentialPage() {
+  const [input, setInput] = useState("");
+  const [output, setOutput] = useState("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!input) {
+      setOutput("");
+      setError("");
+      return;
+    }
+    try {
+      setError("");
+      console.log(input);
+      const latex = differentiateLaTeX(input, "x");
+      console.log(latex);
+      setOutput(latex);
+    } catch (e: any) {
+      setOutput("");
+      setError(e.message || "エラーが発生しました");
+    }
+  }, [input]);
+
+  return (
+    <main className={styles.main}>
+      <h2>微分計算ツール</h2>
+      <div className={styles.inputWrapper}>
+        <label>入力</label>
+        <EditableMathField
+          className={styles.input}
+          latex={input}
+          onChange={(mf: any) => setInput(mf.latex())}
+        />
+      </div>
+      {error && <div style={{ color: "red", marginTop: 12 }}>{error}</div>}
+      <div className={styles.outputWrapper}>
+        <label>出力</label>
+        <StaticMathField className={styles.output}>{output}</StaticMathField>
+      </div>
+    </main>
+  );
+}
