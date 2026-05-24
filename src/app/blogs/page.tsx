@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAllUnifiedPosts, getAllUnifiedTags } from "@/lib/blogPosts";
+import { getAllBlogPosts, getAllBlogTags } from "@/lib/blogPosts";
 import BlogActions from "./components/BlogActions";
 import BlogCard from "./components/BlogCard";
 
@@ -9,8 +9,8 @@ export const metadata = {
 };
 
 export default async function BlogsPage() {
-  const posts = await getAllUnifiedPosts();
-  const tags = await getAllUnifiedTags();
+  const posts = await getAllBlogPosts();
+  const tags = await getAllBlogTags();
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8">
@@ -40,7 +40,7 @@ export default async function BlogsPage() {
       ) : (
         <div className="grid gap-6">
           {posts.map((post) => (
-            <BlogCard key={`${post.source ?? "mdx"}-${post.slug}`} post={post} />
+            <BlogCard key={post.id ?? post.slug} post={post} />
           ))}
         </div>
       )}

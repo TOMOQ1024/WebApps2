@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
-import { getAllSlugs } from "@/lib/blog";
-import { getUnifiedPostBySlug } from "@/lib/blogPosts";
+import {
+  getAllBlogSlugsForBuild,
+  getBlogPostBySlug,
+} from "@/lib/blogPosts";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { blogMdxOptions } from "@/lib/blogMdxOptions";
 import components from "../components/MDXComponents";
@@ -12,14 +14,14 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-export function generateStaticParams() {
-  // ビルド時は cookies を使えないため，MDX 記事のみ事前生成する
-  return getAllSlugs().map((slug) => ({ slug }));
+export async function generateStaticParams() {
+  const slugs = await getAllBlogSlugsForBuild();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
-  const post = await getUnifiedPostBySlug(slug);
+  const post = await getBlogPostBySlug(slug);
 
   if (!post) {
     return { title: "Not Found" };
@@ -33,7 +35,7 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
-  const post = await getUnifiedPostBySlug(slug);
+  const post = await getBlogPostBySlug(slug);
 
   if (!post) {
     notFound();
@@ -43,10 +45,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const canEdit =
-    post.source === "db" &&
-    user &&
-    post.created_by === user.id;
+  const canEdit = user && post.created_by === user.id;
 
   const formattedDate = post.date
     ? new Date(post.date).toLocaleDateString("ja-JP", {

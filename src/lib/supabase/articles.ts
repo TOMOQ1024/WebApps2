@@ -1,12 +1,16 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "./server";
+import { createStaticClient } from "./static";
 import type { Article, ArticleWithTags, Tag } from "./types";
 
-async function attachTagsToArticles(articles: Article[]): Promise<ArticleWithTags[]> {
+async function attachTagsToArticles(
+  articles: Article[],
+  supabase: SupabaseClient,
+): Promise<ArticleWithTags[]> {
   if (articles.length === 0) {
     return [];
   }
 
-  const supabase = await createClient();
   const articleIds = articles.map((article) => article.id);
 
   const { data: tagRelations } = await supabase
@@ -48,7 +52,6 @@ export function articleToBlogMeta(article: ArticleWithTags) {
     date: formatArticleDate(article),
     tags: article.tags.map((tag) => tag.name),
     description: article.description,
-    source: "db" as const,
     id: article.id,
     status: article.status,
     created_by: article.created_by,
@@ -62,12 +65,9 @@ export function articleToBlogPost(article: ArticleWithTags) {
   };
 }
 
-/**
- * 公開済み記事を取得
- */
-export async function getPublishedArticles(): Promise<ArticleWithTags[]> {
-  const supabase = await createClient();
-
+async function getPublishedArticlesWithClient(
+  supabase: SupabaseClient,
+): Promise<ArticleWithTags[]> {
   const { data, error } = await supabase
     .from("articles")
     .select("*")
@@ -79,7 +79,15 @@ export async function getPublishedArticles(): Promise<ArticleWithTags[]> {
     return [];
   }
 
-  return attachTagsToArticles((data ?? []) as Article[]);
+  return attachTagsToArticles((data ?? []) as Article[], supabase);
+}
+
+/**
+ * 公開済み記事を取得
+ */
+export async function getPublishedArticles(): Promise<ArticleWithTags[]> {
+  const supabase = await createClient();
+  return getPublishedArticlesWithClient(supabase);
 }
 
 /**
@@ -107,7 +115,7 @@ export async function getMyArticles(): Promise<ArticleWithTags[]> {
     return [];
   }
 
-  return attachTagsToArticles((data ?? []) as Article[]);
+  return attachTagsToArticles((data ?? []) as Article[], supabase);
 }
 
 /**
@@ -131,7 +139,7 @@ export async function getArticleBySlug(slug: string): Promise<ArticleWithTags | 
     return null;
   }
 
-  const [article] = await attachTagsToArticles([data as Article]);
+  const [article] = await attachTagsToArticles([data as Article], supabase);
   return article ?? null;
 }
 
@@ -156,7 +164,7 @@ export async function getArticleById(id: string): Promise<ArticleWithTags | null
     return null;
   }
 
-  const [article] = await attachTagsToArticles([data as Article]);
+  const [article] = await attachTagsToArticles([data as Article], supabase);
   return article ?? null;
 }
 
@@ -177,6 +185,41 @@ export async function getPublishedArticleSlugs(): Promise<string[]> {
   }
 
   return (data ?? []).map((article) => article.slug);
+}
+
+/**
+ * ビルド時向け: 公開済み記事のスラッグ一覧
+ */
+export async function getPublishedArticleSlugsStatic(): Promise<string[]> {
+  const supabase = createStaticClient();
+
+  const { data, error } = await supabase
+    .from("articles")
+    .select("slug")
+    .eq("status", "published");
+
+  if (error) {
+    console.error("Error fetching article slugs:", error);
+    return [];
+  }
+
+  return (data ?? []).map((article) => article.slug);
+}
+
+/**
+ * ビルド時向け: 公開済み記事のタグ一覧
+ */
+export async function getAllBlogTagsStatic(): Promise<string[]> {
+  const articles = await getPublishedArticlesWithClient(createStaticClient());
+  const tagSet = new Set<string>();
+
+  for (const article of articles) {
+    for (const tag of article.tags) {
+      tagSet.add(tag.name);
+    }
+  }
+
+  return Array.from(tagSet).sort();
 }
 
 /**

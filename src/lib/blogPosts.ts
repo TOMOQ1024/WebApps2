@@ -1,39 +1,16 @@
-import {
-  getAllPosts as getFilePosts,
-  getPostBySlug as getFilePostBySlug,
-  type BlogPost,
-  type BlogPostMeta,
-} from "./blog";
+import type { BlogPost, BlogPostMeta } from "./blog/types";
 import {
   articleToBlogMeta,
   articleToBlogPost,
+  getAllBlogTagsStatic,
   getArticleBySlug,
+  getPublishedArticleSlugsStatic,
   getPublishedArticles,
 } from "./supabase/articles";
 
-export type BlogPostSource = "mdx" | "db";
+export type { BlogPost, BlogPostMeta };
 
-export interface UnifiedBlogPostMeta extends BlogPostMeta {
-  source: BlogPostSource;
-  id?: string;
-  status?: "draft" | "published";
-  created_by?: string | null;
-}
-
-export interface UnifiedBlogPost extends BlogPost {
-  source: BlogPostSource;
-  id?: string;
-  status?: "draft" | "published";
-}
-
-function sortPostsByDate(posts: UnifiedBlogPostMeta[]): UnifiedBlogPostMeta[] {
-  return [...posts].sort((a, b) => {
-    if (!a.date || !b.date) return 0;
-    return new Date(b.date).getTime() - new Date(a.date).getTime();
-  });
-}
-
-function collectTags(posts: UnifiedBlogPostMeta[]): string[] {
+function collectTags(posts: BlogPostMeta[]): string[] {
   const tagSet = new Set<string>();
   for (const post of posts) {
     for (const tag of post.tags) {
@@ -43,45 +20,34 @@ function collectTags(posts: UnifiedBlogPostMeta[]): string[] {
   return Array.from(tagSet).sort();
 }
 
-export async function getAllUnifiedPosts(): Promise<UnifiedBlogPostMeta[]> {
-  const filePosts: UnifiedBlogPostMeta[] = getFilePosts().map((post) => ({
-    ...post,
-    source: "mdx",
-  }));
-
-  const dbPosts = (await getPublishedArticles()).map(articleToBlogMeta);
-  const dbSlugs = new Set(dbPosts.map((post) => post.slug));
-
-  const merged = [
-    ...filePosts.filter((post) => !dbSlugs.has(post.slug)),
-    ...dbPosts,
-  ];
-
-  return sortPostsByDate(merged);
+export async function getAllBlogPosts(): Promise<BlogPostMeta[]> {
+  const articles = await getPublishedArticles();
+  return articles.map(articleToBlogMeta);
 }
 
-export async function getUnifiedPostBySlug(
-  slug: string,
-): Promise<UnifiedBlogPost | null> {
-  const filePost = getFilePostBySlug(slug);
-  if (filePost) {
-    return { ...filePost, source: "mdx" };
-  }
-
-  const dbArticle = await getArticleBySlug(slug);
-  if (!dbArticle) {
+export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+  const article = await getArticleBySlug(slug);
+  if (!article) {
     return null;
   }
 
-  return articleToBlogPost(dbArticle);
+  return articleToBlogPost(article);
 }
 
-export async function getUnifiedPostsByTag(tag: string): Promise<UnifiedBlogPostMeta[]> {
-  const posts = await getAllUnifiedPosts();
+export async function getBlogPostsByTag(tag: string): Promise<BlogPostMeta[]> {
+  const posts = await getAllBlogPosts();
   return posts.filter((post) => post.tags.includes(tag));
 }
 
-export async function getAllUnifiedTags(): Promise<string[]> {
-  const posts = await getAllUnifiedPosts();
+export async function getAllBlogTags(): Promise<string[]> {
+  const posts = await getAllBlogPosts();
   return collectTags(posts);
+}
+
+export async function getAllBlogSlugsForBuild(): Promise<string[]> {
+  return getPublishedArticleSlugsStatic();
+}
+
+export async function getAllBlogTagsForBuild(): Promise<string[]> {
+  return getAllBlogTagsStatic();
 }

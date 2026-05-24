@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
-import { getAllTags } from "@/lib/blog";
-import { getAllUnifiedTags, getUnifiedPostsByTag } from "@/lib/blogPosts";
+import {
+  getAllBlogTags,
+  getAllBlogTagsForBuild,
+  getBlogPostsByTag,
+} from "@/lib/blogPosts";
 import BlogCard from "../../components/BlogCard";
 import Link from "next/link";
 
@@ -8,9 +11,9 @@ interface PageProps {
   params: Promise<{ tag: string }>;
 }
 
-export function generateStaticParams() {
-  // ビルド時は cookies を使えないため，MDX 記事のタグのみ事前生成する
-  return getAllTags().map((tag) => ({ tag: encodeURIComponent(tag) }));
+export async function generateStaticParams() {
+  const tags = await getAllBlogTagsForBuild();
+  return tags.map((tag) => ({ tag: encodeURIComponent(tag) }));
 }
 
 export async function generateMetadata({ params }: PageProps) {
@@ -26,8 +29,8 @@ export async function generateMetadata({ params }: PageProps) {
 export default async function TagPage({ params }: PageProps) {
   const { tag } = await params;
   const decodedTag = decodeURIComponent(tag);
-  const posts = await getUnifiedPostsByTag(decodedTag);
-  const allTags = await getAllUnifiedTags();
+  const posts = await getBlogPostsByTag(decodedTag);
+  const allTags = await getAllBlogTags();
 
   if (posts.length === 0 && !allTags.includes(decodedTag)) {
     notFound();
@@ -60,7 +63,7 @@ export default async function TagPage({ params }: PageProps) {
       ) : (
         <div className="grid gap-6">
           {posts.map((post) => (
-            <BlogCard key={`${post.source ?? "mdx"}-${post.slug}`} post={post} />
+            <BlogCard key={post.id ?? post.slug} post={post} />
           ))}
         </div>
       )}

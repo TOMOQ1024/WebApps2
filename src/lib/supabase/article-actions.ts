@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getAllSlugs } from "@/lib/blog";
 import { createClient } from "./server";
 import { getArticleById, isArticleSlugTaken } from "./articles";
 import type { Article, ArticleStatus, Tag } from "./types";
@@ -49,10 +48,6 @@ function validateArticleInput(input: ArticleInput): string | null {
 }
 
 async function isSlugConflict(slug: string, excludeId?: string): Promise<boolean> {
-  if (getAllSlugs().includes(slug)) {
-    return true;
-  }
-
   return isArticleSlugTaken(slug, excludeId);
 }
 
