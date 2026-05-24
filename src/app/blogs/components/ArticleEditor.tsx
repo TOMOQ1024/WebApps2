@@ -12,6 +12,7 @@ import {
 } from "@/lib/supabase/article-actions";
 import { createTag } from "@/lib/supabase/actions";
 import type { ArticleStatus, ArticleWithTags, Tag } from "@/lib/supabase/types";
+import ArticlePreview from "./ArticlePreview";
 
 interface ArticleEditorProps {
   mode: "create" | "edit";
@@ -168,7 +169,7 @@ export default function ArticleEditor({ mode, article }: ArticleEditorProps) {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="mb-8">
         <Link href="/blogs" className="text-sm text-[var(--text-color)]">
           ← ブログ一覧
@@ -228,16 +229,22 @@ export default function ArticleEditor({ mode, article }: ArticleEditorProps) {
         </div>
 
         <div>
-          <label htmlFor="body" className="block text-sm mb-2">
-            本文
-          </label>
-          <textarea
-            id="body"
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-            rows={18}
-            className="w-full px-3 py-2 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] font-mono text-sm leading-relaxed"
-          />
+          <p className="text-sm mb-2">本文</p>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div>
+              <label htmlFor="body" className="sr-only">
+                本文
+              </label>
+              <textarea
+                id="body"
+                value={body}
+                onChange={(event) => setBody(event.target.value)}
+                rows={28}
+                className="w-full min-h-[28rem] px-3 py-2 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] font-mono text-sm leading-relaxed resize-y"
+              />
+            </div>
+            <ArticlePreview body={body} />
+          </div>
         </div>
 
         <div>
