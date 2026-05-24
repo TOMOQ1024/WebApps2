@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { getAllPosts, getAllTags } from "@/lib/blog";
+import { getAllUnifiedPosts, getAllUnifiedTags } from "@/lib/blogPosts";
+import BlogActions from "./components/BlogActions";
 import BlogCard from "./components/BlogCard";
 
 export const metadata = {
@@ -7,13 +8,15 @@ export const metadata = {
   description: "ブログ記事一覧",
 };
 
-export default function BlogsPage() {
-  const posts = getAllPosts();
-  const tags = getAllTags();
+export default async function BlogsPage() {
+  const posts = await getAllUnifiedPosts();
+  const tags = await getAllUnifiedTags();
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Blog</h1>
+
+      <BlogActions />
 
       {tags.length > 0 && (
         <nav className="flex flex-wrap items-center gap-2 mb-8 p-4 border-2 border-[var(--border-color)]">
@@ -37,7 +40,7 @@ export default function BlogsPage() {
       ) : (
         <div className="grid gap-6">
           {posts.map((post) => (
-            <BlogCard key={post.slug} post={post} />
+            <BlogCard key={`${post.source ?? "mdx"}-${post.slug}`} post={post} />
           ))}
         </div>
       )}

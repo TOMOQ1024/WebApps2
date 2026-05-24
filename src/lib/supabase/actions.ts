@@ -562,6 +562,7 @@ export async function createTag(
     for_apps?: boolean;
     for_galleries?: boolean;
     for_gallery_items?: boolean;
+    for_articles?: boolean;
   }
 ): Promise<{ success: boolean; error?: string; tag?: Tag }> {
   const supabase = await createClient();
@@ -585,6 +586,7 @@ export async function createTag(
   const for_apps = options?.for_apps ?? true;
   const for_galleries = options?.for_galleries ?? true;
   const for_gallery_items = options?.for_gallery_items ?? false;
+  const for_articles = options?.for_articles ?? false;
 
   // 既存タグのチェック
   const { data: existingTag } = await supabase
@@ -599,6 +601,7 @@ export async function createTag(
     if (for_apps && !existingTag.for_apps) updateFields.for_apps = true;
     if (for_galleries && !existingTag.for_galleries) updateFields.for_galleries = true;
     if (for_gallery_items && !existingTag.for_gallery_items) updateFields.for_gallery_items = true;
+    if (for_articles && !existingTag.for_articles) updateFields.for_articles = true;
 
     if (Object.keys(updateFields).length > 0) {
       const { data: updatedTag, error: updateError } = await supabase
@@ -628,6 +631,7 @@ export async function createTag(
       for_apps,
       for_galleries,
       for_gallery_items,
+      for_articles,
     })
     .select()
     .single();

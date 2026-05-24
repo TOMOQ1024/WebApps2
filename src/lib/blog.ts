@@ -19,6 +19,10 @@ export interface BlogPostMeta {
   date: string;
   tags: string[];
   description: string;
+  source?: "mdx" | "db";
+  id?: string;
+  status?: "draft" | "published";
+  created_by?: string | null;
 }
 
 interface FrontMatter {
