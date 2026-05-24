@@ -1,6 +1,6 @@
 import { ASTNode } from "@/src/Parser/ASTNode";
 import { SimplifyOptions } from "./simplify/simplifyLaTeX";
-import { gcd } from "@/src/Parser/simplify/helpers";
+import { gcd, simplifyFraction } from "@/src/Parser/simplify/helpers";
 import { flattenAddition } from "./simplify/flattenAddition";
 import { groupLikeTerms } from "./simplify/groupLikeTerms";
 import { buildAddition } from "./simplify/buildAddition";
@@ -98,6 +98,39 @@ function flattenMultiplication(left: ASTNode, right: ASTNode): ASTNode[] {
   collect(right);
 
   return factors;
+}
+
+function renderNumericInverseProductLatex(node: ASTNode): string | null {
+  if (node.type !== "operator" || node.op !== "*") {
+    return null;
+  }
+
+  const factors = flattenMultiplication(node.left, node.right);
+  let numerator = 1;
+  const denominators: number[] = [];
+
+  for (const factor of factors) {
+    if (factor.type === "number") {
+      numerator *= factor.value;
+    } else if (
+      factor.type === "operator" &&
+      factor.op === "^" &&
+      factor.left.type === "number" &&
+      factor.right.type === "number" &&
+      factor.right.value === -1
+    ) {
+      denominators.push(factor.left.value);
+    } else {
+      return null;
+    }
+  }
+
+  if (denominators.length !== 1 || !Number.isInteger(numerator)) {
+    return null;
+  }
+
+  const { num, den } = simplifyFraction(numerator, denominators[0]);
+  return `\\frac{${num}}{${den}}`;
 }
 
 export function ASTToLatex(
@@ -343,6 +376,20 @@ export function ASTToLatex(
               "",
               options
             )}\\right)`;
+          }
+
+          // 数値と数値底の指数表記の積は \cdot で区切る
+          if (
+            right.type === "operator" &&
+            right.op === "^" &&
+            right.left.type === "number"
+          ) {
+            return `${numberToLatex(left.value, options)}\\cdot ${ASTToLatex(
+              right,
+              astTransform,
+              "",
+              options
+            )}`;
           }
 
           return `${numberToLatex(left.value, options)}${ASTToLatex(
@@ -1022,6 +1069,21 @@ export function ASTToLatex(
 
         return `\\frac{${leftStr}}{${rightStr}}`;
       } else if (op === "^") {
+        // 数値底の単桁正指数は 2^2 形式で出力
+        if (node.left.type === "number" && node.right.type === "number") {
+          const exponent = node.right.value;
+          if (exponent === 1) {
+            return numberToLatex(node.left.value, options);
+          }
+          if (
+            Number.isInteger(exponent) &&
+            exponent > 1 &&
+            exponent < 10
+          ) {
+            return `${numberToLatex(node.left.value, options)}^${exponent}`;
+          }
+        }
+
         // x^n の出力（nがnumber型でも常にx^{n}形式で出力）
         if (node.left.type === "symbol" && node.right.type === "number") {
           if (node.right.value === 1) {
@@ -1040,8 +1102,21 @@ export function ASTToLatex(
         ) {
           return `${ASTToLatex(node.left, astTransform)}^{${ASTToLatex(
             node.right,
-            astTransform
+            astTransform,
+            "fraction",
+            options
           )}}`;
+        }
+
+        if (
+          node.left.type === "symbol" &&
+          node.right.type === "operator" &&
+          node.right.op === "*"
+        ) {
+          const fraction = renderNumericInverseProductLatex(node.right);
+          if (fraction) {
+            return `${ASTToLatex(node.left, astTransform)}^{${fraction}}`;
+          }
         }
 
         // 関数のべき乗は \left(関数\right)^{指数} の形式で出力
