@@ -18,11 +18,9 @@ import {
   readdirSync,
   statSync,
   writeFileSync,
-  createWriteStream,
 } from "node:fs";
+import { writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
-import { pipeline } from "node:stream/promises";
-import { Readable } from "node:stream";
 import { config } from "dotenv";
 
 const projectRoot = resolve(__dirname, "..");
@@ -122,8 +120,7 @@ async function saveBlob(
   filePath: string,
 ): Promise<void> {
   mkdirSync(dirname(filePath), { recursive: true });
-  const nodeStream = Readable.fromWeb(data.stream() as ReadableStream<Uint8Array>);
-  await pipeline(nodeStream, createWriteStream(filePath));
+  await writeFile(filePath, Buffer.from(await data.arrayBuffer()));
 }
 
 async function backupStorageViaApi(
