@@ -2,9 +2,7 @@ import type { BlogPost, BlogPostMeta } from "./blog/types";
 import {
   articleToBlogMeta,
   articleToBlogPost,
-  getAllBlogTagsStatic,
   getArticleBySlug,
-  getPublishedArticleSlugsStatic,
   getPublishedArticles,
 } from "./supabase/articles";
 
@@ -42,12 +40,4 @@ export async function getBlogPostsByTag(tag: string): Promise<BlogPostMeta[]> {
 export async function getAllBlogTags(): Promise<string[]> {
   const posts = await getAllBlogPosts();
   return collectTags(posts);
-}
-
-export async function getAllBlogSlugsForBuild(): Promise<string[]> {
-  return getPublishedArticleSlugsStatic();
-}
-
-export async function getAllBlogTagsForBuild(): Promise<string[]> {
-  return getAllBlogTagsStatic();
 }

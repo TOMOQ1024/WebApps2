@@ -1,23 +1,17 @@
 import { notFound } from "next/navigation";
-import {
-  getAllBlogSlugsForBuild,
-  getBlogPostBySlug,
-} from "@/lib/blogPosts";
+import { getBlogPostBySlug } from "@/lib/blogPosts";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { blogMdxOptions } from "@/lib/blogMdxOptions";
 import components from "../components/MDXComponents";
 import TableOfContents from "../components/TableOfContents";
+import BlogPostEditLink from "../components/BlogPostEditLink";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-export async function generateStaticParams() {
-  const slugs = await getAllBlogSlugsForBuild();
-  return slugs.map((slug) => ({ slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
@@ -40,12 +34,6 @@ export default async function BlogPostPage({ params }: PageProps) {
   if (!post) {
     notFound();
   }
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const canEdit = user && post.created_by === user.id;
 
   const formattedDate = post.date
     ? new Date(post.date).toLocaleDateString("ja-JP", {
@@ -86,16 +74,10 @@ export default async function BlogPostPage({ params }: PageProps) {
             </div>
           )}
         </div>
-        {canEdit && (
-          <div className="mt-4">
-            <Link
-              href={`/blogs/${post.slug}/edit`}
-              className="text-sm text-[var(--text-color)]"
-            >
-              編集する
-            </Link>
-          </div>
-        )}
+        <BlogPostEditLink
+          slug={post.slug}
+          createdBy={post.created_by ?? null}
+        />
       </header>
 
       <div className="flex gap-8 max-md:flex-col">

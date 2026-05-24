@@ -1,9 +1,5 @@
 import { notFound } from "next/navigation";
-import {
-  getAllBlogTags,
-  getAllBlogTagsForBuild,
-  getBlogPostsByTag,
-} from "@/lib/blogPosts";
+import { getAllBlogTags, getBlogPostsByTag } from "@/lib/blogPosts";
 import BlogCard from "../../components/BlogCard";
 import Link from "next/link";
 
@@ -11,10 +7,7 @@ interface PageProps {
   params: Promise<{ tag: string }>;
 }
 
-export async function generateStaticParams() {
-  const tags = await getAllBlogTagsForBuild();
-  return tags.map((tag) => ({ tag: encodeURIComponent(tag) }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: PageProps) {
   const { tag } = await params;

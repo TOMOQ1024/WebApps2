@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "./server";
-import { createStaticClient } from "./static";
 import type { Article, ArticleWithTags, Tag } from "./types";
 
 async function attachTagsToArticles(
@@ -185,41 +184,6 @@ export async function getPublishedArticleSlugs(): Promise<string[]> {
   }
 
   return (data ?? []).map((article) => article.slug);
-}
-
-/**
- * ビルド時向け: 公開済み記事のスラッグ一覧
- */
-export async function getPublishedArticleSlugsStatic(): Promise<string[]> {
-  const supabase = createStaticClient();
-
-  const { data, error } = await supabase
-    .from("articles")
-    .select("slug")
-    .eq("status", "published");
-
-  if (error) {
-    console.error("Error fetching article slugs:", error);
-    return [];
-  }
-
-  return (data ?? []).map((article) => article.slug);
-}
-
-/**
- * ビルド時向け: 公開済み記事のタグ一覧
- */
-export async function getAllBlogTagsStatic(): Promise<string[]> {
-  const articles = await getPublishedArticlesWithClient(createStaticClient());
-  const tagSet = new Set<string>();
-
-  for (const article of articles) {
-    for (const tag of article.tags) {
-      tagSet.add(tag.name);
-    }
-  }
-
-  return Array.from(tagSet).sort();
 }
 
 /**
