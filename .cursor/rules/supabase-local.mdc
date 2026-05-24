@@ -1,0 +1,28 @@
+---
+description: ローカル Supabase の破壊的操作を禁止
+globs: supabase/**,package.json,.env*
+alwaysApply: true
+---
+
+# ローカル Supabase 操作制約
+
+## 禁止（明示的な依頼がない限り）
+
+- `supabase db reset`
+- `docker volume rm`（`supabase_db_*`, `supabase_storage_*` など Supabase 関連）
+- `supabase stop`（`--no-backup` なし）
+- ローカル DB データを消す `docker compose down -v` 相当
+
+## 停止・起動
+
+- 停止: `pnpm supabase:stop` / `npx supabase stop --no-backup`
+- 起動: `pnpm supabase:start` / `npx supabase start`
+- 設定反映も stop → start のみ．DB 初期化は最後の手段
+
+## 保護対象
+
+- `supabase/backups/` を削除しない
+
+## 復旧が必要な場合
+
+ユーザーに確認してから `db reset` またはボリューム削除を検討する．

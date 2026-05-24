@@ -1,5 +1,9 @@
 import { notFound } from "next/navigation";
-import { getPostsByTag, getAllTags } from "@/lib/blog";
+import {
+  getAllBlogTags,
+  getAllBlogTagsForBuild,
+  getBlogPostsByTag,
+} from "@/lib/blogPosts";
 import BlogCard from "../../components/BlogCard";
 import Link from "next/link";
 
@@ -8,7 +12,7 @@ interface PageProps {
 }
 
 export async function generateStaticParams() {
-  const tags = getAllTags();
+  const tags = await getAllBlogTagsForBuild();
   return tags.map((tag) => ({ tag: encodeURIComponent(tag) }));
 }
 
@@ -25,8 +29,8 @@ export async function generateMetadata({ params }: PageProps) {
 export default async function TagPage({ params }: PageProps) {
   const { tag } = await params;
   const decodedTag = decodeURIComponent(tag);
-  const posts = getPostsByTag(decodedTag);
-  const allTags = getAllTags();
+  const posts = await getBlogPostsByTag(decodedTag);
+  const allTags = await getAllBlogTags();
 
   if (posts.length === 0 && !allTags.includes(decodedTag)) {
     notFound();
@@ -59,7 +63,7 @@ export default async function TagPage({ params }: PageProps) {
       ) : (
         <div className="grid gap-6">
           {posts.map((post) => (
-            <BlogCard key={post.slug} post={post} />
+            <BlogCard key={post.id ?? post.slug} post={post} />
           ))}
         </div>
       )}

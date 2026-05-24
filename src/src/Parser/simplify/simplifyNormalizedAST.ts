@@ -227,9 +227,36 @@ export function simplifyNormalizedAST(
         return numericResult || { ...node, left, right };
     }
   } else if (node.type === "function") {
+    const args = node.args.map((arg) => simplifyNormalizedAST(arg, options));
+
+    if (node.name === "sin" && args.length === 1) {
+      const { coefficient, base } = extractCoefficient(args[0]);
+      if (coefficient < 0) {
+        const positiveArg =
+          coefficient === -1
+            ? base
+            : {
+                type: "operator" as const,
+                op: "*" as const,
+                left: { type: "number" as const, value: -coefficient },
+                right: base,
+              };
+        return {
+          type: "operator",
+          op: "*",
+          left: { type: "number", value: -1 },
+          right: {
+            type: "function",
+            name: "sin",
+            args: [positiveArg],
+          },
+        };
+      }
+    }
+
     return {
       ...node,
-      args: node.args.map((arg) => simplifyNormalizedAST(arg, options)),
+      args,
     };
   }
 

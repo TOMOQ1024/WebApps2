@@ -2,3 +2,4 @@
 .temp
 auth_users_data.sql
 seed_data.sql
+backups/
