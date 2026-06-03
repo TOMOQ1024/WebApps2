@@ -10,6 +10,26 @@ export interface Tag {
   for_apps?: boolean;
   for_galleries?: boolean;
   for_gallery_items?: boolean;
+  for_articles?: boolean;
+}
+
+export type ArticleStatus = "draft" | "published";
+
+export interface Article {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  body: string;
+  status: ArticleStatus;
+  published_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ArticleWithTags extends Article {
+  tags: Tag[];
 }
 
 // アプリ

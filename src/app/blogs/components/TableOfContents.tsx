@@ -13,7 +13,7 @@ interface TableOfContentsProps {
 }
 
 function extractHeadings(content: string): TocItem[] {
-  const headingRegex = /^(#{2,4})\s+(.+)$/gm;
+  const headingRegex = /^(#{1,4})\s+(.+)$/gm;
   const headings: TocItem[] = [];
   let match: RegExpExecArray | null;
 
@@ -59,7 +59,7 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
       }
     );
 
-    const headingElements = document.querySelectorAll("h2, h3, h4");
+    const headingElements = document.querySelectorAll("h1, h2, h3, h4");
     for (const element of headingElements) {
       observer.observe(element);
     }
@@ -76,8 +76,9 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
   }
 
   const getLevelPadding = (level: number) => {
-    if (level === 3) return "pl-4";
-    if (level === 4) return "pl-8";
+    if (level === 2) return "pl-4";
+    if (level === 3) return "pl-8";
+    if (level === 4) return "pl-12";
     return "";
   };
 

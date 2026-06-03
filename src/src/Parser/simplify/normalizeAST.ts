@@ -24,13 +24,13 @@ export function normalizeAST(node: ASTNode): ASTNode {
       };
     }
 
-    // 複合式の加算・減算は正規化しない
+    // 複合式の加算は正規化しない（減算は a-b → a+(-b) に変換する）
     if (
-      ((node.op === "+" || node.op === "-") &&
-        node.left.type === "operator" &&
+      node.op === "+" &&
+      ((node.left.type === "operator" &&
         (node.left.op === "+" || node.left.op === "-")) ||
-      (node.right.type === "operator" &&
-        (node.right.op === "+" || node.right.op === "-"))
+        (node.right.type === "operator" &&
+          (node.right.op === "+" || node.right.op === "-")))
     ) {
       // 子ノードを再帰的に正規化するが、構造は保持
       return {

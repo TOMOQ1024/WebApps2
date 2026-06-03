@@ -1,0 +1,14 @@
+<h2>Reset your password</h2>
+
+<p>
+  We received a request to reset your password. Follow the link below to choose
+  a new one.
+</p>
+<p>
+  <a
+    href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/apps/reset-password"
+  >
+    Reset password
+  </a>
+</p>
+<p>Alternatively, enter the code: {{ .Token }}</p>

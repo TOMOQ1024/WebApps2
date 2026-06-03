@@ -4,64 +4,72 @@ describe("simplifyLaTeX", () => {
   console.log("NOTE: 同じ意味であれば，空白や括弧の有無は無視して良い．");
   console.log("NOTE: 同じ意味であれば，和や積の順番は無視して良い．");
 
+  test("数値の簡単化", () => {
+    expect(simplifyLaTeX("100")).toBe("2^{2} \\cdot 5^{2}");
+    expect(simplifyLaTeX("2\\cdot 2")).toBe("2^2");
+    expect(simplifyLaTeX("2\\cdot 4")).toBe("2^3");
+  });
+
   test("加法に関する簡単化", () => {
     expect(
       simplifyLaTeX(
-        "9\\left(\\pi^{x}+\\sin x\\right)+2\\left(\\pi^{x}+\\sin x\\right)"
-      )
+        "9\\left(\\pi^{x}+\\sin x\\right)+2\\left(\\pi^{x}+\\sin x\\right)",
+      ),
     ).toBe("11\\left(\\pi^{x}+\\sin x\\right)");
     expect(
-      simplifyLaTeX("9\\left(\\pi^{x}+\\sin x\\right)+\\pi^{x}+\\sin x")
+      simplifyLaTeX("9\\left(\\pi^{x}+\\sin x\\right)+\\pi^{x}+\\sin x"),
     ).toBe("10\\left(\\pi^{x}+\\sin x\\right)");
     expect(
-      simplifyLaTeX("9\\left(\\pi^{x}+\\sin x\\right)+34+\\pi^{x}+\\sin x")
+      simplifyLaTeX("9\\left(\\pi^{x}+\\sin x\\right)+34+\\pi^{x}+\\sin x"),
     ).toBe("10\\left(\\pi^{x}+\\sin x\\right)+34");
     expect(
       simplifyLaTeX(
-        "\\left(9+\\tan x\\right)\\left(\\pi^{x}+\\sin x\\right)+\\pi^{x}+\\sin x"
-      )
+        "\\left(9+\\tan x\\right)\\left(\\pi^{x}+\\sin x\\right)+\\pi^{x}+\\sin x",
+      ),
     ).toBe("\\left(\\tan x+10\\right)\\left(\\pi^{x}+\\sin x\\right)");
   });
 
   test("乗法に関する簡単化", () => {
     expect(
       simplifyLaTeX(
-        "\\left(\\pi^{x}+\\sin x\\right)\\left(\\pi^{x}+\\sin x\\right)^7"
-      )
+        "\\left(\\pi^{x}+\\sin x\\right)\\left(\\pi^{x}+\\sin x\\right)^7",
+      ),
     ).toBe("\\left(\\pi^{x}+\\sin x\\right)^{8}");
     expect(
       simplifyLaTeX(
-        "\\left(\\pi^{x}+\\sin x\\right)^7\\left(\\pi^{x}+\\sin x\\right)^2"
-      )
+        "\\left(\\pi^{x}+\\sin x\\right)^7\\left(\\pi^{x}+\\sin x\\right)^2",
+      ),
     ).toBe("\\left(\\pi^{x}+\\sin x\\right)^{9}");
     expect(
       simplifyLaTeX(
-        "\\frac{\\left(\\pi^{x}+\\sin x\\right)^{3}\\left(\\pi^{x}+\\sin x\\right)}{\\left(\\pi^{x}+\\sin x\\right)^{5}}"
-      )
+        "\\frac{\\left(\\pi^{x}+\\sin x\\right)^{3}\\left(\\pi^{x}+\\sin x\\right)}{\\left(\\pi^{x}+\\sin x\\right)^{5}}",
+      ),
     ).toBe("\\left(\\pi^{x}+\\sin x\\right)^{-1}");
   });
 
   test("約分できない場合はそのままにする", () => {
     expect(simplifyLaTeX("x^{\\frac{254}{3}}")).toBe("x^{\\frac{254}{3}}");
     expect(simplifyLaTeX("x^{\\frac{102}{398157}}")).toBe(
-      "x^{\\frac{2}{7807}}"
+      "x^{\\frac{2}{7807}}",
     );
     expect(simplifyLaTeX("x^{\\frac{25467}{378173}}")).toBe(
-      "x^{\\frac{25467}{378173}}"
+      "x^{\\frac{25467}{378173}}",
     );
   });
 
   test("分数の簡単化", () => {
+    expect(simplifyLaTeX("\\frac{4}{2}")).toBe("2");
+    expect(simplifyLaTeX("\\frac{3}{2}")).toBe("3\\cdot 2^{-1}");
     expect(
       simplifyLaTeX(
-        "\\frac{\\left(5+\\cos x\\right)^{5}}{\\left(5+\\cos x\\right)^{7}+\\left(5+\\cos x\\right)^{3}}"
-      )
+        "\\frac{\\left(5+\\cos x\\right)^{5}}{\\left(5+\\cos x\\right)^{7}+\\left(5+\\cos x\\right)^{3}}",
+      ),
     ).toBe(
-      "\\left(5+\\cos x\\right)^{2}\\left(1+\\left(5+\\cos x\\right)^{4}\\right)^{-1}"
+      "\\left(5+\\cos x\\right)^{2}\\left(1+\\left(5+\\cos x\\right)^{4}\\right)^{-1}",
     );
     expect(simplifyLaTeX("\\frac{1+x}{1+x}")).toBe("1");
     expect(simplifyLaTeX("\\frac{1+x}{1+2x+x^2}")).toBe(
-      "\\left(1+x\\right)^{-1}"
+      "\\left(1+x\\right)^{-1}",
     );
   });
 
@@ -70,22 +78,22 @@ describe("simplifyLaTeX", () => {
       simplifyLaTeX(
         "\\left(2\\left(\\pi^{x}+\\sin x\\right)^{3}\\left(\\pi^{x}+2\\sin x\\right)\\right)^{2}",
         undefined,
-        { numericMode: "computed" }
-      )
+        { numericMode: "computed" },
+      ),
     ).toBe(
-      "4\\left(\\pi^{x}+\\sin x\\right)^{6}\\left(\\pi^{x}+2\\sin x\\right)^{2}"
+      "4\\left(\\pi^{x}+\\sin x\\right)^{6}\\left(\\pi^{x}+2\\sin x\\right)^{2}",
     );
     expect(
       simplifyLaTeX(
-        "\\left(2\\left(\\pi^{x}+\\sin x\\right)^{3}\\left(\\pi^{x}+2\\sin x\\right)\\right)^{2}"
-      )
+        "\\left(2\\left(\\pi^{x}+\\sin x\\right)^{3}\\left(\\pi^{x}+2\\sin x\\right)\\right)^{2}",
+      ),
     ).toBe(
-      "2^{2}\\left(\\pi^{x}+\\sin x\\right)^{6}\\left(\\pi^{x}+2\\sin x\\right)^{2}"
+      "2^2\\left(\\pi^{x}+\\sin x\\right)^{6}\\left(\\pi^{x}+2\\sin x\\right)^{2}",
     );
     expect(
       simplifyLaTeX("\\left(\\pi^{x}+\\sin x\\right)^{-1}", undefined, {
         rationalMode: "fraction",
-      })
+      }),
     ).toBe("\\frac{1}{\\pi^{x}+\\sin x}");
   });
 
@@ -101,44 +109,44 @@ describe("simplifyLaTeX", () => {
     expect(simplifyLaTeX("\\left(x^3\\right)^2")).toBe("x^{6}");
     expect(simplifyLaTeX("x^4\\left(x^3\\right)^2x^{-2}")).toBe("x^{8}");
     expect(
-      simplifyLaTeX("\\frac{x^7}{2x^3}", [], { rationalMode: "fraction" })
+      simplifyLaTeX("\\frac{x^7}{2x^3}", [], { rationalMode: "fraction" }),
     ).toBe("\\frac{x^{4}}{2}");
     expect(
-      simplifyLaTeX("\\frac{x+x}{2x}", [], { rationalMode: "fraction" })
+      simplifyLaTeX("\\frac{x+x}{2x}", [], { rationalMode: "fraction" }),
     ).toBe("1");
     expect(
-      simplifyLaTeX("\\frac{x+x^2}{2x}", [], { rationalMode: "fraction" })
+      simplifyLaTeX("\\frac{x+x^2}{2x}", [], { rationalMode: "fraction" }),
     ).toBe("\\frac{1+x}{2}");
     expect(
-      simplifyLaTeX("\\frac{x+x^2}{x^2}", [], { rationalMode: "fraction" })
+      simplifyLaTeX("\\frac{x+x^2}{x^2}", [], { rationalMode: "fraction" }),
     ).toBe("\\frac{1+x}{x}");
 
     expect(
-      simplifyLaTeX("\\frac{6x+4x^2}{2x}", [], { rationalMode: "fraction" })
+      simplifyLaTeX("\\frac{6x+4x^2}{2x}", [], { rationalMode: "fraction" }),
     ).toBe("3+2x");
 
     expect(
       simplifyLaTeX("\\frac{x^7 \\cdot 6x}{3x^3 \\cdot x^2}", [], {
         rationalMode: "fraction",
-      })
+      }),
     ).toBe("2x^{3}");
     expect(
       simplifyLaTeX("\\frac{x-x+x+x}{2x^2\\cdot 3}", [], {
         rationalMode: "fraction",
-      })
+      }),
     ).toBe("\\frac{1}{3x}");
     expect(
       simplifyLaTeX("\\frac{\\frac{x^2}{2}}{x^3}", [], {
         rationalMode: "fraction",
-      })
+      }),
     ).toBe("\\frac{1}{2x}");
     expect(
       simplifyLaTeX("\\frac{\\frac{x^2}{2}}{x^3}x", [], {
         rationalMode: "fraction",
-      })
+      }),
     ).toBe("\\frac{1}{2}");
     expect(
-      simplifyLaTeX("\\frac{x^2}{2}+x^2", [], { rationalMode: "fraction" })
+      simplifyLaTeX("\\frac{x^2}{2}+x^2", [], { rationalMode: "fraction" }),
     ).toBe("\\frac{3x^{2}}{2}");
   });
 
@@ -152,12 +160,12 @@ describe("simplifyLaTeX", () => {
 
   test("辞書順でのソート", () => {
     expect(
-      simplifyLaTeX("xxyyyzzzz+wwwww", [], { termOrder: "dictionary" })
+      simplifyLaTeX("xxyyyzzzz+wwwww", [], { termOrder: "dictionary" }),
     ).toBe("w^{5}+x^{2}y^{3}z^{4}");
   });
 
   test("数値の素因数分解", () => {
-    expect(simplifyLaTeX("2^2")).toBe("2^{2}");
+    expect(simplifyLaTeX("2^2")).toBe("2^2");
     expect(simplifyLaTeX("2^2", [], { numericMode: "computed" })).toBe("4");
     expect(simplifyLaTeX("12x")).toBe("2^{2} \\cdot 3x");
     expect(simplifyLaTeX("12x", [], { numericMode: "computed" })).toBe("12x");
@@ -165,17 +173,17 @@ describe("simplifyLaTeX", () => {
 
   test("同じ式が複数回現れる場合", () => {
     expect(
-      simplifyLaTeX("\\frac{1+\\sin x}{e^x\\left(1+\\sin x\\right)}")
+      simplifyLaTeX("\\frac{1+\\sin x}{e^x\\left(1+\\sin x\\right)}"),
     ).toBe("e^{-x}");
     expect(
       simplifyLaTeX(
-        "\\frac{1+\\sin x}{\\left(\\pi ^x+\\sin x\\right)^x\\left(1+\\sin x\\right)}"
-      )
+        "\\frac{1+\\sin x}{\\left(\\pi ^x+\\sin x\\right)^x\\left(1+\\sin x\\right)}",
+      ),
     ).toBe("\\left(\\pi^{x}+\\sin x\\right)^{-x}");
     expect(
       simplifyLaTeX(
-        "\\left(\\pi ^x+\\sin x\\right)\\left(\\pi ^x+\\sin x\\right)^3"
-      )
+        "\\left(\\pi ^x+\\sin x\\right)\\left(\\pi ^x+\\sin x\\right)^3",
+      ),
     ).toBe("\\left(\\pi^{x}+\\sin x\\right)^{4}");
   });
 });

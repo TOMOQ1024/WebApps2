@@ -1,40 +1,33 @@
-# Supabase セットアップ手順
+# Supabase
 
-## 1. Supabase プロジェクト作成
+tomoq.net の Supabase 設定・マイグレーション・ローカル開発用ディレクトリ．
 
-1. [Supabase Dashboard](https://supabase.com/dashboard) にアクセス
-2. 新しいプロジェクトを作成
-3. Settings > API から以下を取得:
-   - Project URL → `.env.local` の `NEXT_PUBLIC_SUPABASE_URL`
-   - anon public key → `.env.local` の `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+## ドキュメント
 
-## 2. DB スキーマ適用
+| 目的 | ドキュメント |
+|------|-------------|
+| 初回セットアップ（プロジェクト作成，環境変数，スキーマ，シード） | [docs/setup.md](docs/setup.md) |
+| ローカル開発（起動・停止，Mailpit，トラブルシューティング） | [docs/local-development.md](docs/local-development.md) |
+| リモート DB / Storage のバックアップ | [docs/backup.md](docs/backup.md) |
+| パスワードリセット（ローカル・本番） | [docs/password-reset.md](docs/password-reset.md) |
 
-1. Supabase Dashboard > SQL Editor を開く
-2. `supabase/schema.sql` の内容をコピー＆ペースト
-3. Run をクリックして実行
-
-## 3. データ投入
-
-`.env.local` に Supabase の接続情報を設定後、以下を実行:
+## よく使うコマンド
 
 ```bash
-pnpm seed:supabase
+pnpm supabase:start      # ローカル Supabase 起動
+pnpm supabase:stop       # 停止（--no-backup）
+pnpm seed:supabase       # シードデータ投入
+pnpm backup:supabase     # リモートバックアップ
 ```
 
-または:
+## ディレクトリ構成
 
-```bash
-tsx scripts/seed-supabase.ts
 ```
-
-## 確認
-
-Supabase Dashboard > Table Editor で以下が作成されていることを確認:
-
-- `tags`
-- `apps`
-- `app_tags`
-- `galleries`
-- `gallery_tags`
-- `gallery_items`
+supabase/
+├── config.toml          # ローカル Supabase 設定
+├── migrations/          # DB マイグレーション
+├── templates/           # Auth メールテンプレート
+├── schema.sql           # スキーマ参照用（リモート手動適用）
+├── backups/             # リモートバックアップ出力（gitignore）
+└── docs/                # ドキュメント
+```

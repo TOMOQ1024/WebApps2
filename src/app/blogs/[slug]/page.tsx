@@ -1,27 +1,21 @@
 import { notFound } from "next/navigation";
-import { getPostBySlug, getAllSlugs } from "@/lib/blog";
+import { getBlogPostBySlug } from "@/lib/blogPosts";
 import { MDXRemote } from "next-mdx-remote/rsc";
-import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
-import rehypeSlug from "rehype-slug";
-import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import { blogMdxOptions } from "@/lib/blogMdxOptions";
 import components from "../components/MDXComponents";
 import TableOfContents from "../components/TableOfContents";
+import BlogPostEditLink from "../components/BlogPostEditLink";
 import Link from "next/link";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-export async function generateStaticParams() {
-  const slugs = getAllSlugs();
-  return slugs.map((slug) => ({ slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getBlogPostBySlug(slug);
 
   if (!post) {
     return { title: "Not Found" };
@@ -35,7 +29,7 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getBlogPostBySlug(slug);
 
   if (!post) {
     notFound();
@@ -61,6 +55,11 @@ export default async function BlogPostPage({ params }: PageProps) {
               {formattedDate}
             </time>
           )}
+          {post.status === "draft" && (
+            <span className="text-xs border border-[var(--border-color)] px-2 py-1">
+              下書き
+            </span>
+          )}
           {post.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {post.tags.map((tag) => (
@@ -75,6 +74,10 @@ export default async function BlogPostPage({ params }: PageProps) {
             </div>
           )}
         </div>
+        <BlogPostEditLink
+          slug={post.slug}
+          createdBy={post.created_by ?? null}
+        />
       </header>
 
       <div className="flex gap-8 max-md:flex-col">
@@ -87,14 +90,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             source={post.content}
             components={components}
             options={{
-              mdxOptions: {
-                remarkPlugins: [remarkGfm, remarkMath],
-                rehypePlugins: [
-                  rehypeKatex,
-                  rehypeSlug,
-                  [rehypeAutolinkHeadings, { behavior: "wrap" }],
-                ],
-              },
+              mdxOptions: blogMdxOptions,
             }}
           />
         </div>
