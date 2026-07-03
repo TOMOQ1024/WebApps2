@@ -225,35 +225,21 @@ export async function getTagsForGalleryItems(): Promise<Tag[]> {
   return data ?? [];
 }
 
-/**
- * ギャラリー一覧を galleryList 互換形式で取得
- * 既存コードとの互換性のため
- */
-export async function getGalleryListCompat(): Promise<{
-  [path: string]: {
-    galleryName: string;
-    description?: string;
-    tags: Set<string>;
-  };
-}> {
-  const galleries = await getGalleries();
-  const result: {
-    [path: string]: {
-      galleryName: string;
-      description?: string;
-      tags: Set<string>;
-    };
-  } = {};
+/** ギャラリーの path 一覧（404 候補など） */
+export async function getGalleryPaths(): Promise<string[]> {
+  const supabase = await createClient();
 
-  for (const gallery of galleries) {
-    result[gallery.path] = {
-      galleryName: gallery.gallery_name,
-      description: gallery.description || undefined,
-      tags: new Set(gallery.tags.map((t) => t.name)),
-    };
+  const { data, error } = await supabase
+    .from("galleries")
+    .select("path")
+    .order("sort_order");
+
+  if (error) {
+    console.error("Error fetching gallery paths:", error);
+    return [];
   }
 
-  return result;
+  return data?.map((gallery) => gallery.path) ?? [];
 }
 
 /**

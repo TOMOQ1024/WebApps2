@@ -6,7 +6,7 @@ import {
   isConstantDefinition,
   isNumericExpression,
   parseChainedInequality,
-} from "@/src/Parser/graph2d/expressionParser";
+} from "@/shared/parser/graph2d/expressionParser";
 
 export interface ControlPanelProps {
   onExpressionsChange: (expressions: string[]) => void;

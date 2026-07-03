@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { CanvasManager } from "@/src/CanvasManager";
-import type GraphMgr from "@/src/GraphMgr";
+import { CanvasManager } from "@/shared/graph/CanvasManager";
+import type GraphMgr from "@/shared/graph/GraphMgr";
 import { vertexShader } from "../../compdynam/Shaders/VertexShader";
 import { mandelbrotFragmentShader } from "../Shaders/MandelbrotFragment";
 

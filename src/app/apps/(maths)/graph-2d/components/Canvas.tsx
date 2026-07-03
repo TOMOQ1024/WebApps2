@@ -7,8 +7,8 @@ import {
 } from "react";
 import * as THREE from "three";
 import { vertexShader } from "../Shaders/VertexShader";
-import type GraphMgr from "@/src/GraphMgr";
-import { CanvasManager } from "@/src/CanvasManager";
+import type GraphMgr from "@/shared/graph/GraphMgr";
+import { CanvasManager } from "@/shared/graph/CanvasManager";
 import { useTheme } from "@/hooks/useTheme";
 
 interface CanvasProps {

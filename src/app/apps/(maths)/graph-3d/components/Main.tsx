@@ -2,12 +2,12 @@
 
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ASTToJS } from "@/src/Parser/ASTToJS";
+import { ASTToJS } from "@/shared/parser/ASTToJS";
 import {
   type FunctionDef,
   parseFunctionDef,
-} from "@/src/Parser/graph2d/expressionParser";
-import { parseLatex } from "@/src/Parser/parseLatex";
+} from "@/shared/parser/graph2d/expressionParser";
+import { parseLatex } from "@/shared/parser/parseLatex";
 import type { ExpressionMode, Graph3DCore } from "../core/Graph3DCore";
 import Canvas from "./Canvas";
 import ControlButtons from "./ControlButtons";

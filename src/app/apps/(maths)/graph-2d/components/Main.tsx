@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Vector2 } from "three";
 import { useAuth } from "@/components/SupabaseAuthProvider";
-import GraphMgr from "@/src/GraphMgr";
+import GraphMgr from "@/shared/graph/GraphMgr";
 import {
   type ChainedInequalityResult,
   type ConstantDef,
@@ -13,8 +13,8 @@ import {
   parseChainedInequality,
   parseConstantDef,
   parseFunctionDef,
-} from "@/src/Parser/graph2d/expressionParser";
-import { latexToGLSL } from "@/src/Parser/latexToGLSL";
+} from "@/shared/parser/graph2d/expressionParser";
+import { latexToGLSL } from "@/shared/parser/latexToGLSL";
 import { fragmentShader } from "../Shaders/FragmentShader";
 import Canvas from "./Canvas";
 import ControlButtons from "./ControlButtons";

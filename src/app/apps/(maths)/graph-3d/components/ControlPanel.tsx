@@ -1,7 +1,7 @@
 import { Plus } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { EditableMathField } from "@/components/MathFields";
-import { parseFunctionDef } from "@/src/Parser/graph2d/expressionParser";
+import { parseFunctionDef } from "@/shared/parser/graph2d/expressionParser";
 import type { ExpressionMode } from "../core/Graph3DCore";
 
 interface ExpressionItem {

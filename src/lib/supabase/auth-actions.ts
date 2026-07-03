@@ -207,7 +207,7 @@ export async function requestPasswordReset(
   const supabase = await createClient();
 
   const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
-    redirectTo: `${siteUrl}/auth/confirm?next=/apps/reset-password`,
+    redirectTo: `${siteUrl}/auth/confirm?next=/auth/reset-password`,
   });
 
   if (error) {

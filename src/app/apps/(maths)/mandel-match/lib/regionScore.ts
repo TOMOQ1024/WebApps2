@@ -1,4 +1,4 @@
-import type GraphMgr from "@/src/GraphMgr";
+import type GraphMgr from "@/shared/graph/GraphMgr";
 
 /**
  * GraphMgr はシェーダで複素座標が ~ radius スケールで動くため，

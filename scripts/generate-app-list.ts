@@ -14,13 +14,6 @@ const APPS_ROOT = resolve(__dirname, "../src/app/apps");
 const ICONS_ROOT = resolve(__dirname, "../public/app-icons");
 const OUTPUT = resolve(__dirname, "../src/lib/apps/appList.generated.ts");
 
-const ADMIN_PATHS = new Set([
-  "signin",
-  "signup",
-  "forgot-password",
-  "reset-password",
-]);
-
 function findAppConfigFiles(dir: string): string[] {
   const results: string[] = [];
 
@@ -94,7 +87,7 @@ async function main() {
   const pagePaths = new Set(
     pageDirs
       .map(pathFromAppDir)
-      .filter((path) => path.length > 0 && !ADMIN_PATHS.has(path)),
+      .filter((path) => path.length > 0),
   );
   const configPaths = new Set(
     configFiles.map((file) => pathFromConfigFile(file)),

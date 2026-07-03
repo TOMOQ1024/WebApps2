@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Core from "../core/Core";
-import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
+import { CoxeterDynkinDiagram } from "@/shared/maths/CoxeterDynkinDiagram";
 
 export interface CanvasProps {
   core: Core | undefined;

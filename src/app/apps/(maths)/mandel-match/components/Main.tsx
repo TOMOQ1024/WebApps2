@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Vector2 } from "three";
-import GraphMgr from "@/src/GraphMgr";
+import GraphMgr from "@/shared/graph/GraphMgr";
 import { pickTargetCenter } from "../lib/pickTargetCenter";
 import { overlapScorePercent } from "../lib/regionScore";
 import HintOverlay from "./HintOverlay";

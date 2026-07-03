@@ -13,7 +13,22 @@ import { config } from "dotenv";
 import { resolve } from "path";
 import { galleryData as compdynamGalleryData } from "../src/app/galleries/compdynam/GalleryData";
 import { galleryData as graph2dGalleryData } from "../src/app/galleries/graph-2d/GalleryData";
-import { galleryList } from "../src/lib/galleryList";
+
+/** seed 用ギャラリー定義（本番の正は Supabase galleries テーブル） */
+const SEED_GALLERIES = [
+  {
+    path: "compdynam",
+    galleryName: "CompDynam",
+    description: "",
+    tags: ["maths"] as const,
+  },
+  {
+    path: "graph-2d",
+    galleryName: "Graph 2D",
+    description: "",
+    tags: ["maths"] as const,
+  },
+];
 
 // .env.local を読み込む
 config({ path: resolve(__dirname, "../.env.local") });
@@ -78,14 +93,14 @@ async function checkSchema() {
 async function seedTags() {
   console.log("タグを投入中...");
 
-  // galleryList から全タグを収集
+  // SEED_GALLERIES から全タグを収集
   const allTags = new Set<string>();
 
-  Object.values(galleryList).forEach((gallery) => {
-    gallery.tags.forEach((tag) => {
+  for (const gallery of SEED_GALLERIES) {
+    for (const tag of gallery.tags) {
       allTags.add(tag);
-    });
-  });
+    }
+  }
 
   // タグを投入（既存のものは無視）
   const tagMap = new Map<string, string>();
@@ -130,12 +145,12 @@ async function seedGalleries(tagMap: Map<string, string>) {
   const galleryMap = new Map<string, string>();
   let sortOrder = 0;
 
-  for (const [path, gallery] of Object.entries(galleryList)) {
+  for (const gallery of SEED_GALLERIES) {
     const { data, error } = await supabase
       .from("galleries")
       .upsert(
         {
-          path,
+          path: gallery.path,
           gallery_name: gallery.galleryName,
           description: gallery.description || "",
           sort_order: sortOrder++,
@@ -146,13 +161,13 @@ async function seedGalleries(tagMap: Map<string, string>) {
       .single();
 
     if (error) {
-      console.error(`ギャラリー "${path}" の投入エラー:`, error);
+      console.error(`ギャラリー "${gallery.path}" の投入エラー:`, error);
       continue;
     }
 
     if (data) {
-      galleryMap.set(path, data.id);
-      console.log(`  ✓ ${path} (id: ${data.id})`);
+      galleryMap.set(gallery.path, data.id);
+      console.log(`  ✓ ${gallery.path} (id: ${data.id})`);
 
       // タグを関連付け
       for (const tagName of gallery.tags) {

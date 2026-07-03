@@ -124,7 +124,7 @@ export default function MainWrapper() {
             />
             <p className="mt-2 text-right text-sm">
               <Link
-                href={`/apps/forgot-password?redirect=${encodeURIComponent(redirectTo)}`}
+                href={`/auth/forgot-password?redirect=${encodeURIComponent(redirectTo)}`}
                 className="text-[var(--text-color)] opacity-70 underline hover:opacity-100"
               >
                 パスワードを忘れた方
@@ -159,7 +159,7 @@ export default function MainWrapper() {
           <p className="text-center text-sm text-[var(--text-color)] opacity-70">
             アカウントをお持ちでない方は{" "}
             <Link
-              href={`/apps/signup?redirect=${encodeURIComponent(redirectTo)}`}
+              href={`/auth/signup?redirect=${encodeURIComponent(redirectTo)}`}
               className="underline hover:opacity-70"
             >
               登録

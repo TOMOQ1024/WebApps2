@@ -15,7 +15,7 @@ export default async function NewBlogPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/apps/signin?redirect=/blogs/new");
+    redirect("/auth/signin?redirect=/blogs/new");
   }
 
   return <ArticleEditor mode="create" />;

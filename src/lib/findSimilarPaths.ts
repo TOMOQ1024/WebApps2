@@ -1,4 +1,4 @@
-import { Levenshtein } from "@/src/Levenshtein";
+import { Levenshtein } from "@/shared/Levenshtein";
 import { getAllPaths } from "./allPaths";
 
 export type SimilarPath = {
@@ -16,8 +16,9 @@ export function findSimilarPaths(
   inputPath: string,
   maxResults = 3,
   maxDistance = 10,
+  galleryPaths: string[] = [],
 ): SimilarPath[] {
-  const allPaths = getAllPaths();
+  const allPaths = getAllPaths(galleryPaths);
   const normalizedInput = inputPath.toLowerCase();
 
   const results: SimilarPath[] = allPaths

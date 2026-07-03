@@ -1,8 +1,8 @@
 import { BufferAttribute, type Vector3 } from "three";
-import type { CoxeterNode } from "@/src/maths/CoxeterNode";
-import { MobiusGyrovectorSphericalSpace3 } from "@/src/maths/MobiusGyrovectorSphericalSpace3";
-import { calculatePermutationParity } from "@/src/maths/Permutation/CalculatePermutationParity";
-import type { Polytope } from "@/src/maths/Polytope";
+import type { CoxeterNode } from "@/shared/maths/CoxeterNode";
+import { MobiusGyrovectorSphericalSpace3 } from "@/shared/maths/MobiusGyrovectorSphericalSpace3";
+import { calculatePermutationParity } from "@/shared/maths/Permutation/CalculatePermutationParity";
+import type { Polytope } from "@/shared/maths/Polytope";
 
 // 共通の色定義を定数として抽出
 export const POLYGON_COLORS = {

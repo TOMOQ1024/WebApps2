@@ -33,6 +33,6 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.redirect(
-    buildRedirect("/apps/forgot-password", { error: "invalid_link" }),
+    buildRedirect("/auth/forgot-password", { error: "invalid_link" }),
   );
 }

@@ -1,7 +1,7 @@
 import {
   Hyperplane3,
   MobiusGyrovectorSphericalSpace3,
-} from "@/src/maths/MobiusGyrovectorSphericalSpace3";
+} from "@/shared/maths/MobiusGyrovectorSphericalSpace3";
 import { Vector3 } from "three";
 
 /**

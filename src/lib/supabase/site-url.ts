@@ -34,7 +34,7 @@ export const MAILPIT_URL = "http://127.0.0.1:54324";
  */
 export function getSafeRedirectPath(
   next: string | null,
-  fallback = "/apps/reset-password",
+  fallback = "/auth/reset-password",
 ): string {
   if (!next || !next.startsWith("/") || next.startsWith("//")) {
     return fallback;

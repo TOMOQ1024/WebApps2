@@ -29,7 +29,7 @@ export default function MainWrapper() {
       const result = await updatePassword(password);
 
       if (result.success) {
-        router.push("/apps/signin");
+        router.push("/auth/signin");
         router.refresh();
       } else {
         setError(result.error || "パスワードの更新に失敗しました");
@@ -57,7 +57,7 @@ export default function MainWrapper() {
             メールに記載されたリンクからアクセスしてください．
           </p>
           <Link
-            href="/apps/forgot-password"
+            href="/auth/forgot-password"
             className="text-[var(--text-color)] underline hover:opacity-70"
           >
             パスワードリセットメールを送信

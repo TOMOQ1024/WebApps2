@@ -43,7 +43,7 @@ create table if not exists public.app_tags (
   primary key (app_id, tag_id)
 );
 
--- ギャラリー一覧（galleryList 相当）
+-- ギャラリー一覧
 create table if not exists public.galleries (
   id           text primary key default nanoid(),
   path         text unique not null,

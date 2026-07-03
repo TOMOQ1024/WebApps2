@@ -29,7 +29,7 @@ export default async function EditBlogPage({ params }: PageProps) {
 
   if (!user) {
     redirect(
-      `/apps/signin?redirect=${encodeURIComponent(`/blogs/${slug}/edit`)}`,
+      `/auth/signin?redirect=${encodeURIComponent(`/blogs/${slug}/edit`)}`,
     );
   }
 

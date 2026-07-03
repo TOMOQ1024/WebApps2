@@ -2,10 +2,10 @@
 
 ## アプリ内フロー
 
-1. `/apps/forgot-password` でメールアドレスを入力
+1. `/auth/forgot-password` でメールアドレスを入力
 2. リセットメール内のリンクをクリック
-3. `/apps/reset-password` で新しいパスワードを設定
-4. `/apps/signin` でサインイン
+3. `/auth/reset-password` で新しいパスワードを設定
+4. `/auth/signin` でサインイン
 
 ## ローカル開発
 
@@ -37,7 +37,7 @@ NEXT_PUBLIC_SITE_URL=http://tomoq.localhost
    - Site URL: `https://tomoq.net`（環境に応じて変更）
    - Redirect URLs に以下を追加:
      - `https://tomoq.net/auth/confirm`
-     - `https://tomoq.net/apps/reset-password`
+     - `https://tomoq.net/auth/reset-password`
      - preview / development 環境の URL も同様に追加
 
 2. **Authentication → Email Templates → Reset Password**
@@ -45,7 +45,7 @@ NEXT_PUBLIC_SITE_URL=http://tomoq.localhost
    `supabase/templates/recovery.html` と同じ PKCE 形式のリンクを使用する:
 
    ```html
-   <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/apps/reset-password">
+   <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/auth/reset-password">
      Reset password
    </a>
    ```

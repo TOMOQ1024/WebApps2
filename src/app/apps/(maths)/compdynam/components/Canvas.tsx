@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { vertexShader } from "../Shaders/VertexShader";
-import GraphMgr from "@/src/GraphMgr";
-import { CanvasManager } from "@/src/CanvasManager";
+import GraphMgr from "@/shared/graph/GraphMgr";
+import { CanvasManager } from "@/shared/graph/CanvasManager";
 
 interface CanvasProps {
   shader: string;

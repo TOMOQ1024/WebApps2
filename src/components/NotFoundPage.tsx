@@ -11,12 +11,16 @@ const mainLinks = [
   { href: "/blogs", label: "Blogs" },
 ];
 
-export default function NotFoundPage() {
+export default function NotFoundPage({
+  galleryPaths = [],
+}: {
+  galleryPaths?: string[];
+}) {
   const pathname = usePathname();
 
   const similarPaths = useMemo(() => {
-    return findSimilarPaths(pathname, 3, 8);
-  }, [pathname]);
+    return findSimilarPaths(pathname, 3, 8, galleryPaths);
+  }, [pathname, galleryPaths]);
 
   return (
     <main className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center">

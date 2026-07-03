@@ -1,23 +1,21 @@
 import { appList } from "./apps";
-import { galleryList } from "./galleryList";
 
 /**
- * サイト内の全ての有効なパスを生成する
+ * サイト内の有効なパスを生成する
+ * @param galleryPaths Supabase の galleries.path（サーバー側で取得）
  */
-export function getAllPaths(): string[] {
+export function getAllPaths(galleryPaths: string[] = []): string[] {
   const paths: string[] = ["/", "/apps", "/galleries", "/blogs"];
 
-  // appList からパスを生成
   for (const path of Object.keys(appList)) {
     paths.push(`/apps/${path}`);
   }
 
-  // galleryList からパスを生成
-  for (const path of Object.keys(galleryList)) {
+  for (const path of galleryPaths) {
     paths.push(`/galleries/${path}`);
   }
 
-  // Note: ブログのパスはfsモジュールを使用するため、
+  // Note: ブログのパスは fs モジュールを使用するため、
   // クライアントコンポーネントからは取得できない
 
   return paths;

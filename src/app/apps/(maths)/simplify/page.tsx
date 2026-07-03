@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { EditableMathField, StaticMathField } from "@/components/MathFields";
-import { simplifyLaTeX } from "@/src/Parser/simplify/simplifyLaTeX";
+import { simplifyLaTeX } from "@/shared/parser/simplify/simplifyLaTeX";
 
 export default function SimplifyPage() {
   const [input, setInput] = useState("");

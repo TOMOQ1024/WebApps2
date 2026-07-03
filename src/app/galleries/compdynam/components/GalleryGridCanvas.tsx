@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { fragmentShader as baseFragmentShader } from "@/app/apps/(maths)/compdynam/Shaders/FragmentShader";
 import { vertexShader as baseVertexShader } from "@/app/apps/(maths)/compdynam/Shaders/VertexShader";
-import { latexToComplexGLSL } from "@/src/Parser/latexToComplexGLSL";
+import { latexToComplexGLSL } from "@/shared/parser/latexToComplexGLSL";
 import styles from "./Main.module.scss";
 import { CompDynamGalleryItem } from "@/app/galleries/compdynam/GalleryData";
 import { useRouter } from "next/navigation";

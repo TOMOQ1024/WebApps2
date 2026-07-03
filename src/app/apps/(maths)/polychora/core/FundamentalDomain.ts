@@ -2,7 +2,7 @@ import { Matrix3, Vector3 } from "three";
 import {
   Hyperplane3,
   MobiusGyrovectorSphericalSpace3,
-} from "@/src/maths/MobiusGyrovectorSphericalSpace3";
+} from "@/shared/maths/MobiusGyrovectorSphericalSpace3";
 
 /**
  * 基本領域を取得する

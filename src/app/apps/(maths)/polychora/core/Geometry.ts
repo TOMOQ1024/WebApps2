@@ -1,6 +1,6 @@
 import { BufferGeometry } from "three";
-import { CoxeterNode } from "@/src/maths/CoxeterNode";
-import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
+import { CoxeterNode } from "@/shared/maths/CoxeterNode";
+import { CoxeterDynkinDiagram } from "@/shared/maths/CoxeterDynkinDiagram";
 import { CreateAttributes } from "./Attributes";
 import { GetPositions } from "./Positions";
 import { GetRepresentativeNodes } from "./RepresentativeNodes";

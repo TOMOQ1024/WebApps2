@@ -1,5 +1,5 @@
 import { ArrowRight, ZoomIn, ZoomOut } from "lucide-react";
-import type GraphMgr from "@/src/GraphMgr";
+import type GraphMgr from "@/shared/graph/GraphMgr";
 
 type HintOverlayProps = {
   target: GraphMgr;

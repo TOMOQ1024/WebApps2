@@ -46,7 +46,7 @@ export default function MainWrapper() {
         // 成功後，サインインページにリダイレクト
         setTimeout(() => {
           router.push(
-            `/apps/signin?redirect=${encodeURIComponent(redirectTo)}`,
+            `/auth/signin?redirect=${encodeURIComponent(redirectTo)}`,
           );
         }, 2000);
       } else {
@@ -215,7 +215,7 @@ export default function MainWrapper() {
             <p className="text-center text-sm text-[var(--text-color)] opacity-70">
               既にアカウントをお持ちの方は{" "}
               <Link
-                href={`/apps/signin?redirect=${encodeURIComponent(redirectTo)}`}
+                href={`/auth/signin?redirect=${encodeURIComponent(redirectTo)}`}
                 className="underline hover:opacity-70"
               >
                 サインイン

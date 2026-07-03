@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { vertexShader } from "../Shaders/VertexShader";
-import GraphMgr from "@/src/GraphMgr";
-import { CanvasManager } from "@/src/CanvasManager";
-import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
+import GraphMgr from "@/shared/graph/GraphMgr";
+import { CanvasManager } from "@/shared/graph/CanvasManager";
+import { CoxeterDynkinDiagram } from "@/shared/maths/CoxeterDynkinDiagram";
 
 interface CanvasProps {
   shader: string;

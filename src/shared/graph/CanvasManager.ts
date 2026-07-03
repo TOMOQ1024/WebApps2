@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type GraphMgr from "@/src/GraphMgr";
+import type GraphMgr from "@/shared/graph/GraphMgr";
 
 export type CanvasManagerResizeSource = "window" | "container";
 

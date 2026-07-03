@@ -70,7 +70,7 @@ export default function MainWrapper() {
             )}
             <p className="text-center text-sm text-[var(--text-color)] opacity-70">
               <Link
-                href={`/apps/signin?redirect=${encodeURIComponent(redirectTo)}`}
+                href={`/auth/signin?redirect=${encodeURIComponent(redirectTo)}`}
                 className="underline hover:opacity-70"
               >
                 サインインに戻る
@@ -127,7 +127,7 @@ export default function MainWrapper() {
 
             <p className="text-center text-sm text-[var(--text-color)] opacity-70">
               <Link
-                href={`/apps/signin?redirect=${encodeURIComponent(redirectTo)}`}
+                href={`/auth/signin?redirect=${encodeURIComponent(redirectTo)}`}
                 className="underline hover:opacity-70"
               >
                 サインインに戻る

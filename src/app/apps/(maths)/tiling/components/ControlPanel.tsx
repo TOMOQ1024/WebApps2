@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
+import { CoxeterDynkinDiagram } from "@/shared/maths/CoxeterDynkinDiagram";
 
 export interface ControlPanelProps {
   diagram: CoxeterDynkinDiagram;

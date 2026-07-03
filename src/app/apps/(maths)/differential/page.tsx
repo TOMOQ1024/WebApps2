@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { EditableMathField, StaticMathField } from "@/components/MathFields";
 import styles from "./page.module.scss";
-import { differentiateLaTeX } from "@/src/Parser/differentiate/differentiateLaTeX";
+import { differentiateLaTeX } from "@/shared/parser/differentiate/differentiateLaTeX";
 
 export default function DifferentialPage() {
   const [input, setInput] = useState("");

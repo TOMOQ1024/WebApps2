@@ -17,8 +17,8 @@ import {
   parseChainedInequality,
   parseConstantDef,
   parseFunctionDef,
-} from "@/src/Parser/graph2d/expressionParser";
-import { latexToGLSL } from "@/src/Parser/latexToGLSL";
+} from "@/shared/parser/graph2d/expressionParser";
+import { latexToGLSL } from "@/shared/parser/latexToGLSL";
 
 interface GalleryGridCanvasProps {
   items: (Graph2DGalleryItem | Graph2DGalleryItemWithTags)[];

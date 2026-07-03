@@ -1,6 +1,6 @@
-import { ASTNode } from "@/src/Parser/ASTNode";
+import { ASTNode } from "@/shared/parser/ASTNode";
 import { SimplifyOptions } from "./simplify/simplifyLaTeX";
-import { gcd, simplifyFraction } from "@/src/Parser/simplify/helpers";
+import { gcd, simplifyFraction } from "@/shared/parser/simplify/helpers";
 import { flattenAddition } from "./simplify/flattenAddition";
 import { groupLikeTerms } from "./simplify/groupLikeTerms";
 import { buildAddition } from "./simplify/buildAddition";

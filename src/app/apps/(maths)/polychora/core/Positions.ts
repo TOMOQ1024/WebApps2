@@ -1,9 +1,9 @@
-import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
-import { CoxeterNode } from "@/src/maths/CoxeterNode";
+import { CoxeterDynkinDiagram } from "@/shared/maths/CoxeterDynkinDiagram";
+import { CoxeterNode } from "@/shared/maths/CoxeterNode";
 import {
   Hyperplane3,
   MobiusGyrovectorSphericalSpace3,
-} from "@/src/maths/MobiusGyrovectorSphericalSpace3";
+} from "@/shared/maths/MobiusGyrovectorSphericalSpace3";
 import { Vector3 } from "three";
 import { GetFundamentalDomain } from "./FundamentalDomain";
 import { GetInitPoint } from "./InitPoint";

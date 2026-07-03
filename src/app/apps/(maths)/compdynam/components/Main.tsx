@@ -3,10 +3,10 @@ import { useSearchParams } from "next/navigation";
 import ControlPanel, { ControlPanelProps } from "./ControlPanel";
 import Canvas from "./Canvas";
 import ControlButtons from "./ControlButtons";
-import GraphMgr from "@/src/GraphMgr";
+import GraphMgr from "@/shared/graph/GraphMgr";
 import { fragmentShader } from "../Shaders/FragmentShader";
 import { Vector2 } from "three";
-import { latexToComplexGLSL } from "@/src/Parser/latexToComplexGLSL";
+import { latexToComplexGLSL } from "@/shared/parser/latexToComplexGLSL";
 
 export default function Main() {
   const [shader, setShader] = useState(fragmentShader);

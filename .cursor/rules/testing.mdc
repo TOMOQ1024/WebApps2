@@ -8,8 +8,8 @@ alwaysApply: false
 
 ## 対象
 
-- Parser（`src/src/Parser/`）
-- 数学ユーティリティ（`src/src/maths/`）
+- Parser（`src/shared/parser/`）
+- 数学ユーティリティ（`src/shared/maths/`）
 - 汎用ロジック
 
 ## 配置
@@ -17,7 +17,7 @@ alwaysApply: false
 テスト対象と同じディレクトリに `*.test.ts` として配置．
 
 ```
-src/src/Parser/
+src/shared/parser/
 ├── parseLatex.ts
 └── parseLatex.test.ts
 ```

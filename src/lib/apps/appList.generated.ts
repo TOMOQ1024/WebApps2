@@ -4,10 +4,10 @@
 import type { AppList } from "./types";
 
 export const appList = {
-  compdynam: {
+  "compdynam": {
     appName: "CompDynam",
     status: "published",
-    tags: ["maths", "fractal"],
+    tags: ["maths","fractal"],
     description: "複素関数の反復計算を可視化するページ",
     sortOrder: 1,
   },
@@ -18,31 +18,31 @@ export const appList = {
     description: "2 次元グラフを描画するページ",
     sortOrder: 2,
   },
-  polychora: {
+  "polychora": {
     appName: "Polychora",
     status: "published",
-    tags: ["maths", "geometry"],
+    tags: ["maths","geometry"],
     description: "4 次元一様多胞体を観察するページ",
     sortOrder: 3,
   },
-  tiling: {
+  "tiling": {
     appName: "Tiling",
     status: "published",
-    tags: ["maths", "geometry"],
+    tags: ["maths","geometry"],
     description: "平面充填を描画するページ",
     sortOrder: 4,
   },
   "linear-attractor-2d": {
     appName: "Linear Attractor 2D",
     status: "published",
-    tags: ["maths", "fractal"],
+    tags: ["maths","fractal"],
     description: "複数のアフィン変換による2次元アトラクターを観察できるページ",
     sortOrder: 5,
   },
   "mandel-match": {
     appName: "Mandel Match",
     status: "published",
-    tags: ["maths", "fractal"],
+    tags: ["maths","fractal"],
     description: "マンデルブロ集合の形当てゲーム",
     sortOrder: 6,
   },
@@ -56,7 +56,7 @@ export const appList = {
   "linear-attractor": {
     appName: "Linear Attractor",
     status: "published",
-    tags: ["maths", "fractal"],
+    tags: ["maths","fractal"],
     description: "複数のアフィン変換による3次元アトラクターを観察できるページ",
     sortOrder: 8,
   },
@@ -66,24 +66,24 @@ export const appList = {
     tags: ["maths"],
     sortOrder: 9,
   },
-  glslfilter: {
+  "glslfilter": {
     appName: "GLSL Filter",
     status: "published",
-    tags: ["utility", "shader"],
+    tags: ["utility","shader"],
     description: "GLSL シェーダーフィルタの実験ページ",
     sortOrder: 10,
   },
-  simplify: {
+  "simplify": {
     appName: "Simplify",
     status: "published",
-    tags: ["maths", "utility"],
+    tags: ["maths","utility"],
     description: "LaTeX 式の簡約のデモ",
     sortOrder: 11,
   },
-  differential: {
+  "differential": {
     appName: "Differential",
     status: "published",
-    tags: ["maths", "utility"],
+    tags: ["maths","utility"],
     description: "LaTeX 式の微分のデモ",
     sortOrder: 12,
   },

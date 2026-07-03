@@ -4,7 +4,7 @@ import ControlPanel from "./ControlPanel";
 import Canvas from "./Canvas";
 import ControlButtons from "./ControlButtons";
 import Core from "../core/Core";
-import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
+import { CoxeterDynkinDiagram } from "@/shared/maths/CoxeterDynkinDiagram";
 
 export default function Main() {
   const [core, setCore] = useState<Core>();

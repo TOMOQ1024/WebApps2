@@ -21,7 +21,7 @@ import {
   VRButton,
   XRControllerModelFactory,
 } from "three/examples/jsm/Addons";
-import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
+import { CoxeterDynkinDiagram } from "@/shared/maths/CoxeterDynkinDiagram";
 import { fragmentShader } from "../Shaders/FragmentShader";
 import { vertexShader } from "../Shaders/VertexShader";
 import { CreatePolychoronGeometry } from "./Geometry";

@@ -16,7 +16,7 @@ export default async function ManageBlogPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/apps/signin?redirect=/blogs/manage");
+    redirect("/auth/signin?redirect=/blogs/manage");
   }
 
   const articles = await getMyArticles();

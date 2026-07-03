@@ -1,4 +1,4 @@
-import { CoxeterNode } from "@/src/maths/CoxeterNode";
+import { CoxeterNode } from "@/shared/maths/CoxeterNode";
 
 /**
  * 代表ノードを取得する
