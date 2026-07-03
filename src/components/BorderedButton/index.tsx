@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 
-type BorderedButtonSize = "md" | "lg";
+type BorderedButtonSize = "sm" | "md" | "lg";
 
 type BorderedButtonStyleProps = {
   active?: boolean;
@@ -15,7 +15,11 @@ function borderedButtonClass({
   className,
 }: BorderedButtonStyleProps): string {
   const sizeClass =
-    size === "lg" ? "px-8 py-4 font-bold" : "px-4 py-2 font-medium";
+    size === "lg"
+      ? "px-8 py-4 font-bold"
+      : size === "sm"
+        ? "px-3 py-1 text-sm font-medium"
+        : "px-4 py-2 font-medium";
 
   return [
     "no-transition inline-block border-2 bg-[var(--background-color)] no-underline text-[var(--text-color)]",
@@ -84,7 +88,7 @@ export function BorderedButton({
   return (
     <button
       type={type}
-      className={borderedButtonClass({ active, size, className })}
+      className={`${borderedButtonClass({ active, size, className })} disabled:opacity-50 disabled:cursor-not-allowed`}
       {...props}
     >
       {children}

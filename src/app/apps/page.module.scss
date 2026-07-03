@@ -30,6 +30,8 @@
   background: var(--background-color);
   border: 2px solid var(--border-color);
   padding: 1rem;
+  text-decoration: none;
+  color: inherit;
 
   &:hover {
     scale: 1.05;

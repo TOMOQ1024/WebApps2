@@ -8,24 +8,28 @@ export const appList = {
     appName: "CompDynam",
     status: "published",
     tags: ["maths","fractal"],
+    description: "複素関数の反復計算を可視化するページ",
     sortOrder: 1,
   },
   "graph-2d": {
     appName: "Graph 2D",
     status: "published",
     tags: ["maths"],
+    description: "2 次元グラフを描画するページ",
     sortOrder: 2,
   },
   "polychora": {
     appName: "Polychora",
     status: "published",
     tags: ["maths","geometry"],
+    description: "4 次元一様多胞体を観察するページ",
     sortOrder: 3,
   },
   "tiling": {
     appName: "Tiling",
     status: "published",
     tags: ["maths","geometry"],
+    description: "平面充填を描画するページ",
     sortOrder: 4,
   },
   "linear-attractor-2d": {
@@ -39,12 +43,14 @@ export const appList = {
     appName: "Mandel Match",
     status: "published",
     tags: ["maths","fractal"],
+    description: "マンデルブロ集合の形当てゲーム",
     sortOrder: 6,
   },
   "graph-3d": {
     appName: "Graph 3D",
     status: "published",
     tags: ["maths"],
+    description: "3 次元グラフを描画するページ",
     sortOrder: 7,
   },
   "linear-attractor": {
@@ -63,7 +69,8 @@ export const appList = {
   "glslfilter": {
     appName: "GLSL Filter",
     status: "published",
-    tags: ["utility","webgl"],
+    tags: ["utility","shader"],
+    description: "GLSL シェーダーフィルタの実験ページ",
     sortOrder: 10,
   },
   "simplify": {

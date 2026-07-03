@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { getAllBlogPosts, getAllBlogTags } from "@/lib/blogPosts";
 import BlogActions from "./components/BlogActions";
 import BlogCard from "./components/BlogCard";
+import BlogTagNav from "./components/BlogTagNav";
 
 export const metadata = {
   title: "Blog",
@@ -18,20 +18,7 @@ export default async function BlogsPage() {
 
       <BlogActions />
 
-      {tags.length > 0 && (
-        <nav className="flex flex-wrap items-center gap-2 mb-8 p-4 border-2 border-[var(--border-color)]">
-          <span className="text-sm text-[var(--text-color)] mr-2">タグ:</span>
-          {tags.map((tag) => (
-            <Link
-              key={tag}
-              href={`/blogs/tags/${encodeURIComponent(tag)}`}
-              className="px-3 py-1 text-sm border border-[var(--border-color)] no-underline hover:scale-105"
-            >
-              {tag}
-            </Link>
-          ))}
-        </nav>
-      )}
+      {tags.length > 0 && <BlogTagNav tags={tags} />}
 
       {posts.length === 0 ? (
         <p className="text-center text-[var(--text-color)] py-12">

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Loader2, LogIn, LogOut } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/SupabaseAuthProvider";
+import { BorderedButton } from "@/components/BorderedButton";
 import { signInWithEmail } from "@/lib/supabase/auth-actions";
 import Link from "next/link";
 
@@ -67,14 +68,14 @@ export default function MainWrapper() {
             <p className="font-medium break-all">{displayName}</p>
           </div>
 
-          <button
+          <BorderedButton
             type="button"
             onClick={handleSignOut}
-            className="w-full py-3 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] hover:scale-[0.98] active:invert flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-3 flex items-center justify-center gap-2"
           >
             <LogOut size={16} />
             サインアウト
-          </button>
+          </BorderedButton>
         </div>
       </div>
     );
@@ -136,10 +137,10 @@ export default function MainWrapper() {
             </div>
           )}
 
-          <button
+          <BorderedButton
             type="submit"
             disabled={isPending}
-            className="w-full py-3 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] hover:scale-[0.98] active:invert disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-3 flex items-center justify-center gap-2"
           >
             {isPending ? (
               <>
@@ -152,7 +153,7 @@ export default function MainWrapper() {
                 サインイン
               </>
             )}
-          </button>
+          </BorderedButton>
 
           <p className="text-center text-sm text-[var(--text-color)] opacity-70">
             アカウントをお持ちでない方は{" "}

@@ -36,7 +36,7 @@ src/
 ## アプリ一覧
 
 - 各アプリの `app.config.ts` が正（`src/app/apps/**/app.config.ts`）
-- `pnpm generate:app-list` で `src/lib/apps/appList.generated.ts` を生成
+- `pnpm generate:app-list` で `src/lib/apps/appList.generated.ts` を生成（整合性チェック付き）
 - `status: "published"` のみ `/apps` 一覧に表示
 - `status: "lab"` は URL 直打ちのみ（一覧非表示）
 - experimental など未登録アプリは `app.config.ts` を置かなければ一覧対象外

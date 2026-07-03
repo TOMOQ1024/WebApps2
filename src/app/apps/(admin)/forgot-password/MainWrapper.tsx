@@ -5,6 +5,7 @@ import { Loader2, Mail } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { requestPasswordReset } from "@/lib/supabase/auth-actions";
+import { BorderedButton } from "@/components/BorderedButton";
 
 export default function MainWrapper() {
   const [email, setEmail] = useState("");
@@ -103,10 +104,10 @@ export default function MainWrapper() {
               </div>
             )}
 
-            <button
+            <BorderedButton
               type="submit"
               disabled={isPending}
-              className="w-full py-3 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] hover:scale-[0.98] active:invert disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 flex items-center justify-center gap-2"
             >
               {isPending ? (
                 <>
@@ -119,7 +120,7 @@ export default function MainWrapper() {
                   リセットメールを送信
                 </>
               )}
-            </button>
+            </BorderedButton>
 
             <p className="text-center text-sm text-[var(--text-color)] opacity-70">
               <Link

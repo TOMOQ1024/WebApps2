@@ -12,6 +12,7 @@ import {
 } from "@/lib/supabase/article-actions";
 import { createTag } from "@/lib/supabase/actions";
 import type { ArticleStatus, ArticleWithTags, Tag } from "@/lib/supabase/types";
+import { BorderedButton } from "@/components/BorderedButton";
 import ArticlePreview from "./ArticlePreview";
 
 interface ArticleEditorProps {
@@ -293,14 +294,16 @@ export default function ArticleEditor({ mode, article }: ArticleEditorProps) {
                 }
               }}
             />
-            <button
+            <BorderedButton
               type="button"
               onClick={handleCreateTag}
               disabled={!newTagName.trim() || isPending}
-              className="px-2 py-1 border-2 border-[var(--border-color)] hover:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed"
+              size="sm"
+              className="px-2"
+              aria-label="タグを追加"
             >
               <Plus size={16} />
-            </button>
+            </BorderedButton>
           </div>
         </div>
 
@@ -332,11 +335,12 @@ export default function ArticleEditor({ mode, article }: ArticleEditorProps) {
         )}
 
         <div className="flex flex-wrap gap-3">
-          <button
+          <BorderedButton
             type="button"
             onClick={handleSubmit}
             disabled={isPending}
-            className="px-4 py-2 border-2 border-[var(--text-color)] hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            active
+            className="flex items-center gap-2"
           >
             {isPending ? (
               <>
@@ -348,18 +352,18 @@ export default function ArticleEditor({ mode, article }: ArticleEditorProps) {
             ) : (
               "下書きを保存"
             )}
-          </button>
+          </BorderedButton>
 
           {mode === "edit" && article && (
-            <button
+            <BorderedButton
               type="button"
               onClick={handleDelete}
               disabled={isPending}
-              className="px-4 py-2 border-2 border-red-600 text-red-600 hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="flex items-center gap-2 border-red-600 !text-red-600"
             >
               <Trash2 size={16} />
               削除
-            </button>
+            </BorderedButton>
           )}
         </div>
       </div>

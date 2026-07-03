@@ -5,7 +5,7 @@ import { blogMdxOptions } from "@/lib/blogMdxOptions";
 import components from "../components/MDXComponents";
 import TableOfContents from "../components/TableOfContents";
 import BlogPostEditLink from "../components/BlogPostEditLink";
-import Link from "next/link";
+import { BorderedButtonLink } from "@/components/BorderedButton";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -63,13 +63,13 @@ export default async function BlogPostPage({ params }: PageProps) {
           {post.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {post.tags.map((tag) => (
-                <Link
+                <BorderedButtonLink
                   key={tag}
                   href={`/blogs/tags/${encodeURIComponent(tag)}`}
-                  className="px-3 py-1 text-xs border border-[var(--border-color)] no-underline hover:scale-105"
+                  size="sm"
                 >
                   {tag}
-                </Link>
+                </BorderedButtonLink>
               ))}
             </div>
           )}
@@ -97,9 +97,9 @@ export default async function BlogPostPage({ params }: PageProps) {
       </div>
 
       <footer className="mt-12 pt-6 border-t border-[var(--border-color)]">
-        <Link href="/blogs" className="text-sm text-[var(--text-color)]">
+        <BorderedButtonLink href="/blogs" size="sm">
           ← ブログ一覧に戻る
-        </Link>
+        </BorderedButtonLink>
       </footer>
     </article>
   );

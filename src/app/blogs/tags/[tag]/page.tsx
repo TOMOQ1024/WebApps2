@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { getAllBlogTags, getBlogPostsByTag } from "@/lib/blogPosts";
 import BlogCard from "../../components/BlogCard";
-import Link from "next/link";
+import BlogTagNav from "../../components/BlogTagNav";
+import { BorderedButtonLink } from "@/components/BorderedButton";
 
 interface PageProps {
   params: Promise<{ tag: string }>;
@@ -32,12 +33,9 @@ export default async function TagPage({ params }: PageProps) {
   return (
     <main className="max-w-3xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <Link
-          href="/blogs"
-          className="inline-block mb-4 text-sm text-[var(--text-color)]"
-        >
+        <BorderedButtonLink href="/blogs" size="sm" className="mb-4">
           ← ブログ一覧
-        </Link>
+        </BorderedButtonLink>
         <h1 className="flex items-center gap-2 text-2xl font-bold m-0 mb-2">
           <span className="font-normal text-[var(--text-color)]">タグ:</span>
           <span className="px-3 py-1 border border-[var(--border-color)]">
@@ -48,6 +46,8 @@ export default async function TagPage({ params }: PageProps) {
           {posts.length} 件の記事
         </p>
       </div>
+
+      <BlogTagNav tags={allTags} activeTag={decodedTag} />
 
       {posts.length === 0 ? (
         <p className="text-center text-[var(--text-color)] py-12">

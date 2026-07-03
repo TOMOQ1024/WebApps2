@@ -46,6 +46,9 @@
 
 ## いつかやる
 
+- [ ] feat: トップページに代表作への導線を追加する  
+       CompDynam Gallery，Graph 2D Gallery などへの直リンク，または `/apps?tag=fractal` などタグ付きリンク
+
 - [ ] feat: OGP の実験
 
 - [ ] feat: Piet Editor ページの作成

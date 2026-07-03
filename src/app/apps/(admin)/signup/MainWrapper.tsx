@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Loader2, UserPlus } from "lucide-react";
 import { useAuth } from "@/components/SupabaseAuthProvider";
+import { BorderedButton } from "@/components/BorderedButton";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signUpWithUsername } from "@/lib/supabase/auth-actions";
 import Link from "next/link";
@@ -186,10 +187,10 @@ export default function MainWrapper() {
               </div>
             )}
 
-            <button
+            <BorderedButton
               type="submit"
               disabled={isPending}
-              className="w-full py-3 border-2 border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)] hover:scale-[0.98] active:invert disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 flex items-center justify-center gap-2"
             >
               {isPending ? (
                 <>
@@ -202,7 +203,7 @@ export default function MainWrapper() {
                   登録する
                 </>
               )}
-            </button>
+            </BorderedButton>
 
             <p className="text-center text-sm text-[var(--text-color)] opacity-70">
               既にアカウントをお持ちの方は{" "}
