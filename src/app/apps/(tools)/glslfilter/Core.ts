@@ -96,9 +96,8 @@ void main ()
       wr.appendChild(this.app.canvas);
 
       const texture = (await Assets.load(
-        "/resources/compdynam/images/earth.jpg"
+        "/app-assets/glslfilter/earth.jpg"
       )) as Texture;
-      // const texture = (await Assets.load("/ogame.png")) as Texture;
       texture.source.scaleMode = "nearest";
 
       let sp: Sprite;
