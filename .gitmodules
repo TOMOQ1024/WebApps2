@@ -1,3 +1,0 @@
-[submodule "private"]
-	path = public/private
-	url = git@github.com:TOMOQ1024/tomoq-app-private.git

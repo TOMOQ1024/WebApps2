@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import Core from "../Core";
 import InteractiveViewport from "@/components/InteractiveViewport";
 import { useSearchParams } from "next/navigation";
-import axios from "axios";
+import { getFragmentShader } from "../shaders";
 import styles from "../styles.module.scss";
 
 export default function MainWrapper() {
@@ -20,23 +20,21 @@ export default function MainWrapper() {
     }
 
     if (core && searchParams) {
-      console.log(searchParams.get("content"));
       const name = searchParams.get("content");
       if (name == null) {
         setIsReady(true);
         return;
       }
-      (async () => {
-        core.frag = await axios
-          .get(`/api/shaders/glslfilter?name=${name}`)
-          .then((res) => {
-            return res.data.frag;
-          })
-          .catch((e) => {
-            throw new Error(e);
-          });
+
+      const frag = getFragmentShader(name);
+      if (frag == null) {
+        console.error(`Unknown shader: ${name}`);
         setIsReady(true);
-      })();
+        return;
+      }
+
+      core.frag = frag;
+      setIsReady(true);
     }
   }, [core, searchParams]);
 
