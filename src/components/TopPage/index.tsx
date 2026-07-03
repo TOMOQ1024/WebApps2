@@ -1,5 +1,7 @@
 "use client";
 
+import { BorderedButtonLink } from "@/components/BorderedButton";
+
 const TopPage = () => {
   return (
     <main className="relative w-full min-h-screen overflow-x-hidden">
@@ -20,24 +22,15 @@ const TopPage = () => {
             私のみたいものと，私のみたいものをつくるものをつくります．
           </p>
           <div className="flex gap-4 justify-center flex-wrap mt-4">
-            <a
-              href="/apps"
-              className="inline-block px-8 py-4 border-2 border-[var(--border-color)] no-underline font-bold transition-transform hover:scale-105"
-            >
+            <BorderedButtonLink href="/apps" size="lg">
               Apps
-            </a>
-            <a
-              href="/galleries"
-              className="inline-block px-8 py-4 border-2 border-[var(--border-color)] no-underline font-bold transition-transform hover:scale-105"
-            >
+            </BorderedButtonLink>
+            <BorderedButtonLink href="/galleries" size="lg">
               Galleries
-            </a>
-            <a
-              href="/blogs"
-              className="inline-block px-8 py-4 border-2 border-[var(--border-color)] no-underline font-bold transition-transform hover:scale-105"
-            >
+            </BorderedButtonLink>
+            <BorderedButtonLink href="/blogs" size="lg">
               Blog
-            </a>
+            </BorderedButtonLink>
           </div>
         </section>
 
@@ -85,13 +78,9 @@ const TopPage = () => {
                 label: "VRChat",
               },
             ].map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                className="inline-block px-8 py-4 border-2 border-[var(--border-color)] no-underline font-bold transition-transform hover:scale-105"
-              >
+              <BorderedButtonLink key={link.label} href={link.href} size="lg">
                 {link.label}
-              </a>
+              </BorderedButtonLink>
             ))}
           </div>
         </section>

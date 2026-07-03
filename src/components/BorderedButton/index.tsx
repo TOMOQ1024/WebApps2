@@ -35,6 +35,14 @@ type BorderedButtonLinkProps = BorderedButtonStyleProps & {
   children: ReactNode;
 } & Omit<ComponentProps<typeof Link>, "href" | "className" | "children">;
 
+function isExternalHref(href: string): boolean {
+  return (
+    href.startsWith("http://") ||
+    href.startsWith("https://") ||
+    href.startsWith("//")
+  );
+}
+
 export function BorderedButtonLink({
   href,
   active,
@@ -43,12 +51,19 @@ export function BorderedButtonLink({
   children,
   ...props
 }: BorderedButtonLinkProps) {
+  const linkClassName = borderedButtonClass({ active, size, className });
+
+  if (isExternalHref(href)) {
+    const { prefetch: _prefetch, ...anchorProps } = props;
+    return (
+      <a href={href} className={linkClassName} {...anchorProps}>
+        {children}
+      </a>
+    );
+  }
+
   return (
-    <Link
-      href={href}
-      className={borderedButtonClass({ active, size, className })}
-      {...props}
-    >
+    <Link href={href} className={linkClassName} {...props}>
       {children}
     </Link>
   );
