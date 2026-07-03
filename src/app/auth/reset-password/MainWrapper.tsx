@@ -5,7 +5,7 @@ import { Loader2, KeyRound } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/SupabaseAuthProvider";
-import { updatePassword } from "@/lib/supabase/auth-actions";
+import { updatePassword } from "@/shared/supabase/auth-actions";
 import { BorderedButton } from "@/components/BorderedButton";
 
 export default function MainWrapper() {

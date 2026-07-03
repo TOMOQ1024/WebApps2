@@ -1,4 +1,4 @@
-import { getCompDynamItems } from "@/lib/supabase/actions";
+import { getCompDynamItems } from "@/features/gallery/actions";
 import Main from "./components/Main";
 
 export const metadata = {

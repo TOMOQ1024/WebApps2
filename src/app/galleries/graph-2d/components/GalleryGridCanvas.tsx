@@ -8,7 +8,7 @@ import type {
   Graph2DGalleryItem,
   Graph2DGalleryItemWithTags,
 } from "@/app/galleries/graph-2d/GalleryData";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/shared/hooks/useTheme";
 import {
   type ChainedInequalityResult,
   type ConstantDef,

@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Loader2, Mail } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { requestPasswordReset } from "@/lib/supabase/auth-actions";
+import { requestPasswordReset } from "@/shared/supabase/auth-actions";
 import { BorderedButton } from "@/components/BorderedButton";
 
 export default function MainWrapper() {

@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "./server";
+import { createClient } from "@/shared/supabase/server";
 import { getArticleById, isArticleSlugTaken } from "./articles";
-import type { Article, ArticleStatus, Tag } from "./types";
+import type { Article, ArticleStatus, Tag } from "@/shared/supabase/types";
 
 export interface ArticleInput {
   title: string;

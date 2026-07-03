@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import ArticleEditor from "../../components/ArticleEditor";
-import { getArticleBySlug } from "@/lib/supabase/articles";
-import { createClient } from "@/lib/supabase/server";
+import { getArticleBySlug } from "@/features/blog/supabase/articles";
+import { createClient } from "@/shared/supabase/server";
 
 interface PageProps {
   params: Promise<{ slug: string }>;

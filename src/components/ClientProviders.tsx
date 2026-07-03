@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { ThemeProvider } from "@/hooks/useTheme";
+import { ThemeProvider } from "@/shared/hooks/useTheme";
 import { IsClientCtxProvider } from "./IsClientCtx";
 import { SharedCanvasProvider } from "./SharedCanvas";
 

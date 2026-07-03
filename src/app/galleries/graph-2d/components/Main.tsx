@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import GalleryGridCanvas from "./GalleryGridCanvas";
 import DetailModal from "./DetailModal";
 import type { Graph2DGalleryItemWithTags } from "@/app/galleries/graph-2d/GalleryData";
-import type { Tag } from "@/lib/supabase/types";
+import type { Tag } from "@/shared/supabase/types";
 
 interface MainProps {
   items: Graph2DGalleryItemWithTags[];

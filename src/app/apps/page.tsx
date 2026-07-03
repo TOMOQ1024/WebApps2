@@ -2,7 +2,7 @@ import {
   filterPublishedAppsByTag,
   getPublishedAppTags,
   parseAppTag,
-} from "@/lib/appList";
+} from "@/shared/apps";
 import AppsGrid from "./components/AppsGrid";
 import TagFilter from "./components/TagFilter";
 import styles from "./page.module.scss";

@@ -9,9 +9,9 @@ import {
   deleteArticle,
   getTagsForArticlesAction,
   updateArticle,
-} from "@/lib/supabase/article-actions";
-import { createTag } from "@/lib/supabase/actions";
-import type { ArticleStatus, ArticleWithTags, Tag } from "@/lib/supabase/types";
+} from "@/features/blog/supabase/article-actions";
+import { createTag } from "@/shared/supabase/tags";
+import type { ArticleStatus, ArticleWithTags, Tag } from "@/shared/supabase/types";
 import { BorderedButton } from "@/components/BorderedButton";
 import ArticlePreview from "./ArticlePreview";
 

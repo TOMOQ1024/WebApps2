@@ -8,11 +8,11 @@
 import { existsSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import type { AppConfig } from "../src/lib/apps/types";
+import type { AppConfig } from "../src/shared/apps/types";
 
 const APPS_ROOT = resolve(__dirname, "../src/app/apps");
 const ICONS_ROOT = resolve(__dirname, "../public/app-icons");
-const OUTPUT = resolve(__dirname, "../src/lib/apps/appList.generated.ts");
+const OUTPUT = resolve(__dirname, "../src/shared/apps/appList.generated.ts");
 
 function findAppConfigFiles(dir: string): string[] {
   const results: string[] = [];

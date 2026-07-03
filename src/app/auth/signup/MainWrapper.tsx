@@ -5,7 +5,7 @@ import { Loader2, UserPlus } from "lucide-react";
 import { useAuth } from "@/components/SupabaseAuthProvider";
 import { BorderedButton } from "@/components/BorderedButton";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signUpWithUsername } from "@/lib/supabase/auth-actions";
+import { signUpWithUsername } from "@/shared/supabase/auth-actions";
 import Link from "next/link";
 
 export default function MainWrapper() {

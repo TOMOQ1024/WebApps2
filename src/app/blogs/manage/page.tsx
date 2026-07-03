@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import BlogCard from "../components/BlogCard";
-import { createClient } from "@/lib/supabase/server";
-import { articleToBlogMeta, getMyArticles } from "@/lib/supabase/articles";
+import { createClient } from "@/shared/supabase/server";
+import { articleToBlogMeta, getMyArticles } from "@/features/blog/supabase/articles";
 
 export const metadata = {
   title: "自分の記事",

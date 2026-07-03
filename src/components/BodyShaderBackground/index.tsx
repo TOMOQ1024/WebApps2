@@ -4,7 +4,7 @@ import { OrthographicCamera } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import type * as THREE from "three";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/shared/hooks/useTheme";
 import { fragmentShader } from "../ThemeToggle/Shaders/FragmentShader";
 import { vertexShader } from "../ThemeToggle/Shaders/VertexShader";
 

@@ -1,4 +1,4 @@
-import type { BlogPost, BlogPostMeta } from "./blog/types";
+import type { BlogPost, BlogPostMeta } from "./types";
 import {
   articleToBlogMeta,
   articleToBlogPost,

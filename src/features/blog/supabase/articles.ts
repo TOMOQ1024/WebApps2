@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createClient } from "./server";
-import type { Article, ArticleWithTags, Tag } from "./types";
+import { createClient } from "@/shared/supabase/server";
+import type { Article, ArticleWithTags, Tag } from "@/shared/supabase/types";
 
 async function attachTagsToArticles(
   articles: Article[],

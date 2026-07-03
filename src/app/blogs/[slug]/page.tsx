@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
-import { getBlogPostBySlug } from "@/lib/blogPosts";
+import { getBlogPostBySlug } from "@/features/blog/blogPosts";
 import { MDXRemote } from "next-mdx-remote/rsc";
-import { blogMdxOptions } from "@/lib/blogMdxOptions";
+import { blogMdxOptions } from "@/features/blog/mdxOptions";
 import components from "../components/MDXComponents";
 import TableOfContents from "../components/TableOfContents";
 import BlogPostEditLink from "../components/BlogPostEditLink";

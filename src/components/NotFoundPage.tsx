@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
-import { findSimilarPaths } from "@/lib/findSimilarPaths";
+import { findSimilarPaths } from "@/shared/routing/findSimilarPaths";
 
 const mainLinks = [
   { href: "/apps", label: "Apps" },

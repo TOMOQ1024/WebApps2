@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getAllBlogTags, getBlogPostsByTag } from "@/lib/blogPosts";
+import { getAllBlogTags, getBlogPostsByTag } from "@/features/blog/blogPosts";
 import BlogCard from "../../components/BlogCard";
 import BlogTagNav from "../../components/BlogTagNav";
 import { BorderedButtonLink } from "@/components/BorderedButton";

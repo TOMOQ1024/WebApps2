@@ -4,7 +4,7 @@ import { useMemo, useRef } from "react";
 import ShaderButton, {
   type ShaderButtonUniforms,
 } from "@/components/ShaderButton";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/shared/hooks/useTheme";
 import { fragmentShader } from "./Shaders/FragmentShader";
 import { vertexShader } from "./Shaders/VertexShader";
 

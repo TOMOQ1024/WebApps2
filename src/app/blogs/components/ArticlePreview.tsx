@@ -3,7 +3,7 @@
 import { MDXRemote, type MDXRemoteSerializeResult } from "next-mdx-remote";
 import { serialize } from "next-mdx-remote/serialize";
 import { useEffect, useState } from "react";
-import { blogMdxOptions } from "@/lib/blogMdxOptions";
+import { blogMdxOptions } from "@/features/blog/mdxOptions";
 import components from "./MDXComponents";
 
 interface ArticlePreviewProps {

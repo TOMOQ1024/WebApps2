@@ -1,4 +1,4 @@
-import type { AppTag } from "@/lib/apps/types";
+import type { AppTag } from "@/shared/apps/types";
 import { BorderedButtonLink } from "@/components/BorderedButton";
 
 type TagFilterProps = {

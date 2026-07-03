@@ -15,34 +15,40 @@ alwaysApply: false
 ```
 src/
 ├── app/                    # Next.js App Router
-│   ├── auth/              # 認証（signin, signup, confirm 等）
+│   ├── auth/              # 認証
 │   ├── apps/              # アプリケーション群
-│   │   ├── (maths)/      # 数学系
-│   │   └── (tools)/      # ツール
-│   ├── blogs/             # ブログ
-│   └── galleries/         # ギャラリー
-├── components/            # サイト共通 UI コンポーネント
-├── features/              # 目的別の機能モジュール（将来）
-├── hooks/                 # カスタム Hooks
-├── lib/                   # サイト横断ロジック（Supabase, apps 等）
-└── shared/                # 全体で利用するコアライブラリ
-    ├── parser/            # LaTeX → AST → GLSL/JS
-    ├── maths/             # Coxeter 図，双曲幾何など
-    ├── graph/             # GraphMgr, CanvasManager
-    └── linalg/            # Vec2–4, Mat3–4
+│   ├── blogs/             # ブログ UI
+│   └── galleries/         # ギャラリー UI
+├── components/            # サイト共通 UI
+├── features/              # 目的別モジュール（blog, gallery 等）
+├── shared/                # サイト全体で利用するコード
+│   ├── apps/              # アプリ一覧（app.config → generate）
+│   ├── hooks/             # useTheme 等
+│   ├── parser/            # LaTeX → AST → GLSL/JS
+│   ├── maths/             # Coxeter 図，双曲幾何など
+│   ├── graph/             # GraphMgr, CanvasManager
+│   ├── linalg/            # Vec2–4, Mat3–4
+│   ├── routing/           # allPaths, findSimilarPaths
+│   └── supabase/          # client, server, auth, types, tags
 ```
 
 ## アプリ一覧
 
 - 各アプリの `app.config.ts` が正（`src/app/apps/**/app.config.ts`）
-- `pnpm generate:app-list` で `src/lib/apps/appList.generated.ts` を生成（整合性チェック付き）
+- `pnpm generate:app-list` で `src/shared/apps/appList.generated.ts` を生成
 - `status: "published"` のみ `/apps` 一覧に表示
-- `status: "lab"` は URL 直打ちのみ（一覧非表示）
+- `status: "lab"` は URL 直打ちのみ
 
 ## ギャラリー
 
 - 正は Supabase `galleries` テーブル
-- seed は `scripts/seed-supabase.ts` の `SEED_GALLERIES`
+- Server Actions: `src/features/gallery/actions.ts`
+- seed: `scripts/seed-supabase.ts` の `SEED_GALLERIES`
+
+## ブログ
+
+- データ取得: `src/features/blog/blogPosts.ts`
+- Supabase: `src/features/blog/supabase/`
 
 ## アプリ追加時
 

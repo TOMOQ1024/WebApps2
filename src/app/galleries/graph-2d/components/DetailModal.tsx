@@ -16,15 +16,14 @@ import { vertexShader as baseVertexShader } from "@/app/apps/(maths)/graph-2d/Sh
 import type { Graph2DGalleryItemWithTags } from "@/app/galleries/graph-2d/GalleryData";
 import Modal from "@/components/Modal";
 import { useAuth } from "@/components/SupabaseAuthProvider";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/shared/hooks/useTheme";
 import { generateShaderFromExpressions } from "./GalleryGridCanvas";
 import {
   updateGalleryItem,
   deleteGalleryItem,
-  getTagsForGalleryItems,
-  createTag,
-} from "@/lib/supabase/actions";
-import type { Tag } from "@/lib/supabase/types";
+} from "@/features/gallery/actions";
+import { createTag, getTagsForGalleryItems } from "@/shared/supabase/tags";
+import type { Tag } from "@/shared/supabase/types";
 
 interface DetailModalProps {
   item: Graph2DGalleryItemWithTags;

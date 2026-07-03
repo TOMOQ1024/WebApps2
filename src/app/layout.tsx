@@ -1,5 +1,5 @@
 import { SupabaseAuthProvider } from "@/components/SupabaseAuthProvider";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/shared/supabase/server";
 import "./globals.scss";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";

@@ -1,4 +1,4 @@
-import type { AppConfig } from "@/lib/apps/types";
+import type { AppConfig } from "@/shared/apps/types";
 
 export const appConfig = {
   appName: "GLSL Filter",

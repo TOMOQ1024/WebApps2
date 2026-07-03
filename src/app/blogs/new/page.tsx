@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import ArticleEditor from "../components/ArticleEditor";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/shared/supabase/server";
 
 export const metadata = {
   title: "記事を投稿",

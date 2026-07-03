@@ -1,4 +1,4 @@
-import { getGalleries } from "@/lib/supabase/actions";
+import { getGalleries } from "@/features/gallery/actions";
 import Link from "next/link";
 import ImageWithFallback from "@/components/ImageWithFallback";
 import styles from "./page.module.scss";

@@ -7,13 +7,12 @@ import { fragmentShader as baseFragmentShader } from "@/app/apps/(maths)/graph-2
 import { vertexShader as baseVertexShader } from "@/app/apps/(maths)/graph-2d/Shaders/VertexShader";
 import { generateShaderFromExpressions } from "@/app/galleries/graph-2d/components/GalleryGridCanvas";
 import Modal from "@/components/Modal";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/shared/hooks/useTheme";
 import {
   createGalleryItem,
-  createTag,
-  getTagsForGalleryItems,
-} from "@/lib/supabase/actions";
-import type { Graph2DItemData, Tag } from "@/lib/supabase/types";
+} from "@/features/gallery/actions";
+import { createTag, getTagsForGalleryItems } from "@/shared/supabase/tags";
+import type { Graph2DItemData, Tag } from "@/shared/supabase/types";
 
 interface PostModalProps {
   isOpen: boolean;

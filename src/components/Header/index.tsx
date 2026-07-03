@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/shared/hooks/useTheme";
 
 const getSiteName = () => {
   const env = process.env.NEXT_PUBLIC_VERCEL_ENV;

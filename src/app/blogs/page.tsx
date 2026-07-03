@@ -1,4 +1,4 @@
-import { getAllBlogPosts, getAllBlogTags } from "@/lib/blogPosts";
+import { getAllBlogPosts, getAllBlogTags } from "@/features/blog/blogPosts";
 import BlogActions from "./components/BlogActions";
 import BlogCard from "./components/BlogCard";
 import BlogTagNav from "./components/BlogTagNav";

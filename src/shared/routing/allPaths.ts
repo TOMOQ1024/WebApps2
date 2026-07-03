@@ -1,4 +1,4 @@
-import { appList } from "./apps";
+import { appList } from "@/shared/apps";
 
 /**
  * サイト内の有効なパスを生成する

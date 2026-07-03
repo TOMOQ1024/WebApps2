@@ -1,4 +1,4 @@
-import type { Tag } from "@/lib/supabase/types";
+import type { Tag } from "@/shared/supabase/types";
 
 /**
  * Graph 2D ギャラリーアイテムの型定義

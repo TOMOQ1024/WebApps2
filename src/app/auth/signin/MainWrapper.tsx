@@ -5,7 +5,7 @@ import { Loader2, LogIn, LogOut } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/SupabaseAuthProvider";
 import { BorderedButton } from "@/components/BorderedButton";
-import { signInWithEmail } from "@/lib/supabase/auth-actions";
+import { signInWithEmail } from "@/shared/supabase/auth-actions";
 import Link from "next/link";
 
 export default function MainWrapper() {

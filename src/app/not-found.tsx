@@ -1,5 +1,5 @@
 import NotFoundPage from "@/components/NotFoundPage";
-import { getGalleryPaths } from "@/lib/supabase/actions";
+import { getGalleryPaths } from "@/features/gallery/actions";
 
 export const metadata = {
   title: "404 Not Found - tomoq.net",

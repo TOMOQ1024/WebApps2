@@ -1,6 +1,6 @@
 import Link from "next/link";
 import ImageWithFallback from "@/components/ImageWithFallback";
-import type { AppEntry } from "@/lib/apps/types";
+import type { AppEntry } from "@/shared/apps/types";
 import styles from "../page.module.scss";
 
 type AppsGridProps = {

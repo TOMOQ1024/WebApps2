@@ -1,5 +1,5 @@
 import { BorderedButtonLink } from "@/components/BorderedButton";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/shared/supabase/server";
 
 export default async function BlogActions() {
   const supabase = await createClient();
