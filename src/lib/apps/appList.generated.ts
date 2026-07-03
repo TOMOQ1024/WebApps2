@@ -96,11 +96,6 @@ export const appList = {
     status: "lab",
     tags: ["maths"],
   },
-  "mandelbrotset": {
-    appName: "Mandelbrot Set",
-    status: "lab",
-    tags: ["maths","fractal"],
-  },
   "minesweeper": {
     appName: "Minesweeper",
     status: "lab",
@@ -126,18 +121,8 @@ export const appList = {
     status: "lab",
     tags: ["maths","fractal"],
   },
-  "sierpinskigasket": {
-    appName: "Sierpinski Gasket",
-    status: "lab",
-    tags: ["maths","fractal"],
-  },
   "tictactoe": {
     appName: "Tic Tac Toe",
-    status: "lab",
-    tags: ["game"],
-  },
-  "untitled": {
-    appName: "Untitled",
     status: "lab",
     tags: ["game"],
   },

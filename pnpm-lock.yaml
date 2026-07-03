@@ -76,9 +76,6 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.95.3
         version: 2.95.3
-      '@types/matter-js':
-        specifier: ^0.19.8
-        version: 0.19.8
       '@types/node':
         specifier: 22.13.5
         version: 22.13.5
@@ -136,9 +133,6 @@ importers:
       mathquill:
         specifier: 0.10.1-a
         version: 0.10.1-a
-      matter-js:
-        specifier: ^0.20.0
-        version: 0.20.0
       mime:
         specifier: ^4.0.7
         version: 4.0.7
@@ -1797,9 +1791,6 @@ packages:
 
   '@types/katex@0.16.8':
     resolution: {integrity: sha512-trgaNyfU+Xh2Tc+ABIb44a5AYUpicB3uwirOioeOkNPPbmgRNtcWyDeeFRzjPZENO9Vq8gvVqfhaaXWLlevVwg==}
-
-  '@types/matter-js@0.19.8':
-    resolution: {integrity: sha512-W2ZWG58Lijv/4v768NgpeyFqqiOyslmAU7qqM1Lhz4XBoUgGtZtPz4CjcOKYtqHIak14dvPldslQhltqLTWwsw==}
 
   '@types/mdast@4.0.4':
     resolution: {integrity: sha512-kGaNbPh1k7AFzgpud/gMdvIm5xuECykRR+JnWKQno9TAXVa6WIVCGTPvYGekIDL4uwCZQSYbUxNBSb1aUo79oA==}
@@ -3753,9 +3744,6 @@ packages:
 
   mathquill@0.10.1-a:
     resolution: {integrity: sha512-snSAEwAtwdwBFSor+nVBnWWQtTw67kgAgKMyAIxuz4ZPboy0qkWZmd7BL3lfOXp/INihhRlU1PcfaAtDaRhmzA==}
-
-  matter-js@0.20.0:
-    resolution: {integrity: sha512-iC9fYR7zVT3HppNnsFsp9XOoQdQN2tUyfaKg4CHLH8bN+j6GT4Gw7IH2rP0tflAebrHFw730RR3DkVSZRX8hwA==}
 
   mdast-util-find-and-replace@3.0.2:
     resolution: {integrity: sha512-Tmd1Vg/m3Xz43afeNxDIhWRtFZgM2VLyaf4vSTYwudTyeuTneoL3qtWMA5jeLyz/O1vDJmmV4QuScFCA2tBPwg==}
@@ -6600,8 +6588,6 @@ snapshots:
 
   '@types/katex@0.16.8': {}
 
-  '@types/matter-js@0.19.8': {}
-
   '@types/mdast@4.0.4':
     dependencies:
       '@types/unist': 3.0.3
@@ -8969,8 +8955,6 @@ snapshots:
   mathquill@0.10.1-a:
     dependencies:
       jquery: 3.7.1
-
-  matter-js@0.20.0: {}
 
   mdast-util-find-and-replace@3.0.2:
     dependencies:
