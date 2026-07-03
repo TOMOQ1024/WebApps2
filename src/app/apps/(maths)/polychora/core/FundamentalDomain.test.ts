@@ -1,8 +1,8 @@
 import { Hyperplane3 } from "@/shared/maths/MobiusGyrovectorSphericalSpace3";
 import { GetFundamentalDomain } from "./FundamentalDomain";
 import { CoxeterDynkinDiagram } from "@/shared/maths/CoxeterDynkinDiagram";
-import { getCombinations } from "@/shared/maths/CombinationUtils";
-import { getPermutations } from "@/shared/maths/PermutationUtils";
+import { getCombinations } from "@/shared/maths/combination/getCombinations";
+import { getPermutations } from "@/shared/maths/permutation/getPermutations";
 
 describe("A1 A1 A1 A1", () => {
   test("1/1", () => {

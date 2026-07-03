@@ -1,4 +1,4 @@
-import { getCombinations } from "./CombinationUtils";
+import { getCombinations } from "./combination/getCombinations";
 import { CoxeterDynkinDiagram } from "./CoxeterDynkinDiagram";
 import { Polytope } from "./Polytope";
 
