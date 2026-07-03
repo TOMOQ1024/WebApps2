@@ -66,34 +66,9 @@ export const appList = {
     tags: ["utility","webgl"],
     sortOrder: 10,
   },
-  "chaosgame": {
-    appName: "Chaos Game",
-    status: "lab",
-    tags: ["maths","fractal"],
-  },
   "diceroll": {
     appName: "Dice Roll",
     status: "lab",
     tags: ["utility"],
-  },
-  "h2tiling": {
-    appName: "H2 Tiling",
-    status: "lab",
-    tags: ["maths","geometry"],
-  },
-  "lifegame": {
-    appName: "Life Game",
-    status: "lab",
-    tags: ["maths"],
-  },
-  "polyhedra": {
-    appName: "Polyhedra",
-    status: "lab",
-    tags: ["maths","geometry"],
-  },
-  "recursivetree": {
-    appName: "Recursive Tree",
-    status: "lab",
-    tags: ["maths","fractal"],
   },
 } satisfies AppList;
