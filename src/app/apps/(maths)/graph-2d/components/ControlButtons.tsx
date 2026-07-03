@@ -1,4 +1,11 @@
-import { GalleryHorizontalEnd, Home, Link, Palette, Send, Upload } from "lucide-react";
+import {
+  GalleryHorizontalEnd,
+  Home,
+  Link,
+  Palette,
+  Send,
+  Upload,
+} from "lucide-react";
 import NextLink from "next/link";
 
 interface ControlButtonsProps {

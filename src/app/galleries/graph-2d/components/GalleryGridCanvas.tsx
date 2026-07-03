@@ -4,7 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { fragmentShader as baseFragmentShader } from "@/app/apps/(maths)/graph-2d/Shaders/FragmentShader";
 import { vertexShader as baseVertexShader } from "@/app/apps/(maths)/graph-2d/Shaders/VertexShader";
-import type { Graph2DGalleryItem, Graph2DGalleryItemWithTags } from "@/app/galleries/graph-2d/GalleryData";
+import type {
+  Graph2DGalleryItem,
+  Graph2DGalleryItemWithTags,
+} from "@/app/galleries/graph-2d/GalleryData";
 import { useTheme } from "@/hooks/useTheme";
 import {
   type ChainedInequalityResult,

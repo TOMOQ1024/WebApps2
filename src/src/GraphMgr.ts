@@ -4,7 +4,10 @@ const RADIUS_MIN = 1e-12;
 const RADIUS_MAX = 1e9;
 
 export default class GraphMgr {
-  constructor(public origin = new Vector2(0, 0), public radius = 2) {}
+  constructor(
+    public origin = new Vector2(0, 0),
+    public radius = 2,
+  ) {}
 
   private sanitize() {
     if (!Number.isFinite(this.origin.x)) {

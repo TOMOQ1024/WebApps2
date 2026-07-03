@@ -45,7 +45,7 @@ export async function getGalleries(): Promise<GalleryWithTags[]> {
         .in("id", tagIds);
 
       return { ...gallery, tags: tags ?? [] };
-    })
+    }),
   );
 
   return galleriesWithTags;
@@ -54,7 +54,9 @@ export async function getGalleries(): Promise<GalleryWithTags[]> {
 /**
  * パスからギャラリーを取得
  */
-export async function getGalleryByPath(path: string): Promise<GalleryWithTags | null> {
+export async function getGalleryByPath(
+  path: string,
+): Promise<GalleryWithTags | null> {
   const supabase = await createClient();
 
   const { data: gallery, error } = await supabase
@@ -88,7 +90,9 @@ export async function getGalleryByPath(path: string): Promise<GalleryWithTags | 
 /**
  * ギャラリー ID からアイテムを取得
  */
-export async function getGalleryItemsByGalleryId(galleryId: string): Promise<GalleryItem[]> {
+export async function getGalleryItemsByGalleryId(
+  galleryId: string,
+): Promise<GalleryItem[]> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -108,7 +112,9 @@ export async function getGalleryItemsByGalleryId(galleryId: string): Promise<Gal
 /**
  * ギャラリーパスからアイテムを取得
  */
-export async function getGalleryItems(galleryPath: string): Promise<GalleryItem[]> {
+export async function getGalleryItems(
+  galleryPath: string,
+): Promise<GalleryItem[]> {
   const gallery = await getGalleryByPath(galleryPath);
   if (!gallery) {
     console.error(`Gallery not found: ${galleryPath}`);
@@ -131,7 +137,9 @@ export async function getGraph2DItems(): Promise<Graph2DGalleryItem[]> {
 /**
  * Graph2D ギャラリーアイテムを取得（タグ付き）
  */
-export async function getGraph2DItemsWithTags(): Promise<Graph2DGalleryItemWithTags[]> {
+export async function getGraph2DItemsWithTags(): Promise<
+  Graph2DGalleryItemWithTags[]
+> {
   const supabase = await createClient();
   const items = await getGraph2DItems();
 
@@ -164,7 +172,7 @@ export async function getGraph2DItemsWithTags(): Promise<Graph2DGalleryItemWithT
       }
 
       return { ...item, tags, creator_username };
-    })
+    }),
   );
 
   return itemsWithTags;
@@ -187,10 +195,7 @@ export async function getCompDynamItems(): Promise<CompDynamGalleryItem[]> {
 export async function getTags(): Promise<Tag[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from("tags")
-    .select("*")
-    .order("name");
+  const { data, error } = await supabase.from("tags").select("*").order("name");
 
   if (error) {
     console.error("Error fetching tags:", error);
@@ -257,7 +262,7 @@ export async function getGalleryListCompat(): Promise<{
 export async function createGalleryItem(
   galleryPath: string,
   data: Graph2DItemData,
-  tagIds?: string[]
+  tagIds?: string[],
 ): Promise<{ success: boolean; error?: string; item?: GalleryItem }> {
   const supabase = await createClient();
 
@@ -273,7 +278,10 @@ export async function createGalleryItem(
   // ギャラリーを取得
   const gallery = await getGalleryByPath(galleryPath);
   if (!gallery) {
-    return { success: false, error: `ギャラリーが見つかりません: ${galleryPath}` };
+    return {
+      success: false,
+      error: `ギャラリーが見つかりません: ${galleryPath}`,
+    };
   }
 
   // 現在の最大 sort_order を取得
@@ -284,9 +292,10 @@ export async function createGalleryItem(
     .order("sort_order", { ascending: false })
     .limit(1);
 
-  const nextSortOrder = existingItems && existingItems.length > 0
-    ? existingItems[0].sort_order + 1
-    : 0;
+  const nextSortOrder =
+    existingItems && existingItems.length > 0
+      ? existingItems[0].sort_order + 1
+      : 0;
 
   // アイテムを作成
   const { data: newItem, error } = await supabase
@@ -375,7 +384,10 @@ export async function updateGalleryItem(
   // タグを更新（既存のタグを削除して新しいタグを追加）
   if (tagIds !== undefined) {
     // 既存のタグ紐付けを削除
-    await supabase.from("gallery_item_tags").delete().eq("gallery_item_id", itemId);
+    await supabase
+      .from("gallery_item_tags")
+      .delete()
+      .eq("gallery_item_id", itemId);
 
     // 新しいタグを紐付け
     if (tagIds.length > 0) {
@@ -430,7 +442,10 @@ export async function deleteGalleryItem(
   }
 
   // タグ紐付けを先に削除
-  await supabase.from("gallery_item_tags").delete().eq("gallery_item_id", itemId);
+  await supabase
+    .from("gallery_item_tags")
+    .delete()
+    .eq("gallery_item_id", itemId);
 
   // アイテムを削除
   const { error: deleteError } = await supabase
@@ -456,7 +471,7 @@ export async function createTag(
     for_galleries?: boolean;
     for_gallery_items?: boolean;
     for_articles?: boolean;
-  }
+  },
 ): Promise<{ success: boolean; error?: string; tag?: Tag }> {
   const supabase = await createClient();
 
@@ -492,9 +507,12 @@ export async function createTag(
     // 既存タグがある場合，必要なスコープフラグを追加更新
     const updateFields: Record<string, boolean> = {};
     if (for_apps && !existingTag.for_apps) updateFields.for_apps = true;
-    if (for_galleries && !existingTag.for_galleries) updateFields.for_galleries = true;
-    if (for_gallery_items && !existingTag.for_gallery_items) updateFields.for_gallery_items = true;
-    if (for_articles && !existingTag.for_articles) updateFields.for_articles = true;
+    if (for_galleries && !existingTag.for_galleries)
+      updateFields.for_galleries = true;
+    if (for_gallery_items && !existingTag.for_gallery_items)
+      updateFields.for_gallery_items = true;
+    if (for_articles && !existingTag.for_articles)
+      updateFields.for_articles = true;
 
     if (Object.keys(updateFields).length > 0) {
       const { data: updatedTag, error: updateError } = await supabase

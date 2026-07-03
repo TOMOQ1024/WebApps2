@@ -181,7 +181,7 @@ export default function GalleryGridCanvas({
           params.set("function", encodeURIComponent(item.functionLatex));
           params.set(
             "initialValue",
-            encodeURIComponent(item.initialValueLatex)
+            encodeURIComponent(item.initialValueLatex),
           );
           params.set("iter", item.iterations.toString());
           params.set("origin", `${item.center[0]},${item.center[1]}`);
@@ -233,7 +233,7 @@ export default function GalleryGridCanvas({
       height / 2,
       -height / 2,
       0.1,
-      10
+      10,
     );
     camera.position.z = 1;
     cameraRef.current = camera;
@@ -259,15 +259,15 @@ export default function GalleryGridCanvas({
         const initialValueCode = latexToComplexGLSL(
           item.initialValueLatex,
           undefined,
-          ["c", "t"]
+          ["c", "t"],
         );
         fragmentShader = fragmentShader.replace(
           /z\/\* input func here \*\//,
-          functionCode
+          functionCode,
         );
         fragmentShader = fragmentShader.replace(
           /c\/\* input initial value here \*\//,
-          initialValueCode
+          initialValueCode,
         );
       } catch (e) {}
       // メッシュ
@@ -309,7 +309,7 @@ export default function GalleryGridCanvas({
         mesh.scale.set(
           hoverIdxRef.current === idx ? 1.1 : 1,
           hoverIdxRef.current === idx ? 1.1 : 1,
-          1
+          1,
         );
       });
       renderer.render(scene, camera);
@@ -417,7 +417,7 @@ export default function GalleryGridCanvas({
         renderer.domElement.removeEventListener("mousemove", handlePointerMove);
         renderer.domElement.removeEventListener(
           "mouseleave",
-          handlePointerLeave
+          handlePointerLeave,
         );
         renderer.domElement.removeEventListener("click", handleClick);
       }

@@ -1,4 +1,7 @@
-import { getGraph2DItemsWithTags, getTagsForGalleryItems } from "@/lib/supabase/actions";
+import {
+  getGraph2DItemsWithTags,
+  getTagsForGalleryItems,
+} from "@/lib/supabase/actions";
 import Main from "./components/Main";
 
 export const metadata = {

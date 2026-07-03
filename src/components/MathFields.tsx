@@ -6,7 +6,7 @@ export const EditableMathField = dynamic(
       mod.addStyles();
       return mod.EditableMathField;
     }),
-  { ssr: false }
+  { ssr: false },
 );
 
 export const StaticMathField = dynamic(
@@ -15,5 +15,5 @@ export const StaticMathField = dynamic(
       mod.addStyles();
       return mod.StaticMathField;
     }),
-  { ssr: false }
+  { ssr: false },
 );

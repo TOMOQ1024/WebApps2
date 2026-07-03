@@ -11,7 +11,7 @@ import { CoxeterDynkinDiagram } from "@/src/maths/CoxeterDynkinDiagram";
 export default function Main() {
   const [shader, setShader] = useState(fragmentShader);
   const [graph, setGraph] = useState<GraphMgr>(
-    new GraphMgr(new Vector2(0, 0), 1)
+    new GraphMgr(new Vector2(0, 0), 1),
   );
   const [diagram, setDiagram] = useState<CoxeterDynkinDiagram>(
     new CoxeterDynkinDiagram(
@@ -27,8 +27,8 @@ export default function Main() {
         a: "x",
         b: "x",
         c: "x",
-      }
-    )
+      },
+    ),
   );
 
   // エラー状態

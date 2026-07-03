@@ -79,13 +79,13 @@ export class GyrovectorSpace3 {
 
   add(P: Vector3, Q: Vector3) {
     const A = P.clone().multiplyScalar(
-      1 - 2 * this.curvature * this.dot(P, Q) - this.curvature * Q.lengthSq()
+      1 - 2 * this.curvature * this.dot(P, Q) - this.curvature * Q.lengthSq(),
     );
     const B = Q.clone().multiplyScalar(1 + this.curvature * P.lengthSq());
     return A.add(B).divideScalar(
       1 -
         2 * this.curvature * this.dot(P, Q) +
-        this.curvature * this.curvature * P.lengthSq() * Q.lengthSq()
+        this.curvature * this.curvature * P.lengthSq() * Q.lengthSq(),
     );
   }
 
@@ -144,7 +144,7 @@ export class GyrovectorSpace3 {
     const i = new Vector3(
       P.lengthSq() * this.curvature - 1,
       Q.lengthSq() * this.curvature - 1,
-      R.lengthSq() * this.curvature - 1
+      R.lengthSq() * this.curvature - 1,
     ).applyMatrix3(m.adjugate());
 
     return { i, k: det };
@@ -194,7 +194,7 @@ export class GyrovectorSpace3 {
     }
     if (T2.lengthSq() < 1e-10) {
       T2 = [h1.i, h2.i, h3.i].toSorted(
-        (a, b) => b.lengthSq() - a.lengthSq()
+        (a, b) => b.lengthSq() - a.lengthSq(),
       )[0];
     }
 
@@ -207,7 +207,7 @@ export class GyrovectorSpace3 {
     const T = new Vector3(
       T1.y * T2.z - T1.z * T2.y,
       T1.z * T2.x - T1.x * T2.z,
-      T1.x * T2.y - T1.y * T2.x
+      T1.x * T2.y - T1.y * T2.x,
     );
 
     // 分母の計算

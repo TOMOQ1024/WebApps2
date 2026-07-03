@@ -36,7 +36,7 @@ export function getPermutations<T>(items: T[], count?: number): T[][] {
  */
 export function* generatePermutations<T>(
   items: T[],
-  count?: number
+  count?: number,
 ): Generator<T[]> {
   const actualCount = count ?? items.length;
   const stack: { path: T[]; remaining: T[] }[] = [];
@@ -83,7 +83,7 @@ export function* generateAllPermutations<T>(items: T[]): Generator<T[]> {
  */
 export function getPermutationsWithRepetition<T>(
   items: T[],
-  count: number
+  count: number,
 ): T[][] {
   const result: T[][] = [];
   const stack: { path: T[] }[] = [];
@@ -113,7 +113,7 @@ export function getPermutationsWithRepetition<T>(
  */
 export function* generatePermutationsWithRepetition<T>(
   items: T[],
-  count: number
+  count: number,
 ): Generator<T[]> {
   const stack: { path: T[] }[] = [];
   stack.push({ path: [] });

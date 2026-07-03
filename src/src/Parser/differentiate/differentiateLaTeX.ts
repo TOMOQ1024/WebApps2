@@ -23,7 +23,7 @@ export function differentiateLaTeX(
     "exp",
     "sqrt",
     "ln",
-  ]
+  ],
 ): string {
   const ast = parseLatex(latex, knownFuncs);
 

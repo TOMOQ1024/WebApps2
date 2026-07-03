@@ -1,7 +1,7 @@
 import type { HTMLAttributes } from "react";
 
 export default function InteractiveViewport(
-  props: HTMLAttributes<HTMLDivElement>
+  props: HTMLAttributes<HTMLDivElement>,
 ) {
   return (
     <div

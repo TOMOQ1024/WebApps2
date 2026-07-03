@@ -69,7 +69,7 @@ export default function ControlPanel({
         onDiagramChange(newDiagram);
       } else {
         setLocalError(
-          `${labelKey}の分数は分子・分母とも1以上でなければなりません`
+          `${labelKey}の分数は分子・分母とも1以上でなければなりません`,
         );
       }
     } else {
@@ -143,8 +143,8 @@ export default function ControlPanel({
           localError
             ? "text-[var(--error-color)]"
             : buildTime > 0
-            ? "text-[var(--success-color)]"
-            : "text-[var(--text-color-secondary)]"
+              ? "text-[var(--success-color)]"
+              : "text-[var(--text-color-secondary)]"
         }`}
       >
         {localError
@@ -154,8 +154,8 @@ export default function ControlPanel({
               </p>
             ))
           : buildTime > 0
-          ? `多胞体の生成に成功しました(${buildTime.toFixed(2)}ms)`
-          : "多胞体の生成中..."}
+            ? `多胞体の生成に成功しました(${buildTime.toFixed(2)}ms)`
+            : "多胞体の生成中..."}
       </div>
       <div className="flex flex-col items-center text-xl bg-[var(--background-color)] border-2 border-[var(--border-color)] p-4">
         <div className="flex items-center justify-center mb-2.5">

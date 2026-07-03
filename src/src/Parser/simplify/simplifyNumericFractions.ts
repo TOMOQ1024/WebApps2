@@ -60,7 +60,7 @@ export function simplifyNumericFractions(node: ASTNode): ASTNode {
     ) {
       const terms = flattenAddition(left.left, left.right);
       const coefficientsAndBases = terms.map((term) =>
-        extractCoefficient(term)
+        extractCoefficient(term),
       );
 
       // すべての係数を取得
@@ -101,7 +101,7 @@ export function simplifyNumericFractions(node: ASTNode): ASTNode {
         // 分母と約分
         const { num: finalNum, den: finalDen } = simplifyFraction(
           coeffGCD,
-          right.value
+          right.value,
         );
 
         if (finalDen === 1) {

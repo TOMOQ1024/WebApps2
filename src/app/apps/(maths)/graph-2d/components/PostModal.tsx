@@ -252,9 +252,7 @@ export default function PostModal({
     const trimmedName = newTagName.trim().toLowerCase();
 
     // 既存タグリストに同名のタグがあるかチェック
-    const existingTag = tags.find(
-      (t) => t.name.toLowerCase() === trimmedName,
-    );
+    const existingTag = tags.find((t) => t.name.toLowerCase() === trimmedName);
     if (existingTag) {
       // 既存タグを選択（まだ選択されていなければ）
       if (!selectedTagIds.includes(existingTag.id)) {
@@ -319,169 +317,171 @@ export default function PostModal({
       {/* ヘッダー */}
       <h2 className="text-lg font-bold mb-4">ギャラリーに投稿</h2>
 
-        {/* サムネイルプレビュー（WebGL） */}
-        <div className="mb-4 flex justify-center">
-          <div className="w-49 h-49 border-2 border-[var(--border-color)] flex items-center justify-center relative">
-            {/* WebGL canvas コンテナ */}
-            <div ref={containerRef} className="absolute inset-0" />
-            {/* フォールバックテキスト */}
-            {!isRendering && (
-              <span className="text-sm opacity-50 z-10">プレビューなし</span>
-            )}
-          </div>
-        </div>
-
-        {/* 描画設定 */}
-        <div className="mb-4 p-3 bg-[var(--background-color)] border border-[var(--border-color)]">
-          <p className="text-sm text-[var(--text-color)] opacity-70 mb-2">
-            描画設定:
-          </p>
-          <div className="grid grid-cols-3 gap-2">
-            <div>
-              <label
-                htmlFor="centerX"
-                className="block text-xs text-[var(--text-color)] opacity-50 mb-1"
-              >
-                中心 X
-              </label>
-              <input
-                id="centerX"
-                type="number"
-                step="any"
-                value={centerX}
-                onChange={(e) => handleCenterXChange(e.target.value)}
-                className="w-full px-2 py-1 text-sm border border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)]"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="centerY"
-                className="block text-xs text-[var(--text-color)] opacity-50 mb-1"
-              >
-                中心 Y
-              </label>
-              <input
-                id="centerY"
-                type="number"
-                step="any"
-                value={centerY}
-                onChange={(e) => handleCenterYChange(e.target.value)}
-                className="w-full px-2 py-1 text-sm border border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)]"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="radius"
-                className="block text-xs text-[var(--text-color)] opacity-50 mb-1"
-              >
-                描画半径
-              </label>
-              <input
-                id="radius"
-                type="number"
-                step="any"
-                min="0.001"
-                value={radius}
-                onChange={(e) => handleRadiusChange(e.target.value)}
-                className="w-full px-2 py-1 text-sm border border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)]"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* タグ選択 */}
-        <div className="mb-4">
-          <p className="text-sm text-[var(--text-color)] opacity-70 mb-2">
-            タグ（任意）:
-          </p>
-          {isLoadingTags ? (
-            <div className="flex items-center gap-2 text-sm opacity-70">
-              <Loader2 size={14} className="animate-spin" />
-              読み込み中...
-            </div>
-          ) : (
-            <div className="max-h-32 overflow-y-auto border border-[var(--border-color)] p-2 mb-2">
-              <div className="flex flex-wrap gap-2">
-                {filteredTags.length > 0 ? (
-                  filteredTags.map((tag) => (
-                    <button
-                      key={tag.id}
-                      type="button"
-                      onClick={() => handleTagToggle(tag.id)}
-                      className={`px-2 py-1 text-sm border-2 ${
-                        selectedTagIds.includes(tag.id)
-                          ? "border-[var(--text-color)] font-bold"
-                          : "border-[var(--border-color)] hover:opacity-70"
-                      }`}
-                    >
-                      {tag.name}
-                    </button>
-                  ))
-                ) : newTagName.trim() ? (
-                  <span className="text-sm opacity-50">一致するタグがありません</span>
-                ) : null}
-              </div>
-            </div>
+      {/* サムネイルプレビュー（WebGL） */}
+      <div className="mb-4 flex justify-center">
+        <div className="w-49 h-49 border-2 border-[var(--border-color)] flex items-center justify-center relative">
+          {/* WebGL canvas コンテナ */}
+          <div ref={containerRef} className="absolute inset-0" />
+          {/* フォールバックテキスト */}
+          {!isRendering && (
+            <span className="text-sm opacity-50 z-10">プレビューなし</span>
           )}
+        </div>
+      </div>
 
-          {/* タグ検索・新規作成 */}
-          <div className="flex gap-2 mt-2">
-            <input
-              type="text"
-              value={newTagName}
-              onChange={(e) => setNewTagName(e.target.value)}
-              placeholder="タグを検索または作成"
-              className="flex-1 px-2 py-1 text-sm border border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)]"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleCreateTag();
-                }
-              }}
-            />
-            <button
-              type="button"
-              onClick={handleCreateTag}
-              disabled={!newTagName.trim() || isPending}
-              className="px-2 py-1 border border-[var(--border-color)] hover:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed"
+      {/* 描画設定 */}
+      <div className="mb-4 p-3 bg-[var(--background-color)] border border-[var(--border-color)]">
+        <p className="text-sm text-[var(--text-color)] opacity-70 mb-2">
+          描画設定:
+        </p>
+        <div className="grid grid-cols-3 gap-2">
+          <div>
+            <label
+              htmlFor="centerX"
+              className="block text-xs text-[var(--text-color)] opacity-50 mb-1"
             >
-              <Plus size={16} />
-            </button>
+              中心 X
+            </label>
+            <input
+              id="centerX"
+              type="number"
+              step="any"
+              value={centerX}
+              onChange={(e) => handleCenterXChange(e.target.value)}
+              className="w-full px-2 py-1 text-sm border border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)]"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="centerY"
+              className="block text-xs text-[var(--text-color)] opacity-50 mb-1"
+            >
+              中心 Y
+            </label>
+            <input
+              id="centerY"
+              type="number"
+              step="any"
+              value={centerY}
+              onChange={(e) => handleCenterYChange(e.target.value)}
+              className="w-full px-2 py-1 text-sm border border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)]"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="radius"
+              className="block text-xs text-[var(--text-color)] opacity-50 mb-1"
+            >
+              描画半径
+            </label>
+            <input
+              id="radius"
+              type="number"
+              step="any"
+              min="0.001"
+              value={radius}
+              onChange={(e) => handleRadiusChange(e.target.value)}
+              className="w-full px-2 py-1 text-sm border border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)]"
+            />
           </div>
         </div>
+      </div>
 
-        {/* エラー表示 */}
-        {error && (
-          <div className="mb-4 p-2 text-sm text-red-600 bg-red-100 border border-red-300">
-            {error}
+      {/* タグ選択 */}
+      <div className="mb-4">
+        <p className="text-sm text-[var(--text-color)] opacity-70 mb-2">
+          タグ（任意）:
+        </p>
+        {isLoadingTags ? (
+          <div className="flex items-center gap-2 text-sm opacity-70">
+            <Loader2 size={14} className="animate-spin" />
+            読み込み中...
+          </div>
+        ) : (
+          <div className="max-h-32 overflow-y-auto border border-[var(--border-color)] p-2 mb-2">
+            <div className="flex flex-wrap gap-2">
+              {filteredTags.length > 0 ? (
+                filteredTags.map((tag) => (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => handleTagToggle(tag.id)}
+                    className={`px-2 py-1 text-sm border-2 ${
+                      selectedTagIds.includes(tag.id)
+                        ? "border-[var(--text-color)] font-bold"
+                        : "border-[var(--border-color)] hover:opacity-70"
+                    }`}
+                  >
+                    {tag.name}
+                  </button>
+                ))
+              ) : newTagName.trim() ? (
+                <span className="text-sm opacity-50">
+                  一致するタグがありません
+                </span>
+              ) : null}
+            </div>
           </div>
         )}
 
-        {/* 成功表示 */}
-        {success && (
-          <div className="mb-4 p-2 text-sm text-green-600 bg-green-100 border border-green-300">
-            投稿しました
-          </div>
-        )}
+        {/* タグ検索・新規作成 */}
+        <div className="flex gap-2 mt-2">
+          <input
+            type="text"
+            value={newTagName}
+            onChange={(e) => setNewTagName(e.target.value)}
+            placeholder="タグを検索または作成"
+            className="flex-1 px-2 py-1 text-sm border border-[var(--border-color)] bg-[var(--background-color)] text-[var(--text-color)]"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleCreateTag();
+              }
+            }}
+          />
+          <button
+            type="button"
+            onClick={handleCreateTag}
+            disabled={!newTagName.trim() || isPending}
+            className="px-2 py-1 border border-[var(--border-color)] hover:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Plus size={16} />
+          </button>
+        </div>
+      </div>
 
-        {/* 送信ボタン */}
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={isPending || success}
-          className="w-full py-2 border-2 border-[var(--text-color)] bg-[var(--background-color)] text-[var(--text-color)] hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {isPending ? (
-            <>
-              <Loader2 size={16} className="animate-spin" />
-              投稿中...
-            </>
-          ) : success ? (
-            "投稿完了"
-          ) : (
-            "投稿する"
-          )}
-        </button>
+      {/* エラー表示 */}
+      {error && (
+        <div className="mb-4 p-2 text-sm text-red-600 bg-red-100 border border-red-300">
+          {error}
+        </div>
+      )}
+
+      {/* 成功表示 */}
+      {success && (
+        <div className="mb-4 p-2 text-sm text-green-600 bg-green-100 border border-green-300">
+          投稿しました
+        </div>
+      )}
+
+      {/* 送信ボタン */}
+      <button
+        type="button"
+        onClick={handleSubmit}
+        disabled={isPending || success}
+        className="w-full py-2 border-2 border-[var(--text-color)] bg-[var(--background-color)] text-[var(--text-color)] hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+      >
+        {isPending ? (
+          <>
+            <Loader2 size={16} className="animate-spin" />
+            投稿中...
+          </>
+        ) : success ? (
+          "投稿完了"
+        ) : (
+          "投稿する"
+        )}
+      </button>
     </Modal>
   );
 }

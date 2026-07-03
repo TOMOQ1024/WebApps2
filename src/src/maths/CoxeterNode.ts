@@ -12,7 +12,7 @@ export class CoxeterNode {
   constructor(
     public diagram: CoxeterDynkinDiagram,
     public coordinate: string = "",
-    public root: CoxeterNode = this
+    public root: CoxeterNode = this,
   ) {
     for (const genPair in this.diagram.labels) {
       for (let i = 0; i < genPair.length; i++) {
@@ -75,7 +75,7 @@ export class CoxeterNode {
       const n = nodes.find((v) => v.coordinate === sn)!;
       for (const gen in this.siblings) {
         n.siblings[gen] = nodes.find(
-          (v) => v.coordinate === t.getNodeAt(gen)!.coordinate
+          (v) => v.coordinate === t.getNodeAt(gen)!.coordinate,
         )!;
       }
       nodes.push(n);
@@ -107,7 +107,7 @@ export class CoxeterNode {
         (t = this.getNodeAt(
           `${gen2}${gen}`
             .repeat(this.diagram.labels[`${gen2}${gen}`][0])
-            .slice(0, -1)
+            .slice(0, -1),
         ))
       ) {
         this.siblings[gen] = t;
@@ -121,7 +121,7 @@ export class CoxeterNode {
     const n = new CoxeterNode(
       this.diagram,
       `${this.coordinate}${gen}`,
-      this.root
+      this.root,
     );
     if (this.diagram.nodeMarks[gen] === "o") {
       n.identicalNodes = this.identicalNodes.add(n);

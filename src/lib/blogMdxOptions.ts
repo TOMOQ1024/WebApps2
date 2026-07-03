@@ -5,7 +5,9 @@ import rehypeKatex from "rehype-katex";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 
-type BlogMdxOptions = NonNullable<Parameters<typeof serialize>[1]>["mdxOptions"];
+type BlogMdxOptions = NonNullable<
+  Parameters<typeof serialize>[1]
+>["mdxOptions"];
 
 export const blogMdxOptions = {
   remarkPlugins: [remarkGfm, remarkMath],

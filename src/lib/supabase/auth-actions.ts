@@ -24,41 +24,56 @@ function validateEmail(email: string): { valid: boolean; error?: string } {
 /**
  * ユーザーネームのバリデーション
  */
-function validateUsername(username: string): { valid: boolean; error?: string } {
+function validateUsername(username: string): {
+  valid: boolean;
+  error?: string;
+} {
   const trimmed = username.trim();
-  
+
   if (!trimmed) {
     return { valid: false, error: "ユーザーネームを入力してください" };
   }
-  
+
   if (trimmed.length < 3) {
-    return { valid: false, error: "ユーザーネームは3文字以上で入力してください" };
+    return {
+      valid: false,
+      error: "ユーザーネームは3文字以上で入力してください",
+    };
   }
-  
+
   if (trimmed.length > 20) {
-    return { valid: false, error: "ユーザーネームは20文字以下で入力してください" };
+    return {
+      valid: false,
+      error: "ユーザーネームは20文字以下で入力してください",
+    };
   }
-  
+
   // 英数字とアンダースコア，ハイフンのみ許可
   if (!/^[a-zA-Z0-9_-]+$/.test(trimmed)) {
-    return { valid: false, error: "ユーザーネームは英数字，アンダースコア，ハイフンのみ使用できます" };
+    return {
+      valid: false,
+      error: "ユーザーネームは英数字，アンダースコア，ハイフンのみ使用できます",
+    };
   }
-  
+
   return { valid: true };
 }
 
 /**
  * パスワードのバリデーション
  */
-function validatePassword(password: string): { valid: boolean; error?: string } {
+function validatePassword(password: string): {
+  valid: boolean;
+  error?: string;
+} {
   if (!password) {
     return { valid: false, error: "パスワードを入力してください" };
   }
-  
+
   if (password.length < 6) {
     return { valid: false, error: "パスワードは6文字以上で入力してください" };
   }
-  
+
   return { valid: true };
 }
 
@@ -72,7 +87,7 @@ export async function signUpWithUsername(
   username: string,
   email: string,
   password: string,
-  secretKey: string
+  secretKey: string,
 ): Promise<{ success: boolean; error?: string }> {
   // 秘密鍵の照合
   const expectedSecretKey = process.env.SIGNUP_SECRET_KEY;
@@ -122,7 +137,10 @@ export async function signUpWithUsername(
   if (error) {
     // Supabase のエラーメッセージを変換
     if (error.message.includes("already registered")) {
-      return { success: false, error: "このメールアドレスは既に使用されています" };
+      return {
+        success: false,
+        error: "このメールアドレスは既に使用されています",
+      };
     }
     console.error("Signup error:", error);
     return { success: false, error: error.message };
@@ -136,7 +154,7 @@ export async function signUpWithUsername(
  */
 export async function signInWithEmail(
   email: string,
-  password: string
+  password: string,
 ): Promise<{ success: boolean; error?: string }> {
   // メールアドレスのバリデーション
   const emailValidation = validateEmail(email);
@@ -161,7 +179,10 @@ export async function signInWithEmail(
   if (error) {
     // エラーメッセージをユーザーフレンドリーに
     if (error.message.includes("Invalid login credentials")) {
-      return { success: false, error: "メールアドレスまたはパスワードが正しくありません" };
+      return {
+        success: false,
+        error: "メールアドレスまたはパスワードが正しくありません",
+      };
     }
     console.error("Signin error:", error);
     return { success: false, error: error.message };

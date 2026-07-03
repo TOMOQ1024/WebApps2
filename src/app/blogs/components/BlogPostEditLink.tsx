@@ -20,7 +20,10 @@ export default function BlogPostEditLink({
 
   return (
     <div className="mt-4">
-      <Link href={`/blogs/${slug}/edit`} className="text-sm text-[var(--text-color)]">
+      <Link
+        href={`/blogs/${slug}/edit`}
+        className="text-sm text-[var(--text-color)]"
+      >
         編集する
       </Link>
     </div>

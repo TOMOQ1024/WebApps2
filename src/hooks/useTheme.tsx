@@ -47,7 +47,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     // blocking script で設定された data-theme 属性を読み取る
     const currentTheme = document.documentElement.getAttribute("data-theme");
     let theme: ThemeLabel;
-    
+
     if (currentTheme === "dark" || currentTheme === "light") {
       theme = currentTheme;
     } else {
@@ -56,7 +56,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       if (saved === "dark" || saved === "light") {
         theme = saved;
       } else {
-        theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        theme = window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
       }
     }
 

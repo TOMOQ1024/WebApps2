@@ -70,7 +70,9 @@ export default function MainWrapper() {
   return (
     <div className="min-h-[calc(100vh-var(--header-height))] flex items-center justify-center p-8">
       <div className="w-full max-w-md border-2 border-[var(--border-color)] bg-[var(--background-color)] p-8">
-        <h1 className="text-xl font-bold mb-6 text-center">新しいパスワードの設定</h1>
+        <h1 className="text-xl font-bold mb-6 text-center">
+          新しいパスワードの設定
+        </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

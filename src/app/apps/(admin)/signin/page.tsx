@@ -1,11 +1,9 @@
 import MainWrapper from "./MainWrapper";
 
 export const metadata = {
-  title: 'login'
+  title: "login",
 };
 
-export default function Main(){
-  return (
-    <MainWrapper />
-  );
+export default function Main() {
+  return <MainWrapper />;
 }

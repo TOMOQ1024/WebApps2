@@ -308,10 +308,7 @@ export class CanvasManager {
   private handleResize() {
     const newResolution =
       this.resizeSource === "window"
-        ? new THREE.Vector2(
-            window.innerWidth,
-            window.innerHeight - 50,
-          )
+        ? new THREE.Vector2(window.innerWidth, window.innerHeight - 50)
         : new THREE.Vector2(
             this.renderer.domElement.parentElement?.clientWidth ?? 1,
             this.renderer.domElement.parentElement?.clientHeight ?? 1,

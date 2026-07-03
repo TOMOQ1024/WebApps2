@@ -23,7 +23,9 @@ export async function getAllBlogPosts(): Promise<BlogPostMeta[]> {
   return articles.map(articleToBlogMeta);
 }
 
-export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+export async function getBlogPostBySlug(
+  slug: string,
+): Promise<BlogPost | null> {
   const article = await getArticleBySlug(slug);
   if (!article) {
     return null;

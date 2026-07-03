@@ -13,7 +13,7 @@ export function GetInitPoint(
   pointC: Vector3,
   pointD: Vector3,
   labels: { [genPair: string]: [number, number] },
-  ni: { [gen: string]: string }
+  ni: { [gen: string]: string },
 ) {
   const planeA = Hyperplane3.fromPoints(pointB, pointC, pointD);
   const planeB = Hyperplane3.fromPoints(pointA, pointD, pointC);
@@ -21,27 +21,27 @@ export function GetInitPoint(
   const planeD = Hyperplane3.fromPoints(pointC, pointB, pointA);
   const planeMAB = MobiusGyrovectorSphericalSpace3.midHyperplane(
     planeA,
-    planeB.inverted()
+    planeB.inverted(),
   );
   const planeMAC = MobiusGyrovectorSphericalSpace3.midHyperplane(
     planeA,
-    planeC.inverted()
+    planeC.inverted(),
   );
   const planeMAD = MobiusGyrovectorSphericalSpace3.midHyperplane(
     planeA,
-    planeD.inverted()
+    planeD.inverted(),
   );
   const planeMBC = MobiusGyrovectorSphericalSpace3.midHyperplane(
     planeB,
-    planeC.inverted()
+    planeC.inverted(),
   );
   const planeMBD = MobiusGyrovectorSphericalSpace3.midHyperplane(
     planeB,
-    planeD.inverted()
+    planeD.inverted(),
   );
   const planeMCD = MobiusGyrovectorSphericalSpace3.midHyperplane(
     planeC,
-    planeD.inverted()
+    planeD.inverted(),
   );
 
   switch (`${ni.a}${ni.b}${ni.c}${ni.d}`) {
@@ -50,7 +50,7 @@ export function GetInitPoint(
         pointA,
         pointB,
         pointC,
-        pointD
+        pointD,
       );
 
     case "xooo":
@@ -67,7 +67,7 @@ export function GetInitPoint(
         planeC,
         planeD,
         planeMAB,
-        MobiusGyrovectorSphericalSpace3.mean(pointA, pointB)
+        MobiusGyrovectorSphericalSpace3.mean(pointA, pointB),
       );
 
     case "xoxo":
@@ -75,35 +75,35 @@ export function GetInitPoint(
         planeB,
         planeD,
         planeMAC,
-        MobiusGyrovectorSphericalSpace3.mean(pointA, pointC)
+        MobiusGyrovectorSphericalSpace3.mean(pointA, pointC),
       );
     case "xoox":
       return MobiusGyrovectorSphericalSpace3.intersectionPoint(
         planeB,
         planeC,
         planeMAD,
-        MobiusGyrovectorSphericalSpace3.mean(pointA, pointD)
+        MobiusGyrovectorSphericalSpace3.mean(pointA, pointD),
       );
     case "oxxo":
       return MobiusGyrovectorSphericalSpace3.intersectionPoint(
         planeA,
         planeD,
         planeMBC,
-        MobiusGyrovectorSphericalSpace3.mean(pointB, pointC)
+        MobiusGyrovectorSphericalSpace3.mean(pointB, pointC),
       );
     case "oxox":
       return MobiusGyrovectorSphericalSpace3.intersectionPoint(
         planeA,
         planeC,
         planeMBD,
-        MobiusGyrovectorSphericalSpace3.mean(pointB, pointD)
+        MobiusGyrovectorSphericalSpace3.mean(pointB, pointD),
       );
     case "ooxx":
       return MobiusGyrovectorSphericalSpace3.intersectionPoint(
         planeA,
         planeB,
         planeMCD,
-        MobiusGyrovectorSphericalSpace3.mean(pointC, pointD)
+        MobiusGyrovectorSphericalSpace3.mean(pointC, pointD),
       );
 
     case "oxxx":
@@ -111,28 +111,28 @@ export function GetInitPoint(
         planeA,
         planeMBC,
         planeMCD,
-        MobiusGyrovectorSphericalSpace3.mean(pointB, pointC, pointD)
+        MobiusGyrovectorSphericalSpace3.mean(pointB, pointC, pointD),
       );
     case "xoxx":
       return MobiusGyrovectorSphericalSpace3.intersectionPoint(
         planeB,
         planeMAD,
         planeMCD,
-        MobiusGyrovectorSphericalSpace3.mean(pointA, pointC, pointD)
+        MobiusGyrovectorSphericalSpace3.mean(pointA, pointC, pointD),
       );
     case "xxox":
       return MobiusGyrovectorSphericalSpace3.intersectionPoint(
         planeC,
         planeMAD,
         planeMAB,
-        MobiusGyrovectorSphericalSpace3.mean(pointA, pointB, pointD)
+        MobiusGyrovectorSphericalSpace3.mean(pointA, pointB, pointD),
       );
     case "xxxo":
       return MobiusGyrovectorSphericalSpace3.intersectionPoint(
         planeD,
         planeMAC,
         planeMAB,
-        MobiusGyrovectorSphericalSpace3.mean(pointA, pointB, pointC)
+        MobiusGyrovectorSphericalSpace3.mean(pointA, pointB, pointC),
       );
 
     default:
@@ -140,7 +140,7 @@ export function GetInitPoint(
         pointA,
         pointB,
         pointC,
-        pointD
+        pointD,
       );
   }
 }

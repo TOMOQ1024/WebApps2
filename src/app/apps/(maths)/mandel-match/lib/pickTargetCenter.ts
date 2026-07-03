@@ -123,7 +123,9 @@ export function pickTargetCenter(options: PickTargetOptions = {}): {
   const targetRadius = options.targetRadius ?? DEFAULT_TARGET_RADIUS;
   const minSpreadRequested = options.minNeighborSpread ?? 12;
 
-  const tryPick = (spreadThreshold: number): { x: number; y: number } | null => {
+  const tryPick = (
+    spreadThreshold: number,
+  ): { x: number; y: number } | null => {
     for (let a = 0; a < maxAttempts; a++) {
       const x = reMin + Math.random() * (reMax - reMin);
       const y = imMin + Math.random() * (imMax - imMin);

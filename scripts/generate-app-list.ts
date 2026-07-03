@@ -96,7 +96,9 @@ async function main() {
       .map(pathFromAppDir)
       .filter((path) => path.length > 0 && !ADMIN_PATHS.has(path)),
   );
-  const configPaths = new Set(configFiles.map((file) => pathFromConfigFile(file)));
+  const configPaths = new Set(
+    configFiles.map((file) => pathFromConfigFile(file)),
+  );
 
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -137,7 +139,9 @@ async function main() {
 
     const iconFile = join(ICONS_ROOT, `${appPath}.png`);
     if (config.status === "published" && !existsSync(iconFile)) {
-      warnings.push(`${appPath}: アイコンがありません（public/app-icons/${appPath}.png）`);
+      warnings.push(
+        `${appPath}: アイコンがありません（public/app-icons/${appPath}.png）`,
+      );
     }
 
     entries.push({ path: appPath, config });

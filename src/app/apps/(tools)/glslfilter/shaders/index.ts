@@ -16,22 +16,22 @@ import { fragmentShader as voronoi } from "./voronoi";
 import { fragmentShader as zoom_bokasi } from "./zoom_bokasi";
 
 export const fragmentShaders = {
-  "fBm": fBm,
-  "honeycomb": honeycomb,
-  "honeycombs": honeycombs,
+  fBm: fBm,
+  honeycomb: honeycomb,
+  honeycombs: honeycombs,
   "hyperbolic-tiling-c3-botu": hyperbolic_tiling_c3_botu,
   "hyperbolic-tiling-c3": hyperbolic_tiling_c3,
   "hyperbolic-tiling": hyperbolic_tiling,
-  "icosidodecahedron": icosidodecahedron,
+  icosidodecahedron: icosidodecahedron,
   "partial-grayscale": partial_grayscale,
-  "perlinNoise": perlinNoise,
-  "perlinNoise2": perlinNoise2,
-  "polyhedron": polyhedron,
-  "r2_tiling": r2_tiling,
-  "rgb_filter": rgb_filter,
+  perlinNoise: perlinNoise,
+  perlinNoise2: perlinNoise2,
+  polyhedron: polyhedron,
+  r2_tiling: r2_tiling,
+  rgb_filter: rgb_filter,
   "sierpinski-carpet": sierpinski_carpet,
-  "voronoi": voronoi,
-  "zoom_bokasi": zoom_bokasi,
+  voronoi: voronoi,
+  zoom_bokasi: zoom_bokasi,
 } as const satisfies Record<string, string>;
 
 export type FragmentShaderName = keyof typeof fragmentShaders;

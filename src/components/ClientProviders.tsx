@@ -13,9 +13,7 @@ export default function ClientProviders({ children }: ClientProvidersProps) {
   return (
     <IsClientCtxProvider>
       <ThemeProvider>
-        <SharedCanvasProvider>
-          {children}
-        </SharedCanvasProvider>
+        <SharedCanvasProvider>{children}</SharedCanvasProvider>
       </ThemeProvider>
     </IsClientCtxProvider>
   );

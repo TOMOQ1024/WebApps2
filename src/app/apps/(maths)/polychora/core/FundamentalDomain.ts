@@ -28,8 +28,8 @@ export function GetFundamentalDomain(labels: {
         Math.cos(angleDB) ** 2 -
         ((Math.cos(angleCD) - Math.cos(angleDB) * Math.cos(angleBC)) /
           Math.sin(angleBC)) **
-          2
-    )
+          2,
+    ),
   );
 
   // hyperplane A
@@ -39,13 +39,13 @@ export function GetFundamentalDomain(labels: {
   const sphereCenterA = new Vector3(
     Math.cos(angleAB),
     Math.cos(angleAC),
-    Math.cos(angleAD)
+    Math.cos(angleAD),
   ).applyMatrix3(
     new Matrix3(
       ...planeB.toArray(),
       ...planeC.toArray(),
-      ...planeD.toArray()
-    ).invert()
+      ...planeD.toArray(),
+    ).invert(),
   );
   const sphereRadiusA = 1 / Math.sqrt(1 - sphereCenterA.lengthSq());
   sphereCenterA.multiplyScalar(sphereRadiusA);
@@ -57,8 +57,8 @@ export function GetFundamentalDomain(labels: {
       Math.sqrt(
         pointB.dot(sphereCenterA) ** 2 -
           sphereCenterA.lengthSq() +
-          sphereRadiusA * sphereRadiusA
-      )
+          sphereRadiusA * sphereRadiusA,
+      ),
   );
 
   // point C
@@ -68,8 +68,8 @@ export function GetFundamentalDomain(labels: {
       Math.sqrt(
         pointC.dot(sphereCenterA) ** 2 -
           sphereCenterA.lengthSq() +
-          sphereRadiusA * sphereRadiusA
-      )
+          sphereRadiusA * sphereRadiusA,
+      ),
   );
 
   // point D
@@ -79,8 +79,8 @@ export function GetFundamentalDomain(labels: {
       Math.sqrt(
         pointD.dot(sphereCenterA) ** 2 -
           sphereCenterA.lengthSq() +
-          sphereRadiusA * sphereRadiusA
-      )
+          sphereRadiusA * sphereRadiusA,
+      ),
   );
 
   if (Hyperplane3.fromPoints(pointD, pointA, pointB).distance(pointC) < 0) {

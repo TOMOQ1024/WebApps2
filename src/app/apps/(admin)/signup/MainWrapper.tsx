@@ -34,13 +34,20 @@ export default function MainWrapper() {
     }
 
     startTransition(async () => {
-      const result = await signUpWithUsername(username.trim(), email.trim(), password, secretKey);
+      const result = await signUpWithUsername(
+        username.trim(),
+        email.trim(),
+        password,
+        secretKey,
+      );
 
       if (result.success) {
         setSuccess(true);
         // 成功後，サインインページにリダイレクト
         setTimeout(() => {
-          router.push(`/apps/signin?redirect=${encodeURIComponent(redirectTo)}`);
+          router.push(
+            `/apps/signin?redirect=${encodeURIComponent(redirectTo)}`,
+          );
         }, 2000);
       } else {
         setError(result.error || "登録に失敗しました");

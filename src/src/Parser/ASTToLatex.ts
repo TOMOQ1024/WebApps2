@@ -7,15 +7,13 @@ import { buildAddition } from "./simplify/buildAddition";
 
 // flattenMultiplication関数を追加
 function isAdditionLikeNode(node: ASTNode): boolean {
-  return (
-    node.type === "operator" && (node.op === "+" || node.op === "-")
-  );
+  return node.type === "operator" && (node.op === "+" || node.op === "-");
 }
 
 function negateForLatex(
   node: ASTNode,
   astTransform: boolean,
-  options?: SimplifyOptions
+  options?: SimplifyOptions,
 ): string {
   const inner = ASTToLatex(node, astTransform, "", options);
   if (node.type === "operator" && (node.op === "+" || node.op === "-")) {
@@ -43,7 +41,7 @@ function hasVariableLikeBase(base: ASTNode): boolean {
 function tryNegatedPositiveSumLatex(
   node: ASTNode,
   astTransform: boolean,
-  options?: SimplifyOptions
+  options?: SimplifyOptions,
 ): string | null {
   if (node.type !== "operator" || node.op !== "+") {
     return null;
@@ -52,7 +50,7 @@ function tryNegatedPositiveSumLatex(
   const terms = flattenAddition(node.left, node.right);
   const groups = groupLikeTerms(terms);
   const nonZeroGroups = Array.from(groups.values()).filter(
-    ({ coefficient }) => coefficient !== 0
+    ({ coefficient }) => coefficient !== 0,
   );
 
   if (
@@ -137,7 +135,7 @@ export function ASTToLatex(
   node: ASTNode,
   astTransform: boolean = false,
   parentOp: string = "",
-  options?: SimplifyOptions
+  options?: SimplifyOptions,
 ): string {
   if (astTransform) {
     node = transformASTForLatex(node);
@@ -185,7 +183,9 @@ export function ASTToLatex(
           }
         }
 
-        const filteredTerms = terms.map((term) => term.latex).filter((t) => t !== "");
+        const filteredTerms = terms
+          .map((term) => term.latex)
+          .filter((t) => t !== "");
         if (filteredTerms.length === 0) {
           return "0";
         }
@@ -361,7 +361,7 @@ export function ASTToLatex(
               right,
               astTransform,
               "",
-              options
+              options,
             )}`;
           }
 
@@ -374,7 +374,7 @@ export function ASTToLatex(
               right,
               astTransform,
               "",
-              options
+              options,
             )}\\right)`;
           }
 
@@ -388,7 +388,7 @@ export function ASTToLatex(
               right,
               astTransform,
               "",
-              options
+              options,
             )}`;
           }
 
@@ -396,7 +396,7 @@ export function ASTToLatex(
             right,
             astTransform,
             "",
-            options
+            options,
           )}`;
         }
 
@@ -413,7 +413,7 @@ export function ASTToLatex(
               left,
               astTransform,
               "",
-              options
+              options,
             )}${numberToLatex(right.value, options)}`;
           }
 
@@ -426,7 +426,7 @@ export function ASTToLatex(
               left,
               astTransform,
               "",
-              options
+              options,
             )}\\right)`;
           }
 
@@ -434,7 +434,7 @@ export function ASTToLatex(
             left,
             astTransform,
             "",
-            options
+            options,
           )}`;
         }
 
@@ -449,7 +449,7 @@ export function ASTToLatex(
             right,
             astTransform,
             "",
-            options
+            options,
           )})`;
         }
 
@@ -467,19 +467,19 @@ export function ASTToLatex(
           ) {
             return `\\left(${ASTToLatex(
               left,
-              astTransform
+              astTransform,
             )}\\right)${ASTToLatex(right, astTransform)}`;
           }
           // 関数同士の場合はスペースなし、シンボル同士の場合はスペースあり
           if (left.type === "function" && right.type === "function") {
             return `${ASTToLatex(left, astTransform)}${ASTToLatex(
               right,
-              astTransform
+              astTransform,
             )}`;
           }
           return `${ASTToLatex(left, astTransform)} ${ASTToLatex(
             right,
-            astTransform
+            astTransform,
           )}`;
         }
 
@@ -491,7 +491,7 @@ export function ASTToLatex(
         ) {
           return `${ASTToLatex(left, astTransform)}${ASTToLatex(
             right,
-            astTransform
+            astTransform,
           )}`;
         }
 
@@ -506,7 +506,7 @@ export function ASTToLatex(
             left,
             astTransform,
             "",
-            options
+            options,
           )}}{${ASTToLatex(right.right, astTransform, "", options)}}`;
         }
 
@@ -521,7 +521,7 @@ export function ASTToLatex(
             right,
             astTransform,
             "",
-            options
+            options,
           )}}{${ASTToLatex(left.right, astTransform, "", options)}}`;
         }
 
@@ -545,14 +545,14 @@ export function ASTToLatex(
                 right,
                 astTransform,
                 "",
-                options
+                options,
               )}}{${denominator}}`;
             } else {
               return `\\frac{${numerator}${ASTToLatex(
                 right,
                 astTransform,
                 "",
-                options
+                options,
               )}}{${denominator}}`;
             }
           }
@@ -578,14 +578,14 @@ export function ASTToLatex(
                 left,
                 astTransform,
                 "",
-                options
+                options,
               )}}{${denominator}}`;
             } else {
               return `\\frac{${numerator}${ASTToLatex(
                 left,
                 astTransform,
                 "",
-                options
+                options,
               )}}{${denominator}}`;
             }
           }
@@ -610,7 +610,7 @@ export function ASTToLatex(
         if (leftStr === "-\\sin x" && rightStr.startsWith("(-\\sin")) {
           return `\\left(\\sin x\\right)\\sin ${rightStr.substring(
             7,
-            rightStr.length - 1
+            rightStr.length - 1,
           )}`;
         }
 
@@ -623,7 +623,7 @@ export function ASTToLatex(
           const negatedPositive = tryNegatedPositiveSumLatex(
             left,
             astTransform,
-            options
+            options,
           );
           if (negatedPositive) {
             finalLeftStr = negatedPositive;
@@ -724,11 +724,11 @@ export function ASTToLatex(
           // 分子と分母の因子を取得
           const numeratorFactors = flattenMultiplication(
             processedLeft.left,
-            processedLeft.right
+            processedLeft.right,
           );
           const denominatorFactors = flattenMultiplication(
             right.left,
-            right.right
+            right.right,
           );
 
           // 共通因子を見つけて約分
@@ -774,25 +774,25 @@ export function ASTToLatex(
             remainingNumerator.length === 0
               ? { type: "number" as const, value: 1 }
               : remainingNumerator.length === 1
-              ? remainingNumerator[0]
-              : remainingNumerator.reduce((a, b) => ({
-                  type: "operator" as const,
-                  op: "*",
-                  left: a,
-                  right: b,
-                }));
+                ? remainingNumerator[0]
+                : remainingNumerator.reduce((a, b) => ({
+                    type: "operator" as const,
+                    op: "*",
+                    left: a,
+                    right: b,
+                  }));
 
           const finalDenominator =
             remainingDenominator.length === 0
               ? { type: "number" as const, value: 1 }
               : remainingDenominator.length === 1
-              ? remainingDenominator[0]
-              : remainingDenominator.reduce((a, b) => ({
-                  type: "operator" as const,
-                  op: "*",
-                  left: a,
-                  right: b,
-                }));
+                ? remainingDenominator[0]
+                : remainingDenominator.reduce((a, b) => ({
+                    type: "operator" as const,
+                    op: "*",
+                    left: a,
+                    right: b,
+                  }));
 
           // 分母が1の場合は分子のみ返す
           if (
@@ -807,11 +807,11 @@ export function ASTToLatex(
             const denStr = ASTToLatex(
               finalDenominator,
               astTransform,
-              "fraction"
+              "fraction",
             );
             return `\\frac{${ASTToLatex(
               finalNumerator,
-              astTransform
+              astTransform,
             )}}{${denStr}}`;
           }
         }
@@ -906,7 +906,7 @@ export function ASTToLatex(
           } else if (exponentDiff > 0) {
             // 分子の指数が大きい場合は x^{a-b} / c（分数形式で出力）
             return `\\frac{${processedLeft.left.name}^{${numberToLatex(
-              exponentDiff
+              exponentDiff,
             )}}}{${numberToLatex(coefficient)}}`;
           } else {
             // 分母の指数が大きい場合は 1 / (c * x^{b-a})
@@ -926,11 +926,11 @@ export function ASTToLatex(
           // 分子と分母の因子を取得
           const numeratorFactors = flattenMultiplication(
             processedLeft.left,
-            processedLeft.right
+            processedLeft.right,
           );
           const denominatorFactors = flattenMultiplication(
             right.left,
-            right.right
+            right.right,
           );
 
           // 変数ごとの指数を集計
@@ -997,7 +997,7 @@ export function ASTToLatex(
           // 係数の約分
           const coeffGcd = gcd(
             Math.abs(numeratorCoeff),
-            Math.abs(denominatorCoeff)
+            Math.abs(denominatorCoeff),
           );
           const finalNumCoeff = numeratorCoeff / coeffGcd;
           const finalDenCoeff = denominatorCoeff / coeffGcd;
@@ -1075,11 +1075,7 @@ export function ASTToLatex(
           if (exponent === 1) {
             return numberToLatex(node.left.value, options);
           }
-          if (
-            Number.isInteger(exponent) &&
-            exponent > 1 &&
-            exponent < 10
-          ) {
+          if (Number.isInteger(exponent) && exponent > 1 && exponent < 10) {
             return `${numberToLatex(node.left.value, options)}^${exponent}`;
           }
         }
@@ -1090,7 +1086,7 @@ export function ASTToLatex(
             return `${ASTToLatex(node.left, astTransform)}`;
           }
           return `${ASTToLatex(node.left, astTransform)}^{${numberToLatex(
-            node.right.value
+            node.right.value,
           )}}`;
         }
 
@@ -1104,7 +1100,7 @@ export function ASTToLatex(
             node.right,
             astTransform,
             "fraction",
-            options
+            options,
           )}}`;
         }
 
@@ -1123,7 +1119,7 @@ export function ASTToLatex(
         if (node.left.type === "function") {
           return `\\left(${ASTToLatex(
             node.left,
-            astTransform
+            astTransform,
           )}\\right)^{${ASTToLatex(node.right, astTransform)}}`;
         }
 
@@ -1134,14 +1130,14 @@ export function ASTToLatex(
         ) {
           return `\\left(${ASTToLatex(
             node.left,
-            astTransform
+            astTransform,
           )}\\right)^{${ASTToLatex(node.right, astTransform)}}`;
         }
 
         // 通常のpow
         return `${ASTToLatex(node.left, astTransform)}^{${ASTToLatex(
           node.right,
-          astTransform
+          astTransform,
         )}}`;
       }
       break;
@@ -1218,7 +1214,7 @@ export function ASTToLatex(
 function wrapIfNeeded(
   node: ASTNode,
   parentOp: string,
-  astTransform: boolean
+  astTransform: boolean,
 ): string {
   if (!node) {
     return "";
@@ -1325,7 +1321,7 @@ function isOne(node: ASTNode): boolean {
 
 // 小数を分数に変換できるか試みる
 function decimalToFraction(
-  value: number
+  value: number,
 ): { numerator: number; denominator: number } | null {
   // 整数の場合は分数に変換しない
   if (Number.isInteger(value)) {

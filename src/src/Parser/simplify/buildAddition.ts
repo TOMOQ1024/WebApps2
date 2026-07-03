@@ -6,7 +6,7 @@ import { simplifyFraction } from "./helpers";
 // 係数を分数形式に統一して通分処理を行う
 function unifyFractionCoefficients(
   groups: Map<string, { coefficient: number; base: ASTNode }>,
-  options?: SimplifyOptions
+  options?: SimplifyOptions,
 ): Map<string, { coefficient: number; base: ASTNode }> {
   if (options?.rationalMode !== "fraction") {
     return groups;
@@ -30,7 +30,7 @@ function unifyFractionCoefficients(
         if (Math.abs(coefficient - num / den) < tolerance) {
           const { num: simplifiedNum, den: simplifiedDen } = simplifyFraction(
             num,
-            den
+            den,
           );
           numerator = simplifiedNum;
           denominator = simplifiedDen;
@@ -55,7 +55,7 @@ function unifyFractionCoefficients(
 // 分数係数を適切なASTノードに変換
 function createCoefficientNode(
   coefficient: number,
-  options?: SimplifyOptions
+  options?: SimplifyOptions,
 ): ASTNode {
   if (Number.isInteger(coefficient)) {
     return { type: "number", value: coefficient };
@@ -124,7 +124,7 @@ function createCoefficientNode(
 // 加算を構築
 export function buildAddition(
   groups: Map<string, { coefficient: number; base: ASTNode }>,
-  options?: SimplifyOptions
+  options?: SimplifyOptions,
 ): ASTNode {
   // 分数モードの場合は係数を統一
   const unifiedGroups = unifyFractionCoefficients(groups, options);

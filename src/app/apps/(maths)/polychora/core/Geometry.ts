@@ -12,7 +12,7 @@ import { GetRepresentativeNodes } from "./RepresentativeNodes";
  */
 export function CreatePolychoronGeometry(
   diagram: CoxeterDynkinDiagram,
-  dual: boolean
+  dual: boolean,
 ) {
   diagram.dropCache();
   // 群構造の構築
@@ -67,7 +67,7 @@ export function CreatePolychoronGeometry(
   const { indices, ...attributes } = CreateAttributes(
     positions,
     polytope,
-    "solidframe-f"
+    "solidframe-f",
   );
   const geometry = new BufferGeometry();
   geometry.setIndex(indices);

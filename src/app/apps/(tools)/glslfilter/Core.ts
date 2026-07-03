@@ -88,7 +88,7 @@ void main ()
   constructor() {
     (async () => {
       const wr = document.querySelector(
-        `.${styles.canvasWrapper}`
+        `.${styles.canvasWrapper}`,
       ) as HTMLElement;
       await this.app.init({
         preference: "webgl",
@@ -96,7 +96,7 @@ void main ()
       wr.appendChild(this.app.canvas);
 
       const texture = (await Assets.load(
-        "/app-assets/glslfilter/earth.jpg"
+        "/app-assets/glslfilter/earth.jpg",
       )) as Texture;
       texture.source.scaleMode = "nearest";
 

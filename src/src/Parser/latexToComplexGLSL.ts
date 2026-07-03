@@ -27,7 +27,7 @@ export function latexToComplexGLSL(
     "arg",
     "Arg",
   ],
-  knownVars: string[] = ["z", "c", "t"]
+  knownVars: string[] = ["z", "c", "t"],
 ): string {
   try {
     // LaTeXをパースして抽象構文木に変換

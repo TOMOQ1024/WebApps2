@@ -73,7 +73,7 @@ export class Polytope {
   // CoxeterNodeから多面体構造を構築する
   constructor(
     public diagram: CoxeterDynkinDiagram,
-    public parent: Set<Polytope> = new Set()
+    public parent: Set<Polytope> = new Set(),
   ) {}
 
   build() {
@@ -104,7 +104,7 @@ export class Polytope {
           nodesToProcess = this.collectConnectedNodes(
             node,
             diagram,
-            visitedNodes
+            visitedNodes,
           );
 
           this.nodeCache.set(cacheKey, new Set(nodesToProcess));
@@ -155,7 +155,7 @@ export class Polytope {
   private collectConnectedNodes(
     startNode: CoxeterNode,
     diagram: CoxeterDynkinDiagram,
-    visitedNodes: Set<CoxeterNode>
+    visitedNodes: Set<CoxeterNode>,
   ): Set<CoxeterNode> {
     const stack = [startNode];
     const result = new Set<CoxeterNode>([startNode]);
@@ -197,7 +197,7 @@ export class Polytope {
   }
 
   private findAlternativeSubpolytope(
-    subpolytope: Polytope
+    subpolytope: Polytope,
   ): Polytope | undefined {
     const targetSize = subpolytope.identicalNodeSets.size;
 
@@ -208,14 +208,14 @@ export class Polytope {
         (p) =>
           p !== subpolytope &&
           p.visibility &&
-          p.identicalNodeSets.size === targetSize
+          p.identicalNodeSets.size === targetSize,
       );
 
     for (const candidate of candidates) {
       if (
         isSymmetricDifferenceEmpty(
           candidate.identicalNodeSets,
-          subpolytope.identicalNodeSets
+          subpolytope.identicalNodeSets,
         )
       ) {
         return candidate;
@@ -235,7 +235,7 @@ export class Polytope {
       if (
         isSymmetricDifferenceEmpty(
           c.identicalNodeSets,
-          subpolytope.identicalNodeSets
+          subpolytope.identicalNodeSets,
         )
       ) {
         return false;
@@ -262,7 +262,7 @@ export class Polytope {
 
   private getCacheKey(
     node: CoxeterNode,
-    diagram: CoxeterDynkinDiagram
+    diagram: CoxeterDynkinDiagram,
   ): string {
     return `${node.coordinate}-${diagram.gensStr}`;
   }

@@ -37,9 +37,7 @@ export interface ConstantDef {
 export function parseFunctionDef(latex: string): FunctionDef | null {
   // \left( \right) 形式
   // 非貪欲マッチ (.+?) を使用して最初の \right) までマッチ
-  const leftRightMatch = latex.match(
-    /^([a-zA-Z])\\left\((.+?)\\right\)=(.+)$/
-  );
+  const leftRightMatch = latex.match(/^([a-zA-Z])\\left\((.+?)\\right\)=(.+)$/);
   if (leftRightMatch) {
     const [, name, argsStr, body] = leftRightMatch;
     const args = argsStr.split(",").map((a) => a.trim());
@@ -144,7 +142,7 @@ export function isInequality(latex: string): boolean {
  * - 混在: a<b>c も対応
  */
 export function parseChainedInequality(
-  latex: string
+  latex: string,
 ): ChainedInequalityResult | null {
   // 不等号のトークン化パターン
   // \leq, \geq, \le, \ge, <, > を認識

@@ -22,7 +22,10 @@ async function attachTagsToArticles(
   }
 
   const tagIds = [...new Set(tagRelations.map((relation) => relation.tag_id))];
-  const { data: tags } = await supabase.from("tags").select("*").in("id", tagIds);
+  const { data: tags } = await supabase
+    .from("tags")
+    .select("*")
+    .in("id", tagIds);
   const tagMap = new Map((tags ?? []).map((tag) => [tag.id, tag as Tag]));
 
   return articles.map((article) => {
@@ -120,7 +123,9 @@ export async function getMyArticles(): Promise<ArticleWithTags[]> {
 /**
  * スラッグから記事を取得
  */
-export async function getArticleBySlug(slug: string): Promise<ArticleWithTags | null> {
+export async function getArticleBySlug(
+  slug: string,
+): Promise<ArticleWithTags | null> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -145,7 +150,9 @@ export async function getArticleBySlug(slug: string): Promise<ArticleWithTags | 
 /**
  * ID から記事を取得
  */
-export async function getArticleById(id: string): Promise<ArticleWithTags | null> {
+export async function getArticleById(
+  id: string,
+): Promise<ArticleWithTags | null> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -209,7 +216,10 @@ export async function getTagsForArticles(): Promise<Tag[]> {
 /**
  * スラッグが既に使用されているか確認
  */
-export async function isArticleSlugTaken(slug: string, excludeId?: string): Promise<boolean> {
+export async function isArticleSlugTaken(
+  slug: string,
+  excludeId?: string,
+): Promise<boolean> {
   const supabase = await createClient();
 
   let query = supabase.from("articles").select("id").eq("slug", slug);

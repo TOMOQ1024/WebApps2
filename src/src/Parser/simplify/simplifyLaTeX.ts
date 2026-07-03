@@ -38,7 +38,7 @@ export function simplifyLaTeX(
     "sqrt",
     "ln",
   ],
-  options: SimplifyOptions = {}
+  options: SimplifyOptions = {},
 ): string {
   const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
 

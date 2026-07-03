@@ -14,7 +14,7 @@ describe("A1 A1 A1 A1", () => {
         bc: [2, 1],
         bd: [2, 1],
         cd: [2, 1],
-      })
+      }),
     ).toBe(false);
   });
 });
@@ -29,7 +29,7 @@ describe("A2 A1 A1", () => {
         bc: [2, 1],
         bd: [2, 1],
         cd: [2, 1],
-      })
+      }),
     ).toBe(false);
   });
   test("2/6", () => {
@@ -41,7 +41,7 @@ describe("A2 A1 A1", () => {
         bc: [2, 1],
         bd: [2, 1],
         cd: [2, 1],
-      })
+      }),
     ).toBe(false);
   });
   test("3/6", () => {
@@ -53,7 +53,7 @@ describe("A2 A1 A1", () => {
         bc: [2, 1],
         bd: [2, 1],
         cd: [2, 1],
-      })
+      }),
     ).toBe(false);
   });
   test("4/6", () => {
@@ -65,7 +65,7 @@ describe("A2 A1 A1", () => {
         bc: [3, 1],
         bd: [2, 1],
         cd: [2, 1],
-      })
+      }),
     ).toBe(false);
   });
   test("5/6", () => {
@@ -77,7 +77,7 @@ describe("A2 A1 A1", () => {
         bc: [2, 1],
         bd: [3, 1],
         cd: [2, 1],
-      })
+      }),
     ).toBe(false);
   });
   test("6/6", () => {
@@ -89,7 +89,7 @@ describe("A2 A1 A1", () => {
         bc: [2, 1],
         bd: [2, 1],
         cd: [3, 1],
-      })
+      }),
     ).toBe(false);
   });
 });
@@ -104,7 +104,7 @@ describe("B2 A1 A1", () => {
         bc: [2, 1],
         bd: [2, 1],
         cd: [2, 1],
-      })
+      }),
     ).toBe(false);
   });
   test("2/6", () => {
@@ -116,7 +116,7 @@ describe("B2 A1 A1", () => {
         bc: [2, 1],
         bd: [2, 1],
         cd: [2, 1],
-      })
+      }),
     ).toBe(false);
   });
   test("3/6", () => {
@@ -128,7 +128,7 @@ describe("B2 A1 A1", () => {
         bc: [2, 1],
         bd: [2, 1],
         cd: [2, 1],
-      })
+      }),
     ).toBe(false);
   });
   test("4/6", () => {
@@ -140,7 +140,7 @@ describe("B2 A1 A1", () => {
         bc: [4, 1],
         bd: [2, 1],
         cd: [2, 1],
-      })
+      }),
     ).toBe(false);
   });
   test("5/6", () => {
@@ -152,7 +152,7 @@ describe("B2 A1 A1", () => {
         bc: [2, 1],
         bd: [4, 1],
         cd: [2, 1],
-      })
+      }),
     ).toBe(false);
   });
   test("6/6", () => {
@@ -164,7 +164,7 @@ describe("B2 A1 A1", () => {
         bc: [2, 1],
         bd: [2, 1],
         cd: [4, 1],
-      })
+      }),
     ).toBe(false);
   });
 });
@@ -182,7 +182,7 @@ describe("A3 A1 / A2 A2", () => {
           bc: [combination.indexOf(3) >= 0 ? 3 : 2, 1],
           bd: [combination.indexOf(4) >= 0 ? 3 : 2, 1],
           cd: [combination.indexOf(5) >= 0 ? 3 : 2, 1],
-        })
+        }),
       ).toBe(false);
     });
   }
@@ -201,7 +201,7 @@ describe("B3 A1 / B2 A2", () => {
           bc: [combination.indexOf(3) < 0 ? 2 : 3 + combination.indexOf(3), 1],
           bd: [combination.indexOf(4) < 0 ? 2 : 3 + combination.indexOf(4), 1],
           cd: [combination.indexOf(5) < 0 ? 2 : 3 + combination.indexOf(5), 1],
-        })
+        }),
       ).toBe(false);
     });
     test(`${i * 2 + 2}/${combinations.length * 2}`, () => {
@@ -213,7 +213,7 @@ describe("B3 A1 / B2 A2", () => {
           bc: [combination.indexOf(3) < 0 ? 2 : 4 - combination.indexOf(3), 1],
           bd: [combination.indexOf(4) < 0 ? 2 : 4 - combination.indexOf(4), 1],
           cd: [combination.indexOf(5) < 0 ? 2 : 4 - combination.indexOf(5), 1],
-        })
+        }),
       ).toBe(false);
     });
   }
@@ -232,7 +232,7 @@ describe("A4 / D4", () => {
           bc: [combination.indexOf(3) >= 0 ? 3 : 2, 1],
           bd: [combination.indexOf(4) >= 0 ? 3 : 2, 1],
           cd: [combination.indexOf(5) >= 0 ? 3 : 2, 1],
-        })
+        }),
       ).toBe(false);
     });
   }

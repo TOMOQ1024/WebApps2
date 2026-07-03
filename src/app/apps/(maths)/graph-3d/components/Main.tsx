@@ -202,7 +202,11 @@ function parseImplicitExpression(expression: string): {
   // 等式をチェック（z= で始まる場合は除外済み）
   const equalMatch = expression.match(/^(.+?)\s*=\s*(.+)$/);
   if (equalMatch) {
-    return { left: equalMatch[1], right: equalMatch[2], relationType: "equation" };
+    return {
+      left: equalMatch[1],
+      right: equalMatch[2],
+      relationType: "equation",
+    };
   }
 
   // 演算子を含まない場合はエラー
@@ -371,12 +375,22 @@ export default function Main() {
         // 左辺と右辺をそれぞれパース
         const leftAst = parseLatex(parsed.left, allKnownFuncs);
         console.log("[Graph3D] Left AST:", JSON.stringify(leftAst, null, 2));
-        const leftCode = ASTToJS(leftAst, BUILTIN_FUNCS, knownVars, userFuncNames);
+        const leftCode = ASTToJS(
+          leftAst,
+          BUILTIN_FUNCS,
+          knownVars,
+          userFuncNames,
+        );
         console.log("[Graph3D] Left JS:", leftCode);
 
         const rightAst = parseLatex(parsed.right, allKnownFuncs);
         console.log("[Graph3D] Right AST:", JSON.stringify(rightAst, null, 2));
-        const rightCode = ASTToJS(rightAst, BUILTIN_FUNCS, knownVars, userFuncNames);
+        const rightCode = ASTToJS(
+          rightAst,
+          BUILTIN_FUNCS,
+          knownVars,
+          userFuncNames,
+        );
         console.log("[Graph3D] Right JS:", rightCode);
 
         // 左辺 - 右辺 = 0 として評価

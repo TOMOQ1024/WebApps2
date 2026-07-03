@@ -29,7 +29,7 @@ function normalizeASTKey(node: ASTNode): string {
 
 // 同類項をグループ化
 export function groupLikeTerms(
-  terms: ASTNode[]
+  terms: ASTNode[],
 ): Map<string, { coefficient: number; base: ASTNode }> {
   const groups = new Map<string, { coefficient: number; base: ASTNode }>();
 

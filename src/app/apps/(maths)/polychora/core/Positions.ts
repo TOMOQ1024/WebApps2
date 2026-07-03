@@ -13,23 +13,23 @@ import { GetInitPoint } from "./InitPoint";
  */
 export function GetPositions(
   representativeNodes: Set<CoxeterNode>,
-  diagram: CoxeterDynkinDiagram
+  diagram: CoxeterDynkinDiagram,
 ) {
   const positions: { [key: string]: Vector3 } = {};
 
   // 初期頂点座標の生成
   const { pointA, pointB, pointC, pointD } = GetFundamentalDomain(
-    diagram.labels
+    diagram.labels,
   );
   console.log(
     [pointA, pointB, pointC, pointD]
       .map(
         (v, i) =>
           `${String.fromCharCode(65 + i)}=(${v.x.toFixed(6)}, ${v.y.toFixed(
-            6
-          )}, ${v.z.toFixed(6)})\n`
+            6,
+          )}, ${v.z.toFixed(6)})\n`,
       )
-      .join("")
+      .join(""),
   );
   const planeA = Hyperplane3.fromPoints(pointB, pointC, pointD);
   const planeB = Hyperplane3.fromPoints(pointA, pointD, pointC);
@@ -74,11 +74,11 @@ export function GetPositions(
               `${FDTOBJ[x].diff! > 1e-6 ? "\u001b[31m" : ""}[${x}] EXP:${FDTOBJ[
                 x
               ].expected.toFixed(4)} ACT:${FDTOBJ[x].actual.toFixed(
-                4
-              )} DIFF:${FDTOBJ[x].diff!.toFixed(4)}\u001b[0m`
+                4,
+              )} DIFF:${FDTOBJ[x].diff!.toFixed(4)}\u001b[0m`,
           )
           .join("\n")}`
-      : "✅ Fundamental Domain Test Passed"
+      : "✅ Fundamental Domain Test Passed",
   );
   // 単位領域内の頂点定義
   let Q0 = GetInitPoint(
@@ -87,7 +87,7 @@ export function GetPositions(
     pointC,
     pointD,
     diagram.labels,
-    diagram.nodeMarks
+    diagram.nodeMarks,
   );
 
   // 頂点座標の生成(gyrovector)

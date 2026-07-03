@@ -6,7 +6,7 @@ import { isZero, isOne, simplifyFraction } from "./helpers";
 export function simplifyPower(
   base: ASTNode,
   exponent: ASTNode,
-  options?: SimplifyOptions
+  options?: SimplifyOptions,
 ): ASTNode {
   // a^0 → 1
   if (isZero(exponent)) return { type: "number", value: 1 };
@@ -25,7 +25,7 @@ export function simplifyPower(
   ) {
     const { num, den } = simplifyFraction(
       exponent.left.value,
-      exponent.right.value
+      exponent.right.value,
     );
     if (den === 1) {
       return {

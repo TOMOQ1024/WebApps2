@@ -53,7 +53,7 @@ export default function MainWrapper() {
         cursor="col-resize"
         onDrag={() => {
           const wr = document.querySelector(
-            styles.canvasWrapper
+            styles.canvasWrapper,
           ) as HTMLElement;
         }}
       >

@@ -70,13 +70,13 @@ export function extractCoefficient(term: ASTNode): {
       nonNumericFactors.length === 0
         ? { type: "number" as const, value: 1 }
         : nonNumericFactors.length === 1
-        ? nonNumericFactors[0]
-        : nonNumericFactors.reduce((a, b) => ({
-            type: "operator" as const,
-            op: "*",
-            left: a,
-            right: b,
-          }));
+          ? nonNumericFactors[0]
+          : nonNumericFactors.reduce((a, b) => ({
+              type: "operator" as const,
+              op: "*",
+              left: a,
+              right: b,
+            }));
 
     return { coefficient, base };
   }

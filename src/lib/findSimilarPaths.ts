@@ -15,7 +15,7 @@ export type SimilarPath = {
 export function findSimilarPaths(
   inputPath: string,
   maxResults = 3,
-  maxDistance = 10
+  maxDistance = 10,
 ): SimilarPath[] {
   const allPaths = getAllPaths();
   const normalizedInput = inputPath.toLowerCase();

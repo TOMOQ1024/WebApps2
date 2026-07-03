@@ -70,10 +70,7 @@ function buildDbUrl(poolerUrl: string, password: string): string {
 }
 
 function formatTimestamp(date: Date): string {
-  return date
-    .toISOString()
-    .replace(/[:.]/g, "-")
-    .slice(0, 19);
+  return date.toISOString().replace(/[:.]/g, "-").slice(0, 19);
 }
 
 function fileEntry(
@@ -105,20 +102,17 @@ function runDbDump(dbUrl: string, outputPath: string, dataOnly: boolean): void {
 async function backupStorageViaCli(outputDir: string): Promise<boolean> {
   mkdirSync(outputDir, { recursive: true });
   try {
-    execSync(
-      `npx supabase storage cp -r --linked ss:/// "${outputDir}"`,
-      { stdio: "pipe", cwd: projectRoot },
-    );
+    execSync(`npx supabase storage cp -r --linked ss:/// "${outputDir}"`, {
+      stdio: "pipe",
+      cwd: projectRoot,
+    });
     return true;
   } catch {
     return false;
   }
 }
 
-async function saveBlob(
-  data: Blob,
-  filePath: string,
-): Promise<void> {
+async function saveBlob(data: Blob, filePath: string): Promise<void> {
   mkdirSync(dirname(filePath), { recursive: true });
   await writeFile(filePath, Buffer.from(await data.arrayBuffer()));
 }
@@ -205,7 +199,9 @@ async function main(): Promise<void> {
 
   if (!dbPassword) {
     console.error("SUPABASE_DB_PASSWORD が .env.local に設定されていません．");
-    console.error("Dashboard > Project Settings > Database から取得してください．");
+    console.error(
+      "Dashboard > Project Settings > Database から取得してください．",
+    );
     process.exit(1);
   }
 
@@ -291,11 +287,7 @@ async function main(): Promise<void> {
     createdAt: new Date().toISOString(),
     projectRef,
     database: {
-      schema: fileEntry(
-        schemaPath,
-        schemaSuccess,
-        schemaError,
-      ),
+      schema: fileEntry(schemaPath, schemaSuccess, schemaError),
       data: fileEntry(dataPath, dataSuccess, dataError),
     },
     storage: {

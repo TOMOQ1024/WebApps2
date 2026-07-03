@@ -34,7 +34,7 @@ export default function Canvas({
   useEffect(() => {
     const newResolution = new THREE.Vector2(
       window.innerWidth,
-      window.innerHeight - 50
+      window.innerHeight - 50,
     );
     setResolution(newResolution);
   }, []);
@@ -56,7 +56,7 @@ export default function Canvas({
         if (materialRef.current) {
           materialRef.current.uniforms.uGraph.value.origin.set(
             graph!.origin.x,
-            graph!.origin.y
+            graph!.origin.y,
           );
           materialRef.current.uniforms.uGraph.value.radius = graph!.radius;
         }
@@ -70,7 +70,7 @@ export default function Canvas({
 
     const geometry = new THREE.PlaneGeometry(
       resolution.x * 16,
-      resolution.y * 16
+      resolution.y * 16,
     );
     const material = new THREE.ShaderMaterial({
       uniforms: {

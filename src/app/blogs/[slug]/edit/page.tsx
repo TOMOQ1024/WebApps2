@@ -28,7 +28,9 @@ export default async function EditBlogPage({ params }: PageProps) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(`/apps/signin?redirect=${encodeURIComponent(`/blogs/${slug}/edit`)}`);
+    redirect(
+      `/apps/signin?redirect=${encodeURIComponent(`/blogs/${slug}/edit`)}`,
+    );
   }
 
   const article = await getArticleBySlug(slug);

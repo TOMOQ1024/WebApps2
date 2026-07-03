@@ -58,7 +58,7 @@ export default function ControlPanel({
         onDiagramChange(newDiagram);
       } else {
         setLocalError(
-          `${labelKey}の分数は分子・分母とも1以上でなければなりません`
+          `${labelKey}の分数は分子・分母とも1以上でなければなりません`,
         );
       }
     } else {

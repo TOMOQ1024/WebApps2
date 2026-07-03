@@ -71,7 +71,7 @@ export default function GmowskiMiraAttractorPage() {
     const positionVariable = gpuCompute.addVariable(
       "texturePosition",
       computeFragmentShader,
-      originTexture
+      originTexture,
     );
     gpuCompute.setVariableDependencies(positionVariable, [positionVariable]);
 
@@ -111,7 +111,7 @@ export default function GmowskiMiraAttractorPage() {
       60,
       window.innerWidth / window.innerHeight,
       0.1,
-      100
+      100,
     );
     camera.position.set(0, 0, 25);
     cameraRef.current = camera;
@@ -133,7 +133,7 @@ export default function GmowskiMiraAttractorPage() {
     const positionVariable = gpuCompute.addVariable(
       "texturePosition",
       computeFragmentShader,
-      posTex
+      posTex,
     );
     gpuCompute.setVariableDependencies(positionVariable, [positionVariable]);
     // ユニフォーム
@@ -191,7 +191,7 @@ export default function GmowskiMiraAttractorPage() {
         // 最新の位置テクスチャを渡す
         material.uniforms.positionTexture.value =
           gpuComputeRef.current.getCurrentRenderTarget(
-            positionVariableRef.current
+            positionVariableRef.current,
           ).texture;
       }
       renderer.render(scene, camera);

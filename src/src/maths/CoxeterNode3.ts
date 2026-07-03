@@ -7,7 +7,7 @@ export class CoxeterNode3 {
     public ma: number,
     public mb: number,
     public mc: number,
-    public coordinate: string = ""
+    public coordinate: string = "",
   ) {}
 
   build() {
@@ -80,7 +80,7 @@ export class CoxeterNode3 {
       this.ma,
       this.mb,
       this.mc,
-      `${this.coordinate}a`
+      `${this.coordinate}a`,
     );
     this.a = n;
     n.a = this;
@@ -104,7 +104,7 @@ export class CoxeterNode3 {
       this.ma,
       this.mb,
       this.mc,
-      `${this.coordinate}b`
+      `${this.coordinate}b`,
     );
     this.b = n;
     n.b = this;
@@ -128,7 +128,7 @@ export class CoxeterNode3 {
       this.ma,
       this.mb,
       this.mc,
-      `${this.coordinate}c`
+      `${this.coordinate}c`,
     );
     this.c = n;
     n.c = this;

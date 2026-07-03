@@ -40,7 +40,7 @@ function astEqual(a: ASTNode, b: ASTNode): boolean {
 function simplifyDivision(
   numerator: ASTNode,
   denominator: ASTNode,
-  options?: SimplifyOptions
+  options?: SimplifyOptions,
 ): ASTNode {
   // 分子と分母が等しい場合は1を返す
   if (astEqual(numerator, denominator)) {
@@ -106,7 +106,7 @@ function simplifyDivision(
   if (numerator.type === "operator" && numerator.op === "*") {
     const numeratorFactors = flattenMultiplication(
       numerator.left,
-      numerator.right
+      numerator.right,
     );
     const remainingFactors: ASTNode[] = [];
     let foundCommonFactor = false;
@@ -154,7 +154,7 @@ function simplifyDivision(
   // 数値計算を先に試行
   const numericResult = evaluateNumericOps(
     { type: "operator", op: "/", left: numerator, right: denominator },
-    options
+    options,
   );
   if (numericResult) {
     return numericResult;
@@ -167,7 +167,7 @@ function simplifyDivision(
 // 乗算結果の中の数値べき乗を評価する
 function evaluateNumericPowersInMultiplication(
   node: ASTNode,
-  options?: SimplifyOptions
+  options?: SimplifyOptions,
 ): ASTNode {
   if (node.type === "operator" && node.op === "*") {
     const left = evaluateNumericPowersInMultiplication(node.left, options);
@@ -185,7 +185,7 @@ function evaluateNumericPowersInMultiplication(
 // 正規化されたASTを簡約化
 export function simplifyNormalizedAST(
   node: ASTNode,
-  options?: SimplifyOptions
+  options?: SimplifyOptions,
 ): ASTNode {
   if (node.type === "operator") {
     // まず子ノードを再帰的に簡約化
@@ -200,7 +200,7 @@ export function simplifyNormalizedAST(
         // 乗算結果の中に数値べき乗がある場合、数値評価を実行
         return evaluateNumericPowersInMultiplication(
           multiplicationResult,
-          options
+          options,
         );
       case "/":
         return simplifyDivision(left, right, options);
@@ -215,14 +215,14 @@ export function simplifyNormalizedAST(
         // 展開結果の中の数値べき乗も評価
         const finalResult = evaluateNumericPowersInMultiplication(
           powerResult,
-          options
+          options,
         );
         return finalResult;
       default:
         // その他の演算子の場合は数値計算を先に試行
         const numericResult = evaluateNumericOps(
           { ...node, left, right },
-          options
+          options,
         );
         return numericResult || { ...node, left, right };
     }

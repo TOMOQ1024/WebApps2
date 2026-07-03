@@ -8,7 +8,9 @@ function isConstant(node: ASTNode, variable: string): boolean {
     case "symbol":
       return node.name !== variable;
     case "operator":
-      return isConstant(node.left, variable) && isConstant(node.right, variable);
+      return (
+        isConstant(node.left, variable) && isConstant(node.right, variable)
+      );
     case "function":
       return node.args.every((arg) => isConstant(arg, variable));
     default:
@@ -26,12 +28,18 @@ function evaluateConstant(node: ASTNode): number | null {
       const right = evaluateConstant(node.right);
       if (left === null || right === null) return null;
       switch (node.op) {
-        case "+": return left + right;
-        case "-": return left - right;
-        case "*": return left * right;
-        case "/": return right !== 0 ? left / right : null;
-        case "^": return Math.pow(left, right);
-        default: return null;
+        case "+":
+          return left + right;
+        case "-":
+          return left - right;
+        case "*":
+          return left * right;
+        case "/":
+          return right !== 0 ? left / right : null;
+        case "^":
+          return Math.pow(left, right);
+        default:
+          return null;
       }
     }
     default:
@@ -42,7 +50,7 @@ function evaluateConstant(node: ASTNode): number | null {
 // 変数名はx固定
 export function differentiateASTNode(
   node: ASTNode,
-  variable: string = "x"
+  variable: string = "x",
 ): ASTNode {
   switch (node.type) {
     case "number":
@@ -181,7 +189,7 @@ export function differentiateASTNode(
               left: { type: "symbol", name: variable },
               right: { type: "number", value: newExponent },
             },
-            variable
+            variable,
           );
         }
 
@@ -204,7 +212,7 @@ export function differentiateASTNode(
               left: { type: "symbol", name: variable },
               right: { type: "number", value: newExponent },
             },
-            variable
+            variable,
           );
         }
 

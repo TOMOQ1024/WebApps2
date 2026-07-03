@@ -27,7 +27,6 @@ export function useSharedCanvas() {
   return ctx;
 }
 
-
 interface SharedCanvasProviderProps {
   children: ReactNode;
 }
@@ -41,7 +40,7 @@ export function SharedCanvasProvider({ children }: SharedCanvasProviderProps) {
   // window サイズを監視して Canvas サイズを更新
   useEffect(() => {
     setIsClient(true);
-    
+
     const updateSize = () => {
       setCanvasSize({
         width: window.innerWidth,

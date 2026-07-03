@@ -3,7 +3,7 @@ import { ASTNode } from "./ASTNode";
 export function ASTToComplexGLSL(
   node: ASTNode,
   knownVars: string[],
-  knownFuncs: string[]
+  knownFuncs: string[],
 ): string {
   switch (node.type) {
     case "number":
@@ -102,7 +102,7 @@ export function ASTToComplexGLSL(
 
     case "function":
       const args = node.args.map((arg) =>
-        ASTToComplexGLSL(arg, knownVars, knownFuncs)
+        ASTToComplexGLSL(arg, knownVars, knownFuncs),
       );
       const fnName = node.name;
 

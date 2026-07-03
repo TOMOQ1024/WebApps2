@@ -47,11 +47,17 @@ function validateArticleInput(input: ArticleInput): string | null {
   return null;
 }
 
-async function isSlugConflict(slug: string, excludeId?: string): Promise<boolean> {
+async function isSlugConflict(
+  slug: string,
+  excludeId?: string,
+): Promise<boolean> {
   return isArticleSlugTaken(slug, excludeId);
 }
 
-async function syncArticleTags(articleId: string, tagIds: string[] | undefined) {
+async function syncArticleTags(
+  articleId: string,
+  tagIds: string[] | undefined,
+) {
   const supabase = await createClient();
 
   await supabase.from("article_tags").delete().eq("article_id", articleId);
@@ -142,7 +148,10 @@ export async function createArticle(
 
   if (error || !article) {
     console.error("Error creating article:", error);
-    return { success: false, error: error?.message ?? "記事の作成に失敗しました" };
+    return {
+      success: false,
+      error: error?.message ?? "記事の作成に失敗しました",
+    };
   }
 
   await syncArticleTags(article.id, input.tagIds);
@@ -188,10 +197,9 @@ export async function updateArticle(
   }
 
   const isPublished = input.status === "published";
-  const publishedAt =
-    isPublished
-      ? existing.published_at ?? new Date().toISOString()
-      : null;
+  const publishedAt = isPublished
+    ? (existing.published_at ?? new Date().toISOString())
+    : null;
 
   const { error } = await supabase
     .from("articles")
@@ -247,7 +255,10 @@ export async function deleteArticle(
 
   await supabase.from("article_tags").delete().eq("article_id", articleId);
 
-  const { error } = await supabase.from("articles").delete().eq("id", articleId);
+  const { error } = await supabase
+    .from("articles")
+    .delete()
+    .eq("id", articleId);
   if (error) {
     console.error("Error deleting article:", error);
     return { success: false, error: error.message };

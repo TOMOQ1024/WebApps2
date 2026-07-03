@@ -260,7 +260,7 @@ function extractCommonFactor(terms: ASTNode[]): {
 
   // 複数の項を持つ底を探す
   for (const [baseKey, { base, terms: powerTermsList }] of Array.from(
-    powerTerms.entries()
+    powerTerms.entries(),
   )) {
     if (powerTermsList.length > 1) {
       // 最小指数を求める
@@ -399,7 +399,7 @@ function extractCommonFactor(terms: ASTNode[]): {
 
   // 複数回現れる因子を探す
   for (const [factorKey, { factor, coefficients }] of Array.from(
-    factorGroups.entries()
+    factorGroups.entries(),
   )) {
     if (coefficients.length > 1) {
       // 係数を合計
@@ -420,13 +420,13 @@ function extractCommonFactor(terms: ASTNode[]): {
             };
           }
         },
-        { type: "number", value: 0 } as ASTNode
+        { type: "number", value: 0 } as ASTNode,
       );
 
       // 他の項を収集
       const otherTerms: ASTNode[] = [];
       for (const [otherKey, { factor: otherFactor }] of Array.from(
-        factorGroups.entries()
+        factorGroups.entries(),
       )) {
         if (otherKey !== factorKey) {
           otherTerms.push(otherFactor);
@@ -485,21 +485,21 @@ function tryFactorize4Terms(terms: ASTNode[]): {
   // パターン1: (0+2)(1+3) - 第1と第3項、第2と第4項をグループ
   const pattern1 = tryFactorizationPattern(
     [factorPairs[0], factorPairs[2]],
-    [factorPairs[1], factorPairs[3]]
+    [factorPairs[1], factorPairs[3]],
   );
   if (pattern1) return pattern1;
 
   // パターン2: (0+1)(2+3) - 第1と第2項、第3と第4項をグループ
   const pattern2 = tryFactorizationPattern(
     [factorPairs[0], factorPairs[1]],
-    [factorPairs[2], factorPairs[3]]
+    [factorPairs[2], factorPairs[3]],
   );
   if (pattern2) return pattern2;
 
   // パターン3: (0+3)(1+2) - 第1と第4項、第2と第3項をグループ
   const pattern3 = tryFactorizationPattern(
     [factorPairs[0], factorPairs[3]],
-    [factorPairs[1], factorPairs[2]]
+    [factorPairs[1], factorPairs[2]],
   );
   if (pattern3) return pattern3;
 
@@ -509,7 +509,7 @@ function tryFactorize4Terms(terms: ASTNode[]): {
 // 特定のパターンで因数分解を試行
 function tryFactorizationPattern(
   group1: { left: ASTNode; right: ASTNode }[],
-  group2: { left: ASTNode; right: ASTNode }[]
+  group2: { left: ASTNode; right: ASTNode }[],
 ): {
   commonFactor: ASTNode | null;
   factorizedTerms: ASTNode[];
@@ -653,7 +653,7 @@ function extractCommonMultiplicativeFactors(terms: ASTNode[]): {
     const existsInAllTerms = termFactors
       .slice(1)
       .every((otherTermFactors) =>
-        otherTermFactors.some((otherFactor) => deepEqual(factor, otherFactor))
+        otherTermFactors.some((otherFactor) => deepEqual(factor, otherFactor)),
       );
 
     if (existsInAllTerms) {
@@ -680,7 +680,7 @@ function extractCommonMultiplicativeFactors(terms: ASTNode[]): {
   const factorizedTerms = termFactors.map((factors) => {
     const remainingFactors = factors.filter(
       (factor) =>
-        !commonFactors.some((commonFactor) => deepEqual(factor, commonFactor))
+        !commonFactors.some((commonFactor) => deepEqual(factor, commonFactor)),
     );
 
     if (remainingFactors.length === 0) {
@@ -731,7 +731,7 @@ export function tryFactorization(node: ASTNode): ASTNode {
 
         for (const component of fComponents) {
           const matchingIndex = terms.findIndex(
-            (otherTerm, j) => j !== i && deepEqual(component, otherTerm)
+            (otherTerm, j) => j !== i && deepEqual(component, otherTerm),
           );
 
           if (matchingIndex !== -1) {
@@ -800,7 +800,7 @@ export function tryFactorization(node: ASTNode): ASTNode {
           // 使用された項以外の項を収集
           const usedIndices = [i, ...matchingIndices];
           const remainingTerms = terms.filter(
-            (_, index) => !usedIndices.includes(index)
+            (_, index) => !usedIndices.includes(index),
           );
 
           if (remainingTerms.length === 0) {

@@ -2,7 +2,7 @@ import { ASTNode } from "../ASTNode";
 
 // 乗算を構築
 export function buildMultiplication(
-  groups: Map<string, { exponent: number; base: ASTNode }>
+  groups: Map<string, { exponent: number; base: ASTNode }>,
 ): ASTNode {
   const factors: ASTNode[] = [];
 

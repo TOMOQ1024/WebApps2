@@ -167,9 +167,7 @@ export default function ControlPanel({
           key={item.id}
           className="flex items-center gap-2 text-[1.1rem] bg-[var(--background-color)] border-2 border-[var(--border-color)] p-3"
         >
-          <span className="text-sm w-8">
-            {getExpressionType(item.value)}:
-          </span>
+          <span className="text-sm w-8">{getExpressionType(item.value)}:</span>
           <EditableMathField
             latex={item.value}
             // biome-ignore lint/suspicious/noExplicitAny: MathQuill types not available

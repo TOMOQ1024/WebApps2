@@ -36,7 +36,7 @@ function astEqual(a: ASTNode, b: ASTNode): boolean {
 // 単項を分母で割る処理
 function simpleTermDivision(
   term: ASTNode,
-  denominator: ASTNode
+  denominator: ASTNode,
 ): ASTNode | null {
   // term と denominator を係数と基底に分解
   const { coefficient: termCoeff, base: termBase } = extractCoefficient(term);
@@ -197,36 +197,39 @@ export function simplifyMultiplication(left: ASTNode, right: ASTNode): ASTNode {
       }
     } else {
       // 複数の負の指数因子がある場合は乗算で結合
-      denominator = negativeExponentFactors.reduce((acc, factor) => {
-        let positiveFactor: ASTNode;
-        if (
-          factor.type === "operator" &&
-          factor.op === "^" &&
-          factor.right.type === "number"
-        ) {
-          if (factor.right.value === -1) {
-            positiveFactor = factor.left;
+      denominator = negativeExponentFactors.reduce(
+        (acc, factor) => {
+          let positiveFactor: ASTNode;
+          if (
+            factor.type === "operator" &&
+            factor.op === "^" &&
+            factor.right.type === "number"
+          ) {
+            if (factor.right.value === -1) {
+              positiveFactor = factor.left;
+            } else {
+              positiveFactor = {
+                type: "operator" as const,
+                op: "^" as const,
+                left: factor.left,
+                right: { type: "number" as const, value: -factor.right.value },
+              };
+            }
           } else {
-            positiveFactor = {
-              type: "operator" as const,
-              op: "^" as const,
-              left: factor.left,
-              right: { type: "number" as const, value: -factor.right.value },
-            };
+            positiveFactor = factor;
           }
-        } else {
-          positiveFactor = factor;
-        }
 
-        return acc === null
-          ? positiveFactor
-          : {
-              type: "operator" as const,
-              op: "*" as const,
-              left: acc,
-              right: positiveFactor,
-            };
-      }, null as ASTNode | null) as ASTNode;
+          return acc === null
+            ? positiveFactor
+            : {
+                type: "operator" as const,
+                op: "*" as const,
+                left: acc,
+                right: positiveFactor,
+              };
+        },
+        null as ASTNode | null,
+      ) as ASTNode;
     }
 
     // 係数は分子と分母で個別に処理するため、ここでは分母に含めない
@@ -234,7 +237,7 @@ export function simplifyMultiplication(left: ASTNode, right: ASTNode): ASTNode {
     // 加算の各項を分母で割る
     const numeratorTerms = flattenAddition(
       additionNode.left,
-      additionNode.right
+      additionNode.right,
     );
     const simplifiedTerms: ASTNode[] = [];
 

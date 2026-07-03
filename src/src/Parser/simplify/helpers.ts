@@ -13,7 +13,7 @@ export function isOne(node: ASTNode): boolean {
 // 数値演算の評価
 export function evaluateNumericOps(
   node: ASTNode,
-  options?: SimplifyOptions
+  options?: SimplifyOptions,
 ): ASTNode | null {
   if (node.type !== "operator") return null;
   const { op, left, right } = node;
@@ -136,7 +136,7 @@ export function gcd(a: number, b: number): number {
 // 分数を約分する
 export function simplifyFraction(
   numerator: number,
-  denominator: number
+  denominator: number,
 ): { num: number; den: number } {
   if (denominator === 0) return { num: numerator, den: denominator };
 

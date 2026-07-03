@@ -8,7 +8,7 @@ import { simplifyNumericFractions } from "./simplifyNumericFractions";
 // 内部用の簡約化関数（nested fraction前処理なし）
 function simplifyASTInternal(
   node: ASTNode,
-  options?: SimplifyOptions
+  options?: SimplifyOptions,
 ): ASTNode {
   // 子ノードを先に簡約化
   let simplified = node;

@@ -42,7 +42,8 @@ export default function MainWrapper() {
   };
 
   // ユーザーネームを取得（user_metadata から）
-  const displayName = user?.user_metadata?.username || user?.email?.split("@")[0] || "ユーザー";
+  const displayName =
+    user?.user_metadata?.username || user?.email?.split("@")[0] || "ユーザー";
 
   if (loading) {
     return (

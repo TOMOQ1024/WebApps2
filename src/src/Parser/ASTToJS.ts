@@ -230,7 +230,7 @@ export function latexToJSFunction(
     "round",
     "sign",
   ],
-  knownVars: string[] = ["x", "y", "t"]
+  knownVars: string[] = ["x", "y", "t"],
 ): (x: number, y: number, t?: number) => number {
   try {
     const ast = parseLatex(latex, knownFuncs);
@@ -241,7 +241,7 @@ export function latexToJSFunction(
     const fn = new Function("x", "y", "t", `return ${jsCode};`) as (
       x: number,
       y: number,
-      t?: number
+      t?: number,
     ) => number;
 
     return fn;

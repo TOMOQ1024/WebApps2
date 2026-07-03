@@ -24,7 +24,7 @@ function astToString(node: ASTNode): string {
 export function simplifyAddition(
   left: ASTNode,
   right: ASTNode,
-  options?: SimplifyOptions
+  options?: SimplifyOptions,
 ): ASTNode {
   // 0 + a → a, a + 0 → a
   if (isZero(left)) return right;
@@ -96,7 +96,7 @@ function applyDistributiveLaw(terms: ASTNode[]): ASTNode[] {
         terms.some((otherTerm) => {
           if (otherTerm === term) return false; // 同じ項は除外
           return astToString(rightTerm) === astToString(otherTerm);
-        })
+        }),
       );
 
       if (!hasConflictingTerms) {
@@ -139,12 +139,12 @@ function factorizeCommonFactors(node: ASTNode): ASTNode {
 
   // 定数項でない項のみを対象とする（従来の処理）
   const nonConstantTerms = coefficientsAndBases.filter(
-    ({ base }) => !(base.type === "number" && base.value === 1)
+    ({ base }) => !(base.type === "number" && base.value === 1),
   );
 
   // 定数項を抽出
   const constantTerms = coefficientsAndBases.filter(
-    ({ base }) => base.type === "number" && base.value === 1
+    ({ base }) => base.type === "number" && base.value === 1,
   );
 
   if (nonConstantTerms.length < 2) {
@@ -192,7 +192,7 @@ function factorizeCommonFactors(node: ASTNode): ASTNode {
     if (constantTerms.length > 0) {
       const constantSum = constantTerms.reduce(
         (sum, { coefficient }) => sum + coefficient,
-        0
+        0,
       );
       if (constantSum !== 0) {
         return {
@@ -284,10 +284,10 @@ function tryFactorizeCompoundExpressions(terms: ASTNode[]): ASTNode[] {
         ) {
           const compoundComponents = flattenAddition(
             compoundInfo.base.left,
-            compoundInfo.base.right
+            compoundInfo.base.right,
           );
           const isComponent = compoundComponents.some(
-            (component) => getCompoundKey(component) === baseKey
+            (component) => getCompoundKey(component) === baseKey,
           );
 
           if (isComponent) {

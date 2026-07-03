@@ -16,7 +16,8 @@ export default function Main({ items, availableTags }: MainProps) {
   const router = useRouter();
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<Graph2DGalleryItemWithTags | null>(null);
+  const [selectedItem, setSelectedItem] =
+    useState<Graph2DGalleryItemWithTags | null>(null);
 
   // 選択されたタグでフィルタリング
   const filteredItems = useMemo(() => {
@@ -25,7 +26,7 @@ export default function Main({ items, availableTags }: MainProps) {
     }
     // 選択されたタグのいずれかを持つアイテムを表示
     return items.filter((item) =>
-      item.tags.some((tag) => selectedTagIds.includes(tag.id))
+      item.tags.some((tag) => selectedTagIds.includes(tag.id)),
     );
   }, [items, selectedTagIds]);
 
@@ -33,7 +34,7 @@ export default function Main({ items, availableTags }: MainProps) {
     setSelectedTagIds((prev) =>
       prev.includes(tagId)
         ? prev.filter((id) => id !== tagId)
-        : [...prev, tagId]
+        : [...prev, tagId],
     );
   };
 

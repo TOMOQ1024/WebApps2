@@ -3,16 +3,16 @@ import { NextResponse, type NextRequest } from "next/server";
 
 /** Supabase SSR のセッション Cookie が無いリクエストでは認証 API を呼ばない（Edge ミドルウェアのタイムアウト回避） */
 function hasSupabaseAuthCookie(request: NextRequest): boolean {
-  return request.cookies.getAll().some(
-    (c) => c.name.startsWith("sb-") && c.name.includes("auth-token")
-  );
+  return request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith("sb-") && c.name.includes("auth-token"));
 }
 
 const SUPABASE_FETCH_TIMEOUT_MS = 8_000;
 
 function fetchWithTimeout(
   input: RequestInfo | URL,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<Response> {
   const deadline = AbortSignal.timeout(SUPABASE_FETCH_TIMEOUT_MS);
   const upstream = init?.signal;
@@ -43,17 +43,17 @@ export async function middleware(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
+            request.cookies.set(name, value),
           );
           supabaseResponse = NextResponse.next({
             request,
           });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options),
           );
         },
       },
-    }
+    },
   );
 
   // セッションをリフレッシュ（重要: getUser() を呼ぶことでセッションが更新される）

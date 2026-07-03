@@ -33,7 +33,7 @@ export function getCombinations<T>(items: T[], count: number): T[][] {
  */
 export function* generateCombinations<T>(
   items: T[],
-  count: number
+  count: number,
 ): Generator<T[]> {
   const stack: { path: T[]; start: number }[] = [];
   stack.push({ path: [], start: 0 });

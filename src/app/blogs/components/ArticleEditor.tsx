@@ -35,7 +35,9 @@ export default function ArticleEditor({ mode, article }: ArticleEditorProps) {
   const [slug, setSlug] = useState(article?.slug ?? "");
   const [description, setDescription] = useState(article?.description ?? "");
   const [body, setBody] = useState(article?.body ?? "");
-  const [status, setStatus] = useState<ArticleStatus>(article?.status ?? "draft");
+  const [status, setStatus] = useState<ArticleStatus>(
+    article?.status ?? "draft",
+  );
   const [slugEdited, setSlugEdited] = useState(mode === "edit");
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>(
@@ -84,7 +86,9 @@ export default function ArticleEditor({ mode, article }: ArticleEditorProps) {
     if (!newTagName.trim()) return;
 
     const trimmedName = newTagName.trim().toLowerCase();
-    const existingTag = tags.find((tag) => tag.name.toLowerCase() === trimmedName);
+    const existingTag = tags.find(
+      (tag) => tag.name.toLowerCase() === trimmedName,
+    );
     if (existingTag) {
       if (!selectedTagIds.includes(existingTag.id)) {
         setSelectedTagIds((prev) => [...prev, existingTag.id]);
@@ -144,7 +148,11 @@ export default function ArticleEditor({ mode, article }: ArticleEditorProps) {
 
       if (result.success) {
         const nextSlug = slugify(slug);
-        setSuccessMessage(status === "published" ? "記事を公開しました" : "下書きを保存しました");
+        setSuccessMessage(
+          status === "published"
+            ? "記事を公開しました"
+            : "下書きを保存しました",
+        );
         router.push(`/blogs/${nextSlug}`);
         router.refresh();
         return;
@@ -274,7 +282,9 @@ export default function ArticleEditor({ mode, article }: ArticleEditorProps) {
                     </button>
                   ))
                 ) : newTagName.trim() ? (
-                  <span className="text-sm opacity-50">一致するタグがありません</span>
+                  <span className="text-sm opacity-50">
+                    一致するタグがありません
+                  </span>
                 ) : null}
               </div>
             </div>

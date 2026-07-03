@@ -3,7 +3,7 @@ import { ASTNode } from "../ASTNode";
 // 乗算項を平坦化
 export function flattenMultiplication(
   left: ASTNode,
-  right: ASTNode
+  right: ASTNode,
 ): ASTNode[] {
   const factors: ASTNode[] = [];
 

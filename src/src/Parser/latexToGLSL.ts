@@ -24,7 +24,7 @@ export function latexToGLSL(
     "round",
     "fract",
   ],
-  knownVars: string[] = ["x", "y", "t"]
+  knownVars: string[] = ["x", "y", "t"],
 ): string {
   try {
     // LaTeXをパースして抽象構文木に変換

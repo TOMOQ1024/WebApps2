@@ -21,7 +21,7 @@ const TopScene: React.FC<TopSceneProps> = ({ scrollY }) => {
       uRadius: { value: 2.0 }, // 描画範囲の半径
       uResolution: { value: new Vector2(1, 1) },
     }),
-    []
+    [],
   );
 
   // リサイズイベントを監視
@@ -30,7 +30,7 @@ const TopScene: React.FC<TopSceneProps> = ({ scrollY }) => {
       if (materialRef.current) {
         materialRef.current.uniforms.uResolution.value.set(
           window.innerWidth,
-          window.innerHeight
+          window.innerHeight,
         );
       }
     };
@@ -45,7 +45,7 @@ const TopScene: React.FC<TopSceneProps> = ({ scrollY }) => {
       materialRef.current.uniforms.uScroll.value = scrollY;
       materialRef.current.uniforms.uResolution.value.set(
         state.size.width,
-        state.size.height
+        state.size.height,
       );
     }
   });

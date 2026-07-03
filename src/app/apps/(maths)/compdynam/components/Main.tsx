@@ -39,7 +39,7 @@ export default function Main() {
         const initialValueCode = latexToComplexGLSL(
           initialValueLatex,
           undefined,
-          ["c", "t"]
+          ["c", "t"],
         );
         setError(null);
         return { functionCode, initialValueCode };
@@ -48,14 +48,14 @@ export default function Main() {
         return null;
       }
     },
-    []
+    [],
   );
 
   // LaTeX文字列が変更された時にGLSLコードを更新
   useEffect(() => {
     const result = convertLatexToGLSL(
       currentFunctionLatex,
-      currentInitialValueLatex
+      currentInitialValueLatex,
     );
     if (!result) return;
     setShader(() => {
@@ -65,7 +65,7 @@ export default function Main() {
       if (result.functionCode) {
         newShader = newShader.replace(
           /z\/\* input func here \*\/;/,
-          `${result.functionCode};`
+          `${result.functionCode};`,
         );
       }
 
@@ -73,7 +73,7 @@ export default function Main() {
       if (result.initialValueCode) {
         newShader = newShader.replace(
           /c\/\* input initial value here \*\/;/,
-          `${result.initialValueCode};`
+          `${result.initialValueCode};`,
         );
       }
 
@@ -168,7 +168,7 @@ export default function Main() {
       if (currentInitialValueLatex !== "0") {
         params.set(
           "initialValue",
-          encodeURIComponent(currentInitialValueLatex)
+          encodeURIComponent(currentInitialValueLatex),
         );
       }
 

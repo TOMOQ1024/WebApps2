@@ -11,7 +11,9 @@ interface ArticlePreviewProps {
 }
 
 export default function ArticlePreview({ body }: ArticlePreviewProps) {
-  const [compiled, setCompiled] = useState<MDXRemoteSerializeResult | null>(null);
+  const [compiled, setCompiled] = useState<MDXRemoteSerializeResult | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -68,7 +70,9 @@ export default function ArticlePreview({ body }: ArticlePreviewProps) {
 
       <div className="flex-1 overflow-y-auto p-4">
         {!body.trim() ? (
-          <p className="m-0 text-sm opacity-50">本文を入力するとプレビューが表示されます．</p>
+          <p className="m-0 text-sm opacity-50">
+            本文を入力するとプレビューが表示されます．
+          </p>
         ) : error ? (
           <div className="p-3 text-sm text-red-600 bg-red-100 border-2 border-red-300 whitespace-pre-wrap">
             {error}
@@ -78,7 +82,9 @@ export default function ArticlePreview({ body }: ArticlePreviewProps) {
             <MDXRemote {...compiled} components={components} />
           </div>
         ) : (
-          <p className="m-0 text-sm opacity-50">プレビューを生成しています...</p>
+          <p className="m-0 text-sm opacity-50">
+            プレビューを生成しています...
+          </p>
         )}
       </div>
     </div>

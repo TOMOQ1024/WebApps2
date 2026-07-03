@@ -37,7 +37,9 @@ export default function MainWrapper() {
   return (
     <div className="min-h-[calc(100vh-var(--header-height))] flex items-center justify-center p-8">
       <div className="w-full max-w-md border-2 border-[var(--border-color)] bg-[var(--background-color)] p-8">
-        <h1 className="text-xl font-bold mb-6 text-center">パスワードリセット</h1>
+        <h1 className="text-xl font-bold mb-6 text-center">
+          パスワードリセット
+        </h1>
 
         {linkError === "invalid_link" && (
           <div className="mb-4 p-3 text-sm text-red-600 bg-red-100 border border-red-300">
@@ -53,7 +55,8 @@ export default function MainWrapper() {
             {mailpitUrl && (
               <div className="p-3 text-sm border border-[var(--border-color)]">
                 <p className="mb-2 opacity-70">
-                  ローカル環境ではメールは実際には送信されません．Mailpit で確認してください．
+                  ローカル環境ではメールは実際には送信されません．Mailpit
+                  で確認してください．
                 </p>
                 <a
                   href={mailpitUrl}

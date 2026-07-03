@@ -33,13 +33,18 @@ export default function ControlPanel({
     if (cursor) {
       const containerRect = container.getBoundingClientRect();
       const cursorRect = cursor.getBoundingClientRect();
-      const cursorRelativeLeft = cursorRect.left - containerRect.left + container.scrollLeft;
+      const cursorRelativeLeft =
+        cursorRect.left - containerRect.left + container.scrollLeft;
       const cursorRelativeRight = cursorRelativeLeft + cursorRect.width;
 
       // カーソルが見えるようにスクロール（余白を持たせる）
       const padding = 20;
-      if (cursorRelativeRight > container.scrollLeft + container.clientWidth - padding) {
-        container.scrollLeft = cursorRelativeRight - container.clientWidth + padding;
+      if (
+        cursorRelativeRight >
+        container.scrollLeft + container.clientWidth - padding
+      ) {
+        container.scrollLeft =
+          cursorRelativeRight - container.clientWidth + padding;
       } else if (cursorRelativeLeft < container.scrollLeft + padding) {
         container.scrollLeft = cursorRelativeLeft - padding;
       }
@@ -118,7 +123,9 @@ export default function ControlPanel({
       {expressions.map((expr, index) => (
         <div key={index} className="flex items-center gap-2">
           <div className="flex items-center gap-2 text-[1.1rem] bg-[var(--background-color)] border-2 border-[var(--border-color)] p-3">
-            <span className="text-sm flex-shrink-0">{getExpressionLabel(expr)}:</span>
+            <span className="text-sm flex-shrink-0">
+              {getExpressionLabel(expr)}:
+            </span>
             <div
               ref={(el) => {
                 if (el) scrollContainerRefs.current.set(index, el);

@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, useImperativeHandle, forwardRef } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useImperativeHandle,
+  forwardRef,
+} from "react";
 import * as THREE from "three";
 import { vertexShader } from "../Shaders/VertexShader";
 import type GraphMgr from "@/src/GraphMgr";
@@ -17,13 +23,10 @@ export interface CanvasHandle {
   captureSquareThumbnail: (size?: number) => string | null;
 }
 
-const Canvas = forwardRef<CanvasHandle, CanvasProps>(function Canvas({
-  shader,
-  graph,
-  onGraphChange,
-  renderMode,
-  exprType,
-}, ref) {
+const Canvas = forwardRef<CanvasHandle, CanvasProps>(function Canvas(
+  { shader, graph, onGraphChange, renderMode, exprType },
+  ref,
+) {
   const { themeValue } = useTheme();
   const themeValueRef = useRef(themeValue);
 
@@ -48,7 +51,7 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(function Canvas({
   useEffect(() => {
     const newResolution = new THREE.Vector2(
       window.innerWidth,
-      window.innerHeight - 50
+      window.innerHeight - 50,
     );
     setResolution(newResolution);
   }, []);
@@ -75,7 +78,7 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(function Canvas({
 
     const geometry = new THREE.PlaneGeometry(
       resolution.x * 16,
-      resolution.y * 16
+      resolution.y * 16,
     );
     const material = new THREE.ShaderMaterial({
       uniforms: {
@@ -109,9 +112,10 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(function Canvas({
         if (currentGraph) {
           materialRef.current.uniforms.uGraph.value.origin.set(
             currentGraph.origin.x,
-            currentGraph.origin.y
+            currentGraph.origin.y,
           );
-          materialRef.current.uniforms.uGraph.value.radius = currentGraph.radius;
+          materialRef.current.uniforms.uGraph.value.radius =
+            currentGraph.radius;
         }
       }
     });
@@ -143,37 +147,47 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(function Canvas({
   }, [exprType]);
 
   // 正方形サムネイルをキャプチャする関数を親に公開
-  useImperativeHandle(ref, () => ({
-    captureSquareThumbnail: (size = 256): string | null => {
-      const canvasManager = canvasManagerRef.current;
-      if (!canvasManager) return null;
+  useImperativeHandle(
+    ref,
+    () => ({
+      captureSquareThumbnail: (size = 256): string | null => {
+        const canvasManager = canvasManagerRef.current;
+        if (!canvasManager) return null;
 
-      const renderer = canvasManager.getRenderer();
-      const domElement = renderer.domElement;
+        const renderer = canvasManager.getRenderer();
+        const domElement = renderer.domElement;
 
-      // キャンバスの中心から正方形を切り出す
-      const canvasWidth = domElement.width;
-      const canvasHeight = domElement.height;
-      const cropSize = Math.min(canvasWidth, canvasHeight);
-      const offsetX = Math.floor((canvasWidth - cropSize) / 2);
-      const offsetY = Math.floor((canvasHeight - cropSize) / 2);
+        // キャンバスの中心から正方形を切り出す
+        const canvasWidth = domElement.width;
+        const canvasHeight = domElement.height;
+        const cropSize = Math.min(canvasWidth, canvasHeight);
+        const offsetX = Math.floor((canvasWidth - cropSize) / 2);
+        const offsetY = Math.floor((canvasHeight - cropSize) / 2);
 
-      // 一時的なキャンバスを作成して正方形にクロップ
-      const tempCanvas = document.createElement("canvas");
-      tempCanvas.width = size;
-      tempCanvas.height = size;
-      const ctx = tempCanvas.getContext("2d");
-      if (!ctx) return null;
+        // 一時的なキャンバスを作成して正方形にクロップ
+        const tempCanvas = document.createElement("canvas");
+        tempCanvas.width = size;
+        tempCanvas.height = size;
+        const ctx = tempCanvas.getContext("2d");
+        if (!ctx) return null;
 
-      ctx.drawImage(
-        domElement,
-        offsetX, offsetY, cropSize, cropSize,
-        0, 0, size, size
-      );
+        ctx.drawImage(
+          domElement,
+          offsetX,
+          offsetY,
+          cropSize,
+          cropSize,
+          0,
+          0,
+          size,
+          size,
+        );
 
-      return tempCanvas.toDataURL("image/png");
-    },
-  }), []);
+        return tempCanvas.toDataURL("image/png");
+      },
+    }),
+    [],
+  );
 
   return (
     <div

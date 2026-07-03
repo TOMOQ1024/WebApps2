@@ -10,7 +10,7 @@ export class CoxeterDynkinDiagram {
 
   constructor(
     public labels: { [genPair: string]: [number, number] } = {},
-    public nodeMarks: { [gen: string]: string } = {}
+    public nodeMarks: { [gen: string]: string } = {},
   ) {
     this.gens = Object.keys(nodeMarks);
     this.gensStr = this.gens.join("");
@@ -20,7 +20,7 @@ export class CoxeterDynkinDiagram {
   static fromStringMatrix(matrix: string[][], toggles: string[]) {
     const diagram = new CoxeterDynkinDiagram();
     diagram.gens = Array.from({ length: matrix.length }, (_, i) =>
-      String.fromCharCode(97 + i)
+      String.fromCharCode(97 + i),
     );
     diagram.gensStr = diagram.gens.join("");
 

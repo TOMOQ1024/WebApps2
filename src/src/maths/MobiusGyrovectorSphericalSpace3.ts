@@ -100,7 +100,7 @@ export class Hyperplane3 {
     return Math.acos(
       (this.k * h.k - this.i.dot(h.i)) /
         (Math.sqrt(this.i.lengthSq() + this.k * this.k) *
-          Math.sqrt(h.i.lengthSq() + h.k * h.k))
+          Math.sqrt(h.i.lengthSq() + h.k * h.k)),
     );
   }
 }
@@ -110,7 +110,7 @@ export class MobiusGyrovectorSphericalSpace3 {
     const A = P.clone().multiplyScalar(1 - 2 * P.dot(Q) - Q.lengthSq());
     const B = Q.clone().multiplyScalar(1 + P.lengthSq());
     return A.add(B).divideScalar(
-      clampMinAbs(1 - 2 * P.dot(Q) + P.lengthSq() * Q.lengthSq(), EPSILON)
+      clampMinAbs(1 - 2 * P.dot(Q) + P.lengthSq() * Q.lengthSq(), EPSILON),
     );
   }
 
@@ -146,8 +146,8 @@ export class MobiusGyrovectorSphericalSpace3 {
       P,
       MobiusGyrovectorSphericalSpace3.mul(
         t,
-        MobiusGyrovectorSphericalSpace3.sub(Q, P)
-      )
+        MobiusGyrovectorSphericalSpace3.sub(Q, P),
+      ),
     );
   }
 
@@ -185,12 +185,12 @@ export class MobiusGyrovectorSphericalSpace3 {
     h1: Hyperplane3,
     h2: Hyperplane3,
     h3: Hyperplane3,
-    P: Vector3 | undefined = undefined
+    P: Vector3 | undefined = undefined,
   ) {
     const i = MobiusGyrovectorSphericalSpace3.intersectionHyperplane(
       h1,
       h2,
-      h3
+      h3,
     ).getRepresentativePoint();
 
     if (!P) return i;
@@ -220,7 +220,7 @@ export class MobiusGyrovectorSphericalSpace3 {
   static intersectionHyperplane(
     h1: Hyperplane3,
     h2: Hyperplane3,
-    h3: Hyperplane3
+    h3: Hyperplane3,
   ) {
     const i1 = h1.i,
       i2 = h2.i,
@@ -232,19 +232,19 @@ export class MobiusGyrovectorSphericalSpace3 {
       i2.dot(i2.clone().multiplyScalar(k1).addScaledVector(i1, -k2)),
       i2.dot(i3.clone().multiplyScalar(k1).addScaledVector(i1, -k3)),
       i3.dot(i2.clone().multiplyScalar(k1).addScaledVector(i1, -k2)),
-      i3.dot(i3.clone().multiplyScalar(k1).addScaledVector(i1, -k3))
+      i3.dot(i3.clone().multiplyScalar(k1).addScaledVector(i1, -k3)),
     ).determinant();
     const g2 = new Matrix2(
       i3.dot(i3.clone().multiplyScalar(k2).addScaledVector(i2, -k3)),
       i3.dot(i1.clone().multiplyScalar(k2).addScaledVector(i2, -k1)),
       i1.dot(i3.clone().multiplyScalar(k2).addScaledVector(i2, -k3)),
-      i1.dot(i1.clone().multiplyScalar(k2).addScaledVector(i2, -k1))
+      i1.dot(i1.clone().multiplyScalar(k2).addScaledVector(i2, -k1)),
     ).determinant();
     const g3 = new Matrix2(
       i1.dot(i1.clone().multiplyScalar(k3).addScaledVector(i3, -k1)),
       i1.dot(i2.clone().multiplyScalar(k3).addScaledVector(i3, -k2)),
       i2.dot(i1.clone().multiplyScalar(k3).addScaledVector(i3, -k1)),
-      i2.dot(i2.clone().multiplyScalar(k3).addScaledVector(i3, -k2))
+      i2.dot(i2.clone().multiplyScalar(k3).addScaledVector(i3, -k2)),
     ).determinant();
 
     const ig = new Vector3(0, 0, 0)
@@ -281,15 +281,15 @@ export class MobiusGyrovectorSphericalSpace3 {
     // const Mps = MobiusGyrovectorSphericalSpace3.midHyperplane(Hp, Hs);
     const Mpq = MobiusGyrovectorSphericalSpace3.midHyperplane(
       Hp,
-      Hq.inverted()
+      Hq.inverted(),
     );
     const Mpr = MobiusGyrovectorSphericalSpace3.midHyperplane(
       Hp,
-      Hr.inverted()
+      Hr.inverted(),
     );
     const Mps = MobiusGyrovectorSphericalSpace3.midHyperplane(
       Hp,
-      Hs.inverted()
+      Hs.inverted(),
     );
 
     return MobiusGyrovectorSphericalSpace3.intersectionPoint(Mpq, Mpr, Mps, P);
@@ -301,7 +301,7 @@ export class MobiusGyrovectorSphericalSpace3 {
     P: Vector3,
     Q: Vector3,
     R: Vector3,
-    S: Vector3
+    S: Vector3,
   ): boolean {
     const Hp = Hyperplane3.fromPoints(Q, R, S);
     const Hq = Hyperplane3.fromPoints(R, S, P);
@@ -334,7 +334,7 @@ export class MobiusGyrovectorSphericalSpace3 {
     }
     const A = MobiusGyrovectorSphericalSpace3.mul(
       0.5,
-      V.divideScalar(clampMinAbs(m, EPSILON))
+      V.divideScalar(clampMinAbs(m, EPSILON)),
     );
     const B = MobiusGyrovectorSphericalSpace3.antipode(A);
     return MobiusGyrovectorSphericalSpace3.distance(P[0], A) <

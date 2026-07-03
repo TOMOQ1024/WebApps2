@@ -48,13 +48,13 @@ export class GyrovectorSpace2 {
 
   add(P: Vector2, Q: Vector2) {
     const A = P.clone().multiplyScalar(
-      1 - 2 * this.curvature * this.dot(P, Q) - this.curvature * Q.lengthSq()
+      1 - 2 * this.curvature * this.dot(P, Q) - this.curvature * Q.lengthSq(),
     );
     const B = Q.clone().multiplyScalar(1 + this.curvature * P.lengthSq());
     return A.add(B).divideScalar(
       1 -
         2 * this.curvature * this.dot(P, Q) +
-        this.curvature * this.curvature * P.lengthSq() * Q.lengthSq()
+        this.curvature * this.curvature * P.lengthSq() * Q.lengthSq(),
     );
   }
 
@@ -80,7 +80,7 @@ export class GyrovectorSpace2 {
   rotate(P: Vector2, a: number) {
     return new Vector2(
       P.x * Math.cos(a) - P.y * Math.sin(a),
-      P.y * Math.cos(a) + P.x * Math.sin(a)
+      P.y * Math.cos(a) + P.x * Math.sin(a),
     );
   }
 
@@ -113,7 +113,7 @@ export class GyrovectorSpace2 {
   lineN(V: Vector2, P: Vector2, Q: Vector2) {
     const D = this.sub(V, P);
     return this.asin(
-      (2 * this.dot(D, Q)) / (1 + this.curvature * D.lengthSq()) / Q.length()
+      (2 * this.dot(D, Q)) / (1 + this.curvature * D.lengthSq()) / Q.length(),
     );
   }
 
@@ -127,7 +127,7 @@ export class GyrovectorSpace2 {
     const R = this.rotateFrom(V, P, 2 * this.angle3(V, P, Q));
     if (Number.isNaN(R.x)) {
       console.log(
-        `NaN detected in reflect((${V.toArray()}),(${P.toArray()}),(${Q.toArray()}))`
+        `NaN detected in reflect((${V.toArray()}),(${P.toArray()}),(${Q.toArray()}))`,
       );
     }
     return R;
@@ -141,8 +141,8 @@ export class GyrovectorSpace2 {
       Math.abs(this.line(V, P, Q)),
       Math.max(
         this.line(V, P, this.add(P, Tp)),
-        this.line(V, Q, this.add(Q, Tq))
-      )
+        this.line(V, Q, this.add(Q, Tq)),
+      ),
     );
   }
 
@@ -151,7 +151,7 @@ export class GyrovectorSpace2 {
     const RP = this.distance(R, P);
     const PQ = this.distance(P, Q);
     return this.atan(
-      this.sin((RP + PQ - QR) / 2) * Math.tan(0.5 * this.angle3(R, P, Q))
+      this.sin((RP + PQ - QR) / 2) * Math.tan(0.5 * this.angle3(R, P, Q)),
     );
   }
 
@@ -160,27 +160,27 @@ export class GyrovectorSpace2 {
     const RP = this.distance(R, P);
     const PQ = this.distance(P, Q);
     const RD = this.atan(
-      this.sin((RP + PQ - QR) / 2) * Math.tan(0.5 * this.angle3(R, P, Q))
+      this.sin((RP + PQ - QR) / 2) * Math.tan(0.5 * this.angle3(R, P, Q)),
     );
     const N = this.normalize(this.sub(Q, P));
     return this.add(
       this.add(P, this.mul((RP + PQ - QR) / 2, N)),
-      this.mul(RD, this.normal(N))
+      this.mul(RD, this.normal(N)),
     );
   }
 
   v_2v1e(P: Vector2, Q: Vector2, p: number, q: number) {
     const l = this.distance(P, Q);
     const r = Math.acos(
-      -Math.cos(p) * Math.cos(q) + Math.sin(p) * Math.sin(q) * this.cos(l)
+      -Math.cos(p) * Math.cos(q) + Math.sin(p) * Math.sin(q) * this.cos(l),
     );
     const a = this.angle1(this.sub(Q, P)) + p;
     return this.add(
       P,
       this.mul(
         this.asin((this.sin(l) * Math.sin(q)) / Math.sin(r)),
-        this.normalize(new Vector2(Math.cos(a), Math.sin(a)))
-      )
+        this.normalize(new Vector2(Math.cos(a), Math.sin(a))),
+      ),
     );
   }
 
@@ -195,7 +195,7 @@ export class GyrovectorSpace2 {
     return (
       this.curvature *
       (Math.abs(
-        this.angle3(R, P, Q) + this.angle3(P, Q, R) + this.angle3(Q, R, P)
+        this.angle3(R, P, Q) + this.angle3(P, Q, R) + this.angle3(Q, R, P),
       ) -
         Math.PI)
     );
@@ -222,7 +222,7 @@ export class GyrovectorSpace2 {
         .multiplyScalar(gp * lp)
         .add(Q.clone().multiplyScalar(gq * lq))
         .add(R.clone().multiplyScalar(gr * lr))
-        .divideScalar(m)
+        .divideScalar(m),
     );
   }
 
@@ -242,7 +242,7 @@ export class GyrovectorSpace2 {
         .multiplyScalar(gp * lp)
         .add(Q.clone().multiplyScalar(gq * lq))
         .add(R.clone().multiplyScalar(gr * lr))
-        .divideScalar(m)
+        .divideScalar(m),
     );
   }
 

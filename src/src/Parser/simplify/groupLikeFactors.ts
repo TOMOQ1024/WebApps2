@@ -1,9 +1,7 @@
 import { ASTNode } from "../ASTNode";
 import { extractExponent } from "./extractExponent";
 
-function primeFactorize(
-  n: number
-): Array<{ prime: number; power: number }> {
+function primeFactorize(n: number): Array<{ prime: number; power: number }> {
   const factors: Array<{ prime: number; power: number }> = [];
   let temp = n;
 
@@ -26,7 +24,7 @@ function primeFactorize(
 }
 
 function expandNumericFactor(
-  factor: ASTNode
+  factor: ASTNode,
 ): Array<{ exponent: number; base: ASTNode }> {
   const { exponent, base } = extractExponent(factor);
 
@@ -68,7 +66,7 @@ function expandNumericFactor(
 function addToGroup(
   groups: Map<string, { exponent: number; base: ASTNode }>,
   exponent: number,
-  base: ASTNode
+  base: ASTNode,
 ): void {
   const baseKey = normalizeBaseKey(base);
   const existing = groups.get(baseKey);
@@ -86,7 +84,7 @@ function isNumericFactor(factor: ASTNode): boolean {
 
 // 同じ底の因子をグループ化
 export function groupLikeFactors(
-  factors: ASTNode[]
+  factors: ASTNode[],
 ): Map<string, { exponent: number; base: ASTNode }> {
   const groups = new Map<string, { exponent: number; base: ASTNode }>();
   const expandNumeric = factors.length > 0 && factors.every(isNumericFactor);

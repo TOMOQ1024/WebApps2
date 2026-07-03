@@ -5,7 +5,7 @@ import { flattenMultiplication } from "./flattenMultiplication";
 // 正規化されたASTを元の形式に戻す
 export function denormalizeAST(
   node: ASTNode,
-  options?: SimplifyOptions
+  options?: SimplifyOptions,
 ): ASTNode {
   if (node.type === "operator") {
     const left = denormalizeAST(node.left, options);
@@ -87,13 +87,13 @@ export function denormalizeAST(
           numeratorFactors.length === 0
             ? { type: "number" as const, value: 1 }
             : numeratorFactors.length === 1
-            ? numeratorFactors[0]
-            : numeratorFactors.reduce((a, b) => ({
-                type: "operator" as const,
-                op: "*",
-                left: a,
-                right: b,
-              }));
+              ? numeratorFactors[0]
+              : numeratorFactors.reduce((a, b) => ({
+                  type: "operator" as const,
+                  op: "*",
+                  left: a,
+                  right: b,
+                }));
 
         const denominator =
           denominatorFactors.length === 1

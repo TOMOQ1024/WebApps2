@@ -41,8 +41,8 @@ export default function Main() {
         b: "x",
         c: "x",
         d: "x",
-      }
-    )
+      },
+    ),
   );
   const [error, setError] = useState<string | null>(null);
   const [buildTime, setBuildTime] = useState(0);
@@ -85,7 +85,7 @@ export default function Main() {
       -2 * Math.cos((Math.PI / labels.ad[0]) * labels.ad[1]),
       -2 * Math.cos((Math.PI / labels.bd[0]) * labels.bd[1]),
       -2 * Math.cos((Math.PI / labels.cd[0]) * labels.cd[1]),
-      2
+      2,
     );
 
     return mat.determinant();
@@ -99,7 +99,7 @@ export default function Main() {
       const det = await computeSchlafliMatrixDeterminant(core);
       if (core.diagram.isVolumeless()) {
         setError(
-          "多胞体の次元が4未満です．低次元多胞体の生成は今後の開発で対応予定です．"
+          "多胞体の次元が4未満です．低次元多胞体の生成は今後の開発で対応予定です．",
         );
       } else if (det <= 0) {
         setError("頂点数が有限ではありません");
@@ -124,7 +124,7 @@ export default function Main() {
         handleBuild();
       }
     },
-    [core, handleBuild]
+    [core, handleBuild],
   );
 
   const handleDownloadGLB = useCallback(() => {
@@ -158,7 +158,7 @@ export default function Main() {
     } catch (error) {
       console.error("VRモードの切り替えに失敗しました:", error);
       alert(
-        "VRモードの切り替えに失敗しました。WebXR対応のヘッドセットが接続されているかご確認ください。"
+        "VRモードの切り替えに失敗しました。WebXR対応のヘッドセットが接続されているかご確認ください。",
       );
     }
   }, [core]);

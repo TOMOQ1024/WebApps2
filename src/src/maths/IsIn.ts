@@ -4,7 +4,7 @@ export function IsIn(
   l: number,
   t: number,
   w: number,
-  h: number
+  h: number,
 ) {
   if (x < l) return false;
   if (y < t) return false;

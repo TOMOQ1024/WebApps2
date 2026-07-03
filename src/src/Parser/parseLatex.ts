@@ -65,7 +65,10 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
       if (peek() === "(") {
         advance(); // '('
         // カンマ区切りの複数引数をパース
-        while (peek() !== "" && !(peek() === "\\" && latex.slice(pos, pos + 6) === "\\right")) {
+        while (
+          peek() !== "" &&
+          !(peek() === "\\" && latex.slice(pos, pos + 6) === "\\right")
+        ) {
           args.push(parseExpression());
           skipWhitespace();
           if (peek() === ",") {
@@ -184,7 +187,9 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
     }
 
     if (depth > 0) {
-      throw new Error(`Unmatched \\l${funcName === "floor" ? "floor" : "ceil"}`);
+      throw new Error(
+        `Unmatched \\l${funcName === "floor" ? "floor" : "ceil"}`,
+      );
     }
 
     // 空の内容はエラー
@@ -629,7 +634,7 @@ export function parseLatex(latex: string, knownFuncs: string[]): ASTNode {
     return result;
   } catch (error) {
     throw new Error(
-      `Parse error: ${(error as Error).message} at position ${pos} in: ${latex}`
+      `Parse error: ${(error as Error).message} at position ${pos} in: ${latex}`,
     );
   }
 }

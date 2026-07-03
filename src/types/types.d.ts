@@ -14,7 +14,7 @@ declare global {
     isSessionSupported(mode: XRSessionMode): Promise<boolean>;
     requestSession(
       mode: XRSessionMode,
-      options?: XRSessionInit
+      options?: XRSessionInit,
     ): Promise<XRSession>;
   }
 

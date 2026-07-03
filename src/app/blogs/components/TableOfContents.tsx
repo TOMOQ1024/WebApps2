@@ -56,7 +56,7 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
       {
         rootMargin: "-80px 0px -80% 0px",
         threshold: 0,
-      }
+      },
     );
 
     const headingElements = document.querySelectorAll("h1, h2, h3, h4");
