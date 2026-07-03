@@ -11,7 +11,15 @@ import { pathToFileURL } from "node:url";
 import type { AppConfig } from "../src/lib/apps/types";
 
 const APPS_ROOT = resolve(__dirname, "../src/app/apps");
+const ICONS_ROOT = resolve(__dirname, "../public/app-icons");
 const OUTPUT = resolve(__dirname, "../src/lib/apps/appList.generated.ts");
+
+const ADMIN_PATHS = new Set([
+  "signin",
+  "signup",
+  "forgot-password",
+  "reset-password",
+]);
 
 function findAppConfigFiles(dir: string): string[] {
   const results: string[] = [];
@@ -34,9 +42,29 @@ function findAppConfigFiles(dir: string): string[] {
   return results;
 }
 
+function findAppPageDirs(dir: string): string[] {
+  const results: string[] = [];
+
+  for (const entry of readdirSync(dir)) {
+    const fullPath = join(dir, entry);
+    if (!statSync(fullPath).isDirectory()) {
+      continue;
+    }
+
+    if (existsSync(join(fullPath, "page.tsx"))) {
+      results.push(fullPath);
+      continue;
+    }
+
+    results.push(...findAppPageDirs(fullPath));
+  }
+
+  return results;
+}
+
 /** `(maths)/compdynam` → `compdynam`, `(experimental)/three/fiber` → `three/fiber` */
-function pathFromConfigFile(configFile: string): string {
-  const relativePath = relative(APPS_ROOT, dirname(configFile));
+function pathFromAppDir(appDir: string): string {
+  const relativePath = relative(APPS_ROOT, appDir);
   return relativePath
     .split("/")
     .filter((segment) => !/^\(.+\)$/.test(segment))
@@ -62,6 +90,22 @@ function serializeEntry(config: AppConfig): string {
 
 async function main() {
   const configFiles = findAppConfigFiles(APPS_ROOT).sort();
+  const pageDirs = findAppPageDirs(APPS_ROOT);
+  const pagePaths = new Set(
+    pageDirs
+      .map(pathFromAppDir)
+      .filter((path) => path.length > 0 && !ADMIN_PATHS.has(path)),
+  );
+  const configPaths = new Set(configFiles.map((file) => pathFromConfigFile(file)));
+
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  for (const path of [...pagePaths].sort()) {
+    if (!configPaths.has(path)) {
+      errors.push(`page のみ存在: ${path}（app.config.ts がありません）`);
+    }
+  }
 
   if (configFiles.length === 0) {
     console.error("app.config.ts が見つかりません");
@@ -75,19 +119,44 @@ async function main() {
     const pageFile = join(dirname(configFile), "page.tsx");
 
     if (!existsSync(pageFile)) {
-      console.warn(`  ⚠ ${appPath}: page.tsx がありません (${configFile})`);
+      errors.push(`config のみ存在: ${appPath}（page.tsx がありません）`);
+      continue;
     }
 
     const mod = await import(pathToFileURL(configFile).href);
     const config = mod.appConfig as AppConfig | undefined;
 
     if (!config) {
-      console.error(`  ✗ ${appPath}: appConfig の export がありません`);
-      process.exit(1);
+      errors.push(`${appPath}: appConfig の export がありません`);
+      continue;
+    }
+
+    if (config.status === "published" && !config.description?.trim()) {
+      warnings.push(`${appPath}: description がありません（published）`);
+    }
+
+    const iconFile = join(ICONS_ROOT, `${appPath}.png`);
+    if (config.status === "published" && !existsSync(iconFile)) {
+      warnings.push(`${appPath}: アイコンがありません（public/app-icons/${appPath}.png）`);
     }
 
     entries.push({ path: appPath, config });
     console.log(`  ✓ ${appPath}`);
+  }
+
+  if (warnings.length > 0) {
+    console.warn("\n警告:");
+    for (const warning of warnings) {
+      console.warn(`  ⚠ ${warning}`);
+    }
+  }
+
+  if (errors.length > 0) {
+    console.error("\nエラー:");
+    for (const error of errors) {
+      console.error(`  ✗ ${error}`);
+    }
+    process.exit(1);
   }
 
   entries.sort((a, b) => {
@@ -117,6 +186,10 @@ ${body}
 
   writeFileSync(OUTPUT, output, "utf8");
   console.log(`\n✓ ${entries.length} 件 → ${relative(process.cwd(), OUTPUT)}`);
+}
+
+function pathFromConfigFile(configFile: string): string {
+  return pathFromAppDir(dirname(configFile));
 }
 
 main().catch((error) => {
