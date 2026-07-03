@@ -21,8 +21,7 @@ src/
 │   │   ├── (games)/      # ゲーム
 │   │   ├── (tools)/      # ツール
 │   │   └── (experimental)/ # 実験的
-│   ├── galleries/         # ギャラリー
-│   └── works/             # 作品一覧
+│   └── galleries/         # ギャラリー
 ├── components/            # 共通 UI コンポーネント
 ├── hooks/                 # カスタム Hooks
 ├── lib/                   # ユーティリティ

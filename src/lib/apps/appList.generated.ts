@@ -71,20 +71,10 @@ export const appList = {
     status: "lab",
     tags: ["maths","fractal"],
   },
-  "cubes": {
-    appName: "Cubes",
-    status: "lab",
-    tags: ["game"],
-  },
   "diceroll": {
     appName: "Dice Roll",
     status: "lab",
     tags: ["utility"],
-  },
-  "flappypigeon": {
-    appName: "Flappy Pigeon",
-    status: "lab",
-    tags: ["game"],
   },
   "h2tiling": {
     appName: "H2 Tiling",
@@ -96,21 +86,6 @@ export const appList = {
     status: "lab",
     tags: ["maths"],
   },
-  "minesweeper": {
-    appName: "Minesweeper",
-    status: "lab",
-    tags: ["game"],
-  },
-  "nessy": {
-    appName: "Nessy",
-    status: "lab",
-    tags: ["game"],
-  },
-  "othello": {
-    appName: "Othello",
-    status: "lab",
-    tags: ["game"],
-  },
   "polyhedra": {
     appName: "Polyhedra",
     status: "lab",
@@ -120,10 +95,5 @@ export const appList = {
     appName: "Recursive Tree",
     status: "lab",
     tags: ["maths","fractal"],
-  },
-  "tictactoe": {
-    appName: "Tic Tac Toe",
-    status: "lab",
-    tags: ["game"],
   },
 } satisfies AppList;

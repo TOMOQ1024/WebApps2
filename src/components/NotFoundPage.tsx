@@ -9,7 +9,6 @@ const mainLinks = [
   { href: "/apps", label: "Apps" },
   { href: "/galleries", label: "Galleries" },
   { href: "/blogs", label: "Blogs" },
-  { href: "/works", label: "Works" },
 ];
 
 export default function NotFoundPage() {
