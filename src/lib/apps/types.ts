@@ -6,7 +6,6 @@ export type AppTag =
   | "maths"
   | "experimental"
   | "webgl"
-  | "webgpu"
   | "fractal"
   | "geometry";
 
