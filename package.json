@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "portless tomoq next dev",
-    "build": "next build",
+    "generate:app-list": "tsx scripts/generate-app-list.ts",
+    "dev": "pnpm generate:app-list && portless tomoq next dev",
+    "build": "pnpm generate:app-list && next build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",

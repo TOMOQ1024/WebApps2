@@ -2,7 +2,6 @@
 
 import { createClient } from "./server";
 import type {
-  AppWithTags,
   GalleryWithTags,
   GalleryItem,
   Graph2DGalleryItem,
@@ -11,81 +10,6 @@ import type {
   CompDynamGalleryItem,
   Tag,
 } from "./types";
-
-/**
- * すべてのアプリを取得（タグ付き）
- */
-export async function getApps(): Promise<AppWithTags[]> {
-  const supabase = await createClient();
-
-  const { data: apps, error: appsError } = await supabase
-    .from("apps")
-    .select("*")
-    .order("sort_order");
-
-  if (appsError) {
-    console.error("Error fetching apps:", appsError);
-    return [];
-  }
-
-  // アプリごとのタグを取得
-  const appsWithTags: AppWithTags[] = await Promise.all(
-    apps.map(async (app) => {
-      const { data: tagRelations } = await supabase
-        .from("app_tags")
-        .select("tag_id")
-        .eq("app_id", app.id);
-
-      if (!tagRelations || tagRelations.length === 0) {
-        return { ...app, tags: [] };
-      }
-
-      const tagIds = tagRelations.map((r) => r.tag_id);
-      const { data: tags } = await supabase
-        .from("tags")
-        .select("*")
-        .in("id", tagIds);
-
-      return { ...app, tags: tags ?? [] };
-    })
-  );
-
-  return appsWithTags;
-}
-
-/**
- * パスからアプリを取得
- */
-export async function getAppByPath(path: string): Promise<AppWithTags | null> {
-  const supabase = await createClient();
-
-  const { data: app, error } = await supabase
-    .from("apps")
-    .select("*")
-    .eq("path", path)
-    .single();
-
-  if (error || !app) {
-    return null;
-  }
-
-  const { data: tagRelations } = await supabase
-    .from("app_tags")
-    .select("tag_id")
-    .eq("app_id", app.id);
-
-  if (!tagRelations || tagRelations.length === 0) {
-    return { ...app, tags: [] };
-  }
-
-  const tagIds = tagRelations.map((r) => r.tag_id);
-  const { data: tags } = await supabase
-    .from("tags")
-    .select("*")
-    .in("id", tagIds);
-
-  return { ...app, tags: tags ?? [] };
-}
 
 /**
  * すべてのギャラリーを取得（タグ付き）
@@ -294,37 +218,6 @@ export async function getTagsForGalleryItems(): Promise<Tag[]> {
   }
 
   return data ?? [];
-}
-
-/**
- * アプリ一覧を appList 互換形式で取得
- * 既存コードとの互換性のため
- */
-export async function getAppListCompat(): Promise<{
-  [path: string]: {
-    appName: string;
-    description?: string;
-    tags: Set<string>;
-  };
-}> {
-  const apps = await getApps();
-  const result: {
-    [path: string]: {
-      appName: string;
-      description?: string;
-      tags: Set<string>;
-    };
-  } = {};
-
-  for (const app of apps) {
-    result[app.path] = {
-      appName: app.app_name,
-      description: app.description || undefined,
-      tags: new Set(app.tags.map((t) => t.name)),
-    };
-  }
-
-  return result;
 }
 
 /**

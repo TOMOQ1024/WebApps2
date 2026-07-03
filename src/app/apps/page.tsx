@@ -1,4 +1,4 @@
-import { getApps } from "@/lib/supabase/actions";
+import { getPublishedApps } from "@/lib/appList";
 import Link from "next/link";
 import ImageWithFallback from "@/components/ImageWithFallback";
 import styles from "./page.module.scss";
@@ -7,8 +7,8 @@ export const metadata = {
   title: "tomoq apps",
 };
 
-export default async function Home() {
-  const apps = await getApps();
+export default function Home() {
+  const apps = getPublishedApps();
 
   return (
     <main className={styles.appsPage}>
@@ -18,31 +18,25 @@ export default async function Home() {
       </section>
 
       <section className={styles.appsGrid}>
-        {apps.map((app) => {
-          const hasWipTag = app.tags.some((tag) => tag.name === "wip");
-          if (hasWipTag) {
-            return null;
-          }
-          return (
-            <Link
-              key={app.path}
-              href={`/apps/${app.path}`}
-              className={styles.appCard}
-              draggable={false}
-            >
-              <div className={styles.appIcon}>
-                <ImageWithFallback
-                  src={`/app-icons/${app.path}.png`}
-                  width={128}
-                  height={128}
-                  alt={`App icon of ${app.app_name}`}
-                  priority={false}
-                />
-              </div>
-              <div className={styles.appName}>{app.app_name}</div>
-            </Link>
-          );
-        })}
+        {apps.map((app) => (
+          <Link
+            key={app.path}
+            href={`/apps/${app.path}`}
+            className={styles.appCard}
+            draggable={false}
+          >
+            <div className={styles.appIcon}>
+              <ImageWithFallback
+                src={`/app-icons/${app.path}.png`}
+                width={128}
+                height={128}
+                alt={`App icon of ${app.appName}`}
+                priority={false}
+              />
+            </div>
+            <div className={styles.appName}>{app.appName}</div>
+          </Link>
+        ))}
       </section>
     </main>
   );

@@ -13,7 +13,6 @@ import { config } from "dotenv";
 import { resolve } from "path";
 import { galleryData as compdynamGalleryData } from "../src/app/galleries/compdynam/GalleryData";
 import { galleryData as graph2dGalleryData } from "../src/app/galleries/graph-2d/GalleryData";
-import { appList } from "../src/lib/appList";
 import { galleryList } from "../src/lib/galleryList";
 
 // .env.local を読み込む
@@ -79,14 +78,8 @@ async function checkSchema() {
 async function seedTags() {
   console.log("タグを投入中...");
 
-  // appList と galleryList から全タグを収集
+  // galleryList から全タグを収集
   const allTags = new Set<string>();
-
-  Object.values(appList).forEach((app) => {
-    app.tags.forEach((tag) => {
-      allTags.add(tag);
-    });
-  });
 
   Object.values(galleryList).forEach((gallery) => {
     gallery.tags.forEach((tag) => {
@@ -129,54 +122,6 @@ async function seedTags() {
   }
 
   return tagMap;
-}
-
-async function seedApps(tagMap: Map<string, string>) {
-  console.log("\nアプリを投入中...");
-
-  const appMap = new Map<string, string>();
-  let sortOrder = 0;
-
-  for (const [path, app] of Object.entries(appList)) {
-    const { data, error } = await supabase
-      .from("apps")
-      .upsert(
-        {
-          path,
-          app_name: app.appName,
-          description: app.description || "",
-          sort_order: sortOrder++,
-        },
-        { onConflict: "path" },
-      )
-      .select()
-      .single();
-
-    if (error) {
-      console.error(`アプリ "${path}" の投入エラー:`, error);
-      continue;
-    }
-
-    if (data) {
-      appMap.set(path, data.id);
-      console.log(`  ✓ ${path} (id: ${data.id})`);
-
-      // タグを関連付け
-      for (const tagName of app.tags) {
-        const tagId = tagMap.get(tagName);
-        if (tagId) {
-          await supabase
-            .from("app_tags")
-            .upsert(
-              { app_id: data.id, tag_id: tagId },
-              { onConflict: "app_id,tag_id" },
-            );
-        }
-      }
-    }
-  }
-
-  return appMap;
 }
 
 async function seedGalleries(tagMap: Map<string, string>) {
@@ -317,7 +262,6 @@ async function main() {
     // await supabase.from('tags').delete().neq('id', 0)
 
     const tagMap = await seedTags();
-    await seedApps(tagMap);
     const galleryMap = await seedGalleries(tagMap);
     await seedGalleryItems(galleryMap);
 

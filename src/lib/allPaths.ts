@@ -1,4 +1,4 @@
-import { appList } from "./appList";
+import { appList } from "./apps";
 import { galleryList } from "./galleryList";
 
 /**

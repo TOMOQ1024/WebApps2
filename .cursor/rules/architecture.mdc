@@ -34,7 +34,16 @@ src/
 - `src/src/` は歴史的経緯で残っている二重構造
 - 将来的に `src/core/` などに整理したい
 
+## アプリ一覧
+
+- 各アプリの `app.config.ts` が正（`src/app/apps/**/app.config.ts`）
+- `pnpm generate:app-list` で `src/lib/apps/appList.generated.ts` を生成
+- `status: "published"` のみ `/apps` 一覧に表示
+- `status: "lab"` は URL 直打ちのみ（一覧非表示）
+- experimental など未登録アプリは `app.config.ts` を置かなければ一覧対象外
+
 ## アプリ追加時
 
 1. `src/app/apps/(category)/[app-name]/` にディレクトリ作成
-2. `src/lib/appList.ts` にエントリ追加
+2. 同ディレクトリに `app.config.ts` を追加
+3. `pnpm generate:app-list` を実行（`dev` / `build` でも自動実行）
