@@ -66,9 +66,18 @@ export const appList = {
     tags: ["utility","webgl"],
     sortOrder: 10,
   },
-  "diceroll": {
-    appName: "Dice Roll",
-    status: "lab",
-    tags: ["utility"],
+  "simplify": {
+    appName: "Simplify",
+    status: "published",
+    tags: ["maths","utility"],
+    description: "LaTeX 式の簡約のデモ",
+    sortOrder: 11,
+  },
+  "differential": {
+    appName: "Differential",
+    status: "published",
+    tags: ["maths","utility"],
+    description: "LaTeX 式の微分のデモ",
+    sortOrder: 12,
   },
 } satisfies AppList;

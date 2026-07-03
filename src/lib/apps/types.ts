@@ -5,7 +5,7 @@ export type AppTag =
   | "game"
   | "maths"
   | "experimental"
-  | "webgl"
+  | "shader"
   | "fractal"
   | "geometry";
 
